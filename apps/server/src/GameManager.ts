@@ -51,6 +51,7 @@ export class GameManager {
       name: dbTeam.name,
       color: dbTeam.color,
       score: score,
+      lastAnswerCorrect: null,
     };
     session.teams.push(newTeam);
     return newTeam;
@@ -81,6 +82,11 @@ export class GameManager {
     session.currentQuestion = question;
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.time_limit_seconds;
+
+    // Reset last answer status for all teams
+    for (const team of session.teams) {
+      team.lastAnswerCorrect = null;
+    }
 
     const existingTimer = this.timers.get(competitionId);
     if (existingTimer) clearInterval(existingTimer);
@@ -165,8 +171,12 @@ export class GameManager {
       ]
     );
 
-    // Update score in memory immediately for auto-graded questions
+    // Update score and status in memory immediately for auto-graded questions
     if (isCorrect !== null) {
+      const team = session.teams.find((t) => t.id === teamId);
+      if (team) {
+        team.lastAnswerCorrect = isCorrect;
+      }
       await this.refreshTeamScores(competitionId);
     }
 
@@ -187,10 +197,18 @@ export class GameManager {
     answerId: string,
     correct: boolean
   ) {
+    const session = this.getOrCreateSession(competitionId);
+
     // Get the answer details
     const res = await query("SELECT * FROM answers WHERE id = $1", [answerId]);
     if (res.rows.length === 0) return;
     const answer = res.rows[0];
+
+    // Update in-memory status
+    const team = session.teams.find((t) => t.id === answer.team_id);
+    if (team) {
+      team.lastAnswerCorrect = correct;
+    }
 
     // Get question points
     const qRes = await query("SELECT points FROM questions WHERE id = $1", [
@@ -259,6 +277,7 @@ export class GameManager {
       name: dbTeam.name,
       color: dbTeam.color,
       score,
+      lastAnswerCorrect: null,
     };
     session.teams.push(restoredTeam);
     return restoredTeam;

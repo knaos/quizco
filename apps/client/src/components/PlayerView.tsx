@@ -69,7 +69,7 @@ export const PlayerView: React.FC = () => {
       setAnswer("");
       setSubmitted(false);
     }
-  }, [state.currentQuestion?.id]);
+  }, [state.currentQuestion]);
 
   const handleSelectCompetition = (id: string) => {
       setSelectedCompId(id);
@@ -214,20 +214,24 @@ export const PlayerView: React.FC = () => {
   const getCorrectAnswer = () => {
     if (!state.currentQuestion) return "";
     const { type, content } = state.currentQuestion;
-    if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
+    if (type === "MULTIPLE_CHOICE") {
       return content?.options?.[content?.correctIndex] || "Unknown";
+    }
+    if (type === "CLOSED") {
+        // For CLOSED, content.options is a list of acceptable answers
+        return content?.options?.[0] || "Unknown";
     }
     return content?.answer || content?.correctAnswer || "Unknown";
   };
 
   const isCorrect = () => {
-    if (!state.currentQuestion) return false;
-    const { type, content } = state.currentQuestion;
-    if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
-      return parseInt(answer) === content?.correctIndex;
-    }
-    // Simple string comparison for other types
-    return answer.toLowerCase().trim() === getCorrectAnswer().toString().toLowerCase().trim();
+    const team = state.teams.find(t => t.name === teamName);
+    return team?.lastAnswerCorrect === true;
+  };
+
+  const getGradingStatus = () => {
+    const team = state.teams.find(t => t.name === teamName);
+    return team?.lastAnswerCorrect;
   };
 
   return (
@@ -373,13 +377,17 @@ export const PlayerView: React.FC = () => {
                    <Info className="w-6 h-6" />
                    <span className="font-bold uppercase tracking-widest text-sm">{t('player.reveal_phase')}</span>
                  </div>
-                 {isCorrect() ? (
+                 {getGradingStatus() === true ? (
                    <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
                      <CheckCircle className="w-4 h-4 mr-2" /> {t('player.correct')}
                    </span>
-                 ) : (
+                 ) : getGradingStatus() === false ? (
                    <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
                      <XCircle className="w-4 h-4 mr-2" /> {t('player.incorrect')}
+                   </span>
+                 ) : (
+                   <span className="bg-gray-100 text-gray-700 px-4 py-1 rounded-full font-bold flex items-center">
+                     <Clock className="w-4 h-4 mr-2" /> {t('player.waiting_grading')}
                    </span>
                  )}
               </div>
@@ -389,7 +397,7 @@ export const PlayerView: React.FC = () => {
               </h2>
 
               <div className="space-y-6">
-                {(state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED") ? (
+                {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
                   <div className="grid grid-cols-1 gap-4">
                     {state.currentQuestion.content?.options?.map((opt: string, i: number) => {
                       const isOptionCorrect = i === state.currentQuestion!.content.correctIndex;
@@ -428,9 +436,9 @@ export const PlayerView: React.FC = () => {
                       <span className="text-green-600 text-xs font-bold uppercase">{t('player.correct_answer')}</span>
                       <p className="text-2xl font-black text-green-900 mt-1">{getCorrectAnswer()}</p>
                     </div>
-                    <div className={`${isCorrect() ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"} p-6 rounded-2xl border-2`}>
-                      <span className={`${isCorrect() ? "text-green-600" : "text-red-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
-                      <p className={`text-2xl font-black ${isCorrect() ? "text-green-900" : "text-red-900"} mt-1`}>
+                    <div className={`${isCorrect() ? "bg-green-50 border-green-200" : getGradingStatus() === false ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"} p-6 rounded-2xl border-2`}>
+                      <span className={`${isCorrect() ? "text-green-600" : getGradingStatus() === false ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
+                      <p className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
                         {answer || "(No Answer)"}
                       </p>
                     </div>

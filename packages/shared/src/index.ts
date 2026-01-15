@@ -71,6 +71,7 @@ export interface Team {
   name: string;
   color: string;
   score: number;
+  lastAnswerCorrect: boolean | null;
 }
 
 export interface GameState {

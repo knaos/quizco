@@ -242,4 +242,107 @@ describe("GameManager Integration", () => {
     );
     expect(answerRes.rows[0].is_correct).toBe(true);
   });
+
+  describe("lastAnswerCorrect tracking", () => {
+    it("should initialize lastAnswerCorrect as null", async () => {
+      const team = await gameManager.addTeam(compId, "Test Team", "#000000");
+      expect(team.lastAnswerCorrect).toBeNull();
+    });
+
+    it("should reset lastAnswerCorrect when starting a new question", async () => {
+      // 1. Setup
+      const competitionRes = await pool.query(
+        "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
+        ["Test", "1"]
+      );
+      const testCompId = competitionRes.rows[0].id;
+      const team = await gameManager.addTeam(testCompId, "T1", "#000");
+
+      const roundRes = await pool.query(
+        "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
+        [testCompId]
+      );
+      const qRes = await pool.query(
+        "INSERT INTO questions (round_id, question_text, type, content, points, grading) VALUES ($1, 'Q1', 'MULTIPLE_CHOICE', $2, 10, 'AUTO') RETURNING id",
+        [
+          roundRes.rows[0].id,
+          JSON.stringify({ options: ["A", "B"], correctIndex: 0 }),
+        ]
+      );
+      const questionId = qRes.rows[0].id;
+
+      // 2. Mock a correct answer to set the status
+      await gameManager.startQuestion(testCompId, questionId);
+      gameManager.startTimer(testCompId, () => {});
+      await gameManager.submitAnswer(testCompId, team.id, questionId, 0);
+
+      expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
+        true
+      );
+
+      // 3. Start a new question and verify reset
+      const q2Res = await pool.query(
+        "INSERT INTO questions (round_id, question_text, type, content, points, grading) VALUES ($1, 'Q2', 'MULTIPLE_CHOICE', $2, 10, 'AUTO') RETURNING id",
+        [
+          roundRes.rows[0].id,
+          JSON.stringify({ options: ["X", "Y"], correctIndex: 0 }),
+        ]
+      );
+      await gameManager.startQuestion(testCompId, q2Res.rows[0].id);
+
+      expect(
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
+      ).toBeNull();
+    });
+
+    it("should update lastAnswerCorrect for manual grading", async () => {
+      // 1. Setup
+      const competitionRes = await pool.query(
+        "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
+        ["Test", "1"]
+      );
+      const testCompId = competitionRes.rows[0].id;
+      const team = await gameManager.addTeam(testCompId, "T1", "#000");
+
+      const roundRes = await pool.query(
+        "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
+        [testCompId]
+      );
+      const qRes = await pool.query(
+        "INSERT INTO questions (round_id, question_text, type, content, points, grading) VALUES ($1, 'Q1', 'OPEN_WORD', '{}', 10, 'MANUAL') RETURNING id",
+        [roundRes.rows[0].id]
+      );
+      const questionId = qRes.rows[0].id;
+
+      await gameManager.startQuestion(testCompId, questionId);
+      gameManager.startTimer(testCompId, () => {});
+      await gameManager.submitAnswer(
+        testCompId,
+        team.id,
+        questionId,
+        "My Answer"
+      );
+
+      // Initially null
+      expect(
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
+      ).toBeNull();
+
+      // Get answer ID
+      const answerRes = await pool.query(
+        "SELECT id FROM answers WHERE team_id = $1 AND question_id = $2",
+        [team.id, questionId]
+      );
+      const answerId = answerRes.rows[0].id;
+
+      // 2. Act: Grade it correctly
+      await gameManager.handleGradeDecision(testCompId, answerId, true);
+
+      // 3. Assert
+      expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
+        true
+      );
+      expect(gameManager.getState(testCompId).teams[0].score).toBe(10);
+    });
+  });
 });
