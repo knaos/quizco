@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Send, Clock, CheckCircle } from "lucide-react";
+import { Send, Clock, CheckCircle, XCircle, Info } from "lucide-react";
 import { Crossword } from "./Crossword";
 
 export const PlayerView: React.FC = () => {
@@ -11,6 +11,13 @@ export const PlayerView: React.FC = () => {
   const [joined, setJoined] = useState(false);
   const [answer, setAnswer] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  React.useEffect(() => {
+    if (state.currentQuestion) {
+      setAnswer("");
+      setSubmitted(false);
+    }
+  }, [state.currentQuestion?.id]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +73,25 @@ export const PlayerView: React.FC = () => {
     );
   }
 
+  const getCorrectAnswer = () => {
+    if (!state.currentQuestion) return "";
+    const { type, content } = state.currentQuestion;
+    if (type === "MULTIPLE_CHOICE") {
+      return content.options[content.correctIndex] || "Unknown";
+    }
+    return content.answer || content.correctAnswer || "Unknown";
+  };
+
+  const isCorrect = () => {
+    if (!state.currentQuestion) return false;
+    const { type, content } = state.currentQuestion;
+    if (type === "MULTIPLE_CHOICE") {
+      return parseInt(answer) === content.correctIndex;
+    }
+    // Simple string comparison for other types
+    return answer.toLowerCase().trim() === getCorrectAnswer().toString().toLowerCase().trim();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white shadow-sm p-4 flex justify-between items-center">
@@ -82,6 +108,21 @@ export const PlayerView: React.FC = () => {
             <Clock className="w-16 h-16 text-blue-500 animate-pulse mx-auto" />
             <h2 className="text-2xl font-bold text-gray-800">Waiting for the host to start...</h2>
             <p className="text-gray-500">Get ready!</p>
+          </div>
+        )}
+
+        {state.phase === "QUESTION_PREVIEW" && state.currentQuestion && (
+          <div className="w-full max-w-2xl space-y-8">
+            <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-yellow-500">
+              <span className="text-yellow-600 font-bold uppercase tracking-wider text-sm">Upcoming Question</span>
+              <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
+                {state.currentQuestion.question_text}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <Clock className="w-12 h-12 text-yellow-500 animate-spin-slow mx-auto" />
+              <p className="text-xl font-medium text-gray-600">The host is reading the question. Get ready to answer!</p>
+            </div>
           </div>
         )}
 
@@ -168,8 +209,91 @@ export const PlayerView: React.FC = () => {
 
         {state.phase === "GRADING" && (
            <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-800">Time's up!</h2>
-            <p className="text-gray-500">Wait for grading...</p>
+            <Clock className="w-16 h-16 text-orange-500 mx-auto" />
+            <h2 className="text-3xl font-bold text-gray-800">Time's up!</h2>
+            <p className="text-xl text-gray-500">The round has ended. Waiting for the host to reveal the answer...</p>
+          </div>
+        )}
+
+        {state.phase === "REVEAL_ANSWER" && state.currentQuestion && (
+          <div className="w-full max-w-3xl space-y-8 animate-in fade-in zoom-in duration-500">
+            <div className="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-blue-500 text-left">
+              <div className="flex items-center justify-between mb-6">
+                 <div className="flex items-center space-x-2 text-blue-600">
+                   <Info className="w-6 h-6" />
+                   <span className="font-bold uppercase tracking-widest text-sm">Reveal Phase</span>
+                 </div>
+                 {isCorrect() ? (
+                   <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
+                     <CheckCircle className="w-4 h-4 mr-2" /> CORRECT
+                   </span>
+                 ) : (
+                   <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
+                     <XCircle className="w-4 h-4 mr-2" /> INCORRECT
+                   </span>
+                 )}
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-800 mb-8">
+                {state.currentQuestion.question_text}
+              </h2>
+
+              <div className="space-y-6">
+                {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
+                  <div className="grid grid-cols-1 gap-4">
+                    {state.currentQuestion.content.options.map((opt: string, i: number) => {
+                      const isOptionCorrect = i === state.currentQuestion!.content.correctIndex;
+                      const isSelected = i === parseInt(answer);
+                      
+                      let containerClass = "p-6 rounded-2xl border-2 transition-all flex items-center justify-between ";
+                      if (isOptionCorrect) {
+                        containerClass += "border-green-500 bg-green-50 shadow-md scale-[1.02]";
+                      } else if (isSelected && !isOptionCorrect) {
+                        containerClass += "border-red-500 bg-red-50 opacity-80";
+                      } else {
+                        containerClass += "border-gray-100 bg-gray-50 opacity-40";
+                      }
+
+                      return (
+                        <div key={i} className={containerClass}>
+                          <span className={`text-xl font-bold ${isOptionCorrect ? "text-green-800" : isSelected ? "text-red-800" : "text-gray-500"}`}>
+                            {opt}
+                          </span>
+                          <div className="flex items-center space-x-3">
+                            {isSelected && (
+                              <span className={`text-xs font-black uppercase px-2 py-1 rounded ${isOptionCorrect ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
+                                Your Choice
+                              </span>
+                            )}
+                            {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
+                            {isSelected && !isOptionCorrect && <XCircle className="text-red-600 w-8 h-8" />}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
+                      <span className="text-green-600 text-xs font-bold uppercase">Correct Answer</span>
+                      <p className="text-2xl font-black text-green-900 mt-1">{getCorrectAnswer()}</p>
+                    </div>
+                    <div className={`${isCorrect() ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"} p-6 rounded-2xl border-2`}>
+                      <span className={`${isCorrect() ? "text-green-600" : "text-red-600"} text-xs font-bold uppercase`}>Your Answer</span>
+                      <p className={`text-2xl font-black ${isCorrect() ? "text-green-900" : "text-red-900"} mt-1`}>
+                        {answer || "(No Answer)"}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg animate-pulse inline-block mx-auto">
+              <p className="text-xl font-bold flex items-center">
+                 <Clock className="mr-2" /> Next question coming soon...
+              </p>
+            </div>
           </div>
         )}
       </main>

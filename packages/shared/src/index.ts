@@ -6,8 +6,10 @@ export type QuestionType =
 export type GradingMode = "AUTO" | "MANUAL";
 export type GamePhase =
   | "WAITING"
+  | "QUESTION_PREVIEW"
   | "QUESTION_ACTIVE"
   | "GRADING"
+  | "REVEAL_ANSWER"
   | "LEADERBOARD";
 
 export interface Question {
@@ -60,6 +62,8 @@ export interface SocketEvents {
 
   // Host to Server
   HOST_START_QUESTION: (payload: { questionId: string }) => void;
+  HOST_START_TIMER: () => void;
+  HOST_REVEAL_ANSWER: () => void;
   HOST_GRADE_DECISION: (payload: {
     answerId: string;
     correct: boolean;

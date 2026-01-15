@@ -39,13 +39,16 @@ export class GameManager {
 
     const question = res.rows[0] as Question;
     this.state.currentQuestion = question;
-    this.state.phase = "QUESTION_ACTIVE";
+    this.state.phase = "QUESTION_PREVIEW";
     this.state.timeRemaining = question.time_limit_seconds;
 
-    this.startTimer();
+    if (this.timer) clearInterval(this.timer);
   }
 
-  private startTimer() {
+  public startTimer() {
+    if (this.state.phase !== "QUESTION_PREVIEW") return;
+    this.state.phase = "QUESTION_ACTIVE";
+
     if (this.timer) clearInterval(this.timer);
     this.timer = setInterval(() => {
       if (this.state.timeRemaining > 0) {
@@ -56,18 +59,28 @@ export class GameManager {
     }, 1000);
   }
 
+  public revealAnswer() {
+    if (
+      this.state.phase !== "GRADING" &&
+      this.state.phase !== "QUESTION_ACTIVE"
+    )
+      return;
+    if (this.timer) clearInterval(this.timer);
+    this.state.phase = "REVEAL_ANSWER";
+  }
+
   private endQuestion() {
     if (this.timer) clearInterval(this.timer);
     this.state.phase = "GRADING";
     // In a real app, we might trigger auto-grading here
   }
 
-  public submitAnswer(teamId: string, questionId: string, answer: any) {
+  public async submitAnswer(teamId: string, questionId: string, answer: any) {
     if (this.state.phase !== "QUESTION_ACTIVE") return;
     if (this.state.currentQuestion?.id !== questionId) return;
 
     // Store in DB
-    query(
+    await query(
       "INSERT INTO answers (team_id, question_id, round_id, submitted_content) VALUES ($1, $2, $3, $4)",
       [
         teamId,
@@ -76,6 +89,20 @@ export class GameManager {
         JSON.stringify(answer),
       ]
     );
+
+    // Check if all teams have submitted
+    const submittedRes = await query(
+      "SELECT COUNT(DISTINCT team_id) FROM answers WHERE question_id = $1",
+      [questionId]
+    );
+    const submittedCount = parseInt(submittedRes.rows[0].count);
+
+    if (
+      submittedCount >= this.state.teams.length &&
+      this.state.teams.length > 0
+    ) {
+      this.endQuestion();
+    }
   }
 
   public setPhase(phase: GamePhase) {

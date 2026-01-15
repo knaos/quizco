@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Users, Play, SkipForward, CheckCircle } from "lucide-react";
+import { Users, Play, SkipForward, CheckCircle, Clock } from "lucide-react";
+import type { Question } from "@quizco/shared";
 
 export const HostDashboard: React.FC = () => {
   const { state } = useGame();
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:4000/api/questions")
@@ -15,6 +16,14 @@ export const HostDashboard: React.FC = () => {
 
   const startQuestion = (id: string) => {
     socket.emit("HOST_START_QUESTION", { questionId: id });
+  };
+
+  const startTimer = () => {
+    socket.emit("HOST_START_TIMER");
+  };
+
+  const revealAnswer = () => {
+    socket.emit("HOST_REVEAL_ANSWER");
   };
 
   return (
@@ -36,12 +45,30 @@ export const HostDashboard: React.FC = () => {
             </h2>
             
             {state.currentQuestion && (
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 uppercase font-semibold">Current Question</p>
-                <p className="text-lg font-medium">{state.currentQuestion.question_text}</p>
-                <div className="mt-4 flex items-center space-x-4">
-                  <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
+              <div className="border-t pt-4 space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500 uppercase font-bold tracking-tighter">Current Question</p>
+                  <p className="text-2xl font-bold text-gray-900">{state.currentQuestion.question_text}</p>
+                </div>
+                
+                {state.phase === "REVEAL_ANSWER" && (
+                  <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200">
+                    <p className="text-sm text-green-600 font-bold uppercase">Correct Answer</p>
+                    <p className="text-xl font-black text-green-900">
+                      {state.currentQuestion.type === "MULTIPLE_CHOICE" 
+                        ? state.currentQuestion.content.options[state.currentQuestion.content.correctIndex]
+                        : (state.currentQuestion.content.answer || state.currentQuestion.content.correctAnswer)}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-4">
+                  <div className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm font-bold flex items-center">
+                    <Clock className="w-4 h-4 mr-2" />
                     Time: {state.timeRemaining}s
+                  </div>
+                  <div className="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold uppercase">
+                    Type: {state.currentQuestion.type}
                   </div>
                 </div>
               </div>
@@ -52,16 +79,46 @@ export const HostDashboard: React.FC = () => {
             <h2 className="text-xl font-bold mb-4 flex items-center">
               <SkipForward className="mr-2 text-purple-500" /> Control Panel
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {questions.map((q) => (
+            <div className="space-y-4">
+              {state.phase === "QUESTION_PREVIEW" && (
                 <button
-                  key={q.id}
-                  onClick={() => startQuestion(q.id)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition text-left"
+                  onClick={startTimer}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition text-xl flex items-center justify-center"
                 >
-                  Start: {q.question_text.substring(0, 30)}...
+                  <Play className="mr-2" /> START TIMER
                 </button>
-              ))}
+              )}
+
+              {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && (
+                <button
+                  onClick={revealAnswer}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-lg transition text-xl flex items-center justify-center"
+                >
+                  <CheckCircle className="mr-2" /> REVEAL ANSWER
+                </button>
+              )}
+
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-500 mb-2 uppercase font-bold tracking-wider">
+                  Select Question
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {questions.map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => startQuestion(q.id)}
+                      className={`${
+                        state.currentQuestion?.id === q.id
+                          ? "bg-blue-800 ring-4 ring-blue-300"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      } text-white font-bold py-3 px-4 rounded-lg transition text-left`}
+                    >
+                      {state.currentQuestion?.id === q.id ? "RELOAD: " : "LOAD: "}
+                      {q.question_text.substring(0, 30)}...
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
         </div>

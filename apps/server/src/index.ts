@@ -43,13 +43,23 @@ io.on("connection", (socket) => {
     io.emit("SCORE_UPDATE", gameManager.getState().teams);
   });
 
-  socket.on("SUBMIT_ANSWER", ({ teamId, questionId, answer }) => {
-    gameManager.submitAnswer(teamId, questionId, answer);
-    // Notify host or others if needed
+  socket.on("SUBMIT_ANSWER", async ({ teamId, questionId, answer }) => {
+    await gameManager.submitAnswer(teamId, questionId, answer);
+    io.emit("GAME_STATE_SYNC", gameManager.getState());
   });
 
   socket.on("HOST_START_QUESTION", async ({ questionId }) => {
     await gameManager.startQuestion(questionId);
+    io.emit("GAME_STATE_SYNC", gameManager.getState());
+  });
+
+  socket.on("HOST_START_TIMER", () => {
+    gameManager.startTimer();
+    io.emit("GAME_STATE_SYNC", gameManager.getState());
+  });
+
+  socket.on("HOST_REVEAL_ANSWER", () => {
+    gameManager.revealAnswer();
     io.emit("GAME_STATE_SYNC", gameManager.getState());
   });
 

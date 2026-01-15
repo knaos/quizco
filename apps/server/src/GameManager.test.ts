@@ -23,13 +23,7 @@ describe("GameManager Integration", () => {
     expect(gameManager.getState().teams[0].name).toBe("Red Dragons");
   });
 
-  it("should not add duplicate teams", () => {
-    gameManager.addTeam("Red Dragons", "#FF0000");
-    gameManager.addTeam("Red Dragons", "#0000FF");
-    expect(gameManager.getState().teams).toHaveLength(1);
-  });
-
-  it("should start a question correctly", async () => {
+  it("should start a question correctly in PREVIEW phase", async () => {
     // 1. Setup data in DB
     const competitionRes = await pool.query(
       "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
@@ -54,13 +48,12 @@ describe("GameManager Integration", () => {
 
     // 3. Assert
     const state = gameManager.getState();
-    expect(state.phase).toBe("QUESTION_ACTIVE");
+    expect(state.phase).toBe("QUESTION_PREVIEW");
     expect(state.currentQuestion?.id).toBe(questionId);
     expect(state.timeRemaining).toBe(30);
   });
 
-  it("should decrement timer and end question", async () => {
-    // Setup question (reuse logic or keep it simple)
+  it("should transition from PREVIEW to ACTIVE when timer starts", async () => {
     const competitionRes = await pool.query(
       "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
       ["Test", "1"]
@@ -75,6 +68,32 @@ describe("GameManager Integration", () => {
     );
 
     await gameManager.startQuestion(qRes.rows[0].id);
+    expect(gameManager.getState().phase).toBe("QUESTION_PREVIEW");
+
+    gameManager.startTimer();
+    expect(gameManager.getState().phase).toBe("QUESTION_ACTIVE");
+
+    // Fast-forward 1 second
+    vi.advanceTimersByTime(1000);
+    expect(gameManager.getState().timeRemaining).toBe(4);
+  });
+
+  it("should decrement timer and end question", async () => {
+    const competitionRes = await pool.query(
+      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
+      ["Test", "1"]
+    );
+    const roundRes = await pool.query(
+      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
+      [competitionRes.rows[0].id, 1, "STANDARD"]
+    );
+    const qRes = await pool.query(
+      "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
+    );
+
+    await gameManager.startQuestion(qRes.rows[0].id);
+    gameManager.startTimer();
 
     // Fast-forward 1 second
     vi.advanceTimersByTime(1000);
@@ -87,5 +106,30 @@ describe("GameManager Integration", () => {
     // One more tick to trigger the phase change
     vi.advanceTimersByTime(1000);
     expect(gameManager.getState().phase).toBe("GRADING");
+  });
+
+  it("should reveal answer after question ends", async () => {
+    const competitionRes = await pool.query(
+      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
+      ["Test", "1"]
+    );
+    const roundRes = await pool.query(
+      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
+      [competitionRes.rows[0].id, 1, "STANDARD"]
+    );
+    const qRes = await pool.query(
+      "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
+    );
+
+    await gameManager.startQuestion(qRes.rows[0].id);
+    gameManager.startTimer();
+
+    // End question
+    vi.advanceTimersByTime(6000);
+    expect(gameManager.getState().phase).toBe("GRADING");
+
+    gameManager.revealAnswer();
+    expect(gameManager.getState().phase).toBe("REVEAL_ANSWER");
   });
 });

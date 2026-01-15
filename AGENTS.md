@@ -131,9 +131,9 @@ PLAN (Spec Mode): Create/Update a SPEC.md for the module. Define the interface a
 
 SCAFFOLD: Create necessary files and shared types.
 
-EXECUTE: Implement logic.
+EXECUTE: Implement logic. **MANDATORY: Write unit tests for all new logic and state transitions.**
 
-VERIFY: Generate a test (Playwright/Vitest) to prove the logic works (e.g., "Verify timer emits TIME_UP at exactly 0s").
+VERIFY: Run and pass all tests. Generate a test (Playwright/Vitest) to prove the logic works (e.g., "Verify timer emits TIME_UP at exactly 0s"). Logic without accompanying tests is forbidden.
 
 7. Forbidden Patterns (Do Not Use)
    No Internet Dependencies: Do not use Auth0, Firebase, or CDNs. This must run on an isolated LAN.
