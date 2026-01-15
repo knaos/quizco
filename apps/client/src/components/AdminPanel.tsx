@@ -8,6 +8,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import type { Competition, Round, Question } from "@quizco/shared";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
 import { QuestionEditor } from "./admin/QuestionEditor";
@@ -238,10 +239,11 @@ export const AdminPanel: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside className="w-72 bg-gray-900 text-white flex flex-col shadow-2xl z-20">
-        <div className="p-8 border-b border-gray-800">
+        <div className="p-8 border-b border-gray-800 flex items-center justify-between">
           <h2 className="text-2xl font-black flex items-center tracking-tighter">
             <Layout className="mr-3 text-blue-500" /> QUIZCO<span className="text-blue-500">.</span>
           </h2>
+          <LanguageSwitcher />
         </div>
         <nav className="flex-1 p-6 space-y-3">
           <button

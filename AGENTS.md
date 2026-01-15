@@ -144,7 +144,18 @@ No Client-Side Authority: Never trust the client to tell you the score or if an 
 
 No Fragile Selectors: Use data-testid for testing, not CSS class names.
 
-8. Specific Feature Implementation Guides
+No Hardcoded Strings: Use translation keys (i18next) for all UI text.
+
+8. Internationalization (i18n)
+   Supported Languages: English (`en`), Bulgarian (`bg`).
+
+Standard: Use `react-i18next` for frontend and consistent error codes for backend.
+
+Translations: Always provide both `en` and `bg` translations in `apps/client/src/locales/` for any new UI element.
+
+Usage: Use the `useTranslation` hook: `const { t } = useTranslation();`.
+
+9. Specific Feature Implementation Guides
    Crosswords
    Use react-crossword (or similar).
 

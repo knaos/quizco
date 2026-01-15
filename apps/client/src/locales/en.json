@@ -1,0 +1,47 @@
+{
+  "translation": {
+    "common": {
+      "score": "Score",
+      "time": "Time",
+      "teams": "Teams",
+      "loading": "Loading...",
+      "back": "Back",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create"
+    },
+    "host": {
+      "dashboard": "Host Dashboard",
+      "connected_teams": "Teams Connected",
+      "current_status": "Current Status",
+      "control_panel": "Control Panel",
+      "start_timer": "START TIMER",
+      "reveal_answer": "REVEAL ANSWER",
+      "leaderboard": "Leaderboard",
+      "select_question": "Select Question"
+    },
+    "player": {
+      "join_title": "Join the Quiz!",
+      "team_name": "Team Name",
+      "pick_color": "Pick a Color",
+      "lets_go": "Let's Go!",
+      "waiting_host": "Waiting for the host to start...",
+      "get_ready": "Get ready!",
+      "upcoming_question": "Upcoming Question",
+      "host_reading": "The host is reading the question. Get ready to answer!",
+      "submit_answer": "Submit Answer",
+      "answer_received": "Answer Received!",
+      "waiting_others": "Waiting for other teams...",
+      "times_up": "Time's up!",
+      "reveal_phase": "Reveal Phase",
+      "correct": "CORRECT",
+      "incorrect": "INCORRECT",
+      "your_choice": "Your Choice",
+      "correct_answer": "Correct Answer",
+      "your_answer": "Your Answer",
+      "next_soon": "Next question coming soon..."
+    }
+  }
+}

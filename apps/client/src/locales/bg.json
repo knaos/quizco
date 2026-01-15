@@ -1,0 +1,47 @@
+{
+  "translation": {
+    "common": {
+      "score": "Резултат",
+      "time": "Време",
+      "teams": "Отбори",
+      "loading": "Зареждане...",
+      "back": "Назад",
+      "cancel": "Отказ",
+      "save": "Запази",
+      "delete": "Изтрий",
+      "edit": "Редактирай",
+      "create": "Създай"
+    },
+    "host": {
+      "dashboard": "Табло на Водещия",
+      "connected_teams": "Свързани Отбори",
+      "current_status": "Текущ Статус",
+      "control_panel": "Контролен Панел",
+      "start_timer": "СТАРТИРАЙ ТАЙМЕР",
+      "reveal_answer": "ПОКАЖИ ОТГОВОРА",
+      "leaderboard": "Класиране",
+      "select_question": "Избери Въпрос"
+    },
+    "player": {
+      "join_title": "Влез в Куиза!",
+      "team_name": "Име на Отбора",
+      "pick_color": "Избери Цвят",
+      "lets_go": "Да тръгваме!",
+      "waiting_host": "Изчакване на водещия...",
+      "get_ready": "Пригответе се!",
+      "upcoming_question": "Следващ Въпрос",
+      "host_reading": "Водещият чете въпроса. Бъдете готови!",
+      "submit_answer": "Изпрати Отговор",
+      "answer_received": "Отговорът е получен!",
+      "waiting_others": "Изчакване на другите отбори...",
+      "times_up": "Времето изтече!",
+      "reveal_phase": "Разкриване",
+      "correct": "ПРАВИЛНО",
+      "incorrect": "ГРЕШНО",
+      "your_choice": "Твоят Избор",
+      "correct_answer": "Правилен Отговор",
+      "your_answer": "Твоят Отговор",
+      "next_soon": "Следващият въпрос предстои..."
+    }
+  }
+}
