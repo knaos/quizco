@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Send, Clock, CheckCircle, XCircle, Info, LogOut } from "lucide-react";
+import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight } from "lucide-react";
 import { Crossword } from "./Crossword";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import type { Competition } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
 const TEAM_COLOR_KEY = "quizco_team_color";
+const SELECTED_COMP_ID_KEY = "quizco_selected_competition_id";
 
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
+  
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [selectedCompId, setSelectedCompId] = useState<string | null>(localStorage.getItem(SELECTED_COMP_ID_KEY));
+  
   const [teamName, setTeamName] = useState(localStorage.getItem(TEAM_NAME_KEY) || "");
   const [color, setColor] = useState(localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6");
   const [joined, setJoined] = useState(false);
@@ -20,19 +26,31 @@ export const PlayerView: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(true);
 
+  // Fetch active competitions if none selected
+  useEffect(() => {
+    if (!selectedCompId) {
+        fetch("http://localhost:4000/api/competitions")
+          .then((res) => res.json())
+          .then((data) => setCompetitions(data));
+    }
+  }, [selectedCompId]);
+
   // Attempt reconnection on mount
   useEffect(() => {
-    const savedId = localStorage.getItem(TEAM_ID_KEY);
+    const savedTeamId = localStorage.getItem(TEAM_ID_KEY);
+    const savedCompId = localStorage.getItem(SELECTED_COMP_ID_KEY);
     
     const restoreSession = async () => {
-        if (savedId) {
+        if (savedTeamId && savedCompId) {
             return new Promise<void>((resolve) => {
-                socket.emit("RECONNECT_TEAM", { teamId: savedId }, (res: { success: boolean; team: any }) => {
+                socket.emit("RECONNECT_TEAM", { competitionId: savedCompId, teamId: savedTeamId }, (res: { success: boolean; team: any }) => {
                     if (res.success) {
                         setTeamName(res.team.name);
                         setColor(res.team.color);
                         setJoined(true);
                     } else {
+                        // If reconnection fails, we don't necessarily clear competition, 
+                        // just team identity.
                         localStorage.removeItem(TEAM_ID_KEY);
                     }
                     resolve();
@@ -53,10 +71,15 @@ export const PlayerView: React.FC = () => {
     }
   }, [state.currentQuestion?.id]);
 
+  const handleSelectCompetition = (id: string) => {
+      setSelectedCompId(id);
+      localStorage.setItem(SELECTED_COMP_ID_KEY, id);
+  };
+
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamName) return;
-    socket.emit("JOIN_ROOM", { teamName, color }, (res: any) => {
+    if (!teamName || !selectedCompId) return;
+    socket.emit("JOIN_ROOM", { competitionId: selectedCompId, teamName, color }, (res: any) => {
         if (res.success) {
             localStorage.setItem(TEAM_ID_KEY, res.team.id);
             localStorage.setItem(TEAM_NAME_KEY, res.team.name);
@@ -71,6 +94,7 @@ export const PlayerView: React.FC = () => {
         localStorage.removeItem(TEAM_ID_KEY);
         localStorage.removeItem(TEAM_NAME_KEY);
         localStorage.removeItem(TEAM_COLOR_KEY);
+        localStorage.removeItem(SELECTED_COMP_ID_KEY);
         window.location.reload(); // Hard reset
     }
   };
@@ -80,11 +104,12 @@ export const PlayerView: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (!state.currentQuestion) return;
+    if (!state.currentQuestion || !selectedCompId) return;
     const teamId = getTeamId();
     if (!teamId) return;
     
     socket.emit("SUBMIT_ANSWER", { 
+      competitionId: selectedCompId,
       teamId, 
       questionId: state.currentQuestion.id, 
       answer 
@@ -102,9 +127,53 @@ export const PlayerView: React.FC = () => {
       );
   }
 
+  // Phase 0: Select Quiz
+  if (!selectedCompId) {
+      return (
+        <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4 relative">
+            <div className="absolute top-4 right-4">
+                <LanguageSwitcher />
+            </div>
+            <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md">
+                <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">Pick a Quiz</h1>
+                <div className="space-y-4">
+                    {competitions.length === 0 ? (
+                        <p className="text-center text-gray-500 font-medium">No active quizzes found.</p>
+                    ) : (
+                        competitions.map(comp => (
+                            <button
+                                key={comp.id}
+                                onClick={() => handleSelectCompetition(comp.id)}
+                                className="w-full flex items-center justify-between p-5 bg-gray-50 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group"
+                            >
+                                <div className="flex items-center">
+                                    <div className="bg-blue-100 p-2 rounded-xl group-hover:bg-blue-500 transition-colors mr-4">
+                                        <Trophy className="w-5 h-5 text-blue-600 group-hover:text-white" />
+                                    </div>
+                                    <span className="text-lg font-bold text-gray-700">{comp.title}</span>
+                                </div>
+                                <ChevronRight className="text-gray-300 group-hover:text-blue-500" />
+                            </button>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
+      );
+  }
+
+  // Phase 1: Join Team
   if (!joined) {
     return (
       <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4 relative">
+        <div className="absolute top-4 left-4">
+            <button 
+                onClick={() => { setSelectedCompId(null); localStorage.removeItem(SELECTED_COMP_ID_KEY); }}
+                className="text-white/80 hover:text-white flex items-center font-bold"
+            >
+                <ChevronRight className="w-5 h-5 rotate-180 mr-1" /> Change Quiz
+            </button>
+        </div>
         <div className="absolute top-4 right-4">
           <LanguageSwitcher />
         </div>
@@ -214,17 +283,18 @@ export const PlayerView: React.FC = () => {
 
             {!submitted ? (
               <div className="space-y-6 w-full">
-                {(state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED") ? (
+                {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {state.currentQuestion.content?.options?.map((opt: string, i: number) => (
                       <button
                         key={i}
                         onClick={() => {
                           const teamId = getTeamId();
-                          if (!teamId) return;
+                          if (!teamId || !selectedCompId) return;
                           setAnswer(i.toString());
                           setSubmitted(true);
                           socket.emit("SUBMIT_ANSWER", {
+                            competitionId: selectedCompId,
                             teamId,
                             questionId: state.currentQuestion!.id,
                             answer: i,
@@ -243,8 +313,9 @@ export const PlayerView: React.FC = () => {
                         onCrosswordCorrect={(isCorrect: boolean) => {
                           if (isCorrect) {
                             const teamId = getTeamId();
-                            if (!teamId) return;
+                            if (!teamId || !selectedCompId) return;
                             socket.emit("SUBMIT_ANSWER", {
+                              competitionId: selectedCompId,
                               teamId,
                               questionId: state.currentQuestion!.id,
                               answer: "COMPLETED",

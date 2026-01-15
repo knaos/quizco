@@ -11,6 +11,16 @@ The project has been initialized with a monorepo structure. Core components for 
   - Established manual grading workflow for open-ended questions.
   - Updated Host Dashboard with a real-time manual grading queue.
   - Added integration tests for auto-grading.
+- **Implemented Multi-Competition Support:**
+  - Refactored `GameManager` to support isolated game sessions.
+  - Implemented competition and round navigation in the Host Dashboard.
+- Added quiz selection step for players with persistence.
+- Added URL-based routing for the active competition in the Host Dashboard.
+- Fixed Host Dashboard synchronization by implementing `HOST_JOIN_ROOM` logic.
+- Added auto-reconnection support for the Host Dashboard.
+- Fixed server crash (`TypeError`) by adding robust string conversion for `CLOSED` questions.
+- Updated Player View to use text input for `CLOSED` questions.
+- Updated socket logic to use room-based isolation.
 - Initialized Memory Bank with core documentation files.
 - Shared types are defined in `packages/shared`.
 
@@ -20,11 +30,10 @@ The core game loop now includes answer validation and scoring. The system can ha
 
 ## Next Steps
 
-1. Refine the Host Dashboard to support Competitions and Rounds (currently lists all questions).
-2. Ensure the Player View correctly handles all question types (MCQ, Open, Crossword).
-3. Implement interactive Crossword synchronization logic.
-4. Enhance UI/UX for children (animations, larger font sizes, feedback).
-5. Add more unit tests for manual grading and score calculation.
+1. Ensure the Player View correctly handles all question types (MCQ, Open, Crossword).
+2. Implement interactive Crossword synchronization logic.
+3. Enhance UI/UX for children (animations, larger font sizes, feedback).
+4. Add more unit tests for manual grading and score calculation.
 
 ## Active Decisions
 

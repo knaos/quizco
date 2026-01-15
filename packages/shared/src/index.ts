@@ -82,15 +82,33 @@ export interface GameState {
 
 export interface SocketEvents {
   // Client to Server
-  JOIN_ROOM: (payload: { teamName: string; color: string }) => void;
-  SUBMIT_ANSWER: (payload: { questionId: string; answer: any }) => void;
-  CROSSWORD_PROGRESS: (payload: { questionId: string; progress: any }) => void;
+  JOIN_ROOM: (payload: {
+    competitionId: string;
+    teamName: string;
+    color: string;
+  }) => void;
+  RECONNECT_TEAM: (payload: { competitionId: string; teamId: string }) => void;
+  SUBMIT_ANSWER: (payload: {
+    competitionId: string;
+    teamId: string;
+    questionId: string;
+    answer: any;
+  }) => void;
+  CROSSWORD_PROGRESS: (payload: {
+    competitionId: string;
+    questionId: string;
+    progress: any;
+  }) => void;
 
   // Host to Server
-  HOST_START_QUESTION: (payload: { questionId: string }) => void;
-  HOST_START_TIMER: () => void;
-  HOST_REVEAL_ANSWER: () => void;
+  HOST_START_QUESTION: (payload: {
+    competitionId: string;
+    questionId: string;
+  }) => void;
+  HOST_START_TIMER: (payload: { competitionId: string }) => void;
+  HOST_REVEAL_ANSWER: (payload: { competitionId: string }) => void;
   HOST_GRADE_DECISION: (payload: {
+    competitionId: string;
     answerId: string;
     correct: boolean;
   }) => void;

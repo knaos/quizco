@@ -14,7 +14,7 @@
 ## What's Left to Build
 
 - **Game State Synchronization:** Robust handling of phase transitions and late joins.
-- **Admin/Host UI Refinement:** Full-featured dashboard for managing competitions, rounds, and questions.
+- **Admin/Host UI Refinement:** [x] Refined Host Dashboard to support Competitions and Rounds.
 - **Question Editors:** Dedicated UI for creating different question types (MCQ, Open, Crossword).
 - **Timer Logic:** Server-authoritative countdown with drift prevention.
 - **Leaderboard:** Real-time score aggregation and display.
@@ -23,14 +23,14 @@
 
 ## Current Status
 
-- **Overall Completion:** ~40%
+- **Overall Completion:** ~60%
 - **Infrastructure:** [x] Done
 - **Database:** [x] Done
-- **Core State Machine:** [/] In Progress
+- **Core State Machine:** [x] Done (Multi-session support added)
 - **Scoring & Grading:** [x] Done
-- **Admin UI:** [/] In Progress
-- **Player UI:** [/] In Progress
-- **Real-Time Sync:** [/] In Progress
+- **Admin UI:** [x] Done (Competitions and Rounds management)
+- **Player UI:** [/] In Progress (Quiz selection added)
+- **Real-Time Sync:** [x] Done (Multi-room isolation)
 
 ## Known Issues
 

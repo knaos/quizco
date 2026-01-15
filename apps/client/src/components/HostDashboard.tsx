@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle } from "lucide-react";
-import type { Question } from "@quizco/shared";
+import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown } from "lucide-react";
+import type { Question, Competition, Round } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
@@ -15,20 +15,72 @@ interface PendingAnswer {
   submitted_content: string;
 }
 
+interface CompetitionData {
+  rounds: (Round & { questions: Question[] })[];
+}
+
 export const HostDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
+  const [compData, setCompData] = useState<CompetitionData | null>(null);
   const [pendingAnswers, setPendingAnswers] = useState<PendingAnswer[]>([]);
+  const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    fetch("http://localhost:4000/api/questions")
+  const selectCompetition = useCallback((comp: Competition, updateUrl = true) => {
+    setSelectedComp(comp);
+    socket.emit("HOST_JOIN_ROOM", { competitionId: comp.id });
+    
+    if (updateUrl) {
+        const params = new URLSearchParams(window.location.search);
+        params.set("competitionId", comp.id);
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.pushState({ path: newUrl }, "", newUrl);
+    }
+
+    fetch(`http://localhost:4000/api/competitions/${comp.id}/play-data`)
       .then((res) => res.json())
-      .then((data) => setQuestions(data));
+      .then((data) => {
+          setCompData(data);
+          // Auto-expand first round
+          if (data.rounds.length > 0) {
+              setExpandedRounds({ [data.rounds[0].id]: true });
+          }
+      });
   }, []);
 
+  const handleBack = useCallback(() => {
+      setSelectedComp(null);
+      setCompData(null);
+      const params = new URLSearchParams(window.location.search);
+      params.delete("competitionId");
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({ path: newUrl }, "", newUrl);
+  }, []);
+
+  // Initial fetch of competitions
+  useEffect(() => {
+    fetch("http://localhost:4000/api/competitions")
+      .then((res) => res.json())
+      .then((data) => {
+          setCompetitions(data);
+          
+          // Check URL for competitionId
+          const params = new URLSearchParams(window.location.search);
+          const compId = params.get("competitionId");
+          if (compId) {
+              const comp = data.find((c: Competition) => c.id === compId);
+              if (comp) {
+                  selectCompetition(comp, false); // false = don't update URL again
+              }
+          }
+      });
+  }, [selectCompetition]);
+
   const fetchPendingAnswers = () => {
-    fetch("http://localhost:4000/api/admin/pending-answers")
+    if (!selectedComp) return;
+    fetch(`http://localhost:4000/api/admin/pending-answers?competitionId=${selectedComp.id}`)
       .then((res) => res.json())
       .then((data) => setPendingAnswers(data));
   };
@@ -39,28 +91,94 @@ export const HostDashboard: React.FC = () => {
     }
   }, [state.phase]);
 
+  // Handle socket reconnection
+  useEffect(() => {
+    const onConnect = () => {
+        if (selectedComp) {
+            socket.emit("HOST_JOIN_ROOM", { competitionId: selectedComp.id });
+        }
+    };
+
+    socket.on("connect", onConnect);
+    return () => {
+        socket.off("connect", onConnect);
+    };
+  }, [selectedComp]);
+
   const startQuestion = (id: string) => {
-    socket.emit("HOST_START_QUESTION", { questionId: id });
+    if (!selectedComp) return;
+    socket.emit("HOST_START_QUESTION", { competitionId: selectedComp.id, questionId: id });
   };
 
   const startTimer = () => {
-    socket.emit("HOST_START_TIMER");
+    if (!selectedComp) return;
+    socket.emit("HOST_START_TIMER", { competitionId: selectedComp.id });
   };
 
   const revealAnswer = () => {
-    socket.emit("HOST_REVEAL_ANSWER");
+    if (!selectedComp) return;
+    socket.emit("HOST_REVEAL_ANSWER", { competitionId: selectedComp.id });
   };
 
   const gradeAnswer = (answerId: string, correct: boolean) => {
-    socket.emit("HOST_GRADE_DECISION", { answerId, correct });
+    if (!selectedComp) return;
+    socket.emit("HOST_GRADE_DECISION", { competitionId: selectedComp.id, answerId, correct });
     setPendingAnswers(prev => prev.filter(a => a.id !== answerId));
   };
 
+  const toggleRound = (roundId: string) => {
+    setExpandedRounds(prev => ({ ...prev, [roundId]: !prev[roundId] }));
+  };
+
+  if (!selectedComp) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+        <header className="w-full max-w-4xl mb-12 flex justify-between items-center">
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">Select a Quiz</h1>
+            <LanguageSwitcher />
+        </header>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+            {competitions.map(comp => (
+                <button
+                    key={comp.id}
+                    onClick={() => selectCompetition(comp)}
+                    className="bg-white p-8 rounded-3xl shadow-sm border-2 border-transparent hover:border-blue-500 transition-all text-left group"
+                >
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="bg-blue-100 p-3 rounded-2xl group-hover:bg-blue-600 transition-colors">
+                            <Trophy className="w-6 h-6 text-blue-600 group-hover:text-white" />
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                            comp.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                            {comp.status}
+                        </span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">{comp.title}</h3>
+                    <p className="text-gray-500 font-medium flex items-center">
+                        Open dashboard <ChevronRight className="ml-1 w-4 h-4" />
+                    </p>
+                </button>
+            ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-50 p-8">
       <header className="mb-8 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-3xl font-bold text-gray-800">{t('host.dashboard')}</h1>
+        <div className="flex items-center space-x-6">
+          <button 
+            onClick={handleBack}
+            className="text-gray-400 hover:text-gray-600 transition"
+          >
+              <ChevronRight className="w-6 h-6 rotate-180" />
+          </button>
+          <div>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{selectedComp.title}</h1>
+              <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">{t('host.dashboard')}</p>
+          </div>
           <div className="bg-gray-800 p-1 rounded-full scale-90">
             <LanguageSwitcher />
           </div>
@@ -68,14 +186,14 @@ export const HostDashboard: React.FC = () => {
         <div className="flex items-center space-x-4">
           <a
             href="/?admin=true"
-            className="flex items-center space-x-2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-700 transition"
+            className="flex items-center space-x-2 bg-white text-gray-800 px-4 py-2 rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition font-bold"
           >
             <Settings className="w-5 h-5" />
-            <span className="font-semibold">{t('host.admin_panel')}</span>
+            <span>{t('host.admin_panel')}</span>
           </a>
-          <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow">
-            <Users className="text-blue-500" />
-            <span className="font-semibold">
+          <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 font-bold">
+            <Users className="text-blue-500 w-5 h-5" />
+            <span className="text-gray-700">
               {state.teams.length} {t('host.connected_teams')}
             </span>
           </div>
@@ -85,21 +203,21 @@ export const HostDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Game Control */}
         <div className="lg:col-span-2 space-y-6">
-          <section className="bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <Play className="mr-2 text-green-500" /> {t('host.current_status')}: {state.phase}
+          <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+            <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
+              <Play className="mr-3 text-green-500" /> {t('host.current_status')}: <span className="text-blue-600 ml-2">{state.phase}</span>
             </h2>
             
-            {state.currentQuestion && (
-              <div className="border-t pt-4 space-y-4">
+            {state.currentQuestion ? (
+              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-100 space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500 uppercase font-bold tracking-tighter">{t('player.upcoming_question')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{state.currentQuestion.question_text}</p>
+                  <p className="text-xs text-gray-400 uppercase font-black tracking-widest mb-1">{t('player.upcoming_question')}</p>
+                  <p className="text-2xl font-bold text-gray-900 leading-tight">{state.currentQuestion.question_text}</p>
                 </div>
                 
                 {state.phase === "REVEAL_ANSWER" && (
-                  <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200">
-                    <p className="text-sm text-green-600 font-bold uppercase">{t('player.correct_answer')}</p>
+                  <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
+                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-1">{t('player.correct_answer')}</p>
                     <p className="text-xl font-black text-green-900">
                       {state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED"
                         ? state.currentQuestion.content?.options?.[state.currentQuestion.content?.correctIndex]
@@ -109,42 +227,46 @@ export const HostDashboard: React.FC = () => {
                 )}
 
                 <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm font-bold flex items-center">
+                  <div className="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-black flex items-center">
                     <Clock className="w-4 h-4 mr-2" />
                     {t('common.time')}: {state.timeRemaining}s
                   </div>
-                  <div className="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold uppercase">
-                    Type: {state.currentQuestion.type}
+                  <div className="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
+                    {state.currentQuestion.type}
                   </div>
                 </div>
               </div>
+            ) : (
+                <div className="bg-blue-50 p-8 rounded-2xl border-2 border-dashed border-blue-200 text-center">
+                    <p className="text-blue-600 font-bold">No question currently active. Select one below to start.</p>
+                </div>
             )}
           </section>
 
           {state.phase === "GRADING" && pendingAnswers.length > 0 && (
-            <section className="bg-white p-6 rounded-xl shadow-md border-2 border-yellow-400">
-              <h2 className="text-xl font-bold mb-4 flex items-center text-yellow-700">
-                <Clock className="mr-2" /> {t('host.manual_grading_queue')} ({pendingAnswers.length})
+            <section className="bg-white p-8 rounded-3xl shadow-sm border-2 border-yellow-400">
+              <h2 className="text-xl font-black mb-6 flex items-center text-yellow-700 uppercase tracking-wider">
+                <Clock className="mr-3" /> {t('host.manual_grading_queue')} ({pendingAnswers.length})
               </h2>
               <div className="space-y-4">
                 {pendingAnswers.map((answer) => (
-                  <div key={answer.id} className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 flex items-center justify-between">
+                  <div key={answer.id} className="p-5 bg-yellow-50 rounded-2xl border border-yellow-200 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-yellow-600 uppercase">{answer.team_name}</p>
-                      <p className="text-lg font-bold text-gray-900">{JSON.parse(answer.submitted_content)}</p>
-                      <p className="text-xs text-gray-500 italic">{answer.question_text}</p>
+                      <p className="text-xs font-black text-yellow-600 uppercase tracking-widest mb-1">{answer.team_name}</p>
+                      <p className="text-xl font-black text-gray-900">{JSON.parse(answer.submitted_content)}</p>
+                      <p className="text-sm text-gray-500 font-medium italic mt-1">{answer.question_text}</p>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       <button
                         onClick={() => gradeAnswer(answer.id, true)}
-                        className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition shadow-lg"
+                        className="p-3 bg-green-500 text-white rounded-2xl hover:bg-green-600 transition shadow-lg shadow-green-200"
                         title="Correct"
                       >
                         <CheckCircle className="w-6 h-6" />
                       </button>
                       <button
                         onClick={() => gradeAnswer(answer.id, false)}
-                        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-lg"
+                        className="p-3 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition shadow-lg shadow-red-200"
                         title="Incorrect"
                       >
                         <XCircle className="w-6 h-6" />
@@ -156,47 +278,74 @@ export const HostDashboard: React.FC = () => {
             </section>
           )}
 
-          <section className="bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <SkipForward className="mr-2 text-purple-500" /> {t('host.control_panel')}
+          <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+            <h2 className="text-xl font-black mb-8 flex items-center text-gray-800 uppercase tracking-wider">
+              <SkipForward className="mr-3 text-purple-500" /> {t('host.control_panel')}
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-8">
               {state.phase === "QUESTION_PREVIEW" && (
                 <button
                   onClick={startTimer}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition text-xl flex items-center justify-center"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-5 rounded-2xl transition-all text-2xl flex items-center justify-center shadow-xl shadow-green-200 transform active:scale-[0.98]"
                 >
-                  <Play className="mr-2" /> {t('host.start_timer')}
+                  <Play className="mr-3 w-8 h-8" /> {t('host.start_timer')}
                 </button>
               )}
 
               {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && (
                 <button
                   onClick={revealAnswer}
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-lg transition text-xl flex items-center justify-center"
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-black py-5 rounded-2xl transition-all text-2xl flex items-center justify-center shadow-xl shadow-yellow-200 transform active:scale-[0.98]"
                 >
-                  <CheckCircle className="mr-2" /> {t('host.reveal_answer')}
+                  <CheckCircle className="mr-3 w-8 h-8" /> {t('host.reveal_answer')}
                 </button>
               )}
 
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-2 uppercase font-bold tracking-wider">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-400 font-black uppercase tracking-widest">
                   {t('host.select_question')}
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {questions.map((q) => (
-                    <button
-                      key={q.id}
-                      onClick={() => startQuestion(q.id)}
-                      className={`${
-                        state.currentQuestion?.id === q.id
-                          ? "bg-blue-800 ring-4 ring-blue-300"
-                          : "bg-blue-600 hover:bg-blue-700"
-                      } text-white font-bold py-3 px-4 rounded-lg transition text-left`}
-                    >
-                      {state.currentQuestion?.id === q.id ? "RELOAD: " : "LOAD: "}
-                      {q.question_text.substring(0, 30)}...
-                    </button>
+                <div className="space-y-4">
+                  {compData?.rounds.map((round) => (
+                    <div key={round.id} className="border border-gray-100 rounded-2xl overflow-hidden">
+                        <button 
+                            onClick={() => toggleRound(round.id)}
+                            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition font-bold text-gray-700"
+                        >
+                            <div className="flex items-center">
+                                {expandedRounds[round.id] ? <ChevronDown className="mr-2 w-5 h-5" /> : <ChevronRight className="mr-2 w-5 h-5" />}
+                                <span>Round: {round.title}</span>
+                                <span className="ml-3 text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-500 uppercase">{round.type}</span>
+                            </div>
+                            <span className="text-xs text-gray-400">{round.questions.length} Questions</span>
+                        </button>
+                        
+                        {expandedRounds[round.id] && (
+                            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
+                                {round.questions.map((q) => (
+                                    <button
+                                        key={q.id}
+                                        onClick={() => startQuestion(q.id)}
+                                        className={`${
+                                            state.currentQuestion?.id === q.id
+                                            ? "bg-blue-600 text-white ring-4 ring-blue-100"
+                                            : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
+                                        } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative`}
+                                    >
+                                        <div className="flex-1">
+                                            <p className="text-xs opacity-60 uppercase mb-1">{q.type}</p>
+                                            <p className="line-clamp-2">{q.question_text}</p>
+                                        </div>
+                                        {state.currentQuestion?.id === q.id && (
+                                            <div className="absolute top-2 right-2">
+                                                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -206,23 +355,34 @@ export const HostDashboard: React.FC = () => {
 
         {/* Right Column: Leaderboard */}
         <div className="space-y-6">
-          <section className="bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <CheckCircle className="mr-2 text-yellow-500" /> {t('host.leaderboard')}
+          <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-8">
+            <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
+              <Trophy className="mr-3 text-yellow-500" /> {t('host.leaderboard')}
             </h2>
-            <div className="space-y-4">
-              {state.teams.sort((a,b) => b.score - a.score).map((team) => (
-                <div key={team.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: team.color }}
-                    />
-                    <span className="font-medium">{team.name}</span>
-                  </div>
-                  <span className="font-bold text-lg">{team.score}</span>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {state.teams.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8 font-medium italic">No teams joined yet</p>
+              ) : (
+                state.teams.sort((a,b) => b.score - a.score).map((team, idx) => (
+                    <div key={team.id} className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
+                        idx === 0 ? "bg-yellow-50 border-2 border-yellow-100 shadow-sm" : "bg-gray-50"
+                    }`}>
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${
+                            idx === 0 ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-500"
+                        }`}>
+                            {idx + 1}
+                        </div>
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: team.color }}
+                        />
+                        <span className="font-bold text-gray-800">{team.name}</span>
+                      </div>
+                      <span className="font-black text-xl text-blue-600">{team.score}</span>
+                    </div>
+                  ))
+              )}
             </div>
           </section>
         </div>

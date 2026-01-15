@@ -4,6 +4,7 @@ import pool from "./db";
 
 describe("GameManager Integration", () => {
   let gameManager: GameManager;
+  const compId = "00000000-0000-0000-0000-000000000001";
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -11,16 +12,16 @@ describe("GameManager Integration", () => {
   });
 
   it("should initialize with WAITING phase", () => {
-    const state = gameManager.getState();
+    const state = gameManager.getState(compId);
     expect(state.phase).toBe("WAITING");
     expect(state.teams).toHaveLength(0);
   });
 
   it("should add a new team", async () => {
-    const team = await gameManager.addTeam("Red Dragons", "#FF0000");
+    const team = await gameManager.addTeam(compId, "Red Dragons", "#FF0000");
     expect(team.name).toBe("Red Dragons");
-    expect(gameManager.getState().teams).toHaveLength(1);
-    expect(gameManager.getState().teams[0].name).toBe("Red Dragons");
+    expect(gameManager.getState(compId).teams).toHaveLength(1);
+    expect(gameManager.getState(compId).teams[0].name).toBe("Red Dragons");
   });
 
   it("should start a question correctly in PREVIEW phase", async () => {
@@ -29,11 +30,11 @@ describe("GameManager Integration", () => {
       "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
       ["Test Comp", "1234"]
     );
-    const compId = competitionRes.rows[0].id;
+    const testCompId = competitionRes.rows[0].id;
 
     const roundRes = await pool.query(
       "INSERT INTO rounds (competition_id, order_index, type, title) VALUES ($1, $2, $3, $4) RETURNING id",
-      [compId, 1, "STANDARD", "Round 1"]
+      [testCompId, 1, "STANDARD", "Round 1"]
     );
     const roundId = roundRes.rows[0].id;
 
@@ -44,10 +45,10 @@ describe("GameManager Integration", () => {
     const questionId = questionRes.rows[0].id;
 
     // 2. Act
-    await gameManager.startQuestion(questionId);
+    await gameManager.startQuestion(testCompId, questionId);
 
     // 3. Assert
-    const state = gameManager.getState();
+    const state = gameManager.getState(testCompId);
     expect(state.phase).toBe("QUESTION_PREVIEW");
     expect(state.currentQuestion?.id).toBe(questionId);
     expect(state.timeRemaining).toBe(30);
@@ -58,24 +59,25 @@ describe("GameManager Integration", () => {
       "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
       ["Test", "1"]
     );
+    const testCompId = competitionRes.rows[0].id;
     const roundRes = await pool.query(
       "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
-      [competitionRes.rows[0].id, 1, "STANDARD"]
+      [testCompId, 1, "STANDARD"]
     );
     const qRes = await pool.query(
       "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
       [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
     );
 
-    await gameManager.startQuestion(qRes.rows[0].id);
-    expect(gameManager.getState().phase).toBe("QUESTION_PREVIEW");
+    await gameManager.startQuestion(testCompId, qRes.rows[0].id);
+    expect(gameManager.getState(testCompId).phase).toBe("QUESTION_PREVIEW");
 
-    gameManager.startTimer();
-    expect(gameManager.getState().phase).toBe("QUESTION_ACTIVE");
+    gameManager.startTimer(testCompId, () => {});
+    expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
 
     // Fast-forward 1 second
     vi.advanceTimersByTime(1000);
-    expect(gameManager.getState().timeRemaining).toBe(4);
+    expect(gameManager.getState(testCompId).timeRemaining).toBe(4);
   });
 
   it("should decrement timer and end question", async () => {
@@ -83,29 +85,30 @@ describe("GameManager Integration", () => {
       "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
       ["Test", "1"]
     );
+    const testCompId = competitionRes.rows[0].id;
     const roundRes = await pool.query(
       "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
-      [competitionRes.rows[0].id, 1, "STANDARD"]
+      [testCompId, 1, "STANDARD"]
     );
     const qRes = await pool.query(
       "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
       [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
     );
 
-    await gameManager.startQuestion(qRes.rows[0].id);
-    gameManager.startTimer();
+    await gameManager.startQuestion(testCompId, qRes.rows[0].id);
+    gameManager.startTimer(testCompId, () => {});
 
     // Fast-forward 1 second
     vi.advanceTimersByTime(1000);
-    expect(gameManager.getState().timeRemaining).toBe(4);
+    expect(gameManager.getState(testCompId).timeRemaining).toBe(4);
 
     // Fast-forward to end
     vi.advanceTimersByTime(4000);
-    expect(gameManager.getState().timeRemaining).toBe(0);
+    expect(gameManager.getState(testCompId).timeRemaining).toBe(0);
 
     // One more tick to trigger the phase change
     vi.advanceTimersByTime(1000);
-    expect(gameManager.getState().phase).toBe("GRADING");
+    expect(gameManager.getState(testCompId).phase).toBe("GRADING");
   });
 
   it("should reveal answer after question ends", async () => {
@@ -113,34 +116,35 @@ describe("GameManager Integration", () => {
       "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
       ["Test", "1"]
     );
+    const testCompId = competitionRes.rows[0].id;
     const roundRes = await pool.query(
       "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
-      [competitionRes.rows[0].id, 1, "STANDARD"]
+      [testCompId, 1, "STANDARD"]
     );
     const qRes = await pool.query(
       "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
       [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
     );
 
-    await gameManager.startQuestion(qRes.rows[0].id);
-    gameManager.startTimer();
+    await gameManager.startQuestion(testCompId, qRes.rows[0].id);
+    gameManager.startTimer(testCompId, () => {});
 
     // End question
     vi.advanceTimersByTime(6000);
-    expect(gameManager.getState().phase).toBe("GRADING");
+    expect(gameManager.getState(testCompId).phase).toBe("GRADING");
 
-    gameManager.revealAnswer();
-    expect(gameManager.getState().phase).toBe("REVEAL_ANSWER");
+    gameManager.revealAnswer(testCompId);
+    expect(gameManager.getState(testCompId).phase).toBe("REVEAL_ANSWER");
   });
 
   it("should reconnect a team from memory", async () => {
-    const team = await gameManager.addTeam("Memory Team", "#00FF00");
-    const reconnected = await gameManager.reconnectTeam(team.id);
+    const team = await gameManager.addTeam(compId, "Memory Team", "#00FF00");
+    const reconnected = await gameManager.reconnectTeam(compId, team.id);
 
     expect(reconnected).not.toBeNull();
     expect(reconnected?.id).toBe(team.id);
     expect(reconnected?.name).toBe("Memory Team");
-    expect(gameManager.getState().teams).toHaveLength(1);
+    expect(gameManager.getState(compId).teams).toHaveLength(1);
   });
 
   it("should reconnect a team from database and restore score", async () => {
@@ -155,9 +159,10 @@ describe("GameManager Integration", () => {
     const compRes = await pool.query(
       "INSERT INTO competitions (title, host_pin) VALUES ('C', '1') RETURNING id"
     );
+    const testCompId = compRes.rows[0].id;
     const roundRes = await pool.query(
       "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
-      [compRes.rows[0].id]
+      [testCompId]
     );
     const qRes = await pool.query(
       "INSERT INTO questions (round_id, question_text, type, content) VALUES ($1, 'Q', 'CLOSED', '{}') RETURNING id",
@@ -172,29 +177,46 @@ describe("GameManager Integration", () => {
 
     // 2. Act: Reconnect with a fresh GameManager (simulating server restart)
     const freshManager = new GameManager();
-    const reconnected = await freshManager.reconnectTeam(teamId);
+    const reconnected = await freshManager.reconnectTeam(testCompId, teamId);
 
     // 3. Assert
     expect(reconnected).not.toBeNull();
     expect(reconnected?.id).toBe(teamId);
     expect(reconnected?.name).toBe("DB Team");
     expect(reconnected?.score).toBe(10);
-    expect(freshManager.getState().teams).toHaveLength(1);
-    expect(freshManager.getState().teams[0].score).toBe(10);
+    expect(freshManager.getState(testCompId).teams).toHaveLength(1);
+    expect(freshManager.getState(testCompId).teams[0].score).toBe(10);
   });
 
   it("should return null if team does not exist", async () => {
     const reconnected = await gameManager.reconnectTeam(
+      compId,
       "00000000-0000-0000-0000-000000000000"
     );
     expect(reconnected).toBeNull();
   });
 
   it("should auto-grade a MULTIPLE_CHOICE question", async () => {
-    const team = await gameManager.addTeam("Grading Team", "#000000");
+    const competitionRes = await pool.query(
+      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
+      ["Test", "1"]
+    );
+    const testCompId = competitionRes.rows[0].id;
+    const team = await gameManager.addTeam(
+      testCompId,
+      "Grading Team",
+      "#000000"
+    );
+
+    const roundRes = await pool.query(
+      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
+      [testCompId]
+    );
+
     const res = await pool.query(
-      "INSERT INTO questions (question_text, type, points, content, grading) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      "INSERT INTO questions (round_id, question_text, type, points, content, grading) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
       [
+        roundRes.rows[0].id,
         "What is 1+1?",
         "MULTIPLE_CHOICE",
         15,
@@ -204,13 +226,13 @@ describe("GameManager Integration", () => {
     );
     const questionId = res.rows[0].id;
 
-    await gameManager.startQuestion(questionId);
-    gameManager.startTimer();
+    await gameManager.startQuestion(testCompId, questionId);
+    gameManager.startTimer(testCompId, () => {});
 
-    await gameManager.submitAnswer(team.id, questionId, 1); // Correct
+    await gameManager.submitAnswer(testCompId, team.id, questionId, 1); // Correct
 
     const updatedTeam = gameManager
-      .getState()
+      .getState(testCompId)
       .teams.find((t) => t.id === team.id);
     expect(updatedTeam?.score).toBe(15);
 

@@ -2,23 +2,34 @@ import { GameState, Team, Question, GamePhase } from "@quizco/shared";
 import { query } from "./db";
 
 export class GameManager {
-  private state: GameState = {
-    phase: "WAITING",
-    currentQuestion: null,
-    timeRemaining: 0,
-    teams: [],
-  };
-
-  private timer: NodeJS.Timeout | null = null;
+  private sessions: Map<string, GameState> = new Map();
+  private timers: Map<string, NodeJS.Timeout> = new Map();
 
   constructor() {}
 
-  public getState(): GameState {
-    return this.state;
+  private getOrCreateSession(competitionId: string): GameState {
+    if (!this.sessions.has(competitionId)) {
+      this.sessions.set(competitionId, {
+        phase: "WAITING",
+        currentQuestion: null,
+        timeRemaining: 0,
+        teams: [],
+      });
+    }
+    return this.sessions.get(competitionId)!;
   }
 
-  public async addTeam(name: string, color: string): Promise<Team> {
-    const existingTeam = this.state.teams.find((t) => t.name === name);
+  public getState(competitionId: string): GameState {
+    return this.getOrCreateSession(competitionId);
+  }
+
+  public async addTeam(
+    competitionId: string,
+    name: string,
+    color: string
+  ): Promise<Team> {
+    const session = this.getOrCreateSession(competitionId);
+    const existingTeam = session.teams.find((t) => t.name === name);
     if (existingTeam) return existingTeam;
 
     // Persist team to DB and get UUID
@@ -29,70 +40,105 @@ export class GameManager {
 
     const dbTeam = res.rows[0];
 
+    // Get current score for this competition if they are joining/rejoining
+    const score = await this.getTeamScoreForCompetition(
+      competitionId,
+      dbTeam.id
+    );
+
     const newTeam: Team = {
       id: dbTeam.id,
       name: dbTeam.name,
       color: dbTeam.color,
-      score: 0,
+      score: score,
     };
-    this.state.teams.push(newTeam);
+    session.teams.push(newTeam);
     return newTeam;
   }
 
-  public async startQuestion(questionId: string) {
+  private async getTeamScoreForCompetition(
+    competitionId: string,
+    teamId: string
+  ): Promise<number> {
+    const res = await query(
+      `SELECT COALESCE(SUM(a.score_awarded), 0) as total_score 
+       FROM answers a 
+       JOIN rounds r ON a.round_id = r.id 
+       WHERE r.competition_id = $1 AND a.team_id = $2 AND a.is_correct = TRUE`,
+      [competitionId, teamId]
+    );
+    return parseInt(res.rows[0]?.total_score || "0");
+  }
+
+  public async startQuestion(competitionId: string, questionId: string) {
+    const session = this.getOrCreateSession(competitionId);
     const res = await query("SELECT * FROM questions WHERE id = $1", [
       questionId,
     ]);
     if (res.rows.length === 0) return;
 
     const question = res.rows[0] as Question;
-    this.state.currentQuestion = question;
-    this.state.phase = "QUESTION_PREVIEW";
-    this.state.timeRemaining = question.time_limit_seconds;
+    session.currentQuestion = question;
+    session.phase = "QUESTION_PREVIEW";
+    session.timeRemaining = question.time_limit_seconds;
 
-    if (this.timer) clearInterval(this.timer);
+    const existingTimer = this.timers.get(competitionId);
+    if (existingTimer) clearInterval(existingTimer);
   }
 
-  public startTimer() {
-    if (this.state.phase !== "QUESTION_PREVIEW") return;
-    this.state.phase = "QUESTION_ACTIVE";
+  public startTimer(competitionId: string, onTick: (state: GameState) => void) {
+    const session = this.getOrCreateSession(competitionId);
+    if (session.phase !== "QUESTION_PREVIEW") return;
+    session.phase = "QUESTION_ACTIVE";
 
-    if (this.timer) clearInterval(this.timer);
-    this.timer = setInterval(() => {
-      if (this.state.timeRemaining > 0) {
-        this.state.timeRemaining -= 1;
+    const existingTimer = this.timers.get(competitionId);
+    if (existingTimer) clearInterval(existingTimer);
+
+    const timer = setInterval(() => {
+      if (session.timeRemaining > 0) {
+        session.timeRemaining -= 1;
+        onTick(session);
       } else {
-        this.endQuestion();
+        this.endQuestion(competitionId);
+        onTick(session);
       }
     }, 1000);
+    this.timers.set(competitionId, timer);
   }
 
-  public revealAnswer() {
-    if (
-      this.state.phase !== "GRADING" &&
-      this.state.phase !== "QUESTION_ACTIVE"
-    )
+  public revealAnswer(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    if (session.phase !== "GRADING" && session.phase !== "QUESTION_ACTIVE")
       return;
-    if (this.timer) clearInterval(this.timer);
-    this.state.phase = "REVEAL_ANSWER";
+
+    const timer = this.timers.get(competitionId);
+    if (timer) clearInterval(timer);
+    session.phase = "REVEAL_ANSWER";
   }
 
-  private endQuestion() {
-    if (this.timer) clearInterval(this.timer);
-    this.state.phase = "GRADING";
-    // In a real app, we might trigger auto-grading here
+  private endQuestion(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    const timer = this.timers.get(competitionId);
+    if (timer) clearInterval(timer);
+    session.phase = "GRADING";
   }
 
-  public async submitAnswer(teamId: string, questionId: string, answer: any) {
-    if (this.state.phase !== "QUESTION_ACTIVE") return;
-    if (this.state.currentQuestion?.id !== questionId) return;
+  public async submitAnswer(
+    competitionId: string,
+    teamId: string,
+    questionId: string,
+    answer: any
+  ) {
+    const session = this.getOrCreateSession(competitionId);
+    if (session.phase !== "QUESTION_ACTIVE") return;
+    if (session.currentQuestion?.id !== questionId) return;
 
     let isCorrect = null;
     let scoreAwarded = 0;
 
     // Auto-grading for MCQ and CLOSED
-    if (this.state.currentQuestion.grading === "AUTO") {
-      const q = this.state.currentQuestion;
+    if (session.currentQuestion.grading === "AUTO") {
+      const q = session.currentQuestion;
       if (q.type === "MULTIPLE_CHOICE") {
         isCorrect = answer === q.content.correctIndex;
       } else if (q.type === "CLOSED") {
@@ -100,7 +146,8 @@ export class GameManager {
         const correctAnswers = q.content.options.map((o: string) =>
           o.toLowerCase().trim()
         );
-        isCorrect = correctAnswers.includes(answer.toLowerCase().trim());
+        const submittedAnswer = String(answer).toLowerCase().trim();
+        isCorrect = correctAnswers.includes(submittedAnswer);
       }
       scoreAwarded = isCorrect ? q.points : 0;
     }
@@ -111,7 +158,7 @@ export class GameManager {
       [
         teamId,
         questionId,
-        this.state.currentQuestion.round_id,
+        session.currentQuestion.round_id,
         JSON.stringify(answer),
         isCorrect,
         scoreAwarded,
@@ -120,7 +167,7 @@ export class GameManager {
 
     // Update score in memory immediately for auto-graded questions
     if (isCorrect !== null) {
-      await this.refreshTeamScores();
+      await this.refreshTeamScores(competitionId);
     }
 
     // Check if all teams have submitted
@@ -130,15 +177,16 @@ export class GameManager {
     );
     const submittedCount = parseInt(submittedRes.rows[0].count);
 
-    if (
-      submittedCount >= this.state.teams.length &&
-      this.state.teams.length > 0
-    ) {
-      this.endQuestion();
+    if (submittedCount >= session.teams.length && session.teams.length > 0) {
+      this.endQuestion(competitionId);
     }
   }
 
-  public async handleGradeDecision(answerId: string, correct: boolean) {
+  public async handleGradeDecision(
+    competitionId: string,
+    answerId: string,
+    correct: boolean
+  ) {
     // Get the answer details
     const res = await query("SELECT * FROM answers WHERE id = $1", [answerId]);
     if (res.rows.length === 0) return;
@@ -159,31 +207,44 @@ export class GameManager {
     );
 
     // Refresh scores
-    await this.refreshTeamScores();
+    await this.refreshTeamScores(competitionId);
   }
 
-  public async refreshTeamScores() {
-    for (const team of this.state.teams) {
-      const res = await query(
-        "SELECT total_score FROM leaderboard WHERE team_id = $1",
-        [team.id]
+  public async refreshTeamScores(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    for (const team of session.teams) {
+      team.score = await this.getTeamScoreForCompetition(
+        competitionId,
+        team.id
       );
-      if (res.rows[0]) {
-        team.score = parseInt(res.rows[0].total_score);
-      }
     }
   }
 
-  public setPhase(phase: GamePhase) {
-    this.state.phase = phase;
+  public setPhase(competitionId: string, phase: GamePhase) {
+    const session = this.getOrCreateSession(competitionId);
+    session.phase = phase;
   }
 
   public async getAllQuestions() {
     return query("SELECT * FROM questions ORDER BY created_at");
   }
 
-  public async reconnectTeam(teamId: string): Promise<Team | null> {
-    const existingTeam = this.state.teams.find((t) => t.id === teamId);
+  public async getQuestionsForCompetition(competitionId: string) {
+    return query(
+      `SELECT q.* FROM questions q 
+         JOIN rounds r ON q.round_id = r.id 
+         WHERE r.competition_id = $1 
+         ORDER BY r.order_index, q.created_at`,
+      [competitionId]
+    );
+  }
+
+  public async reconnectTeam(
+    competitionId: string,
+    teamId: string
+  ): Promise<Team | null> {
+    const session = this.getOrCreateSession(competitionId);
+    const existingTeam = session.teams.find((t) => t.id === teamId);
     if (existingTeam) return existingTeam;
 
     // Check DB if not in memory (e.g. server restart)
@@ -191,13 +252,7 @@ export class GameManager {
     if (res.rows.length === 0) return null;
 
     const dbTeam = res.rows[0];
-
-    // Restore score from leaderboard view
-    const scoreRes = await query(
-      "SELECT total_score FROM leaderboard WHERE team_id = $1",
-      [teamId]
-    );
-    const score = scoreRes.rows[0] ? parseInt(scoreRes.rows[0].total_score) : 0;
+    const score = await this.getTeamScoreForCompetition(competitionId, teamId);
 
     const restoredTeam: Team = {
       id: dbTeam.id,
@@ -205,7 +260,7 @@ export class GameManager {
       color: dbTeam.color,
       score,
     };
-    this.state.teams.push(restoredTeam);
+    session.teams.push(restoredTeam);
     return restoredTeam;
   }
 }
