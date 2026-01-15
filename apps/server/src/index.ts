@@ -36,11 +36,23 @@ io.on("connection", (socket) => {
   // Sync state on connection
   socket.emit("GAME_STATE_SYNC", gameManager.getState());
 
-  socket.on("JOIN_ROOM", async ({ teamName, color }) => {
+  socket.on("JOIN_ROOM", async ({ teamName, color }, callback) => {
     const team = await gameManager.addTeam(teamName, color);
     socket.join("competition_room");
     socket.emit("GAME_STATE_SYNC", gameManager.getState());
     io.emit("SCORE_UPDATE", gameManager.getState().teams);
+    if (callback) callback({ success: true, team });
+  });
+
+  socket.on("RECONNECT_TEAM", async ({ teamId }, callback) => {
+    const team = await gameManager.reconnectTeam(teamId);
+    if (team) {
+      socket.join("competition_room");
+      socket.emit("GAME_STATE_SYNC", gameManager.getState());
+      if (callback) callback({ success: true, team });
+    } else {
+      if (callback) callback({ success: false });
+    }
   });
 
   socket.on("SUBMIT_ANSWER", async ({ teamId, questionId, answer }) => {

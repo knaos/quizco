@@ -1,24 +1,17 @@
-import { useState } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { GameProvider } from "./contexts/GameContext";
 import { HostDashboard } from "./components/HostDashboard";
 import { PlayerView } from "./components/PlayerView";
 import { AdminPanel } from "./components/AdminPanel";
 import { HostLogin } from "./components/HostLogin";
 
-function App() {
+function AppContent() {
   const isHost = window.location.search.includes("host=true");
   const isAdmin = window.location.search.includes("admin=true");
-  
-  const [hostAuthenticated, setHostAuthenticated] = useState(
-    localStorage.getItem("quizco_host_authenticated") === "true"
-  );
+  const { isHostAuthenticated, loginHost } = useAuth();
 
   const handleHostLogin = (password: string) => {
-    // Simple host password for now, can be moved to env/db later
-    if (password === "host123") {
-      setHostAuthenticated(true);
-      localStorage.setItem("quizco_host_authenticated", "true");
-    } else {
+    if (!loginHost(password)) {
       alert("Invalid host password");
     }
   };
@@ -28,7 +21,7 @@ function App() {
       {isAdmin ? (
         <AdminPanel />
       ) : isHost ? (
-        hostAuthenticated ? (
+        isHostAuthenticated ? (
           <HostDashboard />
         ) : (
           <HostLogin onLogin={handleHostLogin} />
@@ -37,6 +30,14 @@ function App() {
         <PlayerView />
       )}
     </GameProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

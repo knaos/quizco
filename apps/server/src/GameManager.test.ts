@@ -132,4 +132,61 @@ describe("GameManager Integration", () => {
     gameManager.revealAnswer();
     expect(gameManager.getState().phase).toBe("REVEAL_ANSWER");
   });
+
+  it("should reconnect a team from memory", async () => {
+    const team = await gameManager.addTeam("Memory Team", "#00FF00");
+    const reconnected = await gameManager.reconnectTeam(team.id);
+
+    expect(reconnected).not.toBeNull();
+    expect(reconnected?.id).toBe(team.id);
+    expect(reconnected?.name).toBe("Memory Team");
+    expect(gameManager.getState().teams).toHaveLength(1);
+  });
+
+  it("should reconnect a team from database and restore score", async () => {
+    // 1. Setup team and answer in DB
+    const teamRes = await pool.query(
+      "INSERT INTO teams (name, color) VALUES ($1, $2) RETURNING id",
+      ["DB Team", "#0000FF"]
+    );
+    const teamId = teamRes.rows[0].id;
+
+    // Setup round and question to award points
+    const compRes = await pool.query(
+      "INSERT INTO competitions (title, host_pin) VALUES ('C', '1') RETURNING id"
+    );
+    const roundRes = await pool.query(
+      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
+      [compRes.rows[0].id]
+    );
+    const qRes = await pool.query(
+      "INSERT INTO questions (round_id, question_text, type, content) VALUES ($1, 'Q', 'CLOSED', '{}') RETURNING id",
+      [roundRes.rows[0].id]
+    );
+
+    // Insert correct answer
+    await pool.query(
+      "INSERT INTO answers (team_id, question_id, round_id, submitted_content, is_correct, score_awarded) VALUES ($1, $2, $3, '{}', true, 10)",
+      [teamId, qRes.rows[0].id, roundRes.rows[0].id]
+    );
+
+    // 2. Act: Reconnect with a fresh GameManager (simulating server restart)
+    const freshManager = new GameManager();
+    const reconnected = await freshManager.reconnectTeam(teamId);
+
+    // 3. Assert
+    expect(reconnected).not.toBeNull();
+    expect(reconnected?.id).toBe(teamId);
+    expect(reconnected?.name).toBe("DB Team");
+    expect(reconnected?.score).toBe(10);
+    expect(freshManager.getState().teams).toHaveLength(1);
+    expect(freshManager.getState().teams[0].score).toBe(10);
+  });
+
+  it("should return null if team does not exist", async () => {
+    const reconnected = await gameManager.reconnectTeam(
+      "00000000-0000-0000-0000-000000000000"
+    );
+    expect(reconnected).toBeNull();
+  });
 });

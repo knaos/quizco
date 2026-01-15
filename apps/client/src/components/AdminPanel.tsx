@@ -13,15 +13,13 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
 import { QuestionEditor } from "./admin/QuestionEditor";
+import { useAuth } from "../contexts/AuthContext";
 
-const ADMIN_PASSWORD_KEY = "quizco_admin_password";
 const API_BASE = "http://localhost:4000/api/admin";
 
 export const AdminPanel: React.FC = () => {
-  const [password, setPassword] = useState(
-    localStorage.getItem(ADMIN_PASSWORD_KEY) || ""
-  );
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { adminPassword, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
+  const [passwordInput, setPasswordInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<"COMPETITIONS" | "EDITOR">("COMPETITIONS");
   
@@ -35,7 +33,7 @@ export const AdminPanel: React.FC = () => {
   const fetchQuestions = useCallback(async (roundId: string) => {
     try {
       const res = await fetch(`${API_BASE}/rounds/${roundId}/questions`, {
-        headers: { "x-admin-auth": password },
+        headers: { "x-admin-auth": adminPassword || "" },
       });
       if (res.ok) {
         const data = await res.json();
@@ -44,12 +42,12 @@ export const AdminPanel: React.FC = () => {
     } catch (err) {
       console.error("Fetch questions error:", err);
     }
-  }, [password]);
+  }, [adminPassword]);
 
   const fetchRounds = useCallback(async (compId: string) => {
     try {
       const res = await fetch(`${API_BASE}/competitions/${compId}/rounds`, {
-        headers: { "x-admin-auth": password },
+        headers: { "x-admin-auth": adminPassword || "" },
       });
       if (res.ok) {
         const data: Round[] = await res.json();
@@ -59,36 +57,37 @@ export const AdminPanel: React.FC = () => {
     } catch (err) {
       console.error("Fetch rounds error:", err);
     }
-  }, [password, fetchQuestions]);
+  }, [adminPassword, fetchQuestions]);
 
   const fetchCompetitions = useCallback(async () => {
+    if (!adminPassword) return;
     setIsLoading(true);
     try {
       const res = await fetch(`${API_BASE}/competitions`, {
-        headers: { "x-admin-auth": password },
+        headers: { "x-admin-auth": adminPassword },
       });
       if (res.ok) {
         const data = await res.json();
         setCompetitions(data);
-        setIsAuthenticated(true);
       } else if (res.status === 401) {
-        setIsAuthenticated(false);
+        logoutAdmin();
       }
     } catch (err) {
       console.error("Fetch competitions error:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [password]);
+  }, [adminPassword, logoutAdmin]);
 
   useEffect(() => {
-    if (password) fetchCompetitions();
-  }, [fetchCompetitions, password]);
+    if (isAdminAuthenticated) {
+        fetchCompetitions();
+    }
+  }, [isAdminAuthenticated, fetchCompetitions]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem(ADMIN_PASSWORD_KEY, password);
-    fetchCompetitions();
+    loginAdmin(passwordInput);
   };
 
   // --- Competition Actions ---
@@ -97,7 +96,7 @@ export const AdminPanel: React.FC = () => {
     if (!title) return;
     const res = await fetch(`${API_BASE}/competitions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-admin-auth": password },
+      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
       body: JSON.stringify({ title, host_pin: "1234" }),
     });
     if (res.ok) fetchCompetitions();
@@ -106,7 +105,7 @@ export const AdminPanel: React.FC = () => {
   const handleUpdateCompetition = async (id: string, data: Partial<Competition>) => {
     const res = await fetch(`${API_BASE}/competitions/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", "x-admin-auth": password },
+      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
       body: JSON.stringify(data),
     });
     if (res.ok) {
@@ -121,7 +120,7 @@ export const AdminPanel: React.FC = () => {
   const handleDeleteCompetition = async (id: string) => {
     const res = await fetch(`${API_BASE}/competitions/${id}`, {
       method: "DELETE",
-      headers: { "x-admin-auth": password },
+      headers: { "x-admin-auth": adminPassword || "" },
     });
     if (res.ok) fetchCompetitions();
   };
@@ -133,7 +132,7 @@ export const AdminPanel: React.FC = () => {
     if (!title) return;
     const res = await fetch(`${API_BASE}/rounds`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-admin-auth": password },
+      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
       body: JSON.stringify({
         competition_id: selectedComp.id,
         title,
@@ -147,7 +146,7 @@ export const AdminPanel: React.FC = () => {
   const handleUpdateRound = async (id: string, data: Partial<Round>) => {
     const res = await fetch(`${API_BASE}/rounds/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", "x-admin-auth": password },
+      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
       body: JSON.stringify(data),
     });
     if (res.ok && selectedComp) fetchRounds(selectedComp.id);
@@ -156,7 +155,7 @@ export const AdminPanel: React.FC = () => {
   const handleDeleteRound = async (id: string) => {
     const res = await fetch(`${API_BASE}/rounds/${id}`, {
       method: "DELETE",
-      headers: { "x-admin-auth": password },
+      headers: { "x-admin-auth": adminPassword || "" },
     });
     if (res.ok && selectedComp) fetchRounds(selectedComp.id);
   };
@@ -185,7 +184,7 @@ export const AdminPanel: React.FC = () => {
 
     const res = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json", "x-admin-auth": password },
+      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
       body: JSON.stringify(payload),
     });
 
@@ -198,12 +197,12 @@ export const AdminPanel: React.FC = () => {
   const handleDeleteQuestion = async (id: string, roundId: string) => {
     const res = await fetch(`${API_BASE}/questions/${id}`, {
       method: "DELETE",
-      headers: { "x-admin-auth": password },
+      headers: { "x-admin-auth": adminPassword || "" },
     });
     if (res.ok) fetchQuestions(roundId);
   };
 
-  if (!isAuthenticated) {
+  if (!isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
@@ -217,8 +216,8 @@ export const AdminPanel: React.FC = () => {
           <div className="space-y-4">
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
               className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-blue-500 outline-none transition-all font-medium text-lg bg-gray-50"
               placeholder="Admin Password"
               autoFocus
@@ -250,29 +249,26 @@ export const AdminPanel: React.FC = () => {
           <button
             onClick={() => { setView("COMPETITIONS"); setSelectedComp(null); }}
             className={`w-full flex items-center px-5 py-4 rounded-2xl transition-all font-bold ${
-              view === "COMPETITIONS" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50" : "text-gray-400 hover:bg-gray-800 hover:text-white"
+              view === "COMPETITIONS" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50" : "text-gray-400 hover:bg-gray-800 hover:white"
             }`}
           >
             <List className="mr-4 w-6 h-6" /> Competitions
           </button>
           <button
-            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:text-white transition-all font-bold"
+            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:white transition-all font-bold"
           >
             <Settings className="mr-4 w-6 h-6" /> Settings
           </button>
           <a
             href="/?host=true"
-            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:text-white transition-all font-bold"
+            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:white transition-all font-bold"
           >
             <Monitor className="mr-4 w-6 h-6" /> Host View
           </a>
         </nav>
         <div className="p-6 border-t border-gray-800">
           <button 
-            onClick={() => {
-                localStorage.removeItem(ADMIN_PASSWORD_KEY);
-                setIsAuthenticated(false);
-            }}
+            onClick={logoutAdmin}
             className="w-full flex items-center justify-center space-x-2 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-colors"
           >
             <LogOut className="w-5 h-5" />
@@ -349,8 +345,6 @@ export const AdminPanel: React.FC = () => {
               onReorderQuestion={(roundId, id, dir) => {
                   const qs = questionsByRound[roundId];
                   const index = qs.findIndex(q => q.id === id);
-                  // Since questions don't have order_index in DB yet (ordered by created_at in API)
-                  // For now we'll just log or we could add order_index to questions too.
                   console.log("Reorder question", id, dir);
                   alert("Question reordering requires 'order_index' in DB. Currently ordered by creation time.");
               }}

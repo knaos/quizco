@@ -1,19 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Send, Clock, CheckCircle, XCircle, Info } from "lucide-react";
+import { Send, Clock, CheckCircle, XCircle, Info, LogOut } from "lucide-react";
 import { Crossword } from "./Crossword";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
+const TEAM_ID_KEY = "quizco_team_id";
+const TEAM_NAME_KEY = "quizco_team_name";
+const TEAM_COLOR_KEY = "quizco_team_color";
+
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
-  const [teamName, setTeamName] = useState("");
-  const [color, setColor] = useState("#3B82F6");
+  const [teamName, setTeamName] = useState(localStorage.getItem(TEAM_NAME_KEY) || "");
+  const [color, setColor] = useState(localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6");
   const [joined, setJoined] = useState(false);
   const [answer, setAnswer] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(true);
+
+  // Attempt reconnection on mount
+  useEffect(() => {
+    const savedId = localStorage.getItem(TEAM_ID_KEY);
+    
+    const restoreSession = async () => {
+        if (savedId) {
+            return new Promise<void>((resolve) => {
+                socket.emit("RECONNECT_TEAM", { teamId: savedId }, (res: { success: boolean; team: any }) => {
+                    if (res.success) {
+                        setTeamName(res.team.name);
+                        setColor(res.team.color);
+                        setJoined(true);
+                    } else {
+                        localStorage.removeItem(TEAM_ID_KEY);
+                    }
+                    resolve();
+                });
+            });
+        }
+    };
+
+    restoreSession().finally(() => {
+        setIsReconnecting(false);
+    });
+  }, []);
 
   React.useEffect(() => {
     if (state.currentQuestion) {
@@ -25,12 +56,27 @@ export const PlayerView: React.FC = () => {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamName) return;
-    socket.emit("JOIN_ROOM", { teamName, color });
-    setJoined(true);
+    socket.emit("JOIN_ROOM", { teamName, color }, (res: any) => {
+        if (res.success) {
+            localStorage.setItem(TEAM_ID_KEY, res.team.id);
+            localStorage.setItem(TEAM_NAME_KEY, res.team.name);
+            localStorage.setItem(TEAM_COLOR_KEY, res.team.color);
+            setJoined(true);
+        }
+    });
+  };
+
+  const handleLeave = () => {
+    if (confirm("Are you sure you want to leave the game? Your score will be preserved if you rejoin with the same name.")) {
+        localStorage.removeItem(TEAM_ID_KEY);
+        localStorage.removeItem(TEAM_NAME_KEY);
+        localStorage.removeItem(TEAM_COLOR_KEY);
+        window.location.reload(); // Hard reset
+    }
   };
 
   const getTeamId = () => {
-    return state.teams.find(t => t.name === teamName)?.id;
+    return state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   };
 
   const handleSubmit = () => {
@@ -45,6 +91,16 @@ export const PlayerView: React.FC = () => {
     });
     setSubmitted(true);
   };
+
+  if (isReconnecting) {
+      return (
+          <div className="min-h-screen bg-blue-600 flex items-center justify-center">
+              <div className="text-white font-bold animate-pulse text-xl">
+                  {t('common.loading')}
+              </div>
+          </div>
+      );
+  }
 
   if (!joined) {
     return (
@@ -90,16 +146,16 @@ export const PlayerView: React.FC = () => {
     if (!state.currentQuestion) return "";
     const { type, content } = state.currentQuestion;
     if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
-      return content.options[content.correctIndex] || "Unknown";
+      return content?.options?.[content?.correctIndex] || "Unknown";
     }
-    return content.answer || content.correctAnswer || "Unknown";
+    return content?.answer || content?.correctAnswer || "Unknown";
   };
 
   const isCorrect = () => {
     if (!state.currentQuestion) return false;
     const { type, content } = state.currentQuestion;
     if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
-      return parseInt(answer) === content.correctIndex;
+      return parseInt(answer) === content?.correctIndex;
     }
     // Simple string comparison for other types
     return answer.toLowerCase().trim() === getCorrectAnswer().toString().toLowerCase().trim();
@@ -115,7 +171,12 @@ export const PlayerView: React.FC = () => {
           </div>
           <LanguageSwitcher />
         </div>
-        <div className="text-gray-600 font-medium">{t('common.score')}: {state.teams.find(t => t.name === teamName)?.score || 0}</div>
+        <div className="flex items-center space-x-4">
+            <div className="text-gray-600 font-medium">{t('common.score')}: {state.teams.find(t => t.name === teamName)?.score || 0}</div>
+            <button onClick={handleLeave} className="text-gray-400 hover:text-red-500 transition">
+                <LogOut className="w-5 h-5" />
+            </button>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -155,7 +216,7 @@ export const PlayerView: React.FC = () => {
               <div className="space-y-6 w-full">
                 {(state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED") ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {state.currentQuestion.content.options.map((opt: string, i: number) => (
+                    {state.currentQuestion.content?.options?.map((opt: string, i: number) => (
                       <button
                         key={i}
                         onClick={() => {

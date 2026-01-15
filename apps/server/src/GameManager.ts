@@ -120,4 +120,31 @@ export class GameManager {
   public async getAllQuestions() {
     return query("SELECT * FROM questions ORDER BY created_at");
   }
+
+  public async reconnectTeam(teamId: string): Promise<Team | null> {
+    const existingTeam = this.state.teams.find((t) => t.id === teamId);
+    if (existingTeam) return existingTeam;
+
+    // Check DB if not in memory (e.g. server restart)
+    const res = await query("SELECT * FROM teams WHERE id = $1", [teamId]);
+    if (res.rows.length === 0) return null;
+
+    const dbTeam = res.rows[0];
+
+    // Restore score from leaderboard view
+    const scoreRes = await query(
+      "SELECT total_score FROM leaderboard WHERE team_id = $1",
+      [teamId]
+    );
+    const score = scoreRes.rows[0] ? parseInt(scoreRes.rows[0].total_score) : 0;
+
+    const restoredTeam: Team = {
+      id: dbTeam.id,
+      name: dbTeam.name,
+      color: dbTeam.color,
+      score,
+    };
+    this.state.teams.push(restoredTeam);
+    return restoredTeam;
+  }
 }
