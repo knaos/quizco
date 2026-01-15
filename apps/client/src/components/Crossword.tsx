@@ -13,7 +13,7 @@ interface CrosswordProps {
 
 export const Crossword: React.FC<CrosswordProps> = ({ data, onCrosswordCorrect }) => {
   const [userGrid, setUserGrid] = useState(
-    data.grid.map((row) => row.map((cell) => (cell === "" ? "" : "")))
+    data.grid ? data.grid.map((row) => row.map(() => "")) : []
   );
 
   const handleChange = (r: number, c: number, val: string) => {
@@ -38,7 +38,7 @@ export const Crossword: React.FC<CrosswordProps> = ({ data, onCrosswordCorrect }
   return (
     <div className="flex flex-col md:flex-row gap-8 items-start">
       <div className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg" 
-           style={{ gridTemplateColumns: `repeat(${data.grid[0].length}, minmax(0, 1fr))` }}>
+           style={{ gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0}, minmax(0, 1fr))` }}>
         {userGrid.map((row, r) =>
           row.map((cell, c) => (
             <div key={`${r}-${c}`} className="w-10 h-10 md:w-12 md:h-12 bg-white flex items-center justify-center relative">
@@ -61,7 +61,7 @@ export const Crossword: React.FC<CrosswordProps> = ({ data, onCrosswordCorrect }
         <div>
           <h3 className="font-bold text-lg border-b mb-2">Across</h3>
           <ul className="space-y-1">
-            {data.clues.across.map((clue, i) => (
+            {data.clues?.across?.map((clue, i) => (
               <li key={i}><span className="font-bold">{clue.number}.</span> {clue.clue}</li>
             ))}
           </ul>
@@ -69,7 +69,7 @@ export const Crossword: React.FC<CrosswordProps> = ({ data, onCrosswordCorrect }
         <div>
           <h3 className="font-bold text-lg border-b mb-2">Down</h3>
           <ul className="space-y-1">
-            {data.clues.down.map((clue, i) => (
+            {data.clues?.down?.map((clue, i) => (
               <li key={i}><span className="font-bold">{clue.number}.</span> {clue.clue}</li>
             ))}
           </ul>

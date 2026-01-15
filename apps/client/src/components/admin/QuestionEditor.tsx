@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { X, Save, Plus, Trash2 } from "lucide-react";
-import type { Question, QuestionType, GradingMode, MultipleChoiceContent, CrosswordClue } from "@quizco/shared";
-import { Crossword } from "../Crossword";
+import React, { useState } from "react";
+import { X, Save } from "lucide-react";
+import type { Question, QuestionType, GradingMode } from "@quizco/shared";
+import { MultipleChoiceEditor } from "./editors/MultipleChoiceEditor";
+import { OpenWordEditor } from "./editors/OpenWordEditor";
+import { CrosswordEditor } from "./editors/CrosswordEditor";
 
 interface QuestionEditorProps {
   question: Partial<Question>;
@@ -24,15 +26,6 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
     ...question,
   });
 
-  const [previewKey, setPreviewKey] = useState(0);
-
-  useEffect(() => {
-    if (formData.type === "CROSSWORD") {
-      setPreviewKey(k => k + 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.content]);
-
   const handleTypeChange = (type: QuestionType) => {
     let content: any = {};
     if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
@@ -40,67 +33,12 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
     } else if (type === "OPEN_WORD") {
       content = { answer: "" };
     } else if (type === "CROSSWORD") {
-      content = { across: [], down: [] };
+      content = { clues: { across: [], down: [] } };
     }
     setFormData({ ...formData, type, content });
   };
 
-  const addMCOption = () => {
-    const content = formData.content as MultipleChoiceContent;
-    setFormData({
-      ...formData,
-      content: { ...content, options: [...content.options, ""] },
-    });
-  };
-
-  const removeMCOption = (index: number) => {
-    const content = formData.content as MultipleChoiceContent;
-    const newOptions = content.options.filter((_, i) => i !== index);
-    setFormData({
-      ...formData,
-      content: { 
-        ...content, 
-        options: newOptions,
-        correctIndex: content.correctIndex >= newOptions.length ? 0 : content.correctIndex 
-      },
-    });
-  };
-
-  const updateMCOption = (index: number, value: string) => {
-    const content = formData.content as MultipleChoiceContent;
-    const newOptions = [...content.options];
-    newOptions[index] = value;
-    setFormData({
-      ...formData,
-      content: { ...content, options: newOptions },
-    });
-  };
-
-  const addCrosswordClue = (direction: "across" | "down") => {
-    const content = { ...formData.content };
-    const newClue: CrosswordClue = {
-        number: (content.across.length + content.down.length) + 1,
-        x: 0,
-        y: 0,
-        direction,
-        clue: "",
-        answer: ""
-    };
-    content[direction] = [...content[direction], newClue];
-    setFormData({ ...formData, content });
-  };
-
-  const updateCrosswordClue = (direction: "across" | "down", index: number, field: keyof CrosswordClue, value: any) => {
-    const content = { ...formData.content };
-    const newClues = [...content[direction]];
-    newClues[index] = { ...newClues[index], [field]: value };
-    content[direction] = newClues;
-    setFormData({ ...formData, content });
-  };
-
-  const removeCrosswordClue = (direction: "across" | "down", index: number) => {
-    const content = { ...formData.content };
-    content[direction] = content[direction].filter((_: any, i: number) => i !== index);
+  const handleContentChange = (content: any) => {
     setFormData({ ...formData, content });
   };
 
@@ -179,129 +117,24 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
             <h3 className="text-lg font-bold text-gray-800 mb-4">Content Settings</h3>
             
             {(formData.type === "MULTIPLE_CHOICE" || formData.type === "CLOSED") && (
-              <div className="space-y-4">
-                {(formData.content as MultipleChoiceContent).options.map((opt, i) => (
-                  <div key={i} className="flex items-center space-x-3">
-                    <input
-                      type="radio"
-                      name="correctIndex"
-                      checked={(formData.content as MultipleChoiceContent).correctIndex === i}
-                      onChange={() => setFormData({
-                        ...formData,
-                        content: { ...formData.content, correctIndex: i }
-                      })}
-                      className="w-5 h-5 text-blue-600"
-                    />
-                    <input
-                      type="text"
-                      value={opt}
-                      onChange={(e) => updateMCOption(i, e.target.value)}
-                      className="flex-1 p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-                      placeholder={`Option ${i + 1}`}
-                    />
-                    <button
-                      onClick={() => removeMCOption(i)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={addMCOption}
-                  className="text-blue-600 font-bold flex items-center hover:underline"
-                >
-                  <Plus className="w-4 h-4 mr-1" /> Add Option
-                </button>
-              </div>
+              <MultipleChoiceEditor 
+                content={formData.content} 
+                onChange={handleContentChange} 
+              />
             )}
 
             {formData.type === "OPEN_WORD" && (
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-600 uppercase">Correct Answer</label>
-                <input
-                  type="text"
-                  value={formData.content?.answer || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    content: { ...formData.content, answer: e.target.value }
-                  })}
-                  className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-                  placeholder="Enter the correct answer"
-                />
-              </div>
+              <OpenWordEditor 
+                content={formData.content} 
+                onChange={handleContentChange} 
+              />
             )}
 
             {formData.type === "CROSSWORD" && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  {["across", "down"].map((dir) => (
-                    <div key={dir}>
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-bold text-gray-700 uppercase text-xs">{dir}</h4>
-                        <button
-                          onClick={() => addCrosswordClue(dir as any)}
-                          className="text-xs text-blue-600 font-bold"
-                        >
-                          + Add Word
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {formData.content[dir].map((clue: CrosswordClue, i: number) => (
-                          <div key={i} className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-                            <div className="grid grid-cols-4 gap-2">
-                                <input
-                                    type="number"
-                                    placeholder="X"
-                                    value={clue.x}
-                                    onChange={(e) => updateCrosswordClue(dir as any, i, "x", parseInt(e.target.value))}
-                                    className="p-1 text-xs border rounded"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Y"
-                                    value={clue.y}
-                                    onChange={(e) => updateCrosswordClue(dir as any, i, "y", parseInt(e.target.value))}
-                                    className="p-1 text-xs border rounded"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="#"
-                                    value={clue.number}
-                                    onChange={(e) => updateCrosswordClue(dir as any, i, "number", parseInt(e.target.value))}
-                                    className="p-1 text-xs border rounded"
-                                />
-                                <button onClick={() => removeCrosswordClue(dir as any, i)} className="text-red-500 flex justify-end">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Word (Answer)"
-                              value={clue.answer}
-                              onChange={(e) => updateCrosswordClue(dir as any, i, "answer", e.target.value)}
-                              className="w-full p-2 text-sm border rounded"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Clue"
-                              value={clue.clue}
-                              onChange={(e) => updateCrosswordClue(dir as any, i, "clue", e.target.value)}
-                              className="w-full p-2 text-sm border rounded"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="bg-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[300px]">
-                    <span className="text-xs font-bold text-gray-400 uppercase mb-4">Live Preview</span>
-                    <div className="w-full h-full max-h-[400px] overflow-auto">
-                        <Crossword key={previewKey} data={formData.content} onCrosswordCorrect={() => {}} />
-                    </div>
-                </div>
-              </div>
+              <CrosswordEditor 
+                content={formData.content} 
+                onChange={handleContentChange} 
+              />
             )}
           </div>
         </div>

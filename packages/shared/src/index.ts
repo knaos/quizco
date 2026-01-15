@@ -21,14 +21,17 @@ export interface CrosswordClue {
   clue: string;
   answer: string;
   direction: "across" | "down";
-  x: number;
-  y: number;
+  x: number; // Column
+  y: number; // Row
   number: number;
 }
 
 export interface CrosswordContent {
-  across: CrosswordClue[];
-  down: CrosswordClue[];
+  grid: string[][];
+  clues: {
+    across: CrosswordClue[];
+    down: CrosswordClue[];
+  };
 }
 
 export interface OpenWordContent {
