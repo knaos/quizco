@@ -20,7 +20,12 @@
       "start_timer": "START TIMER",
       "reveal_answer": "REVEAL ANSWER",
       "leaderboard": "Leaderboard",
-      "select_question": "Select Question"
+      "select_question": "Select Question",
+      "access_title": "Host Access",
+      "password_placeholder": "Host Password",
+      "enter_password_hint": "Enter host password to continue",
+      "login_button": "Login as Host",
+      "admin_panel": "Admin Panel"
     },
     "player": {
       "join_title": "Join the Quiz!",

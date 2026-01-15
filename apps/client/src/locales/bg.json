@@ -20,7 +20,12 @@
       "start_timer": "СТАРТИРАЙ ТАЙМЕР",
       "reveal_answer": "ПОКАЖИ ОТГОВОРА",
       "leaderboard": "Класиране",
-      "select_question": "Избери Въпрос"
+      "select_question": "Избери Въпрос",
+      "access_title": "Достъп за Водещи",
+      "password_placeholder": "Парола на водещия",
+      "enter_password_hint": "Въведете парола, за да продължите",
+      "login_button": "Влез като Водещ",
+      "admin_panel": "Админ Панел"
     },
     "player": {
       "join_title": "Влез в Куиза!",

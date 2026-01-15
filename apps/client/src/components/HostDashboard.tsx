@@ -44,7 +44,7 @@ export const HostDashboard: React.FC = () => {
             className="flex items-center space-x-2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-700 transition"
           >
             <Settings className="w-5 h-5" />
-            <span className="font-semibold">Admin Panel</span>
+            <span className="font-semibold">{t('host.admin_panel')}</span>
           </a>
           <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow">
             <Users className="text-blue-500" />
