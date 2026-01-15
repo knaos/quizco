@@ -75,8 +75,8 @@ export const HostDashboard: React.FC = () => {
                     <p className="text-sm text-green-600 font-bold uppercase">{t('player.correct_answer')}</p>
                     <p className="text-xl font-black text-green-900">
                       {state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED"
-                        ? state.currentQuestion.content.options[state.currentQuestion.content.correctIndex]
-                        : (state.currentQuestion.content.answer || state.currentQuestion.content.correctAnswer)}
+                        ? state.currentQuestion.content?.options?.[state.currentQuestion.content?.correctIndex]
+                        : (state.currentQuestion.content?.answer || state.currentQuestion.content?.correctAnswer)}
                     </p>
                   </div>
                 )}

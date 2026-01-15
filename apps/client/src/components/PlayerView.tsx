@@ -259,7 +259,7 @@ export const PlayerView: React.FC = () => {
               <div className="space-y-6">
                 {(state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED") ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {state.currentQuestion.content.options.map((opt: string, i: number) => {
+                    {state.currentQuestion.content?.options?.map((opt: string, i: number) => {
                       const isOptionCorrect = i === state.currentQuestion!.content.correctIndex;
                       const isSelected = i === parseInt(answer);
                       
