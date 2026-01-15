@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { GameManager } from "./GameManager";
 import adminRouter from "./routes/admin";
+import { query } from "./db";
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ io.on("connection", (socket) => {
   socket.on("SUBMIT_ANSWER", async ({ teamId, questionId, answer }) => {
     await gameManager.submitAnswer(teamId, questionId, answer);
     io.emit("GAME_STATE_SYNC", gameManager.getState());
+    io.emit("SCORE_UPDATE", gameManager.getState().teams);
   });
 
   socket.on("HOST_START_QUESTION", async ({ questionId }) => {
@@ -75,9 +77,30 @@ io.on("connection", (socket) => {
     io.emit("GAME_STATE_SYNC", gameManager.getState());
   });
 
+  socket.on("HOST_GRADE_DECISION", async ({ answerId, correct }) => {
+    await gameManager.handleGradeDecision(answerId, correct);
+    io.emit("SCORE_UPDATE", gameManager.getState().teams);
+    io.emit("GAME_STATE_SYNC", gameManager.getState());
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });
+});
+
+app.get("/api/admin/pending-answers", async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT a.*, t.name as team_name, q.question_text 
+       FROM answers a 
+       JOIN teams t ON a.team_id = t.id 
+       JOIN questions q ON a.question_id = q.id 
+       WHERE a.is_correct IS NULL`
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
 });
 
 // Timer sync interval

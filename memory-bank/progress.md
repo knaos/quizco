@@ -6,16 +6,16 @@
 - **Frontend Scaffolding:** React, Vite, Tailwind, i18next, and Socket.io-client.
 - **Backend Scaffolding:** Node.js, Express, Socket.io, and Postgres setup.
 - **Database Schema:** Defined SQL schema with support for JSONB and UUIDs.
-- **Core Game Logic:** Initial `GameManager` implementation on the server.
+- **Core Game Logic:** `GameManager` with auto and manual grading.
 - **Types:** Shared TypeScript interfaces for game state and socket events.
 - **Components:** Basic implementations of `AdminPanel`, `HostDashboard`, `PlayerView`, and `Crossword`.
+- **Manual Grading Workflow:** Host UI and server logic for adjudicating open-ended answers.
 
 ## What's Left to Build
 
 - **Game State Synchronization:** Robust handling of phase transitions and late joins.
 - **Admin/Host UI Refinement:** Full-featured dashboard for managing competitions, rounds, and questions.
 - **Question Editors:** Dedicated UI for creating different question types (MCQ, Open, Crossword).
-- **Manual Grading Workflow:** Host UI and server logic for adjudicating open-ended answers.
 - **Timer Logic:** Server-authoritative countdown with drift prevention.
 - **Leaderboard:** Real-time score aggregation and display.
 - **Crossword Integration:** Full implementation of `react-crossword` with server sync.
@@ -23,10 +23,11 @@
 
 ## Current Status
 
-- **Overall Completion:** ~30%
+- **Overall Completion:** ~40%
 - **Infrastructure:** [x] Done
 - **Database:** [x] Done
 - **Core State Machine:** [/] In Progress
+- **Scoring & Grading:** [x] Done
 - **Admin UI:** [/] In Progress
 - **Player UI:** [/] In Progress
 - **Real-Time Sync:** [/] In Progress

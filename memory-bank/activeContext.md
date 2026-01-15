@@ -6,23 +6,25 @@ The project has been initialized with a monorepo structure. Core components for 
 
 ## Recent Changes
 
-- Initialized Memory Bank with `projectbrief.md`, `productContext.md`, `systemPatterns.md`, and `techContext.md`.
-- Scaffolding for `apps/client` (React, Tailwind, i18n, Socket.io) is in place.
-- Scaffolding for `apps/server` (Express, Socket.io, Postgres setup) is in place.
-- Basic game logic (`GameManager.ts`) and database schema/seed scripts are created.
+- **Implemented Scoring and Grading System:**
+  - Added auto-grading logic to `GameManager.ts` for MCQ and Closed-ended questions.
+  - Established manual grading workflow for open-ended questions.
+  - Updated Host Dashboard with a real-time manual grading queue.
+  - Added integration tests for auto-grading.
+- Initialized Memory Bank with core documentation files.
 - Shared types are defined in `packages/shared`.
 
 ## Current Status
 
-We are in the early stages of implementation, focusing on establishing the real-time game loop and ensuring synchronization between the host dashboard and player views.
+The core game loop now includes answer validation and scoring. The system can handle both automatic and manual grading, and the host can adjudicate answers in real-time.
 
 ## Next Steps
 
-1. Verify the current implementation of `GameManager` and its integration with Socket.io.
-2. Refine the Host Dashboard to allow starting competitions and rounds.
-3. Ensure the Player View correctly handles all question types (MCQ, Open, Crossword).
-4. Implement and test manual grading workflow.
-5. Enhance UI/UX for children based on established design principles.
+1. Refine the Host Dashboard to support Competitions and Rounds (currently lists all questions).
+2. Ensure the Player View correctly handles all question types (MCQ, Open, Crossword).
+3. Implement interactive Crossword synchronization logic.
+4. Enhance UI/UX for children (animations, larger font sizes, feedback).
+5. Add more unit tests for manual grading and score calculation.
 
 ## Active Decisions
 

@@ -189,4 +189,35 @@ describe("GameManager Integration", () => {
     );
     expect(reconnected).toBeNull();
   });
+
+  it("should auto-grade a MULTIPLE_CHOICE question", async () => {
+    const team = await gameManager.addTeam("Grading Team", "#000000");
+    const res = await pool.query(
+      "INSERT INTO questions (question_text, type, points, content, grading) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      [
+        "What is 1+1?",
+        "MULTIPLE_CHOICE",
+        15,
+        JSON.stringify({ options: ["1", "2"], correctIndex: 1 }),
+        "AUTO",
+      ]
+    );
+    const questionId = res.rows[0].id;
+
+    await gameManager.startQuestion(questionId);
+    gameManager.startTimer();
+
+    await gameManager.submitAnswer(team.id, questionId, 1); // Correct
+
+    const updatedTeam = gameManager
+      .getState()
+      .teams.find((t) => t.id === team.id);
+    expect(updatedTeam?.score).toBe(15);
+
+    const answerRes = await pool.query(
+      "SELECT is_correct FROM answers WHERE team_id = $1 AND question_id = $2",
+      [team.id, questionId]
+    );
+    expect(answerRes.rows[0].is_correct).toBe(true);
+  });
 });

@@ -1,21 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Users, Play, SkipForward, CheckCircle, Clock, Settings } from "lucide-react";
+import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle } from "lucide-react";
 import type { Question } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+
+interface PendingAnswer {
+  id: string;
+  team_id: string;
+  team_name: string;
+  question_id: string;
+  question_text: string;
+  submitted_content: string;
+}
 
 export const HostDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [pendingAnswers, setPendingAnswers] = useState<PendingAnswer[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:4000/api/questions")
       .then((res) => res.json())
       .then((data) => setQuestions(data));
   }, []);
+
+  const fetchPendingAnswers = () => {
+    fetch("http://localhost:4000/api/admin/pending-answers")
+      .then((res) => res.json())
+      .then((data) => setPendingAnswers(data));
+  };
+
+  useEffect(() => {
+    if (state.phase === "GRADING") {
+      fetchPendingAnswers();
+    }
+  }, [state.phase]);
 
   const startQuestion = (id: string) => {
     socket.emit("HOST_START_QUESTION", { questionId: id });
@@ -27,6 +49,11 @@ export const HostDashboard: React.FC = () => {
 
   const revealAnswer = () => {
     socket.emit("HOST_REVEAL_ANSWER");
+  };
+
+  const gradeAnswer = (answerId: string, correct: boolean) => {
+    socket.emit("HOST_GRADE_DECISION", { answerId, correct });
+    setPendingAnswers(prev => prev.filter(a => a.id !== answerId));
   };
 
   return (
@@ -93,6 +120,41 @@ export const HostDashboard: React.FC = () => {
               </div>
             )}
           </section>
+
+          {state.phase === "GRADING" && pendingAnswers.length > 0 && (
+            <section className="bg-white p-6 rounded-xl shadow-md border-2 border-yellow-400">
+              <h2 className="text-xl font-bold mb-4 flex items-center text-yellow-700">
+                <Clock className="mr-2" /> {t('host.manual_grading_queue')} ({pendingAnswers.length})
+              </h2>
+              <div className="space-y-4">
+                {pendingAnswers.map((answer) => (
+                  <div key={answer.id} className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-yellow-600 uppercase">{answer.team_name}</p>
+                      <p className="text-lg font-bold text-gray-900">{JSON.parse(answer.submitted_content)}</p>
+                      <p className="text-xs text-gray-500 italic">{answer.question_text}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => gradeAnswer(answer.id, true)}
+                        className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition shadow-lg"
+                        title="Correct"
+                      >
+                        <CheckCircle className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={() => gradeAnswer(answer.id, false)}
+                        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-lg"
+                        title="Incorrect"
+                      >
+                        <XCircle className="w-6 h-6" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="bg-white p-6 rounded-xl shadow-md">
             <h2 className="text-xl font-bold mb-4 flex items-center">

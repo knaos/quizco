@@ -87,16 +87,41 @@ export class GameManager {
     if (this.state.phase !== "QUESTION_ACTIVE") return;
     if (this.state.currentQuestion?.id !== questionId) return;
 
+    let isCorrect = null;
+    let scoreAwarded = 0;
+
+    // Auto-grading for MCQ and CLOSED
+    if (this.state.currentQuestion.grading === "AUTO") {
+      const q = this.state.currentQuestion;
+      if (q.type === "MULTIPLE_CHOICE") {
+        isCorrect = answer === q.content.correctIndex;
+      } else if (q.type === "CLOSED") {
+        // Simple case-insensitive match for CLOSED
+        const correctAnswers = q.content.options.map((o: string) =>
+          o.toLowerCase().trim()
+        );
+        isCorrect = correctAnswers.includes(answer.toLowerCase().trim());
+      }
+      scoreAwarded = isCorrect ? q.points : 0;
+    }
+
     // Store in DB
     await query(
-      "INSERT INTO answers (team_id, question_id, round_id, submitted_content) VALUES ($1, $2, $3, $4)",
+      "INSERT INTO answers (team_id, question_id, round_id, submitted_content, is_correct, score_awarded) VALUES ($1, $2, $3, $4, $5, $6)",
       [
         teamId,
         questionId,
         this.state.currentQuestion.round_id,
         JSON.stringify(answer),
+        isCorrect,
+        scoreAwarded,
       ]
     );
+
+    // Update score in memory immediately for auto-graded questions
+    if (isCorrect !== null) {
+      await this.refreshTeamScores();
+    }
 
     // Check if all teams have submitted
     const submittedRes = await query(
@@ -110,6 +135,42 @@ export class GameManager {
       this.state.teams.length > 0
     ) {
       this.endQuestion();
+    }
+  }
+
+  public async handleGradeDecision(answerId: string, correct: boolean) {
+    // Get the answer details
+    const res = await query("SELECT * FROM answers WHERE id = $1", [answerId]);
+    if (res.rows.length === 0) return;
+    const answer = res.rows[0];
+
+    // Get question points
+    const qRes = await query("SELECT points FROM questions WHERE id = $1", [
+      answer.question_id,
+    ]);
+    const points = qRes.rows[0]?.points || 0;
+
+    const scoreAwarded = correct ? points : 0;
+
+    // Update DB
+    await query(
+      "UPDATE answers SET is_correct = $1, score_awarded = $2 WHERE id = $3",
+      [correct, scoreAwarded, answerId]
+    );
+
+    // Refresh scores
+    await this.refreshTeamScores();
+  }
+
+  public async refreshTeamScores() {
+    for (const team of this.state.teams) {
+      const res = await query(
+        "SELECT total_score FROM leaderboard WHERE team_id = $1",
+        [team.id]
+      );
+      if (res.rows[0]) {
+        team.score = parseInt(res.rows[0].total_score);
+      }
     }
   }
 
