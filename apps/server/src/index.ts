@@ -36,8 +36,8 @@ io.on("connection", (socket) => {
   // Sync state on connection
   socket.emit("GAME_STATE_SYNC", gameManager.getState());
 
-  socket.on("JOIN_ROOM", ({ teamName, color }) => {
-    const team = gameManager.addTeam(teamName, color);
+  socket.on("JOIN_ROOM", async ({ teamName, color }) => {
+    const team = await gameManager.addTeam(teamName, color);
     socket.join("competition_room");
     socket.emit("GAME_STATE_SYNC", gameManager.getState());
     io.emit("SCORE_UPDATE", gameManager.getState().teams);

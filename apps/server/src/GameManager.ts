@@ -17,14 +17,22 @@ export class GameManager {
     return this.state;
   }
 
-  public addTeam(name: string, color: string): Team {
+  public async addTeam(name: string, color: string): Promise<Team> {
     const existingTeam = this.state.teams.find((t) => t.name === name);
     if (existingTeam) return existingTeam;
 
+    // Persist team to DB and get UUID
+    const res = await query(
+      "INSERT INTO teams (name, color) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET color = EXCLUDED.color RETURNING id, name, color",
+      [name, color]
+    );
+
+    const dbTeam = res.rows[0];
+
     const newTeam: Team = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      color,
+      id: dbTeam.id,
+      name: dbTeam.name,
+      color: dbTeam.color,
       score: 0,
     };
     this.state.teams.push(newTeam);

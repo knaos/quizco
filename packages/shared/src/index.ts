@@ -12,6 +12,29 @@ export type GamePhase =
   | "REVEAL_ANSWER"
   | "LEADERBOARD";
 
+export interface MultipleChoiceContent {
+  options: string[];
+  correctIndex: number;
+}
+
+export interface CrosswordClue {
+  clue: string;
+  answer: string;
+  direction: "across" | "down";
+  x: number;
+  y: number;
+  number: number;
+}
+
+export interface CrosswordContent {
+  across: CrosswordClue[];
+  down: CrosswordClue[];
+}
+
+export interface OpenWordContent {
+  answer: string;
+}
+
 export interface Question {
   id: string;
   round_id: string;
@@ -19,7 +42,7 @@ export interface Question {
   type: QuestionType;
   points: number;
   time_limit_seconds: number;
-  content: any; // Flexible based on type
+  content: any; // Using any for now to avoid breaking existing code, but with specialized interfaces available
   grading: GradingMode;
 }
 

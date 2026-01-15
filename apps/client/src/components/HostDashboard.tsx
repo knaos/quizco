@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket } from "../socket";
-import { Users, Play, SkipForward, CheckCircle, Clock } from "lucide-react";
+import { Users, Play, SkipForward, CheckCircle, Clock, Settings } from "lucide-react";
 import type { Question } from "@quizco/shared";
 
 export const HostDashboard: React.FC = () => {
@@ -30,9 +30,20 @@ export const HostDashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <header className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">Host Dashboard</h1>
-        <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow">
-          <Users className="text-blue-500" />
-          <span className="font-semibold">{state.teams.length} Teams Connected</span>
+        <div className="flex items-center space-x-4">
+          <a
+            href="/?admin=true"
+            className="flex items-center space-x-2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-700 transition"
+          >
+            <Settings className="w-5 h-5" />
+            <span className="font-semibold">Admin Panel</span>
+          </a>
+          <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow">
+            <Users className="text-blue-500" />
+            <span className="font-semibold">
+              {state.teams.length} Teams Connected
+            </span>
+          </div>
         </div>
       </header>
 

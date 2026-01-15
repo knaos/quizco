@@ -16,8 +16,8 @@ describe("GameManager Integration", () => {
     expect(state.teams).toHaveLength(0);
   });
 
-  it("should add a new team", () => {
-    const team = gameManager.addTeam("Red Dragons", "#FF0000");
+  it("should add a new team", async () => {
+    const team = await gameManager.addTeam("Red Dragons", "#FF0000");
     expect(team.name).toBe("Red Dragons");
     expect(gameManager.getState().teams).toHaveLength(1);
     expect(gameManager.getState().teams[0].name).toBe("Red Dragons");

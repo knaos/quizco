@@ -26,10 +26,17 @@ export const PlayerView: React.FC = () => {
     setJoined(true);
   };
 
+  const getTeamId = () => {
+    return state.teams.find(t => t.name === teamName)?.id;
+  };
+
   const handleSubmit = () => {
     if (!state.currentQuestion) return;
+    const teamId = getTeamId();
+    if (!teamId) return;
+    
     socket.emit("SUBMIT_ANSWER", { 
-      teamId: state.teams.find(t => t.name === teamName)?.id, 
+      teamId, 
       questionId: state.currentQuestion.id, 
       answer 
     });
@@ -143,11 +150,12 @@ export const PlayerView: React.FC = () => {
                       <button
                         key={i}
                         onClick={() => {
+                          const teamId = getTeamId();
+                          if (!teamId) return;
                           setAnswer(i.toString());
                           setSubmitted(true);
                           socket.emit("SUBMIT_ANSWER", {
-                            teamId: state.teams.find((t) => t.name === teamName)
-                              ?.id,
+                            teamId,
                             questionId: state.currentQuestion!.id,
                             answer: i,
                           });
@@ -162,17 +170,18 @@ export const PlayerView: React.FC = () => {
                   <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
                     <Crossword
                       data={state.currentQuestion.content}
-                      onCrosswordCorrect={(isCorrect: boolean) => {
-                        if (isCorrect) {
-                          socket.emit("SUBMIT_ANSWER", {
-                            teamId: state.teams.find((t) => t.name === teamName)
-                              ?.id,
-                            questionId: state.currentQuestion!.id,
-                            answer: "COMPLETED",
-                          });
-                          setSubmitted(true);
-                        }
-                      }}
+                        onCrosswordCorrect={(isCorrect: boolean) => {
+                          if (isCorrect) {
+                            const teamId = getTeamId();
+                            if (!teamId) return;
+                            socket.emit("SUBMIT_ANSWER", {
+                              teamId,
+                              questionId: state.currentQuestion!.id,
+                              answer: "COMPLETED",
+                            });
+                            setSubmitted(true);
+                          }
+                        }}
                     />
                   </div>
                 ) : (
