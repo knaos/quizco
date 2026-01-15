@@ -5,11 +5,11 @@ import type { Competition, Round } from "@quizco/shared";
 const ADMIN_PASSWORD_KEY = "quizco_admin_password";
 
 export const AdminPanel: React.FC = () => {
-  const passwordRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState(
     localStorage.getItem(ADMIN_PASSWORD_KEY) || ""
   );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<"COMPETITIONS" | "EDITOR">("COMPETITIONS");
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
@@ -51,23 +51,32 @@ export const AdminPanel: React.FC = () => {
     }
   }, [selectedComp, fetchRounds]);
 
-  const verifyAuth = useCallback(async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/admin/competitions", {
-        headers: { "x-admin-auth": password },
-      });
-      if (res.ok) {
-        setIsAuthenticated(true);
-        const data = await res.json();
-        setCompetitions(data);
-      } else if (res.status === 401) {
-        setIsAuthenticated(false);
-        localStorage.removeItem(ADMIN_PASSWORD_KEY);
+  const verifyAuth = useCallback(
+    async (token?: string) => {
+      const authHeader = token || password;
+      if (!authHeader) return;
+
+      setIsLoading(true);
+      try {
+        const res = await fetch("http://localhost:4000/api/admin/competitions", {
+          headers: { "x-admin-auth": authHeader },
+        });
+        if (res.ok) {
+          setIsAuthenticated(true);
+          const data = await res.json();
+          setCompetitions(data);
+        } else if (res.status === 401) {
+          setIsAuthenticated(false);
+          localStorage.removeItem(ADMIN_PASSWORD_KEY);
+        }
+      } catch (err) {
+        console.error("Auth error:", err);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Auth error:", err);
-    }
-  }, [password]);
+    },
+    [password]
+  );
 
   const createCompetition = async () => {
     const title = prompt("Enter Quiz Title:");
@@ -93,15 +102,15 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     const saved = localStorage.getItem(ADMIN_PASSWORD_KEY);
     if (saved) {
-      verifyAuth();
+      // Use setTimeout to move the call out of the render cycle
+      setTimeout(() => verifyAuth(saved), 0);
     }
   }, [verifyAuth]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const val = passwordRef.current?.value || "";
-    setPassword(val);
-    localStorage.setItem(ADMIN_PASSWORD_KEY, val);
+    localStorage.setItem(ADMIN_PASSWORD_KEY, password);
+    verifyAuth(password);
   };
 
   const createQuestion = async (roundId: string) => {
@@ -167,17 +176,18 @@ export const AdminPanel: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Admin Access</h1>
           <input
-            ref={passwordRef}
             type="password"
-            defaultValue={password}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-blue-500 outline-none transition mb-4"
             placeholder="Enter Admin Password"
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg disabled:bg-blue-300"
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
