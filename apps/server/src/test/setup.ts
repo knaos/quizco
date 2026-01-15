@@ -1,9 +1,6 @@
 import { beforeEach, afterAll } from "vitest";
 import pool from "../db";
 
-// Force test database
-process.env.DB_NAME = "quizco_test";
-
 beforeEach(async () => {
   // Clear all data before each test
   // We use CASCADE to handle foreign key constraints
