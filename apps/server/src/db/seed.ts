@@ -1,3 +1,4 @@
+import { Prisma, question_type } from "@prisma/client";
 import prisma from "./prisma";
 
 async function seed() {
@@ -26,7 +27,12 @@ async function seed() {
     const roundId = round.id;
 
     // 3. Add some questions
-    const questions = [
+    const questions: {
+      text: string;
+      type: question_type;
+      points: number;
+      content: Prisma.InputJsonValue;
+    }[] = [
       {
         text: "Who built the ark?",
         type: "MULTIPLE_CHOICE",
@@ -60,7 +66,7 @@ async function seed() {
         data: {
           round_id: roundId,
           question_text: q.text,
-          type: q.type as any,
+          type: q.type,
           points: q.points,
           content: q.content,
         },

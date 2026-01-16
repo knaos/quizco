@@ -71,7 +71,14 @@ Drift Prevention: Do not trust client clocks. Use Date.now() deltas on the serve
 4. Database Schema (Hybrid JSONB)
    We utilize PostgreSQL with JSONB to handle polymorphic question types (Standard vs. Crossword) without EAV anti-patterns.
 
-DDL Reference (Use this exact schema):
+Prisma Workflow (Mandatory):
+
+- All schema changes MUST be made in `apps/server/prisma/schema.prisma`.
+- Use `npx prisma migrate dev` to apply changes and generate migrations.
+- DO NOT use manual SQL setup scripts or raw DDL execution for schema management.
+- Use `apps/server/src/db/seed.ts` for database seeding, triggered via `npx prisma db seed`.
+
+DDL Reference (Use this exact schema in schema.prisma):
 
 SQL
 
