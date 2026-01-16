@@ -43,7 +43,7 @@ export const PlayerView: React.FC = () => {
     const restoreSession = async () => {
         if (savedTeamId && savedCompId) {
             return new Promise<void>((resolve) => {
-                socket.emit("RECONNECT_TEAM", { competitionId: savedCompId, teamId: savedTeamId }, (res: { success: boolean; team: any }) => {
+                socket.emit("RECONNECT_TEAM", { competitionId: savedCompId, teamId: savedTeamId }, (res: { success: boolean; team: { name: string; color: string } }) => {
                     if (res.success) {
                         setTeamName(res.team.name);
                         setColor(res.team.color);
@@ -79,7 +79,7 @@ export const PlayerView: React.FC = () => {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamName || !selectedCompId) return;
-    socket.emit("JOIN_ROOM", { competitionId: selectedCompId, teamName, color }, (res: any) => {
+    socket.emit("JOIN_ROOM", { competitionId: selectedCompId, teamName, color }, (res: { success: boolean; team: { id: string; name: string; color: string } }) => {
         if (res.success) {
             localStorage.setItem(TEAM_ID_KEY, res.team.id);
             localStorage.setItem(TEAM_NAME_KEY, res.team.name);
@@ -103,19 +103,45 @@ export const PlayerView: React.FC = () => {
     return state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   };
 
-  const handleSubmit = () => {
-    if (!state.currentQuestion || !selectedCompId) return;
+  const submitAnswer = (value: string | number) => {
+    if (!state.currentQuestion || !selectedCompId) {
+        console.error("Submission attempted without active question or competition", {
+            question: state.currentQuestion,
+            selectedCompId
+        });
+        return;
+    }
+
     const teamId = getTeamId();
-    if (!teamId) return;
-    
-    socket.emit("SUBMIT_ANSWER", { 
+    if (!teamId) {
+        console.error("Submission attempted without teamId");
+        alert(t('player.session_lost_rejoin'));
+        setJoined(false);
+        return;
+    }
+
+    socket.emit("SUBMIT_ANSWER", {
       competitionId: selectedCompId,
-      teamId, 
-      questionId: state.currentQuestion.id, 
-      answer 
+      teamId,
+      questionId: state.currentQuestion.id,
+      answer: value
     });
+    
+    setAnswer(String(value));
     setSubmitted(true);
   };
+
+  // Sync Watchdog: Monitor if joined team is still in server state
+  useEffect(() => {
+    if (joined && !isReconnecting && state.teams.length > 0) {
+        const teamId = getTeamId();
+        const stillInGame = state.teams.some(t => t.id === teamId || t.name === teamName);
+        
+        if (!stillInGame) {
+            console.warn("Session drift detected: Team not found in server state.");
+        }
+    }
+  }, [state.teams, joined, isReconnecting]);
 
   if (isReconnecting) {
       return (
@@ -292,18 +318,7 @@ export const PlayerView: React.FC = () => {
                     {state.currentQuestion.content?.options?.map((opt: string, i: number) => (
                       <button
                         key={i}
-                        onClick={() => {
-                          const teamId = getTeamId();
-                          if (!teamId || !selectedCompId) return;
-                          setAnswer(i.toString());
-                          setSubmitted(true);
-                          socket.emit("SUBMIT_ANSWER", {
-                            competitionId: selectedCompId,
-                            teamId,
-                            questionId: state.currentQuestion!.id,
-                            answer: i,
-                          });
-                        }}
+                        onClick={() => submitAnswer(i)}
                         className="bg-white hover:bg-blue-50 border-2 border-gray-200 hover:border-blue-500 p-6 rounded-xl text-xl font-semibold transition text-left"
                       >
                         {opt}
@@ -316,15 +331,7 @@ export const PlayerView: React.FC = () => {
                       data={state.currentQuestion.content}
                         onCrosswordCorrect={(isCorrect: boolean) => {
                           if (isCorrect) {
-                            const teamId = getTeamId();
-                            if (!teamId || !selectedCompId) return;
-                            socket.emit("SUBMIT_ANSWER", {
-                              competitionId: selectedCompId,
-                              teamId,
-                              questionId: state.currentQuestion!.id,
-                              answer: "COMPLETED",
-                            });
-                            setSubmitted(true);
+                            submitAnswer("COMPLETED");
                           }
                         }}
                     />
@@ -335,11 +342,12 @@ export const PlayerView: React.FC = () => {
                       type="text"
                       value={answer}
                       onChange={(e) => setAnswer(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && submitAnswer(answer)}
                       className="w-full p-4 text-2xl rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
                       placeholder="Type your answer..."
                     />
                     <button
-                      onClick={handleSubmit}
+                      onClick={() => submitAnswer(answer)}
                       className="bg-blue-600 text-white font-bold py-4 rounded-xl text-xl flex items-center justify-center space-x-2 shadow-lg"
                     >
                       <Send /> <span>{t('player.submit_answer')}</span>

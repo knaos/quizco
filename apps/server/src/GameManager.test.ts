@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GameManager } from "./GameManager";
+import { PostgresGameRepository } from "./repositories/PostgresGameRepository";
 import pool from "./db";
 
 describe("GameManager Integration", () => {
   let gameManager: GameManager;
+  let repository: PostgresGameRepository;
   const compId = "00000000-0000-0000-0000-000000000001";
 
   beforeEach(() => {
     vi.useFakeTimers();
-    gameManager = new GameManager();
+    repository = new PostgresGameRepository();
+    gameManager = new GameManager(repository);
   });
 
   it("should initialize with WAITING phase", () => {
@@ -40,7 +43,7 @@ describe("GameManager Integration", () => {
 
     const questionRes = await pool.query(
       "INSERT INTO questions (round_id, question_text, type, points, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-      [roundId, "What is 1+1?", "CLOSED", 10, 30, { answer: "2" }]
+      [roundId, "What is 1+1?", "CLOSED", 10, 30, { options: ["2"] }]
     );
     const questionId = questionRes.rows[0].id;
 
@@ -176,7 +179,8 @@ describe("GameManager Integration", () => {
     );
 
     // 2. Act: Reconnect with a fresh GameManager (simulating server restart)
-    const freshManager = new GameManager();
+    const freshRepository = new PostgresGameRepository();
+    const freshManager = new GameManager(freshRepository);
     const reconnected = await freshManager.reconnectTeam(testCompId, teamId);
 
     // 3. Assert

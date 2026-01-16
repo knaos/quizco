@@ -1,11 +1,11 @@
 import { GameState, Team, Question, GamePhase } from "@quizco/shared";
-import { query } from "./db";
+import { IGameRepository } from "./repositories/IGameRepository";
 
 export class GameManager {
   private sessions: Map<string, GameState> = new Map();
   private timers: Map<string, NodeJS.Timeout> = new Map();
 
-  constructor() {}
+  constructor(private repository: IGameRepository) {}
 
   private getOrCreateSession(competitionId: string): GameState {
     if (!this.sessions.has(competitionId)) {
@@ -32,53 +32,20 @@ export class GameManager {
     const existingTeam = session.teams.find((t) => t.name === name);
     if (existingTeam) return existingTeam;
 
-    // Persist team to DB and get UUID
-    const res = await query(
-      "INSERT INTO teams (name, color) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET color = EXCLUDED.color RETURNING id, name, color",
-      [name, color]
-    );
-
-    const dbTeam = res.rows[0];
-
-    // Get current score for this competition if they are joining/rejoining
-    const score = await this.getTeamScoreForCompetition(
+    const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
-      dbTeam.id
+      name,
+      color
     );
-
-    const newTeam: Team = {
-      id: dbTeam.id,
-      name: dbTeam.name,
-      color: dbTeam.color,
-      score: score,
-      lastAnswerCorrect: null,
-    };
     session.teams.push(newTeam);
     return newTeam;
   }
 
-  private async getTeamScoreForCompetition(
-    competitionId: string,
-    teamId: string
-  ): Promise<number> {
-    const res = await query(
-      `SELECT COALESCE(SUM(a.score_awarded), 0) as total_score 
-       FROM answers a 
-       JOIN rounds r ON a.round_id = r.id 
-       WHERE r.competition_id = $1 AND a.team_id = $2 AND a.is_correct = TRUE`,
-      [competitionId, teamId]
-    );
-    return parseInt(res.rows[0]?.total_score || "0");
-  }
-
   public async startQuestion(competitionId: string, questionId: string) {
     const session = this.getOrCreateSession(competitionId);
-    const res = await query("SELECT * FROM questions WHERE id = $1", [
-      questionId,
-    ]);
-    if (res.rows.length === 0) return;
+    const question = await this.repository.getQuestion(questionId);
+    if (!question) return;
 
-    const question = res.rows[0] as Question;
     session.currentQuestion = question;
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.time_limit_seconds;
@@ -148,7 +115,6 @@ export class GameManager {
       if (q.type === "MULTIPLE_CHOICE") {
         isCorrect = answer === q.content.correctIndex;
       } else if (q.type === "CLOSED") {
-        // Simple case-insensitive match for CLOSED
         const correctAnswers = q.content.options.map((o: string) =>
           o.toLowerCase().trim()
         );
@@ -158,17 +124,14 @@ export class GameManager {
       scoreAwarded = isCorrect ? q.points : 0;
     }
 
-    // Store in DB
-    await query(
-      "INSERT INTO answers (team_id, question_id, round_id, submitted_content, is_correct, score_awarded) VALUES ($1, $2, $3, $4, $5, $6)",
-      [
-        teamId,
-        questionId,
-        session.currentQuestion.round_id,
-        JSON.stringify(answer),
-        isCorrect,
-        scoreAwarded,
-      ]
+    // Store in Repository
+    await this.repository.saveAnswer(
+      teamId,
+      questionId,
+      session.currentQuestion.round_id,
+      answer,
+      isCorrect,
+      scoreAwarded
     );
 
     // Update score and status in memory immediately for auto-graded questions
@@ -181,11 +144,7 @@ export class GameManager {
     }
 
     // Check if all teams have submitted
-    const submittedRes = await query(
-      "SELECT COUNT(DISTINCT team_id) FROM answers WHERE question_id = $1",
-      [questionId]
-    );
-    const submittedCount = parseInt(submittedRes.rows[0].count);
+    const submittedCount = await this.repository.getSubmissionCount(questionId);
 
     if (submittedCount >= session.teams.length && session.teams.length > 0) {
       this.endQuestion(competitionId);
@@ -199,42 +158,26 @@ export class GameManager {
   ) {
     const session = this.getOrCreateSession(competitionId);
 
-    // Get the answer details
-    const res = await query("SELECT * FROM answers WHERE id = $1", [answerId]);
-    if (res.rows.length === 0) return;
-    const answer = res.rows[0];
+    const answer = await this.repository.getAnswer(answerId);
+    if (!answer) return;
 
-    // Update in-memory status
     const team = session.teams.find((t) => t.id === answer.team_id);
     if (team) {
       team.lastAnswerCorrect = correct;
     }
 
-    // Get question points
-    const qRes = await query("SELECT points FROM questions WHERE id = $1", [
-      answer.question_id,
-    ]);
-    const points = qRes.rows[0]?.points || 0;
-
+    const question = await this.repository.getQuestion(answer.question_id);
+    const points = question?.points || 0;
     const scoreAwarded = correct ? points : 0;
 
-    // Update DB
-    await query(
-      "UPDATE answers SET is_correct = $1, score_awarded = $2 WHERE id = $3",
-      [correct, scoreAwarded, answerId]
-    );
-
-    // Refresh scores
+    await this.repository.updateAnswerGrading(answerId, correct, scoreAwarded);
     await this.refreshTeamScores(competitionId);
   }
 
   public async refreshTeamScores(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
     for (const team of session.teams) {
-      team.score = await this.getTeamScoreForCompetition(
-        competitionId,
-        team.id
-      );
+      team.score = await this.repository.getTeamScore(competitionId, team.id);
     }
   }
 
@@ -244,17 +187,11 @@ export class GameManager {
   }
 
   public async getAllQuestions() {
-    return query("SELECT * FROM questions ORDER BY created_at");
+    return this.repository.getAllQuestions();
   }
 
   public async getQuestionsForCompetition(competitionId: string) {
-    return query(
-      `SELECT q.* FROM questions q 
-         JOIN rounds r ON q.round_id = r.id 
-         WHERE r.competition_id = $1 
-         ORDER BY r.order_index, q.created_at`,
-      [competitionId]
-    );
+    return this.repository.getQuestionsForCompetition(competitionId);
   }
 
   public async reconnectTeam(
@@ -265,21 +202,13 @@ export class GameManager {
     const existingTeam = session.teams.find((t) => t.id === teamId);
     if (existingTeam) return existingTeam;
 
-    // Check DB if not in memory (e.g. server restart)
-    const res = await query("SELECT * FROM teams WHERE id = $1", [teamId]);
-    if (res.rows.length === 0) return null;
-
-    const dbTeam = res.rows[0];
-    const score = await this.getTeamScoreForCompetition(competitionId, teamId);
-
-    const restoredTeam: Team = {
-      id: dbTeam.id,
-      name: dbTeam.name,
-      color: dbTeam.color,
-      score,
-      lastAnswerCorrect: null,
-    };
-    session.teams.push(restoredTeam);
+    const restoredTeam = await this.repository.reconnectTeam(
+      competitionId,
+      teamId
+    );
+    if (restoredTeam) {
+      session.teams.push(restoredTeam);
+    }
     return restoredTeam;
   }
 }
