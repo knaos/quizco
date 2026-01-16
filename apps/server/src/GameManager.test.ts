@@ -6,12 +6,17 @@ import prisma from "./db/prisma";
 describe("GameManager Integration", () => {
   let gameManager: GameManager;
   let repository: PostgresGameRepository;
-  const compId = "00000000-0000-0000-0000-000000000001";
+  let compId: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
     repository = new PostgresGameRepository();
     gameManager = new GameManager(repository);
+
+    const competition = await prisma.competition.create({
+      data: { title: "Default Comp", host_pin: "1234" },
+    });
+    compId = competition.id;
   });
 
   it("should initialize with WAITING phase", () => {
@@ -29,28 +34,28 @@ describe("GameManager Integration", () => {
 
   it("should start a question correctly in PREVIEW phase", async () => {
     // 1. Setup data in DB
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title: "Test Comp", host_pin: "1234" },
     });
     const testCompId = competition.id;
 
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id: testCompId,
-        order_index: 1,
+        competitionId: testCompId,
+        orderIndex: 1,
         type: "STANDARD",
         title: "Round 1",
       },
     });
     const roundId = round.id;
 
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id: roundId,
-        question_text: "What is 1+1?",
+        roundId: roundId,
+        questionText: "What is 1+1?",
         type: "CLOSED",
         points: 10,
-        time_limit_seconds: 30,
+        timeLimitSeconds: 30,
         content: { options: ["2"] },
       },
     });
@@ -67,25 +72,25 @@ describe("GameManager Integration", () => {
   });
 
   it("should transition from PREVIEW to ACTIVE when timer starts", async () => {
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title: "Test", host_pin: "1" },
     });
     const testCompId = competition.id;
 
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id: testCompId,
-        order_index: 1,
+        competitionId: testCompId,
+        orderIndex: 1,
         type: "STANDARD",
       },
     });
 
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id: round.id,
-        question_text: "T",
+        roundId: round.id,
+        questionText: "T",
         type: "CLOSED",
-        time_limit_seconds: 5,
+        timeLimitSeconds: 5,
         content: {},
       },
     });
@@ -102,25 +107,25 @@ describe("GameManager Integration", () => {
   });
 
   it("should decrement timer and end question", async () => {
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title: "Test", host_pin: "1" },
     });
     const testCompId = competition.id;
 
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id: testCompId,
-        order_index: 1,
+        competitionId: testCompId,
+        orderIndex: 1,
         type: "STANDARD",
       },
     });
 
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id: round.id,
-        question_text: "T",
+        roundId: round.id,
+        questionText: "T",
         type: "CLOSED",
-        time_limit_seconds: 5,
+        timeLimitSeconds: 5,
         content: {},
       },
     });
@@ -142,25 +147,25 @@ describe("GameManager Integration", () => {
   });
 
   it("should reveal answer after question ends", async () => {
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title: "Test", host_pin: "1" },
     });
     const testCompId = competition.id;
 
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id: testCompId,
-        order_index: 1,
+        competitionId: testCompId,
+        orderIndex: 1,
         type: "STANDARD",
       },
     });
 
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id: round.id,
-        question_text: "T",
+        roundId: round.id,
+        questionText: "T",
         type: "CLOSED",
-        time_limit_seconds: 5,
+        timeLimitSeconds: 5,
         content: {},
       },
     });
@@ -188,43 +193,43 @@ describe("GameManager Integration", () => {
 
   it("should reconnect a team from database and restore score", async () => {
     // 1. Setup team and answer in DB
-    const team = await prisma.teams.create({
-      data: { name: "DB Team", color: "#0000FF" },
-    });
-    const teamId = team.id;
-
-    // Setup round and question to award points
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title: "C", host_pin: "1" },
     });
     const testCompId = competition.id;
 
-    const round = await prisma.rounds.create({
+    const team = await prisma.team.create({
+      data: { competitionId: testCompId, name: "DB Team", color: "#0000FF" },
+    });
+    const teamId = team.id;
+
+    // Setup round and question to award points
+    const round = await prisma.round.create({
       data: {
-        competition_id: testCompId,
-        order_index: 1,
+        competitionId: testCompId,
+        orderIndex: 1,
         type: "STANDARD",
       },
     });
 
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id: round.id,
-        question_text: "Q",
+        roundId: round.id,
+        questionText: "Q",
         type: "CLOSED",
         content: {},
       },
     });
 
     // Insert correct answer
-    await prisma.answers.create({
+    await prisma.answer.create({
       data: {
-        team_id: teamId,
-        question_id: question.id,
-        round_id: round.id,
-        submitted_content: {},
-        is_correct: true,
-        score_awarded: 10,
+        teamId: teamId,
+        questionId: question.id,
+        roundId: round.id,
+        submittedContent: {},
+        isCorrect: true,
+        scoreAwarded: 10,
       },
     });
 
@@ -251,15 +256,15 @@ describe("GameManager Integration", () => {
   });
 
   it("should auto-grade a MULTIPLE_CHOICE question", async () => {
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title: "Test", host_pin: "1" },
     });
     const testCompId = competition.id;
 
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id: testCompId,
-        order_index: 1,
+        competitionId: testCompId,
+        orderIndex: 1,
         type: "STANDARD",
       },
     });
@@ -270,10 +275,10 @@ describe("GameManager Integration", () => {
       "#000000"
     );
 
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id: round.id,
-        question_text: "What is 1+1?",
+        roundId: round.id,
+        questionText: "What is 1+1?",
         type: "MULTIPLE_CHOICE",
         points: 15,
         content: { options: ["1", "2"], correctIndex: 1 },
@@ -293,10 +298,10 @@ describe("GameManager Integration", () => {
     expect(updatedTeam?.score).toBe(15);
 
     // Wait for DB to settle if needed, though submitAnswer is awaited
-    const answer = await prisma.answers.findFirst({
-      where: { team_id: team.id, question_id: questionId },
+    const answer = await prisma.answer.findFirst({
+      where: { teamId: team.id, questionId: questionId },
     });
-    expect(answer?.is_correct).toBe(true);
+    expect(answer?.isCorrect).toBe(true);
   });
 
   describe("lastAnswerCorrect tracking", () => {
@@ -307,24 +312,24 @@ describe("GameManager Integration", () => {
 
     it("should reset lastAnswerCorrect when starting a new question", async () => {
       // 1. Setup
-      const competition = await prisma.competitions.create({
+      const competition = await prisma.competition.create({
         data: { title: "Test", host_pin: "1" },
       });
       const testCompId = competition.id;
       const team = await gameManager.addTeam(testCompId, "T1", "#000");
 
-      const round = await prisma.rounds.create({
+      const round = await prisma.round.create({
         data: {
-          competition_id: testCompId,
-          order_index: 1,
+          competitionId: testCompId,
+          orderIndex: 1,
           type: "STANDARD",
         },
       });
 
-      const question = await prisma.questions.create({
+      const question = await prisma.question.create({
         data: {
-          round_id: round.id,
-          question_text: "Q1",
+          roundId: round.id,
+          questionText: "Q1",
           type: "MULTIPLE_CHOICE",
           content: { options: ["A", "B"], correctIndex: 0 },
           points: 10,
@@ -343,10 +348,10 @@ describe("GameManager Integration", () => {
       );
 
       // 3. Start a new question and verify reset
-      const q2 = await prisma.questions.create({
+      const q2 = await prisma.question.create({
         data: {
-          round_id: round.id,
-          question_text: "Q2",
+          roundId: round.id,
+          questionText: "Q2",
           type: "MULTIPLE_CHOICE",
           content: { options: ["X", "Y"], correctIndex: 0 },
           points: 10,
@@ -362,24 +367,24 @@ describe("GameManager Integration", () => {
 
     it("should update lastAnswerCorrect for manual grading", async () => {
       // 1. Setup
-      const competition = await prisma.competitions.create({
+      const competition = await prisma.competition.create({
         data: { title: "Test", host_pin: "1" },
       });
       const testCompId = competition.id;
       const team = await gameManager.addTeam(testCompId, "T1", "#000");
 
-      const round = await prisma.rounds.create({
+      const round = await prisma.round.create({
         data: {
-          competition_id: testCompId,
-          order_index: 1,
+          competitionId: testCompId,
+          orderIndex: 1,
           type: "STANDARD",
         },
       });
 
-      const question = await prisma.questions.create({
+      const question = await prisma.question.create({
         data: {
-          round_id: round.id,
-          question_text: "Q1",
+          roundId: round.id,
+          questionText: "Q1",
           type: "OPEN_WORD",
           content: {},
           points: 10,
@@ -403,8 +408,8 @@ describe("GameManager Integration", () => {
       ).toBeNull();
 
       // Get answer ID
-      const answer = await prisma.answers.findFirst({
-        where: { team_id: team.id, question_id: questionId },
+      const answer = await prisma.answer.findFirst({
+        where: { teamId: team.id, questionId: questionId },
       });
       const answerId = answer!.id;
 

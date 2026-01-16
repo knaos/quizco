@@ -48,7 +48,7 @@ export class GameManager {
 
     session.currentQuestion = question;
     session.phase = "QUESTION_PREVIEW";
-    session.timeRemaining = question.time_limit_seconds;
+    session.timeRemaining = question.timeLimitSeconds;
 
     // Reset last answer status for all teams
     for (const team of session.teams) {
@@ -128,7 +128,7 @@ export class GameManager {
     await this.repository.saveAnswer(
       teamId,
       questionId,
-      session.currentQuestion.round_id,
+      session.currentQuestion.roundId,
       answer,
       isCorrect,
       scoreAwarded
@@ -161,12 +161,14 @@ export class GameManager {
     const answer = await this.repository.getAnswer(answerId);
     if (!answer) return;
 
-    const team = session.teams.find((t) => t.id === answer.team_id);
+    const teamId = answer.teamId || answer.team_id;
+    const team = session.teams.find((t) => t.id === teamId);
     if (team) {
       team.lastAnswerCorrect = correct;
     }
 
-    const question = await this.repository.getQuestion(answer.question_id);
+    const questionId = answer.questionId || answer.question_id;
+    const question = await this.repository.getQuestion(questionId);
     const points = question?.points || 0;
     const scoreAwarded = correct ? points : 0;
 

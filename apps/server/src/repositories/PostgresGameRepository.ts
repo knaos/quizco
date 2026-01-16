@@ -1,4 +1,10 @@
-import { Question, Team, QuestionType, GradingMode } from "@quizco/shared";
+import {
+  CompetitionStatus,
+  QuestionType,
+  RoundType,
+  GradingMode,
+} from "@prisma/client";
+import { Question, Team } from "@quizco/shared";
 import prisma from "../db/prisma";
 import { IGameRepository } from "./IGameRepository";
 
@@ -8,10 +14,15 @@ export class PostgresGameRepository implements IGameRepository {
     name: string,
     color: string
   ): Promise<Team> {
-    const dbTeam = await prisma.teams.upsert({
-      where: { name },
+    const dbTeam = await prisma.team.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name,
+        },
+      },
       update: { color },
-      create: { name, color },
+      create: { competitionId, name, color },
     });
 
     const score = await this.getTeamScore(competitionId, dbTeam.id);
@@ -26,27 +37,27 @@ export class PostgresGameRepository implements IGameRepository {
   }
 
   async getTeamScore(competitionId: string, teamId: string): Promise<number> {
-    const aggregate = await prisma.answers.aggregate({
+    const aggregate = await prisma.answer.aggregate({
       _sum: {
-        score_awarded: true,
+        scoreAwarded: true,
       },
       where: {
-        team_id: teamId,
-        is_correct: true,
-        rounds: {
-          competition_id: competitionId,
+        teamId: teamId,
+        isCorrect: true,
+        round: {
+          competitionId: competitionId,
         },
       },
     });
 
-    return aggregate._sum.score_awarded || 0;
+    return aggregate._sum.scoreAwarded || 0;
   }
 
   async reconnectTeam(
     competitionId: string,
     teamId: string
   ): Promise<Team | null> {
-    const dbTeam = await prisma.teams.findUnique({
+    const dbTeam = await prisma.team.findUnique({
       where: { id: teamId },
     });
 
@@ -64,7 +75,7 @@ export class PostgresGameRepository implements IGameRepository {
   }
 
   async getQuestion(questionId: string): Promise<Question | null> {
-    const dbQuestion = await prisma.questions.findUnique({
+    const dbQuestion = await prisma.question.findUnique({
       where: { id: questionId },
     });
 
@@ -72,43 +83,55 @@ export class PostgresGameRepository implements IGameRepository {
 
     return {
       id: dbQuestion.id,
-      round_id: dbQuestion.round_id || "",
-      question_text: dbQuestion.question_text,
-      type: dbQuestion.type as QuestionType,
-      points: dbQuestion.points || 0,
-      time_limit_seconds: dbQuestion.time_limit_seconds || 0,
+      roundId: dbQuestion.roundId,
+      questionText: dbQuestion.questionText,
+      type: dbQuestion.type as any,
+      points: dbQuestion.points,
+      timeLimitSeconds: dbQuestion.timeLimitSeconds,
       content: dbQuestion.content,
-      grading: (dbQuestion.grading as GradingMode) || "AUTO",
+      grading: dbQuestion.grading as any,
     };
   }
 
   async getAllQuestions(): Promise<any[]> {
-    return prisma.questions.findMany({
-      orderBy: { created_at: "asc" },
+    return prisma.question.findMany({
+      orderBy: { createdAt: "asc" },
     });
   }
 
   async getQuestionsForCompetition(competitionId: string): Promise<any[]> {
-    return prisma.questions.findMany({
+    const questions = await prisma.question.findMany({
       where: {
-        rounds: {
-          competition_id: competitionId,
+        round: {
+          competitionId: competitionId,
         },
       },
       orderBy: [
         {
-          rounds: {
-            order_index: "asc",
+          round: {
+            orderIndex: "asc",
           },
         },
         {
-          created_at: "asc",
+          createdAt: "asc",
         },
       ],
       include: {
-        rounds: true,
+        round: true,
       },
     });
+
+    return questions.map((q) => ({
+      id: q.id,
+      roundId: q.roundId,
+      questionText: q.questionText,
+      type: q.type,
+      points: q.points,
+      timeLimitSeconds: q.timeLimitSeconds,
+      content: q.content,
+      grading: q.grading,
+      round: q.round,
+    }));
   }
 
   async saveAnswer(
@@ -119,20 +142,20 @@ export class PostgresGameRepository implements IGameRepository {
     isCorrect: boolean | null,
     scoreAwarded: number
   ): Promise<any> {
-    return prisma.answers.create({
+    return prisma.answer.create({
       data: {
-        team_id: teamId,
-        question_id: questionId,
-        round_id: roundId,
-        submitted_content: submittedContent,
-        is_correct: isCorrect,
-        score_awarded: scoreAwarded,
+        teamId: teamId,
+        questionId: questionId,
+        roundId: roundId,
+        submittedContent: submittedContent,
+        isCorrect: isCorrect,
+        scoreAwarded: scoreAwarded,
       },
     });
   }
 
   async getAnswer(answerId: string): Promise<any> {
-    return prisma.answers.findUnique({
+    return prisma.answer.findUnique({
       where: { id: answerId },
     });
   }
@@ -142,50 +165,49 @@ export class PostgresGameRepository implements IGameRepository {
     isCorrect: boolean,
     scoreAwarded: number
   ): Promise<void> {
-    await prisma.answers.update({
+    await prisma.answer.update({
       where: { id: answerId },
       data: {
-        is_correct: isCorrect,
-        score_awarded: scoreAwarded,
+        isCorrect: isCorrect,
+        scoreAwarded: scoreAwarded,
       },
     });
   }
 
   async getSubmissionCount(questionId: string): Promise<number> {
-    return prisma.answers.count({
+    return prisma.answer.count({
       where: {
-        question_id: questionId,
+        questionId: questionId,
       },
     });
   }
 
   async getPendingAnswers(competitionId?: string): Promise<any[]> {
-    const answers = await prisma.answers.findMany({
+    const answers = await prisma.answer.findMany({
       where: {
-        is_correct: null,
+        isCorrect: null,
         ...(competitionId
           ? {
-              rounds: {
-                competition_id: competitionId,
+              round: {
+                competitionId: competitionId,
               },
             }
           : {}),
       },
       include: {
-        teams: {
+        team: {
           select: { name: true },
         },
-        questions: {
-          select: { question_text: true },
+        question: {
+          select: { questionText: true },
         },
       },
     });
 
-    // Map to match the previous structure if needed
     return answers.map((a) => ({
       ...a,
-      team_name: a.teams?.name,
-      question_text: a.questions?.question_text,
+      team_name: a.team?.name,
+      question_text: a.question?.questionText,
     }));
   }
 }

@@ -29,8 +29,8 @@ export class MockGameRepository implements IGameRepository {
   async getTeamScore(competitionId: string, teamId: string): Promise<number> {
     return (
       this.answers
-        .filter((a) => a.team_id === teamId && a.is_correct === true)
-        .reduce((sum, a) => sum + a.score_awarded, 0) || 0
+        .filter((a) => a.teamId === teamId && a.isCorrect === true)
+        .reduce((sum, a) => sum + a.scoreAwarded, 0) || 0
     );
   }
 
@@ -67,12 +67,12 @@ export class MockGameRepository implements IGameRepository {
   ): Promise<any> {
     const answer = {
       id: uuidv4(),
-      team_id: teamId,
-      question_id: questionId,
-      round_id: roundId,
-      submitted_content: submittedContent,
-      is_correct: isCorrect,
-      score_awarded: scoreAwarded,
+      teamId: teamId,
+      questionId: questionId,
+      roundId: roundId,
+      submittedContent: submittedContent,
+      isCorrect: isCorrect,
+      scoreAwarded: scoreAwarded,
     };
     this.answers.push(answer);
     return answer;
@@ -89,23 +89,23 @@ export class MockGameRepository implements IGameRepository {
   ): Promise<void> {
     const answer = this.answers.find((a) => a.id === answerId);
     if (answer) {
-      answer.is_correct = isCorrect;
-      answer.score_awarded = scoreAwarded;
+      answer.isCorrect = isCorrect;
+      answer.scoreAwarded = scoreAwarded;
     }
   }
 
   async getSubmissionCount(questionId: string): Promise<number> {
-    return this.answers.filter((a) => a.question_id === questionId).length;
+    return this.answers.filter((a) => a.questionId === questionId).length;
   }
 
   async getPendingAnswers(competitionId?: string): Promise<any[]> {
     return this.answers
-      .filter((a) => a.is_correct === null)
+      .filter((a) => a.isCorrect === null)
       .map((a) => ({
         ...a,
-        team_name: this.teams.find((t) => t.id === a.team_id)?.name,
-        question_text: this.questions.find((q) => q.id === a.question_id)
-          ?.question_text,
+        team_name: this.teams.find((t) => t.id === a.teamId)?.name,
+        question_text: this.questions.find((q) => q.id === a.questionId)
+          ?.questionText,
       }));
   }
 }

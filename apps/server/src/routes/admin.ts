@@ -2,10 +2,10 @@ import { Router } from "express";
 import prisma from "../db/prisma";
 import { authMiddleware } from "../middleware/auth";
 import {
-  competition_status,
-  question_type,
-  round_type,
-  grading_mode,
+  CompetitionStatus,
+  QuestionType,
+  RoundType,
+  GradingMode,
 } from "@prisma/client";
 
 const router = Router();
@@ -16,8 +16,8 @@ router.use(authMiddleware);
 // --- COMPETITIONS ---
 router.get("/competitions", async (req, res) => {
   try {
-    const competitions = await prisma.competitions.findMany({
-      orderBy: { created_at: "desc" },
+    const competitions = await prisma.competition.findMany({
+      orderBy: { createdAt: "desc" },
     });
     res.json(competitions);
   } catch (err) {
@@ -28,7 +28,7 @@ router.get("/competitions", async (req, res) => {
 router.post("/competitions", async (req, res) => {
   const { title, host_pin } = req.body;
   try {
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: { title, host_pin },
     });
     res.status(201).json(competition);
@@ -41,12 +41,34 @@ router.put("/competitions/:id", async (req, res) => {
   const { id } = req.params;
   const { title, status, host_pin } = req.body;
   try {
-    const competition = await prisma.competitions.update({
+    const competition = await prisma.competition.update({
       where: { id },
       data: {
         title,
-        status: status as competition_status,
+        status: status as CompetitionStatus,
         host_pin,
+      },
+    });
+    res.json(competition);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+router.get("/competitions/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const competition = await prisma.competition.findUnique({
+      where: { id },
+      include: {
+        rounds: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            questions: {
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
       },
     });
     res.json(competition);
@@ -58,7 +80,7 @@ router.put("/competitions/:id", async (req, res) => {
 router.delete("/competitions/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.competitions.delete({
+    await prisma.competition.delete({
       where: { id },
     });
     res.status(204).send();
@@ -71,9 +93,9 @@ router.delete("/competitions/:id", async (req, res) => {
 router.get("/competitions/:id/rounds", async (req, res) => {
   const { id } = req.params;
   try {
-    const rounds = await prisma.rounds.findMany({
-      where: { competition_id: id },
-      orderBy: { order_index: "asc" },
+    const rounds = await prisma.round.findMany({
+      where: { competitionId: id },
+      orderBy: { orderIndex: "asc" },
     });
     res.json(rounds);
   } catch (err) {
@@ -82,14 +104,14 @@ router.get("/competitions/:id/rounds", async (req, res) => {
 });
 
 router.post("/rounds", async (req, res) => {
-  const { competition_id, title, type, order_index } = req.body;
+  const { competitionId, title, type, orderIndex } = req.body;
   try {
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id,
+        competitionId,
         title,
-        type: type as round_type,
-        order_index,
+        type: type as RoundType,
+        orderIndex,
       },
     });
     res.status(201).json(round);
@@ -100,14 +122,14 @@ router.post("/rounds", async (req, res) => {
 
 router.put("/rounds/:id", async (req, res) => {
   const { id } = req.params;
-  const { title, type, order_index } = req.body;
+  const { title, type, orderIndex } = req.body;
   try {
-    const round = await prisma.rounds.update({
+    const round = await prisma.round.update({
       where: { id },
       data: {
         title,
-        type: type as round_type,
-        order_index,
+        type: type as RoundType,
+        orderIndex,
       },
     });
     res.json(round);
@@ -119,7 +141,7 @@ router.put("/rounds/:id", async (req, res) => {
 router.delete("/rounds/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.rounds.delete({
+    await prisma.round.delete({
       where: { id },
     });
     res.status(204).send();
@@ -132,9 +154,9 @@ router.delete("/rounds/:id", async (req, res) => {
 router.get("/rounds/:id/questions", async (req, res) => {
   const { id } = req.params;
   try {
-    const questions = await prisma.questions.findMany({
-      where: { round_id: id },
-      orderBy: { created_at: "asc" },
+    const questions = await prisma.question.findMany({
+      where: { roundId: id },
+      orderBy: { createdAt: "asc" },
     });
     res.json(questions);
   } catch (err) {
@@ -144,24 +166,24 @@ router.get("/rounds/:id/questions", async (req, res) => {
 
 router.post("/questions", async (req, res) => {
   const {
-    round_id,
-    question_text,
+    roundId,
+    questionText,
     type,
     points,
-    time_limit_seconds,
+    timeLimitSeconds,
     content,
     grading,
   } = req.body;
   try {
-    const question = await prisma.questions.create({
+    const question = await prisma.question.create({
       data: {
-        round_id,
-        question_text,
-        type: type as question_type,
+        roundId,
+        questionText,
+        type: type as QuestionType,
         points,
-        time_limit_seconds,
+        timeLimitSeconds,
         content,
-        grading: grading as grading_mode,
+        grading: grading as GradingMode,
       },
     });
     res.status(201).json(question);
@@ -172,18 +194,18 @@ router.post("/questions", async (req, res) => {
 
 router.put("/questions/:id", async (req, res) => {
   const { id } = req.params;
-  const { question_text, type, points, time_limit_seconds, content, grading } =
+  const { questionText, type, points, timeLimitSeconds, content, grading } =
     req.body;
   try {
-    const question = await prisma.questions.update({
+    const question = await prisma.question.update({
       where: { id },
       data: {
-        question_text,
-        type: type as question_type,
+        questionText,
+        type: type as QuestionType,
         points,
-        time_limit_seconds,
+        timeLimitSeconds,
         content,
-        grading: grading as grading_mode,
+        grading: grading as GradingMode,
       },
     });
     res.json(question);
@@ -195,7 +217,7 @@ router.put("/questions/:id", async (req, res) => {
 router.delete("/questions/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.questions.delete({
+    await prisma.question.delete({
       where: { id },
     });
     res.status(204).send();

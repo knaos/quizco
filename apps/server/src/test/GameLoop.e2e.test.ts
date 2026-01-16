@@ -51,11 +51,11 @@ describe("Game Loop E2E (Decoupled)", () => {
     // Seed mock questions
     mockRepository.questions.push({
       id: "q1",
-      round_id: "r1",
-      question_text: "What is 1+1?",
+      roundId: "r1",
+      questionText: "What is 1+1?",
       type: "MULTIPLE_CHOICE",
       points: 10,
-      time_limit_seconds: 2, // Short for testing
+      timeLimitSeconds: 2, // Short for testing
       content: { options: ["1", "2"], correctIndex: 1 },
       grading: "AUTO",
     } as any);

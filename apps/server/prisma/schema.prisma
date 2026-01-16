@@ -7,84 +7,96 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model answers {
-  id                String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  team_id           String?    @db.Uuid
-  question_id       String?    @db.Uuid
-  round_id          String?    @db.Uuid
-  submitted_content Json
-  is_correct        Boolean?
-  score_awarded     Int?       @default(0)
-  submitted_at      DateTime?  @default(now()) @db.Timestamptz(6)
-  questions         questions? @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  rounds            rounds?    @relation(fields: [round_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams             teams?     @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model Competition {
+  id        String            @id @default(uuid()) @db.Uuid
+  title     String            @db.VarChar(255)
+  host_pin  String            @db.VarChar(50)
+  status    CompetitionStatus @default(DRAFT)
+  createdAt DateTime          @default(now()) @db.Timestamptz(6)
+
+  rounds Round[]
+  teams  Team[] // Added relation
 }
 
-model competitions {
-  id         String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  title      String              @db.VarChar(255)
-  host_pin   String              @db.VarChar(50)
-  status     competition_status? @default(DRAFT)
-  created_at DateTime?           @default(now()) @db.Timestamptz(6)
-  rounds     rounds[]
+model Round {
+  id            String    @id @default(uuid()) @db.Uuid
+  competitionId String    @db.Uuid
+  orderIndex    Int
+  type          RoundType
+  title         String?   @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  answers     Answer[]
 }
 
-model questions {
-  id                 String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  round_id           String?       @db.Uuid
-  question_text      String
-  type               question_type
-  points             Int?          @default(10)
-  time_limit_seconds Int?          @default(30)
-  content            Json
-  grading            grading_mode? @default(AUTO)
-  created_at         DateTime?     @default(now()) @db.Timestamptz(6)
-  answers            answers[]
-  rounds             rounds?       @relation(fields: [round_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model Question {
+  id               String       @id @default(uuid()) @db.Uuid
+  roundId          String       @db.Uuid
+  questionText     String
+  type             QuestionType
+  points           Int          @default(10)
+  timeLimitSeconds Int          @default(30)
+  content          Json
+  grading          GradingMode  @default(AUTO)
+  createdAt        DateTime     @default(now()) @db.Timestamptz(6)
 
-  @@index([content], map: "idx_questions_content", type: Gin)
+  round   Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@index([content], type: Gin)
 }
 
-model rounds {
-  id             String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  competition_id String?       @db.Uuid
-  order_index    Int
-  type           round_type
-  title          String?       @db.VarChar(255)
-  created_at     DateTime?     @default(now()) @db.Timestamptz(6)
-  answers        answers[]
-  questions      questions[]
-  competitions   competitions? @relation(fields: [competition_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model Team {
+  id            String   @id @default(uuid()) @db.Uuid
+  competitionId String   @db.Uuid // Linked to competition
+  name          String   @db.VarChar(255)
+  color         String?  @db.VarChar(50)
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+
+  @@unique([competitionId, name]) // Name unique ONLY within one competition
 }
 
-model teams {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name       String    @unique @db.VarChar(255)
-  color      String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  answers    answers[]
+model Answer {
+  id               String   @id @default(uuid()) @db.Uuid
+  teamId           String   @db.Uuid
+  questionId       String   @db.Uuid
+  roundId          String   @db.Uuid
+  submittedContent Json
+  isCorrect        Boolean?
+  scoreAwarded     Int      @default(0)
+  submittedAt      DateTime @default(now()) @db.Timestamptz(6)
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  round    Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, questionId]) // Prevents duplicate submissions
 }
 
-enum competition_status {
+enum CompetitionStatus {
   DRAFT
   ACTIVE
   COMPLETED
 }
 
-enum grading_mode {
+enum GradingMode {
   AUTO
   MANUAL
 }
 
-enum question_type {
+enum QuestionType {
   CLOSED
   MULTIPLE_CHOICE
   OPEN_WORD
   CROSSWORD
 }
 
-enum round_type {
+enum RoundType {
   STANDARD
   CROSSWORD
   SPEED_RUN

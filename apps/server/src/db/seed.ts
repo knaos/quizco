@@ -1,4 +1,4 @@
-import { Prisma, question_type } from "@prisma/client";
+import { Prisma, QuestionType } from "@prisma/client";
 import prisma from "./prisma";
 
 async function seed() {
@@ -6,7 +6,7 @@ async function seed() {
 
   try {
     // 1. Create a competition
-    const competition = await prisma.competitions.create({
+    const competition = await prisma.competition.create({
       data: {
         title: "Bible Hero Challenge",
         host_pin: "1234",
@@ -16,10 +16,10 @@ async function seed() {
     const competitionId = competition.id;
 
     // 2. Create a round
-    const round = await prisma.rounds.create({
+    const round = await prisma.round.create({
       data: {
-        competition_id: competitionId,
-        order_index: 1,
+        competitionId: competitionId,
+        orderIndex: 1,
         type: "STANDARD",
         title: "General Knowledge",
       },
@@ -29,7 +29,7 @@ async function seed() {
     // 3. Add some questions
     const questions: {
       text: string;
-      type: question_type;
+      type: QuestionType;
       points: number;
       content: Prisma.InputJsonValue;
     }[] = [
@@ -39,7 +39,7 @@ async function seed() {
         points: 10,
         content: {
           options: ["Moses", "Noah", "Abraham", "David"],
-          correct_index: 1,
+          correctIndex: 1,
         },
       },
       {
@@ -56,16 +56,16 @@ async function seed() {
         points: 10,
         content: {
           options: ["Nazareth", "Jerusalem", "Bethlehem", "Jericho"],
-          correct_index: 2,
+          correctIndex: 2,
         },
       },
     ];
 
     for (const q of questions) {
-      await prisma.questions.create({
+      await prisma.question.create({
         data: {
-          round_id: roundId,
-          question_text: q.text,
+          roundId: roundId,
+          questionText: q.text,
           type: q.type,
           points: q.points,
           content: q.content,
@@ -74,10 +74,10 @@ async function seed() {
     }
 
     // 4. Add a crossword question
-    const crosswordRound = await prisma.rounds.create({
+    const crosswordRound = await prisma.round.create({
       data: {
-        competition_id: competitionId,
-        order_index: 2,
+        competitionId: competitionId,
+        orderIndex: 2,
         type: "CROSSWORD",
         title: "Bible Crossword",
       },
@@ -93,24 +93,32 @@ async function seed() {
       ],
       clues: {
         across: [
-          { number: 1, clue: "Son of God", answer: "JESUS", row: 0, col: 0 },
+          {
+            number: 1,
+            clue: "Son of God",
+            answer: "JESUS",
+            x: 0,
+            y: 0,
+            direction: "across",
+          },
         ],
         down: [
           {
             number: 1,
             clue: "Wrote the 4th Gospel",
             answer: "JOHN",
-            row: 0,
-            col: 0,
+            x: 0,
+            y: 0,
+            direction: "down",
           },
         ],
       },
     };
 
-    await prisma.questions.create({
+    await prisma.question.create({
       data: {
-        round_id: crosswordRoundId,
-        question_text: "Complete the Bible crossword",
+        roundId: crosswordRoundId,
+        questionText: "Complete the Bible crossword",
         type: "CROSSWORD",
         points: 50,
         content: crosswordContent,

@@ -21,7 +21,7 @@ export function createQuizServer(
   // Public/Host Routes
   app.get("/api/competitions", async (req, res) => {
     try {
-      const competitions = await prisma.competitions.findMany({
+      const competitions = await prisma.competition.findMany({
         where: {
           OR: [{ status: "ACTIVE" }, { status: "DRAFT" }],
         },
@@ -30,7 +30,7 @@ export function createQuizServer(
           title: true,
           status: true,
         },
-        orderBy: { created_at: "desc" },
+        orderBy: { createdAt: "desc" },
       });
       res.json(competitions);
     } catch (err) {
@@ -41,12 +41,12 @@ export function createQuizServer(
   app.get("/api/competitions/:id/play-data", async (req, res) => {
     const { id } = req.params;
     try {
-      const rounds = await prisma.rounds.findMany({
-        where: { competition_id: id },
-        orderBy: { order_index: "asc" },
+      const rounds = await prisma.round.findMany({
+        where: { competitionId: id },
+        orderBy: { orderIndex: "asc" },
         include: {
           questions: {
-            orderBy: { created_at: "asc" },
+            orderBy: { createdAt: "asc" },
           },
         },
       });

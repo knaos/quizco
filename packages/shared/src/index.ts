@@ -40,11 +40,11 @@ export interface OpenWordContent {
 
 export interface Question {
   id: string;
-  round_id: string;
-  question_text: string;
+  roundId: string;
+  questionText: string;
   type: QuestionType;
   points: number;
-  time_limit_seconds: number;
+  timeLimitSeconds: number;
   content: any; // Using any for now to avoid breaking existing code, but with specialized interfaces available
   grading: GradingMode;
 }
@@ -54,16 +54,16 @@ export interface Competition {
   title: string;
   host_pin: string;
   status: "DRAFT" | "ACTIVE" | "COMPLETED";
-  created_at: string;
+  createdAt: string;
 }
 
 export interface Round {
   id: string;
-  competition_id: string;
-  order_index: number;
+  competitionId: string;
+  orderIndex: number;
   type: "STANDARD" | "CROSSWORD" | "SPEED_RUN";
   title: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface Team {
