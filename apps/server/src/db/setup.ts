@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { query } from "./index";
+import prisma from "./prisma";
 
 async function setup() {
   console.log("Setting up database schema...");
@@ -9,7 +9,7 @@ async function setup() {
 
   try {
     // Drop existing tables and types to ensure a clean state
-    await query(`
+    await prisma.$executeRawUnsafe(`
       DROP TABLE IF EXISTS answers CASCADE;
       DROP TABLE IF EXISTS questions CASCADE;
       DROP TABLE IF EXISTS rounds CASCADE;
@@ -21,10 +21,15 @@ async function setup() {
       DROP TYPE IF EXISTS round_type CASCADE;
     `);
 
-    await query(schema);
+    // Split schema into individual statements if necessary,
+    // or just execute the whole block if the driver supports it.
+    // Prisma's executeRaw supports multiple statements in some versions/drivers.
+    await prisma.$executeRawUnsafe(schema);
     console.log("Schema applied successfully.");
   } catch (err) {
     console.error("Error applying schema:", err);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

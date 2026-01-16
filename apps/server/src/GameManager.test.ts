@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GameManager } from "./GameManager";
 import { PostgresGameRepository } from "./repositories/PostgresGameRepository";
-import pool from "./db";
+import prisma from "./db/prisma";
 
 describe("GameManager Integration", () => {
   let gameManager: GameManager;
@@ -29,23 +29,32 @@ describe("GameManager Integration", () => {
 
   it("should start a question correctly in PREVIEW phase", async () => {
     // 1. Setup data in DB
-    const competitionRes = await pool.query(
-      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-      ["Test Comp", "1234"]
-    );
-    const testCompId = competitionRes.rows[0].id;
+    const competition = await prisma.competitions.create({
+      data: { title: "Test Comp", host_pin: "1234" },
+    });
+    const testCompId = competition.id;
 
-    const roundRes = await pool.query(
-      "INSERT INTO rounds (competition_id, order_index, type, title) VALUES ($1, $2, $3, $4) RETURNING id",
-      [testCompId, 1, "STANDARD", "Round 1"]
-    );
-    const roundId = roundRes.rows[0].id;
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: testCompId,
+        order_index: 1,
+        type: "STANDARD",
+        title: "Round 1",
+      },
+    });
+    const roundId = round.id;
 
-    const questionRes = await pool.query(
-      "INSERT INTO questions (round_id, question_text, type, points, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-      [roundId, "What is 1+1?", "CLOSED", 10, 30, { options: ["2"] }]
-    );
-    const questionId = questionRes.rows[0].id;
+    const question = await prisma.questions.create({
+      data: {
+        round_id: roundId,
+        question_text: "What is 1+1?",
+        type: "CLOSED",
+        points: 10,
+        time_limit_seconds: 30,
+        content: { options: ["2"] },
+      },
+    });
+    const questionId = question.id;
 
     // 2. Act
     await gameManager.startQuestion(testCompId, questionId);
@@ -58,21 +67,30 @@ describe("GameManager Integration", () => {
   });
 
   it("should transition from PREVIEW to ACTIVE when timer starts", async () => {
-    const competitionRes = await pool.query(
-      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-      ["Test", "1"]
-    );
-    const testCompId = competitionRes.rows[0].id;
-    const roundRes = await pool.query(
-      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
-      [testCompId, 1, "STANDARD"]
-    );
-    const qRes = await pool.query(
-      "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-      [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
-    );
+    const competition = await prisma.competitions.create({
+      data: { title: "Test", host_pin: "1" },
+    });
+    const testCompId = competition.id;
 
-    await gameManager.startQuestion(testCompId, qRes.rows[0].id);
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: testCompId,
+        order_index: 1,
+        type: "STANDARD",
+      },
+    });
+
+    const question = await prisma.questions.create({
+      data: {
+        round_id: round.id,
+        question_text: "T",
+        type: "CLOSED",
+        time_limit_seconds: 5,
+        content: {},
+      },
+    });
+
+    await gameManager.startQuestion(testCompId, question.id);
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_PREVIEW");
 
     gameManager.startTimer(testCompId, () => {});
@@ -84,21 +102,30 @@ describe("GameManager Integration", () => {
   });
 
   it("should decrement timer and end question", async () => {
-    const competitionRes = await pool.query(
-      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-      ["Test", "1"]
-    );
-    const testCompId = competitionRes.rows[0].id;
-    const roundRes = await pool.query(
-      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
-      [testCompId, 1, "STANDARD"]
-    );
-    const qRes = await pool.query(
-      "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-      [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
-    );
+    const competition = await prisma.competitions.create({
+      data: { title: "Test", host_pin: "1" },
+    });
+    const testCompId = competition.id;
 
-    await gameManager.startQuestion(testCompId, qRes.rows[0].id);
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: testCompId,
+        order_index: 1,
+        type: "STANDARD",
+      },
+    });
+
+    const question = await prisma.questions.create({
+      data: {
+        round_id: round.id,
+        question_text: "T",
+        type: "CLOSED",
+        time_limit_seconds: 5,
+        content: {},
+      },
+    });
+
+    await gameManager.startQuestion(testCompId, question.id);
     gameManager.startTimer(testCompId, () => {});
 
     // Fast-forward 1 second
@@ -115,21 +142,30 @@ describe("GameManager Integration", () => {
   });
 
   it("should reveal answer after question ends", async () => {
-    const competitionRes = await pool.query(
-      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-      ["Test", "1"]
-    );
-    const testCompId = competitionRes.rows[0].id;
-    const roundRes = await pool.query(
-      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, $2, $3) RETURNING id",
-      [testCompId, 1, "STANDARD"]
-    );
-    const qRes = await pool.query(
-      "INSERT INTO questions (round_id, question_text, type, time_limit_seconds, content) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-      [roundRes.rows[0].id, "T", "CLOSED", 5, {}]
-    );
+    const competition = await prisma.competitions.create({
+      data: { title: "Test", host_pin: "1" },
+    });
+    const testCompId = competition.id;
 
-    await gameManager.startQuestion(testCompId, qRes.rows[0].id);
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: testCompId,
+        order_index: 1,
+        type: "STANDARD",
+      },
+    });
+
+    const question = await prisma.questions.create({
+      data: {
+        round_id: round.id,
+        question_text: "T",
+        type: "CLOSED",
+        time_limit_seconds: 5,
+        content: {},
+      },
+    });
+
+    await gameManager.startQuestion(testCompId, question.id);
     gameManager.startTimer(testCompId, () => {});
 
     // End question
@@ -152,31 +188,45 @@ describe("GameManager Integration", () => {
 
   it("should reconnect a team from database and restore score", async () => {
     // 1. Setup team and answer in DB
-    const teamRes = await pool.query(
-      "INSERT INTO teams (name, color) VALUES ($1, $2) RETURNING id",
-      ["DB Team", "#0000FF"]
-    );
-    const teamId = teamRes.rows[0].id;
+    const team = await prisma.teams.create({
+      data: { name: "DB Team", color: "#0000FF" },
+    });
+    const teamId = team.id;
 
     // Setup round and question to award points
-    const compRes = await pool.query(
-      "INSERT INTO competitions (title, host_pin) VALUES ('C', '1') RETURNING id"
-    );
-    const testCompId = compRes.rows[0].id;
-    const roundRes = await pool.query(
-      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
-      [testCompId]
-    );
-    const qRes = await pool.query(
-      "INSERT INTO questions (round_id, question_text, type, content) VALUES ($1, 'Q', 'CLOSED', '{}') RETURNING id",
-      [roundRes.rows[0].id]
-    );
+    const competition = await prisma.competitions.create({
+      data: { title: "C", host_pin: "1" },
+    });
+    const testCompId = competition.id;
+
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: testCompId,
+        order_index: 1,
+        type: "STANDARD",
+      },
+    });
+
+    const question = await prisma.questions.create({
+      data: {
+        round_id: round.id,
+        question_text: "Q",
+        type: "CLOSED",
+        content: {},
+      },
+    });
 
     // Insert correct answer
-    await pool.query(
-      "INSERT INTO answers (team_id, question_id, round_id, submitted_content, is_correct, score_awarded) VALUES ($1, $2, $3, '{}', true, 10)",
-      [teamId, qRes.rows[0].id, roundRes.rows[0].id]
-    );
+    await prisma.answers.create({
+      data: {
+        team_id: teamId,
+        question_id: question.id,
+        round_id: round.id,
+        submitted_content: {},
+        is_correct: true,
+        score_awarded: 10,
+      },
+    });
 
     // 2. Act: Reconnect with a fresh GameManager (simulating server restart)
     const freshRepository = new PostgresGameRepository();
@@ -201,34 +251,36 @@ describe("GameManager Integration", () => {
   });
 
   it("should auto-grade a MULTIPLE_CHOICE question", async () => {
-    const competitionRes = await pool.query(
-      "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-      ["Test", "1"]
-    );
-    const testCompId = competitionRes.rows[0].id;
+    const competition = await prisma.competitions.create({
+      data: { title: "Test", host_pin: "1" },
+    });
+    const testCompId = competition.id;
+
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: testCompId,
+        order_index: 1,
+        type: "STANDARD",
+      },
+    });
+
     const team = await gameManager.addTeam(
       testCompId,
       "Grading Team",
       "#000000"
     );
 
-    const roundRes = await pool.query(
-      "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
-      [testCompId]
-    );
-
-    const res = await pool.query(
-      "INSERT INTO questions (round_id, question_text, type, points, content, grading) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-      [
-        roundRes.rows[0].id,
-        "What is 1+1?",
-        "MULTIPLE_CHOICE",
-        15,
-        JSON.stringify({ options: ["1", "2"], correctIndex: 1 }),
-        "AUTO",
-      ]
-    );
-    const questionId = res.rows[0].id;
+    const question = await prisma.questions.create({
+      data: {
+        round_id: round.id,
+        question_text: "What is 1+1?",
+        type: "MULTIPLE_CHOICE",
+        points: 15,
+        content: { options: ["1", "2"], correctIndex: 1 },
+        grading: "AUTO",
+      },
+    });
+    const questionId = question.id;
 
     await gameManager.startQuestion(testCompId, questionId);
     gameManager.startTimer(testCompId, () => {});
@@ -240,11 +292,11 @@ describe("GameManager Integration", () => {
       .teams.find((t) => t.id === team.id);
     expect(updatedTeam?.score).toBe(15);
 
-    const answerRes = await pool.query(
-      "SELECT is_correct FROM answers WHERE team_id = $1 AND question_id = $2",
-      [team.id, questionId]
-    );
-    expect(answerRes.rows[0].is_correct).toBe(true);
+    // Wait for DB to settle if needed, though submitAnswer is awaited
+    const answer = await prisma.answers.findFirst({
+      where: { team_id: team.id, question_id: questionId },
+    });
+    expect(answer?.is_correct).toBe(true);
   });
 
   describe("lastAnswerCorrect tracking", () => {
@@ -255,25 +307,31 @@ describe("GameManager Integration", () => {
 
     it("should reset lastAnswerCorrect when starting a new question", async () => {
       // 1. Setup
-      const competitionRes = await pool.query(
-        "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-        ["Test", "1"]
-      );
-      const testCompId = competitionRes.rows[0].id;
+      const competition = await prisma.competitions.create({
+        data: { title: "Test", host_pin: "1" },
+      });
+      const testCompId = competition.id;
       const team = await gameManager.addTeam(testCompId, "T1", "#000");
 
-      const roundRes = await pool.query(
-        "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
-        [testCompId]
-      );
-      const qRes = await pool.query(
-        "INSERT INTO questions (round_id, question_text, type, content, points, grading) VALUES ($1, 'Q1', 'MULTIPLE_CHOICE', $2, 10, 'AUTO') RETURNING id",
-        [
-          roundRes.rows[0].id,
-          JSON.stringify({ options: ["A", "B"], correctIndex: 0 }),
-        ]
-      );
-      const questionId = qRes.rows[0].id;
+      const round = await prisma.rounds.create({
+        data: {
+          competition_id: testCompId,
+          order_index: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.questions.create({
+        data: {
+          round_id: round.id,
+          question_text: "Q1",
+          type: "MULTIPLE_CHOICE",
+          content: { options: ["A", "B"], correctIndex: 0 },
+          points: 10,
+          grading: "AUTO",
+        },
+      });
+      const questionId = question.id;
 
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
@@ -285,14 +343,17 @@ describe("GameManager Integration", () => {
       );
 
       // 3. Start a new question and verify reset
-      const q2Res = await pool.query(
-        "INSERT INTO questions (round_id, question_text, type, content, points, grading) VALUES ($1, 'Q2', 'MULTIPLE_CHOICE', $2, 10, 'AUTO') RETURNING id",
-        [
-          roundRes.rows[0].id,
-          JSON.stringify({ options: ["X", "Y"], correctIndex: 0 }),
-        ]
-      );
-      await gameManager.startQuestion(testCompId, q2Res.rows[0].id);
+      const q2 = await prisma.questions.create({
+        data: {
+          round_id: round.id,
+          question_text: "Q2",
+          type: "MULTIPLE_CHOICE",
+          content: { options: ["X", "Y"], correctIndex: 0 },
+          points: 10,
+          grading: "AUTO",
+        },
+      });
+      await gameManager.startQuestion(testCompId, q2.id);
 
       expect(
         gameManager.getState(testCompId).teams[0].lastAnswerCorrect
@@ -301,22 +362,31 @@ describe("GameManager Integration", () => {
 
     it("should update lastAnswerCorrect for manual grading", async () => {
       // 1. Setup
-      const competitionRes = await pool.query(
-        "INSERT INTO competitions (title, host_pin) VALUES ($1, $2) RETURNING id",
-        ["Test", "1"]
-      );
-      const testCompId = competitionRes.rows[0].id;
+      const competition = await prisma.competitions.create({
+        data: { title: "Test", host_pin: "1" },
+      });
+      const testCompId = competition.id;
       const team = await gameManager.addTeam(testCompId, "T1", "#000");
 
-      const roundRes = await pool.query(
-        "INSERT INTO rounds (competition_id, order_index, type) VALUES ($1, 1, 'STANDARD') RETURNING id",
-        [testCompId]
-      );
-      const qRes = await pool.query(
-        "INSERT INTO questions (round_id, question_text, type, content, points, grading) VALUES ($1, 'Q1', 'OPEN_WORD', '{}', 10, 'MANUAL') RETURNING id",
-        [roundRes.rows[0].id]
-      );
-      const questionId = qRes.rows[0].id;
+      const round = await prisma.rounds.create({
+        data: {
+          competition_id: testCompId,
+          order_index: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.questions.create({
+        data: {
+          round_id: round.id,
+          question_text: "Q1",
+          type: "OPEN_WORD",
+          content: {},
+          points: 10,
+          grading: "MANUAL",
+        },
+      });
+      const questionId = question.id;
 
       await gameManager.startQuestion(testCompId, questionId);
       gameManager.startTimer(testCompId, () => {});
@@ -333,11 +403,10 @@ describe("GameManager Integration", () => {
       ).toBeNull();
 
       // Get answer ID
-      const answerRes = await pool.query(
-        "SELECT id FROM answers WHERE team_id = $1 AND question_id = $2",
-        [team.id, questionId]
-      );
-      const answerId = answerRes.rows[0].id;
+      const answer = await prisma.answers.findFirst({
+        where: { team_id: team.id, question_id: questionId },
+      });
+      const answerId = answer!.id;
 
       // 2. Act: Grade it correctly
       await gameManager.handleGradeDecision(testCompId, answerId, true);

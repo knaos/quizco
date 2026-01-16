@@ -9,13 +9,15 @@ export default defineConfig({
     setupFiles: [path.resolve(__dirname, "src/test/setup.ts")],
     // Ensure tests run in the test database
     env: {
-      DB_NAME: "quizco_test",
+      DATABASE_URL:
+        "postgresql://quizuser:quizpassword@localhost:5433/quizco_test",
     },
     poolOptions: {
       threads: {
         singleThread: true, // DB tests often need to run sequentially
       },
     },
+    hookTimeout: 30000,
   },
   resolve: {
     alias: {

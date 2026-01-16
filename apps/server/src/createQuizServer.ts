@@ -5,7 +5,7 @@ import cors from "cors";
 import adminRouter from "./routes/admin";
 import { GameManager } from "./GameManager";
 import { IGameRepository } from "./repositories/IGameRepository";
-import { query } from "./db";
+import prisma from "./db/prisma";
 
 export function createQuizServer(
   gameManager: GameManager,
@@ -21,10 +21,18 @@ export function createQuizServer(
   // Public/Host Routes
   app.get("/api/competitions", async (req, res) => {
     try {
-      const { rows } = await query(
-        "SELECT id, title, status FROM competitions WHERE status = 'ACTIVE' OR status = 'DRAFT' ORDER BY created_at DESC"
-      );
-      res.json(rows);
+      const competitions = await prisma.competitions.findMany({
+        where: {
+          OR: [{ status: "ACTIVE" }, { status: "DRAFT" }],
+        },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+        },
+        orderBy: { created_at: "desc" },
+      });
+      res.json(competitions);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
@@ -33,19 +41,15 @@ export function createQuizServer(
   app.get("/api/competitions/:id/play-data", async (req, res) => {
     const { id } = req.params;
     try {
-      const roundsRes = await query(
-        "SELECT * FROM rounds WHERE competition_id = $1 ORDER BY order_index",
-        [id]
-      );
-      const rounds = roundsRes.rows;
-
-      for (const round of rounds) {
-        const qRes = await query(
-          "SELECT * FROM questions WHERE round_id = $1 ORDER BY created_at",
-          [round.id]
-        );
-        round.questions = qRes.rows;
-      }
+      const rounds = await prisma.rounds.findMany({
+        where: { competition_id: id },
+        orderBy: { order_index: "asc" },
+        include: {
+          questions: {
+            orderBy: { created_at: "asc" },
+          },
+        },
+      });
 
       res.json({ rounds });
     } catch (err) {

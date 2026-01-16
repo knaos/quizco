@@ -1,15 +1,10 @@
-import { beforeEach, afterAll } from "vitest";
-import pool from "../db";
+import { beforeEach } from "vitest";
+import prisma from "../db/prisma";
 
 beforeEach(async () => {
   // Clear all data before each test
-  // We use CASCADE to handle foreign key constraints
-  await pool.query(
+  // We use raw query for TRUNCATE CASCADE as it's the most efficient way to clear everything
+  await prisma.$executeRawUnsafe(
     "TRUNCATE teams, competitions, rounds, questions, answers CASCADE"
   );
-});
-
-afterAll(async () => {
-  // Close the pool after all tests in a file
-  await pool.end();
 });

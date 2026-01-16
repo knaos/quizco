@@ -1,5 +1,5 @@
-import { Question, Team } from "@quizco/shared";
-import { query } from "../db";
+import { Question, Team, QuestionType, GradingMode } from "@quizco/shared";
+import prisma from "../db/prisma";
 import { IGameRepository } from "./IGameRepository";
 
 export class PostgresGameRepository implements IGameRepository {
@@ -8,74 +8,107 @@ export class PostgresGameRepository implements IGameRepository {
     name: string,
     color: string
   ): Promise<Team> {
-    const res = await query(
-      "INSERT INTO teams (name, color) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET color = EXCLUDED.color RETURNING id, name, color",
-      [name, color]
-    );
+    const dbTeam = await prisma.teams.upsert({
+      where: { name },
+      update: { color },
+      create: { name, color },
+    });
 
-    const dbTeam = res.rows[0];
     const score = await this.getTeamScore(competitionId, dbTeam.id);
 
     return {
       id: dbTeam.id,
       name: dbTeam.name,
-      color: dbTeam.color,
+      color: dbTeam.color || "",
       score,
       lastAnswerCorrect: null,
     };
   }
 
   async getTeamScore(competitionId: string, teamId: string): Promise<number> {
-    const res = await query(
-      `SELECT COALESCE(SUM(a.score_awarded), 0) as total_score 
-       FROM answers a 
-       JOIN rounds r ON a.round_id = r.id 
-       WHERE r.competition_id = $1 AND a.team_id = $2 AND a.is_correct = TRUE`,
-      [competitionId, teamId]
-    );
-    return parseInt(res.rows[0]?.total_score || "0");
+    const aggregate = await prisma.answers.aggregate({
+      _sum: {
+        score_awarded: true,
+      },
+      where: {
+        team_id: teamId,
+        is_correct: true,
+        rounds: {
+          competition_id: competitionId,
+        },
+      },
+    });
+
+    return aggregate._sum.score_awarded || 0;
   }
 
   async reconnectTeam(
     competitionId: string,
     teamId: string
   ): Promise<Team | null> {
-    const res = await query("SELECT * FROM teams WHERE id = $1", [teamId]);
-    if (res.rows.length === 0) return null;
+    const dbTeam = await prisma.teams.findUnique({
+      where: { id: teamId },
+    });
 
-    const dbTeam = res.rows[0];
+    if (!dbTeam) return null;
+
     const score = await this.getTeamScore(competitionId, teamId);
 
     return {
       id: dbTeam.id,
       name: dbTeam.name,
-      color: dbTeam.color,
+      color: dbTeam.color || "",
       score,
       lastAnswerCorrect: null,
     };
   }
 
   async getQuestion(questionId: string): Promise<Question | null> {
-    const res = await query("SELECT * FROM questions WHERE id = $1", [
-      questionId,
-    ]);
-    return (res.rows[0] as Question) || null;
+    const dbQuestion = await prisma.questions.findUnique({
+      where: { id: questionId },
+    });
+
+    if (!dbQuestion) return null;
+
+    return {
+      id: dbQuestion.id,
+      round_id: dbQuestion.round_id || "",
+      question_text: dbQuestion.question_text,
+      type: dbQuestion.type as QuestionType,
+      points: dbQuestion.points || 0,
+      time_limit_seconds: dbQuestion.time_limit_seconds || 0,
+      content: dbQuestion.content,
+      grading: (dbQuestion.grading as GradingMode) || "AUTO",
+    };
   }
 
   async getAllQuestions(): Promise<any[]> {
-    const res = await query("SELECT * FROM questions ORDER BY created_at");
-    return res.rows;
+    return prisma.questions.findMany({
+      orderBy: { created_at: "asc" },
+    });
   }
 
   async getQuestionsForCompetition(competitionId: string): Promise<any[]> {
-    const res = await query(
-      `SELECT q.* FROM questions q 
-         JOIN rounds r ON q.round_id = r.id 
-         WHERE r.competition_id = $1 
-         ORDER BY r.order_index, q.created_at`,
-      [competitionId]
-    );
-    return res.rows;
+    return prisma.questions.findMany({
+      where: {
+        rounds: {
+          competition_id: competitionId,
+        },
+      },
+      orderBy: [
+        {
+          rounds: {
+            order_index: "asc",
+          },
+        },
+        {
+          created_at: "asc",
+        },
+      ],
+      include: {
+        rounds: true,
+      },
+    });
   }
 
   async saveAnswer(
@@ -86,23 +119,22 @@ export class PostgresGameRepository implements IGameRepository {
     isCorrect: boolean | null,
     scoreAwarded: number
   ): Promise<any> {
-    const res = await query(
-      "INSERT INTO answers (team_id, question_id, round_id, submitted_content, is_correct, score_awarded) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [
-        teamId,
-        questionId,
-        roundId,
-        JSON.stringify(submittedContent),
-        isCorrect,
-        scoreAwarded,
-      ]
-    );
-    return res.rows[0];
+    return prisma.answers.create({
+      data: {
+        team_id: teamId,
+        question_id: questionId,
+        round_id: roundId,
+        submitted_content: submittedContent,
+        is_correct: isCorrect,
+        score_awarded: scoreAwarded,
+      },
+    });
   }
 
   async getAnswer(answerId: string): Promise<any> {
-    const res = await query("SELECT * FROM answers WHERE id = $1", [answerId]);
-    return res.rows[0];
+    return prisma.answers.findUnique({
+      where: { id: answerId },
+    });
   }
 
   async updateAnswerGrading(
@@ -110,34 +142,50 @@ export class PostgresGameRepository implements IGameRepository {
     isCorrect: boolean,
     scoreAwarded: number
   ): Promise<void> {
-    await query(
-      "UPDATE answers SET is_correct = $1, score_awarded = $2 WHERE id = $3",
-      [isCorrect, scoreAwarded, answerId]
-    );
+    await prisma.answers.update({
+      where: { id: answerId },
+      data: {
+        is_correct: isCorrect,
+        score_awarded: scoreAwarded,
+      },
+    });
   }
 
   async getSubmissionCount(questionId: string): Promise<number> {
-    const res = await query(
-      "SELECT COUNT(DISTINCT team_id) FROM answers WHERE question_id = $1",
-      [questionId]
-    );
-    return parseInt(res.rows[0].count);
+    return prisma.answers.count({
+      where: {
+        question_id: questionId,
+      },
+    });
   }
 
   async getPendingAnswers(competitionId?: string): Promise<any[]> {
-    let sql = `SELECT a.*, t.name as team_name, q.question_text 
-               FROM answers a 
-               JOIN teams t ON a.team_id = t.id 
-               JOIN questions q ON a.question_id = q.id 
-               WHERE a.is_correct IS NULL`;
-    const params: any[] = [];
+    const answers = await prisma.answers.findMany({
+      where: {
+        is_correct: null,
+        ...(competitionId
+          ? {
+              rounds: {
+                competition_id: competitionId,
+              },
+            }
+          : {}),
+      },
+      include: {
+        teams: {
+          select: { name: true },
+        },
+        questions: {
+          select: { question_text: true },
+        },
+      },
+    });
 
-    if (competitionId) {
-      sql += ` AND q.round_id IN (SELECT id FROM rounds WHERE competition_id = $1)`;
-      params.push(competitionId);
-    }
-
-    const res = await query(sql, params);
-    return res.rows;
+    // Map to match the previous structure if needed
+    return answers.map((a) => ({
+      ...a,
+      team_name: a.teams?.name,
+      question_text: a.questions?.question_text,
+    }));
   }
 }

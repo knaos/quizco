@@ -1,21 +1,29 @@
-import { query } from "./index";
+import prisma from "./prisma";
 
 async function seed() {
   console.log("Seeding database...");
 
   try {
     // 1. Create a competition
-    const compRes = await query(
-      "INSERT INTO competitions (title, host_pin, status) VALUES ('Bible Hero Challenge', '1234', 'ACTIVE') RETURNING id"
-    );
-    const competitionId = compRes.rows[0].id;
+    const competition = await prisma.competitions.create({
+      data: {
+        title: "Bible Hero Challenge",
+        host_pin: "1234",
+        status: "ACTIVE",
+      },
+    });
+    const competitionId = competition.id;
 
     // 2. Create a round
-    const roundRes = await query(
-      "INSERT INTO rounds (competition_id, order_index, type, title) VALUES ($1, 1, 'STANDARD', 'General Knowledge') RETURNING id",
-      [competitionId]
-    );
-    const roundId = roundRes.rows[0].id;
+    const round = await prisma.rounds.create({
+      data: {
+        competition_id: competitionId,
+        order_index: 1,
+        type: "STANDARD",
+        title: "General Knowledge",
+      },
+    });
+    const roundId = round.id;
 
     // 3. Add some questions
     const questions = [
@@ -48,18 +56,27 @@ async function seed() {
     ];
 
     for (const q of questions) {
-      await query(
-        "INSERT INTO questions (round_id, question_text, type, points, content) VALUES ($1, $2, $3, $4, $5)",
-        [roundId, q.text, q.type, q.points, JSON.stringify(q.content)]
-      );
+      await prisma.questions.create({
+        data: {
+          round_id: roundId,
+          question_text: q.text,
+          type: q.type as any,
+          points: q.points,
+          content: q.content,
+        },
+      });
     }
 
     // 4. Add a crossword question
-    const crosswordRoundRes = await query(
-      "INSERT INTO rounds (competition_id, order_index, type, title) VALUES ($1, 2, 'CROSSWORD', 'Bible Crossword') RETURNING id",
-      [competitionId]
-    );
-    const crosswordRoundId = crosswordRoundRes.rows[0].id;
+    const crosswordRound = await prisma.rounds.create({
+      data: {
+        competition_id: competitionId,
+        order_index: 2,
+        type: "CROSSWORD",
+        title: "Bible Crossword",
+      },
+    });
+    const crosswordRoundId = crosswordRound.id;
 
     const crosswordContent = {
       grid: [
@@ -84,15 +101,21 @@ async function seed() {
       },
     };
 
-    await query(
-      "INSERT INTO questions (round_id, question_text, type, points, content) VALUES ($1, 'Complete the Bible crossword', 'CROSSWORD', 50, $2)",
-      [crosswordRoundId, JSON.stringify(crosswordContent)]
-    );
+    await prisma.questions.create({
+      data: {
+        round_id: crosswordRoundId,
+        question_text: "Complete the Bible crossword",
+        type: "CROSSWORD",
+        points: 50,
+        content: crosswordContent,
+      },
+    });
 
     console.log("Seeding completed successfully.");
   } catch (err) {
     console.error("Error seeding database:", err);
   } finally {
+    await prisma.$disconnect();
     process.exit();
   }
 }
