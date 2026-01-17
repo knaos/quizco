@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useGame } from "../contexts/GameContext";
-import { socket } from "../socket";
+import { socket, API_URL } from "../socket";
 import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown } from "lucide-react";
 import type { Question, Competition, Round } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -39,7 +39,7 @@ export const HostDashboard: React.FC = () => {
         window.history.pushState({ path: newUrl }, "", newUrl);
     }
 
-    fetch(`http://localhost:4000/api/competitions/${comp.id}/play-data`)
+    fetch(`${API_URL}/api/competitions/${comp.id}/play-data`)
       .then((res) => res.json())
       .then((data) => {
           setCompData(data);
@@ -61,7 +61,7 @@ export const HostDashboard: React.FC = () => {
 
   // Initial fetch of competitions
   useEffect(() => {
-    fetch("http://localhost:4000/api/competitions")
+    fetch(`${API_URL}/api/competitions`)
       .then((res) => res.json())
       .then((data) => {
           setCompetitions(data);
@@ -80,7 +80,7 @@ export const HostDashboard: React.FC = () => {
 
   const fetchPendingAnswers = () => {
     if (!selectedComp) return;
-    fetch(`http://localhost:4000/api/admin/pending-answers?competitionId=${selectedComp.id}`)
+    fetch(`${API_URL}/api/admin/pending-answers?competitionId=${selectedComp.id}`)
       .then((res) => res.json())
       .then((data) => setPendingAnswers(data));
   };

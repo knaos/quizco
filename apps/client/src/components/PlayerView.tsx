@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
-import { socket } from "../socket";
+import { socket, API_URL } from "../socket";
 import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight } from "lucide-react";
 import { Crossword } from "./Crossword";
 import { useTranslation } from "react-i18next";
@@ -29,7 +29,7 @@ export const PlayerView: React.FC = () => {
   // Fetch active competitions if none selected
   useEffect(() => {
     if (!selectedCompId) {
-        fetch("http://localhost:4000/api/competitions")
+        fetch(`${API_URL}/api/competitions`)
           .then((res) => res.json())
           .then((data) => setCompetitions(data));
     }

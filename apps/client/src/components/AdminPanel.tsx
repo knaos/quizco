@@ -14,8 +14,9 @@ import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
 import { QuestionEditor } from "./admin/QuestionEditor";
 import { useAuth } from "../contexts/AuthContext";
+import { API_URL } from "../socket";
 
-const API_BASE = "http://localhost:4000/api/admin";
+const API_BASE = `${API_URL}/api/admin`;
 
 export const AdminPanel: React.FC = () => {
   const { adminPassword, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();

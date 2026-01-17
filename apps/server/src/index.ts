@@ -10,13 +10,15 @@ const gameManager = new GameManager(repository);
 
 const { httpServer } = createQuizServer(gameManager, repository);
 
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 gameManager
   .initialize()
   .then(() => {
-    httpServer.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    httpServer.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `Server running on port ${PORT} (accessible on local network)`,
+      );
     });
   })
   .catch((err) => {
