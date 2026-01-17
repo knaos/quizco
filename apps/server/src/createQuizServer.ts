@@ -47,6 +47,9 @@ export function createQuizServer(
         include: {
           questions: {
             orderBy: { createdAt: "asc" },
+            include: {
+              answers: true,
+            },
           },
         },
       });

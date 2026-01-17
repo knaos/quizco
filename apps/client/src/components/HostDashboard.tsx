@@ -16,7 +16,11 @@ interface PendingAnswer {
 }
 
 interface CompetitionData {
-  rounds: (Round & { questions: Question[] })[];
+  rounds: (Round & {
+    questions: (Question & {
+      answers: { isCorrect: boolean | null }[];
+    })[];
+  })[];
 }
 
 export const HostDashboard: React.FC = () => {
@@ -395,8 +399,49 @@ export const HostDashboard: React.FC = () => {
                                         } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative`}
                                     >
                                         <div className="flex-1">
-                                            <p className="text-xs opacity-60 uppercase mb-1">{q.type}</p>
-                                            <p className="line-clamp-2">{q.questionText}</p>
+                                            <div className="flex justify-between items-start mb-1">
+                                                <p className="text-xs opacity-60 uppercase">{q.type}</p>
+                                                <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider">
+                                                    <span className="flex items-center text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                                        <Clock className="w-3 h-3 mr-1" /> {q.timeLimitSeconds}s
+                                                    </span>
+                                                    <span className="flex items-center text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
+                                                        <Trophy className="w-3 h-3 mr-1" /> {q.points} pts
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <p className="line-clamp-2 mb-2">{q.questionText}</p>
+                                            
+                                            <div className={`flex items-center space-x-3 mt-auto p-1.5 rounded-lg ${
+                                                state.currentQuestion?.id === q.id ? "bg-blue-700/50" : "bg-gray-50"
+                                            }`}>
+                                                <div className={`flex items-center text-[10px] font-bold ${
+                                                    state.currentQuestion?.id === q.id ? "text-blue-100" : "text-gray-500"
+                                                }`}>
+                                                    <Users className="w-3 h-3 mr-1" />
+                                                    {q.answers.length}/{state.teams.length}
+                                                </div>
+                                                {q.answers.length > 0 && (
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                                            state.currentQuestion?.id === q.id 
+                                                            ? "text-green-300 bg-green-900/30" 
+                                                            : "text-green-600 bg-green-50"
+                                                        }`}>
+                                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                                            {q.answers.filter(a => a.isCorrect === true).length}
+                                                        </div>
+                                                        <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                                            state.currentQuestion?.id === q.id 
+                                                            ? "text-red-300 bg-red-900/30" 
+                                                            : "text-red-600 bg-red-50"
+                                                        }`}>
+                                                            <XCircle className="w-3 h-3 mr-1" />
+                                                            {q.answers.filter(a => a.isCorrect === false).length}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                         {state.currentQuestion?.id === q.id && (
                                             <div className="absolute top-2 right-2">
