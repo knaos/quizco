@@ -54,35 +54,69 @@
     ]
   },
   "539175b1-59e0-449c-bad6-c61f056ecbd1": {
-    "phase": "REVEAL_ANSWER",
+    "phase": "LEADERBOARD",
     "currentQuestion": {
-      "id": "bd1f1cca-855b-40ba-bf14-09c1adc0100d",
+      "id": "b1b02148-13c2-4817-9e79-59a19d2fdf99",
       "roundId": "39abdec7-3f74-439c-83e9-d4b7088a1f48",
-      "questionText": "Jesus was born in which town?",
+      "questionText": "Who built the ark?",
       "points": 10,
       "timeLimitSeconds": 30,
       "grading": "AUTO",
       "type": "MULTIPLE_CHOICE",
       "content": {
         "options": [
-          "Nazareth",
-          "Jerusalem",
-          "Bethlehem",
-          "Jericho"
+          "Moses",
+          "Noah",
+          "Abraham",
+          "David"
         ],
-        "correctIndex": 2
+        "correctIndex": 1
       }
     },
-    "timeRemaining": 26,
+    "timeRemaining": 30,
     "teams": [
       {
         "id": "f4ead9e8-e443-4bb6-ba46-4b26a56c53e4",
         "name": "asdf",
         "color": "#3B82F6",
         "score": 10,
-        "lastAnswerCorrect": true,
-        "lastAnswer": 2
+        "lastAnswerCorrect": null,
+        "lastAnswer": null
       }
-    ]
+    ],
+    "revealStep": 4
+  },
+  "32166da9-0bd7-4a60-9098-a05674d661ae": {
+    "phase": "QUESTION_PREVIEW",
+    "currentQuestion": {
+      "id": "b389776d-6a78-4d11-bff4-3b3fec2c7121",
+      "roundId": "fe2812c3-6d07-4981-9a08-150207ab2d9b",
+      "questionText": "Who built the ark?",
+      "points": 10,
+      "timeLimitSeconds": 30,
+      "grading": "AUTO",
+      "type": "MULTIPLE_CHOICE",
+      "content": {
+        "options": [
+          "Moses",
+          "Noah",
+          "Abraham",
+          "David"
+        ],
+        "correctIndex": 1
+      }
+    },
+    "timeRemaining": 30,
+    "teams": [
+      {
+        "id": "b4cc8fd6-4003-43fe-9ea3-202a9f850d57",
+        "name": "SU International",
+        "color": "#3B82F6",
+        "score": 10,
+        "lastAnswerCorrect": null,
+        "lastAnswer": null
+      }
+    ],
+    "revealStep": 0
   }
 }

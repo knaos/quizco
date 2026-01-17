@@ -6,10 +6,13 @@ export type QuestionType =
 export type GradingMode = "AUTO" | "MANUAL";
 export type GamePhase =
   | "WAITING"
+  | "WELCOME"
+  | "ROUND_START"
   | "QUESTION_PREVIEW"
   | "QUESTION_ACTIVE"
   | "GRADING"
   | "REVEAL_ANSWER"
+  | "ROUND_END"
   | "LEADERBOARD";
 
 export type MultipleChoiceAnswer = number;
@@ -126,6 +129,7 @@ export interface GameState {
   currentQuestion: Question | null;
   timeRemaining: number;
   teams: Team[];
+  revealStep: number;
 }
 
 export interface SocketEvents {
@@ -155,6 +159,7 @@ export interface SocketEvents {
   }) => void;
   HOST_START_TIMER: (payload: { competitionId: string }) => void;
   HOST_REVEAL_ANSWER: (payload: { competitionId: string }) => void;
+  HOST_NEXT: (payload: { competitionId: string }) => void;
   HOST_GRADE_DECISION: (payload: {
     competitionId: string;
     answerId: string;

@@ -120,6 +120,11 @@ export const HostDashboard: React.FC = () => {
     socket.emit("HOST_REVEAL_ANSWER", { competitionId: selectedComp.id });
   };
 
+  const handleNext = () => {
+    if (!selectedComp) return;
+    socket.emit("HOST_NEXT", { competitionId: selectedComp.id });
+  };
+
   const gradeAnswer = (answerId: string, correct: boolean) => {
     if (!selectedComp) return;
     socket.emit("HOST_GRADE_DECISION", { competitionId: selectedComp.id, answerId, correct });
@@ -164,6 +169,25 @@ export const HostDashboard: React.FC = () => {
       </div>
     );
   }
+
+  const getNextActionLabel = () => {
+    switch (state.phase) {
+      case "WAITING": return "Start Competition";
+      case "WELCOME": return "Start First Round";
+      case "ROUND_START": return "Show First Question";
+      case "QUESTION_PREVIEW":
+        if (state.currentQuestion?.type === "MULTIPLE_CHOICE" && state.revealStep < state.currentQuestion.content.options.length) {
+          return `Reveal Option ${String.fromCharCode(65 + state.revealStep)}`;
+        }
+        return "Start Timer";
+      case "QUESTION_ACTIVE": return "End Question Early";
+      case "GRADING": return "Reveal Correct Answer";
+      case "REVEAL_ANSWER": return "Next Question / End Round";
+      case "ROUND_END": return "Next Round / Show Leaderboard";
+      case "LEADERBOARD": return "Competition Finished";
+      default: return "Next";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -299,23 +323,45 @@ export const HostDashboard: React.FC = () => {
               <SkipForward className="mr-3 text-purple-500" /> {t('host.control_panel')}
             </h2>
             <div className="space-y-8">
-              {state.phase === "QUESTION_PREVIEW" && (
-                <button
-                  onClick={startTimer}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-5 rounded-2xl transition-all text-2xl flex items-center justify-center shadow-xl shadow-green-200 transform active:scale-[0.98]"
-                >
-                  <Play className="mr-3 w-8 h-8" /> {t('host.start_timer')}
-                </button>
-              )}
+              <button
+                onClick={handleNext}
+                disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
+                className={`w-full ${
+                  state.phase === "QUESTION_ACTIVE" ? "bg-red-600 hover:bg-red-700 shadow-red-200" :
+                  state.phase === "QUESTION_PREVIEW" ? "bg-green-600 hover:bg-green-700 shadow-green-200" :
+                  "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
+                } text-white font-black py-6 rounded-2xl transition-all text-3xl flex items-center justify-center shadow-xl transform active:scale-[0.98]`}
+              >
+                <SkipForward className="mr-4 w-10 h-10" />
+                {getNextActionLabel()}
+              </button>
 
-              {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && (
+              <div className="grid grid-cols-2 gap-4">
+                {state.phase === "QUESTION_PREVIEW" && (
+                  <button
+                    onClick={startTimer}
+                    className="bg-green-100 text-green-700 hover:bg-green-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-green-200"
+                  >
+                    <Play className="mr-2 w-5 h-5" /> Skip to Timer
+                  </button>
+                )}
+
+                {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && (
+                  <button
+                    onClick={revealAnswer}
+                    className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-yellow-200"
+                  >
+                    <CheckCircle className="mr-2 w-5 h-5" /> Reveal Answer
+                  </button>
+                )}
+                
                 <button
-                  onClick={revealAnswer}
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-black py-5 rounded-2xl transition-all text-2xl flex items-center justify-center shadow-xl shadow-yellow-200 transform active:scale-[0.98]"
+                  onClick={() => socket.emit("HOST_SET_PHASE", { competitionId: selectedComp.id, phase: "LEADERBOARD" })}
+                  className="bg-purple-100 text-purple-700 hover:bg-purple-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-purple-200"
                 >
-                  <CheckCircle className="mr-3 w-8 h-8" /> {t('host.reveal_answer')}
+                  <Trophy className="mr-2 w-5 h-5" /> Show Leaderboard
                 </button>
-              )}
+              </div>
 
               <div className="space-y-4">
                 <p className="text-sm text-gray-400 font-black uppercase tracking-widest">

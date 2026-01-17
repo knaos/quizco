@@ -35,6 +35,7 @@ export class GameManager {
         currentQuestion: null,
         timeRemaining: 0,
         teams: [],
+        revealStep: 0,
       });
     }
     return this.sessions.get(competitionId)!;
@@ -71,6 +72,7 @@ export class GameManager {
     session.currentQuestion = question;
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
+    session.revealStep = 0;
 
     // Reset last answer status for all teams
     for (const team of session.teams) {
@@ -216,6 +218,85 @@ export class GameManager {
   public async setPhase(competitionId: string, phase: GamePhase) {
     const session = this.getOrCreateSession(competitionId);
     session.phase = phase;
+    await this.saveState();
+  }
+
+  public async next(competitionId: string, onTick: (state: GameState) => void) {
+    const session = this.getOrCreateSession(competitionId);
+    const questions =
+      await this.repository.getQuestionsForCompetition(competitionId);
+
+    switch (session.phase) {
+      case "WAITING":
+        session.phase = "WELCOME";
+        break;
+      case "WELCOME":
+        if (questions.length > 0) {
+          session.phase = "ROUND_START";
+          session.currentQuestion = questions[0];
+          // We need to know which round we are in
+          session.revealStep = 0; // reusing this for round index if needed? No, let's keep it simple.
+        } else {
+          session.phase = "LEADERBOARD";
+        }
+        break;
+      case "ROUND_START":
+        session.phase = "QUESTION_PREVIEW";
+        session.revealStep = 0;
+        break;
+      case "QUESTION_PREVIEW":
+        // Handle incremental reveal for MULTIPLE_CHOICE
+        if (
+          session.currentQuestion?.type === "MULTIPLE_CHOICE" &&
+          session.revealStep < session.currentQuestion.content.options.length
+        ) {
+          session.revealStep += 1;
+        } else {
+          await this.startTimer(competitionId, onTick);
+        }
+        break;
+      case "QUESTION_ACTIVE":
+        // Force end question
+        await this.endQuestion(competitionId);
+        break;
+      case "GRADING":
+        await this.revealAnswer(competitionId);
+        break;
+      case "REVEAL_ANSWER": {
+        const currentIndex = questions.findIndex(
+          (q) => q.id === session.currentQuestion?.id,
+        );
+        const nextQuestion = questions[currentIndex + 1];
+
+        if (nextQuestion) {
+          if (nextQuestion.roundId !== session.currentQuestion?.roundId) {
+            session.phase = "ROUND_END";
+          } else {
+            await this.startQuestion(competitionId, nextQuestion.id);
+          }
+        } else {
+          session.phase = "ROUND_END";
+        }
+        break;
+      }
+      case "ROUND_END": {
+        const currentIndex = questions.findIndex(
+          (q) => q.id === session.currentQuestion?.id,
+        );
+        const nextQuestion = questions[currentIndex + 1];
+        if (nextQuestion) {
+          session.phase = "ROUND_START";
+          session.currentQuestion = nextQuestion;
+        } else {
+          session.phase = "LEADERBOARD";
+        }
+        break;
+      }
+      case "LEADERBOARD":
+        // Reset or stay?
+        break;
+    }
+
     await this.saveState();
   }
 

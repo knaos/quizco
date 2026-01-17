@@ -285,25 +285,75 @@ export const PlayerView: React.FC = () => {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        {state.phase === "WAITING" && (
-          <div className="space-y-4">
-            <Clock className="w-16 h-16 text-blue-500 animate-pulse mx-auto" />
-            <h2 className="text-2xl font-bold text-gray-800">{t('player.waiting_host')}</h2>
-            <p className="text-gray-500">{t('player.get_ready')}</p>
+        {(state.phase === "WAITING" || state.phase === "WELCOME") && (
+          <div className="space-y-8 animate-in fade-in zoom-in duration-700">
+            <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-blue-600">
+              <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
+              <h2 className="text-5xl font-black text-gray-900 mb-4">{t('player.waiting_host')}</h2>
+              <p className="text-2xl text-gray-500 font-bold">{t('player.get_ready')}</p>
+            </div>
+          </div>
+        )}
+
+        {state.phase === "ROUND_START" && (
+          <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
+            <div className="bg-white p-16 rounded-[4rem] shadow-2xl border-b-8 border-purple-600">
+              <span className="text-purple-600 font-black uppercase tracking-[0.3em] text-xl mb-4 block">New Round</span>
+              <h2 className="text-6xl font-black text-gray-900 mb-2">
+                {state.currentQuestion?.roundId ? "Get Ready!" : "Round Start"}
+              </h2>
+              <p className="text-3xl text-gray-500 font-bold italic">Prepare your hearts and minds!</p>
+            </div>
+          </div>
+        )}
+
+        {state.phase === "ROUND_END" && (
+          <div className="space-y-8 animate-in zoom-in duration-700">
+            <div className="bg-white p-16 rounded-[4rem] shadow-2xl border-b-8 border-green-600">
+              <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
+              <h2 className="text-5xl font-black text-gray-900 mb-4">Round Finished!</h2>
+              <p className="text-2xl text-gray-500 font-bold">Great job, everyone!</p>
+              <div className="mt-8 p-6 bg-green-50 rounded-3xl inline-block">
+                <p className="text-green-800 font-black text-xl">Waiting for the next round...</p>
+              </div>
+            </div>
           </div>
         )}
 
         {state.phase === "QUESTION_PREVIEW" && state.currentQuestion && (
-          <div className="w-full max-w-2xl space-y-8">
-            <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-yellow-500">
-              <span className="text-yellow-600 font-bold uppercase tracking-wider text-sm">{t('player.upcoming_question')}</span>
-              <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
+          <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
+            <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-yellow-500">
+              <span className="text-yellow-600 font-black uppercase tracking-widest text-lg mb-4 block">{t('player.upcoming_question')}</span>
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">
                 {state.currentQuestion.questionText}
               </h2>
             </div>
+            
+            {state.currentQuestion.type === "MULTIPLE_CHOICE" && state.revealStep > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
+                {state.currentQuestion.content.options.map((opt: string, i: number) => (
+                  <div
+                    key={i}
+                    className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${
+                      i < state.revealStep 
+                      ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0" 
+                      : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl mr-6 shadow-lg shadow-blue-200">
+                        {String.fromCharCode(65 + i)}
+                      </div>
+                      <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="space-y-4">
-              <Clock className="w-12 h-12 text-yellow-500 animate-spin-slow mx-auto" />
-              <p className="text-xl font-medium text-gray-600">{t('player.host_reading')}</p>
+              <Clock className="w-16 h-16 text-yellow-500 animate-spin-slow mx-auto" />
+              <p className="text-2xl font-black text-gray-500 uppercase tracking-widest">{t('player.host_reading')}</p>
             </div>
           </div>
         )}
@@ -380,6 +430,30 @@ export const PlayerView: React.FC = () => {
             <Clock className="w-16 h-16 text-orange-500 mx-auto" />
             <h2 className="text-3xl font-bold text-gray-800">{t('player.times_up')}</h2>
             <p className="text-xl text-gray-500">The round has ended. Waiting for the host to reveal the answer...</p>
+          </div>
+        )}
+
+        {state.phase === "LEADERBOARD" && (
+          <div className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700">
+             <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-yellow-500">
+                <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
+                <h2 className="text-5xl font-black text-gray-900 mb-8">{t('host.leaderboard')}</h2>
+                
+                <div className="space-y-4">
+                  {[...state.teams].sort((a,b) => b.score - a.score).map((team, idx) => (
+                    <div key={team.id} className={`flex items-center justify-between p-6 rounded-3xl ${
+                      idx === 0 ? "bg-yellow-50 border-4 border-yellow-200" : "bg-gray-50 border-4 border-transparent"
+                    }`}>
+                      <div className="flex items-center space-x-6">
+                        <span className="text-3xl font-black text-gray-400 w-12">{idx + 1}</span>
+                        <div className="w-8 h-8 rounded-full shadow-inner" style={{ backgroundColor: team.color }} />
+                        <span className="text-3xl font-black text-gray-800">{team.name}</span>
+                      </div>
+                      <span className="text-4xl font-black text-blue-600">{team.score}</span>
+                    </div>
+                  ))}
+                </div>
+             </div>
           </div>
         )}
 
