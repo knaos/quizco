@@ -38,6 +38,7 @@
       "host_reading": "The host is reading the question. Get ready to answer!",
       "submit_answer": "Submit Answer",
       "answer_received": "Answer Received!",
+      "answer_failed": "Submission Failed!",
       "waiting_others": "Waiting for other teams...",
       "times_up": "Time's up!",
       "reveal_phase": "Reveal Phase",

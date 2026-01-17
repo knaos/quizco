@@ -25,7 +25,12 @@ export const PlayerView: React.FC = () => {
   const [answer, setAnswer] = useState("");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<"idle" | "success" | "error">("idle");
   const [isReconnecting, setIsReconnecting] = useState(true);
+
+  const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
+  const currentTeam = state.teams.find(t => t.id === teamId);
+  const hasSubmitted = submitted || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined);
 
   // Fetch active competitions if none selected
   useEffect(() => {
@@ -70,8 +75,9 @@ export const PlayerView: React.FC = () => {
       setAnswer("");
       setSelectedIndices([]);
       setSubmitted(false);
+      setSubmissionStatus("idle");
     }
-  }, [state.currentQuestion]);
+  }, [state.currentQuestion?.id]);
 
   const handleSelectCompetition = (id: string) => {
       setSelectedCompId(id);
@@ -127,6 +133,12 @@ export const PlayerView: React.FC = () => {
       teamId,
       questionId: state.currentQuestion.id,
       answer: value
+    }, (res?: { success: boolean }) => {
+      if (res && res.success) {
+        setSubmissionStatus("success");
+      } else {
+        setSubmissionStatus("error");
+      }
     });
     
     setAnswer(JSON.stringify(value));
@@ -134,6 +146,8 @@ export const PlayerView: React.FC = () => {
   };
 
   const toggleIndex = (index: number) => {
+    if (hasSubmitted) return;
+
     const isMultipleChoice = state.currentQuestion?.type === "MULTIPLE_CHOICE";
     const content = state.currentQuestion?.content as MultipleChoiceContent;
     const isSingleChoice = isMultipleChoice && content?.correctIndices?.length === 1;
@@ -378,86 +392,103 @@ export const PlayerView: React.FC = () => {
 
         {state.phase === "QUESTION_ACTIVE" && state.currentQuestion && (
           <div className="w-full max-w-2xl space-y-8">
-            <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-blue-500">
-              <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Question</span>
-              <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
-                {state.currentQuestion.questionText}
-              </h2>
-            </div>
-
-            {!submitted ? (
-              <div className="space-y-6 w-full">
-                {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {!hasSubmitted ? (
+              <div className="space-y-8">
+                <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-blue-500">
+                  <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Question</span>
+                  <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
+                    {state.currentQuestion.questionText}
+                  </h2>
+                </div>
+                <div className="space-y-6 w-full">
+                  {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {state.currentQuestion.content?.options?.map((opt: string, i: number) => {
-                        const isSelected = selectedIndices.includes(i);
-                        return (
+                          const isSelected = selectedIndices.includes(i);
+                          return (
                             <button
-                            key={i}
-                            onClick={() => toggleIndex(i)}
-                            className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${
-                                isSelected 
-                                ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]" 
-                                : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
-                            }`}
+                              key={i}
+                              onClick={() => toggleIndex(i)}
+                              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${
+                                isSelected
+                                  ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
+                                  : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                              }`}
                             >
-                            <span>{opt}</span>
-                            {isSelected && <CheckCircle className="w-6 h-6 text-white" />}
+                              <span>{opt}</span>
+                              {isSelected && <CheckCircle className="w-6 h-6 text-white" />}
                             </button>
-                        );
+                          );
                         })}
-                    </div>
-                    <button
+                      </div>
+                      <button
                         onClick={() => submitAnswer(selectedIndices)}
                         disabled={selectedIndices.length === 0}
                         className={`w-full py-5 rounded-2xl text-2xl font-black shadow-xl transition-all flex items-center justify-center space-x-3 ${
-                        selectedIndices.length > 0 
-                            ? "bg-green-600 hover:bg-green-700 text-white translate-y-[-4px]" 
+                          selectedIndices.length > 0
+                            ? "bg-green-600 hover:bg-green-700 text-white translate-y-[-4px]"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
-                    >
+                      >
                         <Send className="w-8 h-8" />
-                        <span>{t('player.submit_answer')}</span>
-                    </button>
-                  </div>
-                ) : state.currentQuestion.type === "CROSSWORD" ? (
-                  <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
-                    <Crossword
-                      data={state.currentQuestion.content}
+                        <span>{t("player.submit_answer")}</span>
+                      </button>
+                    </div>
+                  ) : state.currentQuestion.type === "CROSSWORD" ? (
+                    <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
+                      <Crossword
+                        data={state.currentQuestion.content}
                         onCrosswordCorrect={(isCorrect: boolean) => {
                           if (isCorrect) {
                             submitAnswer("COMPLETED");
                           }
                         }}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-col space-y-4">
-                    <input
-                      type="text"
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && submitAnswer(answer)}
-                      className="w-full p-4 text-2xl rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-                      placeholder="Type your answer..."
-                    />
-                    <button
-                      onClick={() => submitAnswer(answer)}
-                      className="bg-blue-600 text-white font-bold py-4 rounded-xl text-xl flex items-center justify-center space-x-2 shadow-lg"
-                    >
-                      <Send /> <span>{t('player.submit_answer')}</span>
-                    </button>
-                  </div>
-                )}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col space-y-4">
+                      <input
+                        type="text"
+                        value={answer}
+                        onChange={(e) => setAnswer(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && submitAnswer(answer)}
+                        className="w-full p-4 text-2xl rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
+                        placeholder="Type your answer..."
+                      />
+                      <button
+                        onClick={() => submitAnswer(answer)}
+                        className="bg-blue-600 text-white font-bold py-4 rounded-xl text-xl flex items-center justify-center space-x-2 shadow-lg"
+                      >
+                        <Send /> <span>{t("player.submit_answer")}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
-              <div className="bg-green-100 p-8 rounded-2xl border-2 border-green-500">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-green-800">{t('player.answer_received')}</h2>
-                <p className="text-green-700">{t('player.waiting_others')}</p>
+              <div className={`p-8 rounded-2xl border-2 ${
+                submissionStatus === "error" 
+                  ? "bg-red-100 border-red-500" 
+                  : (submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined))
+                    ? "bg-green-100 border-green-500"
+                    : "bg-blue-100 border-blue-500"
+              }`}>
+                {submissionStatus === "error" ? (
+                  <>
+                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-red-800">{t('player.answer_failed')}</h2>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className={`w-16 h-16 ${(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-500" : "text-blue-500"} mx-auto mb-4 ${submissionStatus === "idle" && !currentTeam?.lastAnswer ? "animate-pulse" : ""}`} />
+                    <h2 className={`text-2xl font-bold ${(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-800" : "text-blue-800"}`}>{t('player.answer_received')}</h2>
+                    <p className={(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-700" : "text-blue-700"}>{t('player.waiting_others')}</p>
+                  </>
+                )}
               </div>
             )}
+
 
             <div className="text-4xl font-black text-gray-300">
               {state.timeRemaining}s
@@ -475,7 +506,7 @@ export const PlayerView: React.FC = () => {
 
         {state.phase === "LEADERBOARD" && (
           <div className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700">
-             <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-yellow-500">
+             <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-blue-600">
                 <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
                 <h2 className="text-5xl font-black text-gray-900 mb-8">{t('host.leaderboard')}</h2>
                 

@@ -140,18 +140,27 @@ export function createQuizServer(
 
     socket.on(
       "SUBMIT_ANSWER",
-      async ({ competitionId, teamId, questionId, answer }) => {
-        if (!competitionId) return;
-        await gameManager.submitAnswer(
-          competitionId,
-          teamId,
-          questionId,
-          answer,
-        );
-        const state = gameManager.getState(competitionId);
-        const room = `competition_${competitionId}`;
-        io.to(room).emit("GAME_STATE_SYNC", state);
-        io.to(room).emit("SCORE_UPDATE", state.teams);
+      async ({ competitionId, teamId, questionId, answer }, callback) => {
+        if (!competitionId) {
+          callback?.({ success: false, error: "Missing competitionId" });
+          return;
+        }
+        try {
+          await gameManager.submitAnswer(
+            competitionId,
+            teamId,
+            questionId,
+            answer,
+          );
+          const state = gameManager.getState(competitionId);
+          const room = `competition_${competitionId}`;
+          io.to(room).emit("GAME_STATE_SYNC", state);
+          io.to(room).emit("SCORE_UPDATE", state.teams);
+          callback?.({ success: true });
+        } catch (err) {
+          console.error("Error submitting answer:", err);
+          callback?.({ success: false, error: (err as Error).message });
+        }
       },
     );
 
