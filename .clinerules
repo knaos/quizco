@@ -146,3 +146,9 @@ REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is
 - follow SOLID principles
 - security by design - when treating with critical parts of the code (authentication, permissions) take into account possible exploits.
 - keep documentation up-to date
+
+## Internationalisation
+
+- Don't use hardcoded UI strings in the UI, but always use translations
+- when creating new UI make sure you update the translations accordingly
+- the app should be available in English and Bulgarian
