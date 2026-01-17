@@ -106,7 +106,11 @@ describe("GameManager Integration", () => {
     await gameManager.startQuestion(testCompId, question.id);
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_PREVIEW");
 
-    await gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(
+      testCompId,
+      question.timeLimitSeconds,
+      () => {},
+    );
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
 
     // Fast-forward 1 second
@@ -142,7 +146,11 @@ describe("GameManager Integration", () => {
     });
 
     await gameManager.startQuestion(testCompId, question.id);
-    await gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(
+      testCompId,
+      question.timeLimitSeconds,
+      () => {},
+    );
 
     // Fast-forward 1 second
     vi.advanceTimersByTime(1000);
@@ -182,7 +190,11 @@ describe("GameManager Integration", () => {
     });
 
     await gameManager.startQuestion(testCompId, question.id);
-    await gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(
+      testCompId,
+      question.timeLimitSeconds,
+      () => {},
+    );
 
     // End question
     vi.advanceTimersByTime(6000);
@@ -299,7 +311,11 @@ describe("GameManager Integration", () => {
     const questionId = question.id;
 
     await gameManager.startQuestion(testCompId, questionId);
-    await gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(
+      testCompId,
+      question.timeLimitSeconds ?? 30,
+      () => {},
+    );
 
     await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
 
@@ -351,7 +367,7 @@ describe("GameManager Integration", () => {
 
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
-      await gameManager.startTimer(testCompId, () => {});
+      await gameManager.startTimer(testCompId, 10, () => {});
       await gameManager.submitAnswer(testCompId, team.id, questionId, [0]);
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
@@ -405,7 +421,7 @@ describe("GameManager Integration", () => {
       const questionId = question.id;
 
       await gameManager.startQuestion(testCompId, questionId);
-      await gameManager.startTimer(testCompId, () => {});
+      await gameManager.startTimer(testCompId, 10, () => {});
       await gameManager.submitAnswer(
         testCompId,
         team.id,

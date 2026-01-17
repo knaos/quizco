@@ -167,7 +167,10 @@ export function createQuizServer(
     socket.on("HOST_START_TIMER", ({ competitionId }) => {
       if (!competitionId) return;
       const room = `competition_${competitionId}`;
-      gameManager.startTimer(competitionId, (state) => {
+      const state = gameManager.getState(competitionId);
+      const duration = state.currentQuestion?.timeLimitSeconds ?? 30;
+
+      gameManager.startTimer(competitionId, duration, (state) => {
         io.to(room).emit("TIMER_SYNC", state.timeRemaining);
         if (state.timeRemaining === 0) {
           io.to(room).emit("GAME_STATE_SYNC", state);

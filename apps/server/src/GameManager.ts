@@ -88,11 +88,13 @@ export class GameManager {
 
   public async startTimer(
     competitionId: string,
+    durationSeconds: number,
     onTick: (state: GameState) => void,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_PREVIEW") return;
     session.phase = "QUESTION_ACTIVE";
+    session.timeRemaining = durationSeconds;
 
     const existingTimer = this.timers.get(competitionId);
     if (existingTimer) clearInterval(existingTimer);
@@ -252,7 +254,8 @@ export class GameManager {
         ) {
           session.revealStep += 1;
         } else {
-          await this.startTimer(competitionId, onTick);
+          const duration = session.currentQuestion?.timeLimitSeconds ?? 30;
+          await this.startTimer(competitionId, duration, onTick);
         }
         break;
       case "QUESTION_ACTIVE":

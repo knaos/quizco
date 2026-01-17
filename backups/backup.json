@@ -1,24 +1,30 @@
 {
-  "test-comp-next": {
+  "f71dfebf-f5fe-410a-bcc0-89cdc9bee966": {
     "phase": "QUESTION_ACTIVE",
     "currentQuestion": {
-      "id": "q1",
-      "roundId": "r1",
+      "id": "5db773d0-8b1f-4448-a85f-8a78233ed5d5",
+      "roundId": "5dec0706-ea6b-4e44-9a60-4af6f2f9a6df",
       "questionText": "Q1",
-      "type": "MULTIPLE_CHOICE",
+      "type": "CLOSED",
       "points": 10,
-      "timeLimitSeconds": 30,
+      "timeLimitSeconds": 15,
       "content": {
         "options": [
-          "A",
-          "B"
-        ],
-        "correctIndex": 1
+          "Ans"
+        ]
       },
-      "grading": "AUTO"
+      "grading": "AUTO",
+      "round": {
+        "id": "5dec0706-ea6b-4e44-9a60-4af6f2f9a6df",
+        "competitionId": "f71dfebf-f5fe-410a-bcc0-89cdc9bee966",
+        "orderIndex": 1,
+        "type": "STANDARD",
+        "title": "R1",
+        "createdAt": "2026-01-17T15:14:06.328Z"
+      }
     },
-    "timeRemaining": 0,
+    "timeRemaining": 15,
     "teams": [],
-    "revealStep": 2
+    "revealStep": 0
   }
 }
