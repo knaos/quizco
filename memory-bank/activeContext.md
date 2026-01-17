@@ -25,7 +25,7 @@ The project has been initialized with a monorepo structure. Core components for 
 - Initialized Memory Bank with core documentation files.
 - Shared types are defined in `packages/shared`.
 - **Documentation Audit & Update (Jan 2026):**
-  - Updated `AGENTS.md` and `SPECS.md` to reflect the actual directory structure and component hierarchy.
+  - actual directory structure and component hierarchy.
   - Refined Prisma workflow and tech stack instructions.
 
 ## Current Status
