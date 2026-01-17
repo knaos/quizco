@@ -1,66 +1,162 @@
-Architectural Blueprint and Agentic Implementation Strategy for Local-Network Real-Time Bible Competition Platform1. Executive Summary and Strategic VisionThis comprehensive technical report establishes the foundational architectural specifications and agentic coding master plan for the development of a local-network, real-time Bible competition application. The project scope entails the creation of a synchronous, multiplayer competitive environment where teams of children utilize laptops to answer varied question formats—including closed-ended, multiple-choice, open-ended, and interactive crosswords—controlled centrally by a host.The proposed solution leverages a modern JavaScript stack comprising React for the frontend, Node.js for the backend, Socket.io for real-time bidirectional communication, and PostgreSQL for persistent data storage. The application is designed to operate on a localhost environment, utilizing a local Wi-Fi network to connect participant devices (clients) to the host machine (server/admin).A critical dimension of this project is its "agentic coding" methodology. This document is not merely a passive description of the system but is structured to serve as the active context (context file) for AI coding agents (such as GitHub Copilot, Cursor, or Claude Code). By rigorously defining the "rules of engagement," data structures, state machines, and architectural constraints, this report ensures that autonomous agents can generate production-ready code that adheres to strict consistency standards without requiring constant human course correction.The analysis indicates that the primary technical challenges lie in three areas: maintaining synchronized game state across distributed clients on a potentially unstable local network, managing the complex state transitions of a live quiz (e.g., moving from "Active Question" to "Grading" to "Leaderboard"), and implementing a child-friendly User Interface (UI) that accommodates varying levels of digital literacy while preventing accidental disqualification or data loss. Furthermore, the inclusion of a crossword round necessitates a hybrid database approach, utilizing PostgreSQL's JSONB capabilities to store complex grid layouts alongside relational team data.1 This report will dissect each of these challenges, providing a granular roadmap for implementation.2. Agentic Coding Framework and Documentation StrategyTo successfully execute this project using agentic coding, we must shift from traditional "prompting" to "context engineering." AI agents excel when provided with a deterministic set of constraints and a clear "persona." This section defines the AGENTS.md specification and the operational rules that will govern the AI's generation of the codebase.2.1. The Role of AGENTS.md and Context FilesThe AGENTS.md file serves as the "cerebral cortex" for the AI agent. It transforms the repository from a collection of files into a semantic entity. Unlike a README.md, which is designed for human consumption, the AGENTS.md contains rigid instructions, forbidden patterns, and preferred architectural choices that the agent must ingest before writing a single line of code.3For this specific Bible competition app, the AGENTS.md will enforce a "State-Machine-First" approach. The agent will be instructed to verify the validity of a state transition (e.g., ensure a round is actually open) before generating the API endpoints or frontend components that trigger it. This file acts as a persistent memory bank, mitigating the risk of the agent forgetting architectural decisions as the context window fills up during long coding sessions.52.2. Master Context File Specification (AGENTS.md)The following text block represents the normative content to be placed in the root AGENTS.md file. This content is derived from best practices in agentic coding and is tailored to the specific constraints of a local-network, child-focused application.4AGENTS.md - Project Context & DirectivesROLE: You are a Senior Full-Stack Architect specializing in Real-Time Systems and Educational Technology for children.OBJECTIVE: Build a local-network Bible competition app (React/Node/Postgres/Socket.io).1. CORE ARCHITECTUREFrontend: React 18+ (Functional Components), Tailwind CSS (styling), Context API + useReducer (State Management).Backend: Node.js (Express), Socket.io (Events), PostgreSQL (Database).Network: Localhost environment. Server runs on port 4000, Client on 3000.Language: TypeScript (Strict Mode) is mandatory for both ends to ensure type safety across the WebSocket boundary.2. CODING STANDARDS (STRICT)Functional Purity: Use pure functions where possible. Avoid side effects outside of useEffect.Component Structure: src/components for reusable UI, src/features for game logic domains (e.g., features/crossword, features/timer).Styling: Use Tailwind utility classes. Do not create separate CSS files unless for complex animations.Comments: Do not comment obvious code. Comment why complex logic exists, specifically around WebSocket race conditions.Error Handling: Every WebSocket emission must have an acknowledgement callback handling errors.3. STATE MANAGEMENT RULESThe GameState is the single source of truth.Server Authority: Clients never calculate points. Clients send intent (e.g., SUBMIT_ANSWER), Server validates and returns state (e.g., SCORE_UPDATED).Reconnection: All client components must handle a reconnect event by requesting the current game state (SYNC_STATE) immediately.4. CHILD-ACCESSIBILITY UI GUIDELINESTarget Sizes: All interactive elements (buttons, inputs) must meet a minimum touch target of 48x48px.9Feedback: Immediate visual feedback is required for all actions (e.g., button press state, submission success).Typography: Use sans-serif fonts (e.g., 'Inter' or 'Comic Neue'). Minimum font size 16px, ideal 18px+.Color: High contrast. Use Green (#2E7D32) for success, Red (#C62828) for errors/stop. Avoid relying solely on color; use icons.105. FORBIDDEN PATTERNSDO NOT use Redux unless state complexity exceeds Context capabilities (stick to useReducer first).DO NOT use var. Use const and let.DO NOT implement authentication logic (e.g., Auth0) that requires internet access. This is a purely local app.DO NOT write "flaky" tests. If a test relies on a timer, mock the timer.6. IMPLEMENTATION PHASESScaffolding: Setup Monorepo structure (client/server).Database: Define SQL schema with JSONB support.Socket Layer: Establish connection and basic ping/pong.Game Loop: Implement the State Machine (Waiting -> Question -> Grading).Features: Crossword, Timer, Leaderboard.Hardening: Reconnect logic and error boundaries.2.3. Agentic Workflow: The "Plan-Execute-Verify" LoopTo maximize the efficiency of the AI agent, the development process should follow a recursive loop. The user does not simply ask the agent to "build the app." Instead, the workflow is broken down into discrete atomic units.Phase 1: Planning (The Spec)Before code generation, the agent acts as a Product Manager. We utilize the "Plan Mode" or specific prompts to force the agent to generate a detailed specification (e.g., SPEC.md).11 This document will detail the API endpoints, socket events, and database schema. The insight here is that LLMs perform significantly better when they have a reference document they generated to hallucinate less and adhere to structure more.Phase 2: Execution (The Code)The agent is tasked with implementing one module at a time. For instance, "Implement the QuestionTimer component based on the SPEC.md and AGENTS.md guidelines." This isolation prevents the "context window overflow" where the agent loses track of earlier instructions in long conversations.5Phase 3: Verification (The Test)Every generation step must conclude with a verification request. "Generate a Playwright test to verify that the QuestionTimer emits the TIME_UP event exactly at 0 seconds." By forcing the agent to write the test, we validate the logic immediately.13 This test-driven development (TDD) cycle ensures that the agentic output is functional and meets the requirements defined in the context files.143. Database Schema and Data ModelingFor a Bible competition app containing varied question types (including complex crosswords), a rigid relational schema is insufficient. A hybrid approach utilizing PostgreSQL's relational tables for core entities and JSONB columns for flexible content storage is the optimal architectural decision.1 This section outlines the schema that the agent must implement.3.1. Entity Relationship StrategyWe will define three core modules: User/Team Management, Competition Structure, and Game History.3.1.1. Team and User ManagementWhile the prompt specifies "Users," for a local kids' competition, distinct user accounts with passwords may be overkill and friction-heavy. A "Session-based Team" approach is recommended. Teams register at the start of a competition with a simple name and avatar. However, to support the requirement of "storing everything in a postgres table," we will design a robust schema that can support persistent users if needed in the future.Table: teamsThe teams table serves as the primary identity record for participants.id (UUID, Primary Key): Unique identifier for the team.name (VARCHAR, Unique): The display name of the team (e.g., "The Davids", "Ark Builders").color (VARCHAR): Hex code for UI representation, critical for the leaderboard.created_at (TIMESTAMP): Audit trail for team creation.3.1.2. Competition and Question SchemaThis is where the complexity of "different question types" is handled. Instead of creating separate tables for multiple_choice_options or crossword_cells, we will utilize a content column of type JSONB. This allows for polymorphism without the overhead of Entity-Attribute-Value (EAV) patterns or excessive joining.15Table: competitionsThis table acts as the container for a specific event.id (UUID, Primary Key)title (VARCHAR): e.g., "Gospel of Mark Challenge".host_pin (VARCHAR): Simple auth code for the host to take control.status (ENUM): 'DRAFT', 'ACTIVE', 'COMPLETED'.created_at (TIMESTAMP)Table: roundsThis table segments the competition into logical groupings.id (UUID, Primary Key)competition_id (UUID, FK): Links round to competition.order_index (INT): Sequencing of rounds (e.g., Round 1, Round 2).type (ENUM): 'STANDARD', 'CROSSWORD', 'SPEED_RUN'.title (VARCHAR): Display title for the round.Table: questionsThis table stores the core content. The JSONB column is pivotal here.id (UUID, Primary Key)round_id (UUID, FK): Links question to round.type (ENUM): 'CLOSED', 'MULTIPLE_CHOICE', 'OPEN_WORD', 'CROSSWORD'.points (INT): Default point value for a correct answer.time_limit_seconds (INT): Duration for the timer.content (JSONB): Crucial for flexibility.Example MCQ: {"question": "Who built the ark?", "options":, "correct_index": 1}Example Crossword: {"grid": [[...]], "clues": {"across": {...}, "down": {...}}}grading_mode (ENUM): 'AUTO', 'MANUAL'.Table: answersThis table logs every interaction from the teams.id (UUID, Primary Key)team_id (UUID, FK): Who answered.question_id (UUID, FK): What they answered.round_id (UUID, FK): Context for the answer.submitted_content (JSONB): The team's answer payload.is_correct (BOOLEAN): Null if waiting for manual grading, True/False otherwise.score_awarded (INT): The actual points given (allows for partial credit).submitted_at (TIMESTAMP): Critical for speed tie-breakers.3.2. Why JSONB for Crosswords?The crossword requirement implies a grid structure. Storing a 15x15 grid in a relational table (e.g., a cells table with 225 rows per puzzle) is inefficient for retrieval and reconstruction. With JSONB, the entire puzzle definition—grid layout, clue numbering, and answers—can be stored as a single document. This matches the data structure required by frontend libraries like react-crossword or ipuz format parsers directly.17PostgreSQL's JSONB binary storage allows for indexing. We can, for example, query "Find all questions where the answer contains the word 'Jerusalem'" by indexing the JSON path, which provides the flexibility of a NoSQL document store (like MongoDB) with the ACID compliance of a relational database.2 This hybrid model is superior to a pure NoSQL solution because it maintains strict referential integrity between teams, competitions, and scores, which is essential for a competition app where data consistency is paramount.203.3. SQL Schema Definition for AgentsThe agent needs explicit SQL DDL (Data Definition Language) to set this up correctly. The following block should be included in the AGENTS.md or a specific SCHEMA.md context file.SQL-- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+Project: Local-Network Bible Quiz Platform
 
--- Enum types for strict typing
-CREATE TYPE question_type AS ENUM ('CLOSED', 'MULTIPLE_CHOICE', 'OPEN_WORD', 'CROSSWORD');
-CREATE TYPE grading_mode AS ENUM ('AUTO', 'MANUAL');
+1. System Overview
+   Goal: A synchronous, local-network multiplayer competition app. Roles:
 
-CREATE TABLE questions (
-id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-round_id UUID REFERENCES rounds(id) ON DELETE CASCADE,
-question_text TEXT NOT NULL,
-type question_type NOT NULL,
-points INTEGER DEFAULT 10,
-time_limit_seconds INTEGER DEFAULT 30,
-content JSONB NOT NULL, -- Stores options, correct answers, or crossword grid
-grading grading_mode DEFAULT 'AUTO',
-created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+Host (Admin): Controls flow, grades open answers, views live dashboard.
 
--- Index for faster JSONB querying
-CREATE INDEX idx_questions_content ON questions USING GIN (content);
-This specific schema snippet serves as a template for the agent, ensuring it uses GIN indexing, which is often overlooked but critical for performance when querying JSON structures.15 The use of ENUM types enforces data integrity at the database level, preventing invalid question types from being inserted.4. Real-Time Communication Architecture (Socket.io)For a live competition, HTTP polling is insufficient due to latency. The host must be able to "push" the state change (e.g., "Show Question 5") to all thirty laptops simultaneously. Socket.io is selected over raw WebSockets for its built-in handling of reconnections, rooms (namespaces), and fallbacks, which provides resilience on potentially unstable local Wi-Fi networks.214.1. Event Taxonomy and State MachineA common pitfall in real-time apps is "state desynchronization," where the client thinks the round is active, but the server thinks it has ended. To mitigate this, we define a strict Server-Authoritative State Machine. The server acts as the single source of truth, and clients are merely "renderers" of the server's state.4.1.1. Core Events TableThe following table defines the specific events that the agent must implement in the Socket.io layer.Event NameDirectionPayload StructureDescriptionJOIN_ROOMClient → Server{ teamId, roomCode }Team handshake request to enter a specific competition room.GAME_STATE_SYNCServer → Client{ state, currentQuestion, scores }Full state dump (used on join/reconnect) to bring client up to speed.HOST_START_QUESTIONHost → Server{ questionId }Host triggers the transition to the next question.QUESTION_ACTIVEServer → Client{ questionId, text, type, timeLimit }Payload excludes the answer key to prevent cheating.SUBMIT_ANSWERClient → Server{ teamId, questionId, answer }Team submission of their answer.TIMER_SYNCServer → Client{ remainingSeconds }Sent every 1s or 5s to ensure client clocks match server time.ROUND_ENDEDServer → Client{ leaderboard }Transition to the scoreboard view after a round concludes.MANUAL_GRADING_REQServer → Host{ answerId, teamId, text }Pushes open-ended answers to the host for manual review.GRADE_DECISIONHost → Server{ answerId, correct: boolean }Host adjudicates an answer (Accept/Reject).4.1.2. The "Late Joiner" and Reconnection StrategyIn a local Wi-Fi scenario, a child's laptop might drop connection. The architecture must handle this gracefully without data loss or user frustration.The Problem: A student disconnects during Question 3 and reconnects during Question 4.The Solution: On connection, the server does not just say "Hello." It checks the active_session store. If the game is in QUESTION_ACTIVE state, it immediately emits GAME_STATE_SYNC with the current question and the remaining time.Insight: Do not rely on the client to keep time. The server maintains the "official" start time of the question. When a client reconnects, the server calculates (Now - StartTime) and sends the actual remaining seconds. This prevents a reconnected client from having a fresh 30-second timer when only 5 seconds remain.244.2. Handling Crossword CollaborationThe crossword round presents a unique challenge. Unlike a multiple-choice question which is atomic, a crossword is a composite state. The state of a crossword is a 2D array of characters.Sync Strategy:If the crossword is collaborative (all teams working on one board), every cellChange event must be broadcast to all. However, the prompt implies "Each team will answer on a laptop," suggesting isolated instances.Live Monitoring: The Host dashboard should theoretically see the progress of teams. To achieve this without flooding the network, clients should emit a CROSSWORD_PROGRESS event (containing percentage complete or the current grid state) either on every word completion or on a throttled interval (e.g., every 5 seconds).25 This allows the host to see a "progress bar" for each team.4.3. Socket.io Implementation Context for AgentsThe agent needs to know how to structure the socket server. We will use the Observer pattern. The following code snippet serves as a template for the agent.JavaScript// AGENT INSTRUCTION: Use this pattern for the Game Loop
-const gameState = {
-phase: 'WAITING', // WAITING, QUESTION, GRADING, LEADERBOARD
-currentQuestionId: null,
-timer: null,
-answers: {}
-};
+Teams (Players): Join via code, answer questions (MCQ/Open/Crossword) on laptops. Infrastructure: Local Wi-Fi (No Internet). Dockerized Database.
 
-io.on('connection', (socket) => {
-// Immediate state sync on connection
-socket.emit('GAME_STATE_SYNC', sanitizeStateForClient(gameState));
+2. Tech Stack & Constraints
+   Layer Technology Constraints
+   Frontend React 18+, Vite, Tailwind CSS No external fonts/CDN. Accessible UI (Kids).
+   Backend Node.js, Express Server Authority (Single Source of Truth).
+   Comms Socket.io Events must handle reconnects without state loss.
+   Database PostgreSQL With Prisma
+   Language TypeScript (Strict) Shared types (/packages/shared) for FE/BE.
+   Deploy Docker Compose DB + Adminer only. App runs locally (localhost).
+3. Database Schema
+   Principle: Relational for structure, JSONB for content.
+   3.1. Tables
+   competitions: id (UUID), title, host_pin, status (DRAFT/ACTIVE/COMPLETED).
+   teams: id (UUID), competition_id, name, color, score (computed).
 
-socket.on('SUBMIT_ANSWER', (data) => {
-// Validation: Ensure the game is in the correct phase
-if (gameState.phase!== 'QUESTION') return; // Prevent late answers
+rounds: id (UUID), type (STANDARD/CROSSWORD), order_index.
 
-    // Logic to store answer in Postgres
-    //...
+questions:
 
-});
-});
-This snippet enforces the rule that the server dictates the phase; clients cannot force a submission if the server considers the phase closed. This is a critical security measure to prevent "late answer" hacks.5. Frontend Architecture: React + Node.jsThe frontend needs to be split into two distinct applications (or routes) sharing a common codebase: the Player Interface and the Host/Admin Dashboard.5.1. The Player Interface (Child-Centric UX)Designing for children requires adherence to specific usability heuristics: Clarity, Forgiveness, and Engagement.10 The UI must be intuitive enough for a 7-year-old while robust enough for a 12-year-old.Visual Design Principles:Typography: Large, readable fonts are non-negotiable. Question text should be at least 24px. Use sans-serif fonts like 'Inter' or 'Comic Neue' which are easier for developing readers.10Input Handling: Avoid free typing where possible. For "Open Word" questions, consider an on-screen keyboard or auto-complete if the domain allows (e.g., biblical names). This reduces frustration from spelling errors.Color Coding: Use distinct colors for state. Blue for "Active", Grey for "Submitted/Waiting", Green for "Correct". Do not rely solely on color; accompany these states with clear icons (e.g., a checkmark for correct, a clock for waiting).Interaction Design:The "Big Button" Rule: Submit buttons should be full-width or significantly large to accommodate lower motor precision in younger children.26Debouncing: Kids may double-click buttons aggressively. The UI must debounce the submission handler to prevent duplicate socket events and accidental double-submissions.Feedback Loops:When an answer is submitted, the screen must immediately change to a "Answer Received! Waiting for others..." state. This removes the anxiety of "did it go through?".275.2. The Host Dashboard (Command Center)The Host plays the role of the conductor. Their dashboard must provide omniscience and control without overwhelming complexity.Core Features:Live Leaderboard: Real-time aggregation of scores.Manual Grading Queue: A specific UI panel that pops up when "Open Word" questions are submitted. It shows the question, the expected answer, and the student's answer side-by-side with "Accept" (Checkmark) and "Reject" (X) buttons.28Pacing Control: "Next Question", "Pause Timer", "End Round" buttons must be prominent and easily accessible.Crossword Monitoring: The host should view a summary grid showing which teams have completed the puzzle or their completion percentage.5.3. React-Crossword IntegrationWe will utilize the react-crossword library.30 However, out-of-the-box, this library is client-side. We need to wrap it to be "agentic compliant."Agent Directive for Crosswords:"Wrap the Crossword component. Use the onCellChange prop to update a local ref. Use useEffect to emit CROSSWORD*PROGRESS to the server every 3 completed words or 10 seconds. On onCrosswordCorrect, emit SUBMIT_CROSSWORD with the completion timestamp."This specific instruction prevents the network from being flooded with a socket message for every single letter typed, which is a common novice mistake in real-time app development.6. Backend Logic and Game State ManagementThe backend is not just a pass-through; it is the referee. It must handle scoring, timing, and arbitration.6.1. The Scoring EngineScoring logic needs to be flexible to accommodate different game dynamics.Standard Questions: Fixed points (e.g., 10 pts).Speed Bonus: (Optional) Award more points for faster answers. Formula: Points = Base + (TimeRemaining * Multiplier). This rewards quick thinking.Crosswords: Scoring for crosswords should be granular. The system should support points per word to keep engagement high even if teams don't finish the whole puzzle. A massive bonus can be awarded for full completion.6.2. Manual Grading WorkflowFor "Open Word" questions, the system enters a blocking state where the host must intervene.State Transition: The game moves to ROUND_ENDED (or GRADING_PAUSE).Server Process: The server queries the answers table for records where is_correct is NULL.Host UI: The host iterates through these pending answers.Action: Host clicks "Correct". The server updates the DB (is_correct = true), recalculates the Team Score, and emits SCORE_UPDATE to the specific client (giving them a "You got it right!" notification).6.3. The Timer LogicUsing setTimeout or setInterval in Node.js is generally acceptable for this scale, but drift can occur over time or under load. The robust approach is using Date Deltas.Start: Record startTime = Date.now().Check: In the setInterval loop, calculate elapsed = Date.now() - startTime.End: When elapsed >= limit, trigger QUESTION_TIMEOUT.This ensures that even if the server lags momentarily, the round ends at the correct wall-clock time, maintaining fairness.7. Infrastructure, Deployment, and SecuritySince this app runs on localhost via Wi-Fi, the infrastructure needs to be lightweight but robust.Local IP Discovery: The Node server should automatically detect and print its local LAN IP (e.g., 192.168.1.5:3000) to the console on startup. This is the URL the host will give to the kids.CORS Configuration: Since the clients are accessing via IP (not localhost from their perspective), Cross-Origin Resource Sharing (CORS) must be configured to allow requests from the local subnet or _ for simplicity in a controlled environment.Database Persistence: Using a Docker container for PostgreSQL is recommended for ease of setup. The AGENTS.md should include a docker-compose.yml generation instruction to spin up the database with a single command.7.1. Security Considerations (Local Context)While "hacking" is unlikely in a kids' Bible quiz, simple guardrails are needed to prevent accidental disruption.Input Sanitization: Prevent SQL injection even from local inputs.Rate Limiting: Prevent a kid from mashing the submit button 100 times/second and crashing the server (Socket.io has built-in rate limiting options).328. Step-by-Step Implementation Roadmap for AgentsThis section provides the exact chronological commands the user should issue to their AI agent to build the system.Step 1: Initialization"Act as a Senior Architect. Initialize a monorepo with client (React, Vite, Tailwind) and server (Node, Express, Socket.io). Create a docker-compose.yml for PostgreSQL. Create the AGENTS.md file with the rules provided."Step 2: Database Layer"Create the migration files for teams, rounds, questions, and answers based on the schema defined in the report. Ensure questions.content is JSONB. Seed the database with 5 sample Bible questions and one Crossword puzzle."Step 3: Server Core"Implement the Socket.io server. Create a GameManager class that holds the in-memory state. Implement the JOIN_ROOM event and handle team registration."Step 4: Host Dashboard"Build the Host UI. It needs a 'Start Round' button. When clicked, it should emit HOST_START_QUESTION. Display the list of connected teams."Step 5: Player UI & Game Loop"Build the Player UI. It should listen for QUESTION_ACTIVE. When received, display the question text and options. On submit, emit SUBMIT_ANSWER. Handle the 'Waiting' state."Step 6: Crossword & Manual Grading"Integrate react-crossword. Map the JSONB content from the DB to the component props. Implement the manual grading modal on the Host dashboard for open-ended questions."9. Second-Order Insights and Future-ProofingInsight 1: The "Spectator" EffectIn a live competition, parents or other kids might want to watch without participating. The architecture allows for a "Spectator" client type. This client joins the socket room but has no "Submit" permissions. It simply listens to SCORE_UPDATE and TIMER_SYNC to display a big screen projection of the leaderboard. This adds significant production value to the event.Insight 2: Content Generation via AISince the system uses JSONB for questions, the user can create a separate "Content Agent." This agent can be prompted: "Generate 10 Bible trivia questions about David vs. Goliath in the specific JSON format required for my database." This automates the most tedious part of quiz apps: data entry.Insight 3: Offline ResilienceIf the Wi-Fi crashes, the server should dump the current GameState to a backup.json file on every question change. This allows the host to restart the server and "Resume" from the exact point of failure, rather than restarting the competition.10. ConclusionThis report outlines a robust, professional-grade architecture for a local Bible competition app. By combining the flexibility of JSONB for diverse question types with the real-time reliability of Socket.io, the system addresses the core functional requirements. The "Agentic" strategy provided—centering on a rigorous AGENTS.md and a "Plan-First" workflow—ensures that the actual coding phase will be efficient and coherent. The proposed design not only meets the immediate needs of a children's quiz but provides a scalable foundation for future enhancements like spectator modes and AI-generated content.The immediate next step is to create the directory structure and the AGENTS.md file, effectively bootstrapping the AI agent into the role of a competent teammate.Detailed Technical Analysis1. Frontend Architecture (React + Ecosystem)1.1. Component Hierarchy and Separation of ConcernsTo ensure maintainability and agentic clarity, the React frontend must be strictly divided into two logical applications: the Host Dashboard and the Player View. While they may reside in the same repository (or even the same SPA with route-based guarding), their distinct responsibilities dictate different architectural patterns.Player View Component Tree:AppContainer (Global Context Provider for Socket & Theme)ConnectionStatus (Overlay: shows "Connected/Disconnected")LobbyView (Entry form: Name, Avatar)GameLayout (Main wrapper)Header (Team Name, Current Score)QuestionRouter (Switch based on question.type)MultipleChoiceView (Grid of large buttons)OpenInputView (Large text area + virtual keyboard helpers)CrosswordView (Wrapper around react-crossword)FeedbackOverlay (Success/Fail animations)Host Dashboard Component Tree:HostLayoutControlPanel (Start/Stop/Next buttons)LiveFeedTeamGrid (Cards showing each team's connection status and current score)AnswerStream (Real-time feed of incoming answers)GradingModal (For manual review of open-ended answers)1.2. State Management StrategyFor a game of this complexity, relying solely on useState causes "prop drilling" hell. However, Redux might be boilerplate-heavy. The recommendation is to use React Context + useReducer.Why useReducer?The game transitions are discrete events (e.g., START_ROUND, TICK, END_ROUND). This maps perfectly to a reducer pattern. The agent can be instructed to write a gameReducer that is testable in isolation.JavaScript// Example Reducer Logic for Agent Context
-function gameReducer(state, action) {
-switch (action.type) {
-case 'SYNC_STATE':
-return {...state,...action.payload };
-case 'NEW_QUESTION':
-return {...state, view: 'QUESTION', currentQuestion: action.payload };
-case 'LOCK_INPUT':
-return {...state, canAnswer: false };
-default:
-return state;
-}
-}
-1.3. UI/UX Design Patterns for ChildrenFitts's Law Application:Children have lower motor control. Fitts's Law dictates that the time to acquire a target is a function of the distance to and size of the target.Implication: Buttons for "A", "B", "C", "D" should not be small circles. They should be large, distinct blocks that occupy 25% of the screen quadrant each.Actionable Pattern: Use CSS Grid grid-cols-2 gap-4 h-64 for answer layouts.Cognitive Load Reduction:Single Task Focus: When a question is active, everything else (leaderboard, decorative elements) should fade out. The screen should be 90% question/answer.Iconography: Don't just say "Submit". Use a large "Send" icon (paper plane).102. Backend Architecture (Node.js + Socket.io)2.1. The "Room" ConceptSocket.io "Rooms" are essential here.host_room: Only the host socket joins this. Used for sending admin metadata (e.g., "Team X disconnected").competition_room: All players and host join this. Used for broadcasting questions.team_private_room_{id}: Specific channel for sending "You are correct!" messages to a single team without spoiling it for others.2.2. Handling the Crossword DataThe backend serves the crossword JSON. A critical architectural decision is Validation.Client-Side Validation: react-crossword can validate locally. This is fast and responsive.Server-Side Validation: For a competition, we cannot trust the client.Hybrid Approach: The client validates for UI feedback (turning green). When the client believes the puzzle is done, it sends the full grid state to the server. The server compares this JSON against the "Master JSON" stored in Postgres.Insight: Comparing two JSON objects for equality can be tricky due to key ordering. The agent should be instructed to implement a specific "Crossword Grid Diffing" utility that compares cell values by coordinate (row/col) rather than stringifying the whole object.332.3. Timer Synchronization (The "Drift" Problem)In distributed systems, clocks are rarely perfectly synced.Naive Approach: Host sends "Start 30s timer". Client starts counting down.Issue: Network latency means Client A starts 200ms after Client B.Robust Approach: Host sends "Question Start Timestamp (UTC)". Client calculates Remaining = Total - (CurrentTime - StartTime).Agent Instruction: "Implement a useServerTimer hook that accepts a serverStartTime timestamp and synchronizes the local countdown, adjusting for an estimated Round Trip Time (RTT) if possible.".213. Database Schema: Deep Dive3.1. The Power of JSONB for Educational AppsUsing JSONB in PostgreSQL is not just a convenience; it's a strategic enabler for the "Agentic" workflow.Scenario: You want to add a new question type, say "Sorting Order" (put these Bible books in order).Relational Way: Create sorting_questions table, update questions table, run migrations. The agent might mess up the foreign keys.JSONB Way: Just insert a new row with type: 'SORTING' and content: { items: [...] }. The schema doesn't change. The frontend just needs a new renderer. This makes the system incredibly extensible by the AI agent without breaking the DB layer.23.2. Data Integrity and HistoryWe need to track every answer, not just the final score.Why? In a competition, there might be disputes. "I answered that!"Solution: The answers table is an append-only log. If a team changes their answer (if allowed), it inserts a new row. The "current score" is an aggregation of the latest answers.SQL View: The agent should create a SQL View leaderboard_view that aggregates SUM(score) grouped by team_id. This offloads calculation from Node.js to Postgres, which is much faster.SQL-- Efficient Leaderboard View
-CREATE VIEW leaderboard AS
-SELECT
-t.id as team_id,
-t.name,
-t.color,
-COALESCE(SUM(a.score_awarded), 0) as total_score
-FROM teams t
-LEFT JOIN answers a ON t.id = a.team_id AND a.is_correct = TRUE
-GROUP BY t.id
-ORDER BY total_score DESC; 4. Agentic Implementation Guide4.1. Setup Prompts (Copy-Paste Ready)Prompt 1: Project Scaffold"Initialize a new project called 'bible-quiz-agentic'. Structure it as a monorepo.Root: package.json (workspaces)/packages/client: Vite + React + TypeScript + Tailwind./packages/server: Node + TypeScript + Express + Socket.io.Create a shared folder for TypeScript interfaces (e.g., GameState, Question) so both client and server share the exact same types. This is critical for type safety."Prompt 2: Database Layer"Using the pg library, create a db.ts module in the server. Write a script init-db.ts that connects to a local Postgres instance and executes the following SQL schema.... Ensure handling of JSONB for the questions table."Prompt 3: The Host Dashboard"Create a HostDashboard component. It needs to fetch the leaderboard view via REST API on mount. Then, connect to Socket.io. Listen for ANSWER_SUBMITTED events. When an event comes in, update the local state to show a 'New Answer' notification toast. Add a button 'Start Next Round' that emits START_ROUND to the server."5. Security & Deployment5.1. Local Network ConfigurationSince this runs on WiFi:Firewalls: The Host laptop's firewall (Windows Defender/macOS Firewall) will likely block port 4000.Instruction: The documentation must include a "Troubleshooting" section for the Host to allow Node.js through the firewall.Static IP: It is highly recommended that the Host machine sets a static IP (e.g., 192.168.1.100) so that if the router restarts, the clients don't lose the server.5.2. "Cheating" PreventionIn a local environment, savvy kids might try to inspect the network traffic.Obfuscation: The QUESTION_ACTIVE payload must never contain the correct answer. The client should only receive the Question Text and Options. The validation happens exclusively on the server.Crossword: For the crossword, we send the grid layout (black/white squares) and clues, but not the solution letters. The client validates against a hash, or simpler, sends attempts to the server which replies "Correct/Incorrect".6. Conclusion and Path ForwardThis architectural plan provides a complete blueprint for a scalable, robust, and child-friendly Bible competition application. By combining the flexibility of JSONB for diverse question types with the real-time reliability of Socket.io, the system addresses the core functional requirements. The "Agentic" strategy provided—centering on a rigorous AGENTS.md and a "Plan-First" workflow—ensures that the actual coding phase will be efficient and coherent. The proposed design not only meets the immediate needs of a children's quiz but provides a scalable foundation for future enhancements like spectator modes and AI-generated content.The immediate next step is to create the directory structure and the AGENTS.md file, effectively bootstrapping the AI agent into the role of a competent teammate.Additional Considerations for Alternative Tech StacksWhile the primary recommendation is React/Node.js/Postgres, the user requested alternatives.Alternative 1: Go (Golang) + SQLitePros: Go has excellent concurrency for WebSockets (Goroutines). Single binary deployment makes it easier for the Host to run without installing Node.js/NPM.Cons: Frontend still needs JS framework (or use Go templates which is less interactive). SQLite is file-based, simpler than Postgres, but lacks the robust JSONB indexing features of Postgres.Verdict: Good for deployment simplicity, but harder for an AI Agent to generate (Node/React ecosystem has more training data).Alternative 2: Python (Django/FastAPI) + PostgresPros: Django Channels handles WebSockets well. Admin panel is built-in (great for Host dashboard).Cons: Python's async story is slightly more complex than Node's event loop for real-time apps.Verdict: Valid alternative, especially if the user is more comfortable with Python.The Node.js + React path remains the strongest recommendation due to the unified language (TypeScript everywhere) and the richness of the Socket.io ecosystem for real-time apps.Final Note on "Agentic Coding"The success of this project hinges on the user's discipline in interacting with the AI agent. Do not write code yourself. Do not let the agent write code without a plan. Follow the "Plan -> Spec -> Code -> Test" loop rigorously. Use the provided AGENTS.md as the anchor. If the agent starts to drift or hallucinate, refer it back to Section 3 of AGENTS.md ("State Management Rules"). This discipline converts the AI from a chaotic code-generator into a focused Junior Developer.
+id (UUID), round_id.
+
+type: CLOSED | MULTIPLE_CHOICE | OPEN_WORD | CROSSWORD.
+
+grading: AUTO | MANUAL.
+
+time_limit_seconds: Int.
+
+content: JSONB (See 3.2).
+
+answers:
+
+team_id, question_id, submitted_content (JSONB).
+
+is_correct (Boolean | Null). Null = Pending Manual Review.
+
+score_awarded (Int).
+
+3.2. JSONB Structures (questions.content)
+MCQ: { "options": ["A", "B", "C"], "correctIndex": 1 }
+
+Open: { "acceptedAnswers": ["Jesus", "Christ", "Messiah"] }
+
+Crossword:
+
+JSON
+
+{
+"grid": [ [null, "A", "R", "K", null], ... ],
+"clues": { "across": { "1": "Noah's boat" } },
+"solutionHash": "..."
+} 4. Game State Machine (Server Authoritative)
+The Client never calculates score or time. It simply renders the payload from GAME_STATE_SYNC.
+
+4.1. Phases
+WAITING: Lobby open. Teams joining.
+
+QUESTION_PREVIEW: Title/Category shown. Input locked.
+
+QUESTION_ACTIVE: Timer running. Inputs open.
+
+GRADING: Timer expired or all answered. Server grading (or waiting for Host).
+
+LEADERBOARD: Scores displayed.
+
+ROUND_ENDED: Summary.
+
+4.2. Socket Events API
+Event Direction Payload Notes
+JOIN_ROOM Client->Srvr {teamName, code} Handle duplicates gracefully.
+GAME_STATE_SYNC Srvr->Client {phase, currentQ, timeRemaining} Sent on Connect/Reconnect.
+HOST_START_Q Host->Srvr {questionId} Triggers QUESTION_PREVIEW.
+HOST_START_TIMER Host->Srvr {} Triggers QUESTION_ACTIVE.
+SUBMIT_ANSWER Client->Srvr {qId, answer} Ignored if phase != ACTIVE.
+SCORE_UPDATE Srvr->Client {newScore, isCorrect} Private message to team.
+MANUAL_GRADING Srvr->Host {answerId, text} Queue for manual review.
+GRADE_DECISION Host->Srvr {answerId, accepted: bool} Updates DB & Score.
+
+Експортиране в Таблици
+
+5. UI/UX Specifications
+   5.1. Player View (Child-Friendly)
+   Typography: Sans-serif (Inter/Comic Neue), min 18px size.
+
+Touch Targets: Min 48x48px.
+
+States:
+
+Active: Clear inputs, large "Submit" button.
+
+Submitted: Blocking overlay ("Waiting for others...").
+
+Result: Green background (Correct) / Red (Incorrect).
+
+Debounce: Prevent double-submission on all buttons.
+
+5.2. Host Dashboard
+Live Leaderboard: Real-time ranking.
+
+Manual Grading Queue: Modal for OPEN_WORD answers requiring validation.
+
+Controls: "Next Question", "Start Timer", "Pause".
+
+Crossword Monitor: Progress bars per team (updated via throttled CROSSWORD_PROGRESS events).
+
+6. Logic & Rules
+   6.1. Timer Logic
+   Source of Truth: Server Date.now().
+
+Drift Handling: Server sends timeRemaining (not startTime) on sync.
+
+End Condition: When Date.now() >= end_time, Server forces transition to GRADING.
+
+6.2. Scoring
+Standard: Fixed points (e.g., 10).
+
+Crossword: Points per word + Bonus for completion.
+
+Speed Bonus (Optional): Base + (TimeRemaining \* Multiplier).
+
+6.3. Crossword Implementation
+Lib: react-crossword (Wrapped).
+
+Optimization: Do not emit socket event on every keystroke.
+
+Sync: Emit CROSSWORD_PROGRESS every 3 words or 10s. Emit SUBMIT on full completion.
+
+7. Implementation Roadmap (Agent Instructions)
+   Scaffold: Monorepo (Client/Server/Shared). Setup Docker Postgres.
+
+Schema: Create SQL migrations with JSONB support.
+
+Server Core: Implement GameManager class (State Machine).
+
+Socket Layer: Implement JOIN, SYNC, and DISCONNECT (reconnect logic).
+
+Host UI: Build Control Panel & Grading Queue.
+
+Player UI: Build Question Renderers (MCQ, Open, Crossword).
+
+Hardening: Add "Late Joiner" logic (sync time immediately).
+
+8. Directory Structure
+   Plaintext
+   /
+   ├── docker-compose.yml
+   ├── packages
+   │ ├── client # Vite + React
+   │ │ ├── src/components/game-types/ # (Crossword, MCQ)
+   │ │ └── src/hooks/useSocket.ts
+   │ ├── server # Express + Socket.io
+   │ │ ├── src/services/GameManager.ts
+   │ │ └── src/db/schema.sql
+   │ └── shared # TypeScript Interfaces
+   │ └── index.ts # export type GameState...
