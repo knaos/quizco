@@ -10,11 +10,7 @@ export default defineConfig({
       path.resolve(__dirname, "src/test/envSetup.ts"),
       path.resolve(__dirname, "src/test/setup.ts"),
     ],
-    poolOptions: {
-      threads: {
-        singleThread: true, // DB tests often need to run sequentially
-      },
-    },
+    fileParallelism: false,
     hookTimeout: 30000,
   },
   resolve: {

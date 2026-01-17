@@ -20,6 +20,7 @@ describe("StatePersistenceService", () => {
       teams: [],
       timeRemaining: 0,
       currentQuestion: null,
+      revealStep: 0,
     });
 
     await service.saveState(sessions);
@@ -38,6 +39,7 @@ describe("StatePersistenceService", () => {
         teams: [],
         timeRemaining: 0,
         currentQuestion: null,
+        revealStep: 0,
       },
     };
     vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockData));

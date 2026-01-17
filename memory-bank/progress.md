@@ -32,6 +32,7 @@
 - **Admin UI:** [x] Done (Competitions and Rounds management)
 - **Player UI:** [/] In Progress (Quiz selection added)
 - **Real-Time Sync:** [x] Done (Multi-room isolation)
+- **Host Control Flow:** [x] Done (Implemented "Next" button flow with incremental reveals and round screens)
 
 ## Known Issues
 

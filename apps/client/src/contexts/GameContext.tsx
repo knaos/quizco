@@ -12,6 +12,7 @@ const initialState: GameState = {
   currentQuestion: null,
   timeRemaining: 0,
   teams: [],
+  revealStep: 0,
 };
 
 function gameReducer(state: GameState, action: Action): GameState {
