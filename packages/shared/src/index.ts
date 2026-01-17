@@ -15,7 +15,7 @@ export type GamePhase =
   | "ROUND_END"
   | "LEADERBOARD";
 
-export type MultipleChoiceAnswer = number;
+export type MultipleChoiceAnswer = number[];
 export type OpenWordAnswer = string;
 export type ClosedAnswer = string;
 export type CrosswordAnswer = string[][];
@@ -29,7 +29,7 @@ export type CrosswordGridState = string[][];
 
 export interface MultipleChoiceContent {
   options: string[];
-  correctIndex: number;
+  correctIndices: number[];
 }
 
 export interface CrosswordClue {

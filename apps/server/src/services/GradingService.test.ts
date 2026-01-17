@@ -13,21 +13,21 @@ describe("GradingService", () => {
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
-    content: { options: [], correctIndex: 0 },
+    content: { options: [], correctIndices: [0] },
   };
 
   it("grades MULTIPLE_CHOICE correctly", () => {
     const question: Question = {
       ...baseQuestion,
       type: "MULTIPLE_CHOICE",
-      content: { options: ["A", "B", "C"], correctIndex: 1 },
+      content: { options: ["A", "B", "C"], correctIndices: [1] },
     };
 
-    expect(service.gradeAnswer(question, 1)).toEqual({
+    expect(service.gradeAnswer(question, [1])).toEqual({
       isCorrect: true,
       score: 10,
     });
-    expect(service.gradeAnswer(question, 0)).toEqual({
+    expect(service.gradeAnswer(question, [0])).toEqual({
       isCorrect: false,
       score: 0,
     });

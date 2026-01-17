@@ -21,7 +21,7 @@ export class GradingService {
       if (question.type === "MULTIPLE_CHOICE") {
         return this.gradeMultipleChoice(
           question.content as MultipleChoiceContent,
-          answer as number,
+          answer as unknown as number[],
           question.points,
         );
       }
@@ -51,10 +51,20 @@ export class GradingService {
 
   private gradeMultipleChoice(
     content: MultipleChoiceContent,
-    answer: number,
+    answer: number[],
     points: number,
   ) {
-    const isCorrect = answer === content.correctIndex;
+    if (!Array.isArray(answer)) {
+      return { isCorrect: false, score: 0 };
+    }
+
+    const correctIndices = [...content.correctIndices].sort((a, b) => a - b);
+    const submittedIndices = [...answer].sort((a, b) => a - b);
+
+    const isCorrect =
+      correctIndices.length === submittedIndices.length &&
+      correctIndices.every((val, index) => val === submittedIndices[index]);
+
     return { isCorrect, score: isCorrect ? points : 0 };
   }
 

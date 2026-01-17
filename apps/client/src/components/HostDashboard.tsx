@@ -250,7 +250,7 @@ export const HostDashboard: React.FC = () => {
                       {(() => {
                         const q = state.currentQuestion;
                         if (q.type === "MULTIPLE_CHOICE") {
-                          return q.content.options[q.content.correctIndex] || "Unknown";
+                          return q.content.correctIndices.map((idx: number) => q.content.options[idx]).join(", ") || "Unknown";
                         }
                         if (q.type === "CLOSED") {
                           return q.content.options[0] || "Unknown";

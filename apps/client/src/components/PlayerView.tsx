@@ -5,7 +5,7 @@ import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight }
 import { Crossword } from "./Crossword";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition, MultipleChoiceQuestion } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -23,6 +23,7 @@ export const PlayerView: React.FC = () => {
   const [color, setColor] = useState(localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6");
   const [joined, setJoined] = useState(false);
   const [answer, setAnswer] = useState("");
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(true);
 
@@ -67,6 +68,7 @@ export const PlayerView: React.FC = () => {
   React.useEffect(() => {
     if (state.currentQuestion) {
       setAnswer("");
+      setSelectedIndices([]);
       setSubmitted(false);
     }
   }, [state.currentQuestion]);
@@ -103,7 +105,7 @@ export const PlayerView: React.FC = () => {
     return state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   };
 
-  const submitAnswer = (value: string | number) => {
+  const submitAnswer = (value: any) => {
     if (!state.currentQuestion || !selectedCompId) {
         console.error("Submission attempted without active question or competition", {
             question: state.currentQuestion,
@@ -127,8 +129,24 @@ export const PlayerView: React.FC = () => {
       answer: value
     });
     
-    setAnswer(String(value));
+    setAnswer(JSON.stringify(value));
     setSubmitted(true);
+  };
+
+  const toggleIndex = (index: number) => {
+    const isMultipleChoice = state.currentQuestion?.type === "MULTIPLE_CHOICE";
+    const content = state.currentQuestion?.content as MultipleChoiceContent;
+    const isSingleChoice = isMultipleChoice && content?.correctIndices?.length === 1;
+
+    setSelectedIndices(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(i => i !== index);
+      }
+      if (isSingleChoice) {
+        return [index];
+      }
+      return [...prev, index];
+    });
   };
 
   // Sync Watchdog: Monitor if joined team is still in server state
@@ -241,7 +259,7 @@ export const PlayerView: React.FC = () => {
     if (!state.currentQuestion) return "";
     const { type, content } = state.currentQuestion;
     if (type === "MULTIPLE_CHOICE") {
-      return content.options[content.correctIndex] || "Unknown";
+      return content.correctIndices.map((idx: number) => content.options[idx]).join(", ") || "Unknown";
     }
     if (type === "CLOSED") {
       // For CLOSED, content.options is a list of acceptable answers
@@ -370,16 +388,38 @@ export const PlayerView: React.FC = () => {
             {!submitted ? (
               <div className="space-y-6 w-full">
                 {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {state.currentQuestion.content?.options?.map((opt: string, i: number) => (
-                      <button
-                        key={i}
-                        onClick={() => submitAnswer(i)}
-                        className="bg-white hover:bg-blue-50 border-2 border-gray-200 hover:border-blue-500 p-6 rounded-xl text-xl font-semibold transition text-left"
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {state.currentQuestion.content?.options?.map((opt: string, i: number) => {
+                        const isSelected = selectedIndices.includes(i);
+                        return (
+                            <button
+                            key={i}
+                            onClick={() => toggleIndex(i)}
+                            className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${
+                                isSelected 
+                                ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]" 
+                                : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                            }`}
+                            >
+                            <span>{opt}</span>
+                            {isSelected && <CheckCircle className="w-6 h-6 text-white" />}
+                            </button>
+                        );
+                        })}
+                    </div>
+                    <button
+                        onClick={() => submitAnswer(selectedIndices)}
+                        disabled={selectedIndices.length === 0}
+                        className={`w-full py-5 rounded-2xl text-2xl font-black shadow-xl transition-all flex items-center justify-center space-x-3 ${
+                        selectedIndices.length > 0 
+                            ? "bg-green-600 hover:bg-green-700 text-white translate-y-[-4px]" 
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                    >
+                        <Send className="w-8 h-8" />
+                        <span>{t('player.submit_answer')}</span>
+                    </button>
                   </div>
                 ) : state.currentQuestion.type === "CROSSWORD" ? (
                   <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
@@ -488,11 +528,11 @@ export const PlayerView: React.FC = () => {
                     {(() => {
                       const question = state.currentQuestion as MultipleChoiceQuestion;
                       const team = state.teams.find((t) => t.name === teamName);
-                      const lastAnswer = team?.lastAnswer;
+                      const lastAnswer = team?.lastAnswer as number[] | null;
                       
                       return question.content.options.map((opt: string, i: number) => {
-                        const isOptionCorrect = i === question.content.correctIndex;
-                        const isSelected = lastAnswer !== null && lastAnswer !== undefined && i === Number(lastAnswer);
+                        const isOptionCorrect = question.content.correctIndices.includes(i);
+                        const isSelected = Array.isArray(lastAnswer) && lastAnswer.includes(i);
 
                         let containerClass = "p-6 rounded-2xl border-2 transition-all flex items-center justify-between ";
                         if (isOptionCorrect) {

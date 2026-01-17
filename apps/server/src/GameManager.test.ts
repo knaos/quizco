@@ -292,7 +292,7 @@ describe("GameManager Integration", () => {
         questionText: "What is 1+1?",
         type: "MULTIPLE_CHOICE",
         points: 15,
-        content: { options: ["1", "2"], correctIndex: 1 },
+        content: { options: ["1", "2"], correctIndices: [1] },
         grading: "AUTO",
       },
     });
@@ -301,7 +301,7 @@ describe("GameManager Integration", () => {
     await gameManager.startQuestion(testCompId, questionId);
     await gameManager.startTimer(testCompId, () => {});
 
-    await gameManager.submitAnswer(testCompId, team.id, questionId, 1); // Correct
+    await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
 
     const updatedTeam = gameManager
       .getState(testCompId)
@@ -342,7 +342,7 @@ describe("GameManager Integration", () => {
           roundId: round.id,
           questionText: "Q1",
           type: "MULTIPLE_CHOICE",
-          content: { options: ["A", "B"], correctIndex: 0 },
+          content: { options: ["A", "B"], correctIndices: [0] },
           points: 10,
           grading: "AUTO",
         },
@@ -352,7 +352,7 @@ describe("GameManager Integration", () => {
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
       await gameManager.startTimer(testCompId, () => {});
-      await gameManager.submitAnswer(testCompId, team.id, questionId, 0);
+      await gameManager.submitAnswer(testCompId, team.id, questionId, [0]);
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
         true,
@@ -364,7 +364,7 @@ describe("GameManager Integration", () => {
           roundId: round.id,
           questionText: "Q2",
           type: "MULTIPLE_CHOICE",
-          content: { options: ["X", "Y"], correctIndex: 0 },
+          content: { options: ["X", "Y"], correctIndices: [0] },
           points: 10,
           grading: "AUTO",
         },

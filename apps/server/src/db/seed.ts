@@ -6,125 +6,138 @@ async function seed() {
   console.log("Seeding database...");
 
   try {
-    // 1. Create a competition
-    const competition = await prisma.competition.create({
-      data: {
-        title: "Bible Hero Challenge",
-        host_pin: "1234",
-        status: "ACTIVE",
-      },
-    });
-    const competitionId = competition.id;
+    // 0. Cleanup
+    console.log("Cleaning up old data...");
+    await prisma.answer.deleteMany({});
+    await prisma.question.deleteMany({});
+    await prisma.round.deleteMany({});
+    await prisma.team.deleteMany({});
+    await prisma.competition.deleteMany({});
 
-    // 2. Create a round
-    const round = await prisma.round.create({
-      data: {
-        competitionId: competitionId,
-        orderIndex: 1,
-        type: "STANDARD",
-        title: "General Knowledge",
-      },
-    });
-    const roundId = round.id;
-
-    // 3. Add some questions
-    const questions: {
-      text: string;
-      type: QuestionType;
-      points: number;
-      content: Prisma.InputJsonValue;
-    }[] = [
+    const competitions = [
       {
-        text: "Who built the ark?",
-        type: "MULTIPLE_CHOICE",
-        points: 10,
-        content: {
-          options: ["Moses", "Noah", "Abraham", "David"],
-          correctIndex: 1,
-        },
+        title: "The Bible Competition",
+        host_pin: "1111",
       },
       {
-        text: "What is the first book of the Bible?",
-        type: "OPEN_WORD",
-        points: 15,
-        content: {
-          answer: "Genesis",
-        },
-      },
-      {
-        text: "Jesus was born in which town?",
-        type: "MULTIPLE_CHOICE",
-        points: 10,
-        content: {
-          options: ["Nazareth", "Jerusalem", "Bethlehem", "Jericho"],
-          correctIndex: 2,
-        },
+        title: "Test Competition",
+        host_pin: "0000",
       },
     ];
 
-    for (const q of questions) {
-      await prisma.question.create({
+    for (const compInfo of competitions) {
+      console.log(`Creating competition: ${compInfo.title}`);
+      const competition = await prisma.competition.create({
         data: {
-          roundId: roundId,
-          questionText: q.text,
-          type: q.type,
-          points: q.points,
-          content: q.content,
+          title: compInfo.title,
+          host_pin: compInfo.host_pin,
+          status: "ACTIVE",
         },
       });
+
+      // Round 1: MCQ (Single Select)
+      const r1 = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 1,
+          type: "STANDARD",
+          title: "Round 1: MCQ (Single Select)",
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: r1.id,
+            questionText: "Who built the ark?",
+            type: "MULTIPLE_CHOICE",
+            points: 10,
+            content: {
+              options: ["Moses", "Noah", "Abraham", "David"],
+              correctIndices: [1],
+            },
+          },
+          {
+            roundId: r1.id,
+            questionText: "What is the shortest verse in the Bible?",
+            type: "MULTIPLE_CHOICE",
+            points: 10,
+            content: {
+              options: ["Genesis 1:1", "John 11:35", "Psalm 23:1", "John 3:16"],
+              correctIndices: [1],
+            },
+          },
+        ],
+      });
+
+      // Round 2: Multi-Select
+      const r2 = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 2,
+          type: "STANDARD",
+          title: "Round 2: Multi-Select",
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: r2.id,
+            questionText: "Which of these are among the 12 apostles?",
+            type: "MULTIPLE_CHOICE",
+            points: 20,
+            content: {
+              options: ["Peter", "Paul", "Andrew", "Luke"],
+              correctIndices: [0, 2],
+            },
+          },
+          {
+            roundId: r2.id,
+            questionText: "Which of these are books of the Pentateuch?",
+            type: "MULTIPLE_CHOICE",
+            points: 20,
+            content: {
+              options: ["Genesis", "Exodus", "Isaiah", "Numbers"],
+              correctIndices: [0, 1, 3],
+            },
+          },
+        ],
+      });
+
+      // Round 3: Open Word
+      const r3 = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 3,
+          type: "STANDARD",
+          title: "Round 3: Open Word",
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: r3.id,
+            questionText: "What is the first book of the Bible?",
+            type: "OPEN_WORD",
+            points: 15,
+            content: {
+              answer: "Genesis",
+            },
+          },
+          {
+            roundId: r3.id,
+            questionText: "Who was the first man created?",
+            type: "OPEN_WORD",
+            points: 15,
+            content: {
+              answer: "Adam",
+            },
+          },
+        ],
+      });
     }
-
-    // 4. Add a crossword question
-    const crosswordRound = await prisma.round.create({
-      data: {
-        competitionId: competitionId,
-        orderIndex: 2,
-        type: "CROSSWORD",
-        title: "Bible Crossword",
-      },
-    });
-    const crosswordRoundId = crosswordRound.id;
-
-    const crosswordContent = {
-      grid: [
-        ["J", "E", "S", "U", "S"],
-        ["O", "", "", "", ""],
-        ["H", "", "", "", ""],
-        ["N", "", "", "", ""],
-      ],
-      clues: {
-        across: [
-          {
-            number: 1,
-            clue: "Son of God",
-            answer: "JESUS",
-            x: 0,
-            y: 0,
-            direction: "across",
-          },
-        ],
-        down: [
-          {
-            number: 1,
-            clue: "Wrote the 4th Gospel",
-            answer: "JOHN",
-            x: 0,
-            y: 0,
-            direction: "down",
-          },
-        ],
-      },
-    };
-
-    await prisma.question.create({
-      data: {
-        roundId: crosswordRoundId,
-        questionText: "Complete the Bible crossword",
-        type: "CROSSWORD",
-        points: 50,
-        content: crosswordContent,
-      },
-    });
 
     console.log("Seeding completed successfully.");
   } catch (err) {

@@ -12,15 +12,23 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
   onChange,
 }) => {
   const addOption = () => {
-    onChange({ ...content, options: [...content.options, ""] });
+    onChange({ 
+        ...content, 
+        options: [...content.options, ""],
+        correctIndices: content.correctIndices || [] 
+    });
   };
 
   const removeOption = (index: number) => {
     const newOptions = content.options.filter((_, i) => i !== index);
+    const newCorrectIndices = (content.correctIndices || [])
+        .filter(i => i !== index)
+        .map(i => i > index ? i - 1 : i);
+
     onChange({
       ...content,
       options: newOptions,
-      correctIndex: content.correctIndex >= newOptions.length ? 0 : content.correctIndex,
+      correctIndices: newCorrectIndices,
     });
   };
 
@@ -30,16 +38,23 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
     onChange({ ...content, options: newOptions });
   };
 
+  const toggleCorrect = (index: number) => {
+    const current = content.correctIndices || [];
+    const next = current.includes(index)
+        ? current.filter(i => i !== index)
+        : [...current, index];
+    onChange({ ...content, correctIndices: next });
+  };
+
   return (
     <div className="space-y-4">
       {content.options.map((opt, i) => (
         <div key={i} className="flex items-center space-x-3">
           <input
-            type="radio"
-            name="correctIndex"
-            checked={content.correctIndex === i}
-            onChange={() => onChange({ ...content, correctIndex: i })}
-            className="w-5 h-5 text-blue-600"
+            type="checkbox"
+            checked={(content.correctIndices || []).includes(i)}
+            onChange={() => toggleCorrect(i)}
+            className="w-5 h-5 text-blue-600 rounded"
           />
           <input
             type="text"

@@ -56,7 +56,7 @@ describe("Game Loop E2E (Decoupled)", () => {
       type: "MULTIPLE_CHOICE",
       points: 10,
       timeLimitSeconds: 2, // Short for testing
-      content: { options: ["1", "2"], correctIndex: 1 },
+      content: { options: ["1", "2"], correctIndices: [1] },
       grading: "AUTO",
     } as any);
 
@@ -139,14 +139,14 @@ describe("Game Loop E2E (Decoupled)", () => {
       competitionId,
       teamId: team1Id,
       questionId: "q1",
-      answer: 1, // Correct
+      answer: [1], // Correct
     });
 
     player2Socket.emit("SUBMIT_ANSWER", {
       competitionId,
       teamId: team2Id,
       questionId: "q1",
-      answer: 0, // Incorrect
+      answer: [0], // Incorrect
     });
 
     // 6. Wait for transition to GRADING (all answered)
