@@ -23,11 +23,14 @@ Plaintext
 /
 ├── apps/
 │ ├── client/ # React App (Vite)
-│ │ ├── src/features # Game logic (Crossword, Timer, etc.)
-│ │ └── src/routes # Player View vs. Host Dashboard
+│ │ ├── src/components # UI Components & Admin Views
+│ │ ├── src/contexts # Game & Auth Contexts
+│ │ └── src/locales # i18n Translations (en, bg)
 │ └── server/ # Node.js Express App
-│ ├── src/events # Socket.io Event Handlers
-│ └── src/services # Game Logic & DB Interactions
+│ ├── src/routes # REST Endpoints (Admin)
+│ ├── src/services # Game Logic & Grading
+│ ├── src/repositories # DB Access Layer (Prisma)
+│ └── src/db # Database Init & Seeding
 ├── packages/
 │ └── shared/ # SHARED TYPESCRIPT INTERFACES (Crucial)
 │ └── types.ts # Shared GameState, SocketEvents, and DB Models
@@ -75,8 +78,10 @@ Prisma Workflow (Mandatory):
 
 - All schema changes MUST be made in `apps/server/prisma/schema.prisma`.
 - Use `npx prisma migrate dev` to apply changes and generate migrations.
+- Use `npx prisma generate` to update the Prisma Client after schema changes.
 - DO NOT use manual SQL setup scripts or raw DDL execution for schema management.
 - Use `apps/server/src/db/seed.ts` for database seeding, triggered via `npx prisma db seed`.
+- For testing, ensure `DATABASE_URL` is correctly set to the test database.
 
 DDL Reference (Use this exact schema in schema.prisma):
 

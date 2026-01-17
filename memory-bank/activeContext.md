@@ -24,10 +24,13 @@ The project has been initialized with a monorepo structure. Core components for 
 - Updated socket logic to use room-based isolation.
 - Initialized Memory Bank with core documentation files.
 - Shared types are defined in `packages/shared`.
+- **Documentation Audit & Update (Jan 2026):**
+  - Updated `AGENTS.md` and `SPECS.md` to reflect the actual directory structure and component hierarchy.
+  - Refined Prisma workflow and tech stack instructions.
 
 ## Current Status
 
-The core game loop now includes answer validation and scoring. The system can handle both automatic and manual grading, and the host can adjudicate answers in real-time.
+The core game loop now includes answer validation and scoring. The system can handle both automatic and manual grading, and the host can adjudicate answers in real-time. Documentation is now fully synchronized with the codebase.
 
 ## Next Steps
 
