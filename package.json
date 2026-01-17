@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "db:reset": "npm run db:reset -w @quizco/server"
   },
   "devDependencies": {
     "turbo": "^2.7.4"
