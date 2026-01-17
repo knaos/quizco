@@ -7,6 +7,7 @@
 - **Backend Scaffolding:** Node.js, Express, Socket.io, and Postgres setup.
 - **Database Schema:** Defined SQL schema with support for JSONB and UUIDs.
 - **Core Game Logic:** `GameManager` with auto and manual grading.
+- **Integration Testing:** Comprehensive test suite for `GameManager` covering timer logic and async state transitions.
 - **Types:** Shared TypeScript interfaces for game state and socket events.
 - **Components:** Basic implementations of `AdminPanel`, `HostDashboard`, `PlayerView`, and `Crossword`.
 - **Manual Grading Workflow:** Host UI and server logic for adjudicating open-ended answers.

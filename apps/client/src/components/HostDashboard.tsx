@@ -8,11 +8,11 @@ import { useTranslation } from "react-i18next";
 
 interface PendingAnswer {
   id: string;
-  team_id: string;
-  team_name: string;
-  question_id: string;
-  question_text: string;
-  submitted_content: string;
+  teamId: string;
+  teamName: string;
+  questionId: string;
+  questionText: string;
+  submittedContent: string;
 }
 
 interface CompetitionData {
@@ -211,17 +211,31 @@ export const HostDashboard: React.FC = () => {
             {state.currentQuestion ? (
               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-100 space-y-4">
                 <div>
-                  <p className="text-xs text-gray-400 uppercase font-black tracking-widest mb-1">{t('player.upcoming_question')}</p>
-                  <p className="text-2xl font-bold text-gray-900 leading-tight">{state.currentQuestion.question_text}</p>
+                  <p className="text-xs text-gray-400 uppercase font-black tracking-widest mb-1">
+                    {t("player.upcoming_question")}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 leading-tight">{state.currentQuestion.questionText}</p>
                 </div>
-                
+
                 {state.phase === "REVEAL_ANSWER" && (
                   <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
-                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-1">{t('player.correct_answer')}</p>
+                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-1">
+                      {t("player.correct_answer")}
+                    </p>
                     <p className="text-xl font-black text-green-900">
-                      {state.currentQuestion.type === "MULTIPLE_CHOICE" || state.currentQuestion.type === "CLOSED"
-                        ? state.currentQuestion.content?.options?.[state.currentQuestion.content?.correctIndex]
-                        : (state.currentQuestion.content?.answer || state.currentQuestion.content?.correctAnswer)}
+                      {(() => {
+                        const q = state.currentQuestion;
+                        if (q.type === "MULTIPLE_CHOICE") {
+                          return q.content.options[q.content.correctIndex] || "Unknown";
+                        }
+                        if (q.type === "CLOSED") {
+                          return q.content.options[0] || "Unknown";
+                        }
+                        if (q.type === "OPEN_WORD") {
+                          return q.content.answer;
+                        }
+                        return "See Grid";
+                      })()}
                     </p>
                   </div>
                 )}
@@ -252,9 +266,11 @@ export const HostDashboard: React.FC = () => {
                 {pendingAnswers.map((answer) => (
                   <div key={answer.id} className="p-5 bg-yellow-50 rounded-2xl border border-yellow-200 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-black text-yellow-600 uppercase tracking-widest mb-1">{answer.team_name}</p>
-                      <p className="text-xl font-black text-gray-900">{JSON.parse(answer.submitted_content)}</p>
-                      <p className="text-sm text-gray-500 font-medium italic mt-1">{answer.question_text}</p>
+                      <p className="text-xs font-black text-yellow-600 uppercase tracking-widest mb-1">
+                        {answer.teamName}
+                      </p>
+                      <p className="text-xl font-black text-gray-900">{JSON.parse(answer.submittedContent)}</p>
+                      <p className="text-sm text-gray-500 font-medium italic mt-1">{answer.questionText}</p>
                     </div>
                     <div className="flex space-x-3">
                       <button
@@ -334,7 +350,7 @@ export const HostDashboard: React.FC = () => {
                                     >
                                         <div className="flex-1">
                                             <p className="text-xs opacity-60 uppercase mb-1">{q.type}</p>
-                                            <p className="line-clamp-2">{q.question_text}</p>
+                                            <p className="line-clamp-2">{q.questionText}</p>
                                         </div>
                                         {state.currentQuestion?.id === q.id && (
                                             <div className="absolute top-2 right-2">

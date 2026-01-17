@@ -6,7 +6,10 @@ export default defineConfig({
     globals: true,
     environment: "node",
     globalSetup: path.resolve(__dirname, "src/test/globalSetup.ts"),
-    setupFiles: [path.resolve(__dirname, "src/test/setup.ts")],
+    setupFiles: [
+      path.resolve(__dirname, "src/test/envSetup.ts"),
+      path.resolve(__dirname, "src/test/setup.ts"),
+    ],
     poolOptions: {
       threads: {
         singleThread: true, // DB tests often need to run sequentially

@@ -46,7 +46,10 @@
       "your_choice": "Your Choice",
       "correct_answer": "Correct Answer",
       "your_answer": "Your Answer",
-      "next_soon": "Next question coming soon..."
+      "next_soon": "Next question coming soon...",
+      "see_grid": "See Grid",
+      "waiting_grading": "Waiting for grading",
+      "session_lost_rejoin": "Session lost. Please rejoin."
     }
   }
 }

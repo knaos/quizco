@@ -1,5 +1,5 @@
 import { Question, Team } from "@quizco/shared";
-import { IGameRepository } from "../repositories/IGameRepository";
+import { IGameRepository } from "../../repositories/IGameRepository";
 import { v4 as uuidv4 } from "uuid";
 
 export class MockGameRepository implements IGameRepository {
@@ -10,7 +10,7 @@ export class MockGameRepository implements IGameRepository {
   async getOrCreateTeam(
     competitionId: string,
     name: string,
-    color: string
+    color: string,
   ): Promise<Team> {
     let team = this.teams.find((t) => t.name === name);
     if (!team) {
@@ -36,7 +36,7 @@ export class MockGameRepository implements IGameRepository {
 
   async reconnectTeam(
     competitionId: string,
-    teamId: string
+    teamId: string,
   ): Promise<Team | null> {
     const team = this.teams.find((t) => t.id === teamId);
     if (!team) return null;
@@ -63,7 +63,7 @@ export class MockGameRepository implements IGameRepository {
     roundId: string,
     submittedContent: any,
     isCorrect: boolean | null,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<any> {
     const answer = {
       id: uuidv4(),
@@ -85,7 +85,7 @@ export class MockGameRepository implements IGameRepository {
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<void> {
     const answer = this.answers.find((a) => a.id === answerId);
     if (answer) {

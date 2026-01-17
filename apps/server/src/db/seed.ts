@@ -1,4 +1,5 @@
 import { Prisma, QuestionType } from "@prisma/client";
+import "dotenv/config";
 import prisma from "./prisma";
 
 async function seed() {

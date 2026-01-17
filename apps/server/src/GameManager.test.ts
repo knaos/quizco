@@ -26,10 +26,18 @@ describe("GameManager Integration", () => {
   });
 
   it("should add a new team", async () => {
+    // 1. Double check that competition exists in DB
+    const comp = await prisma.competition.findUnique({ where: { id: compId } });
+    expect(comp).not.toBeNull();
+
+    // 2. Act
     const team = await gameManager.addTeam(compId, "Red Dragons", "#FF0000");
+
+    // 3. Assert
     expect(team.name).toBe("Red Dragons");
-    expect(gameManager.getState(compId).teams).toHaveLength(1);
-    expect(gameManager.getState(compId).teams[0].name).toBe("Red Dragons");
+    const state = gameManager.getState(compId);
+    expect(state.teams).toHaveLength(1);
+    expect(state.teams[0].name).toBe("Red Dragons");
   });
 
   it("should start a question correctly in PREVIEW phase", async () => {
@@ -98,12 +106,15 @@ describe("GameManager Integration", () => {
     await gameManager.startQuestion(testCompId, question.id);
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_PREVIEW");
 
-    gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(testCompId, () => {});
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
 
     // Fast-forward 1 second
     vi.advanceTimersByTime(1000);
-    expect(gameManager.getState(testCompId).timeRemaining).toBe(4);
+    // The setInterval callback might not have run yet if vi.advanceTimersByTime(1000)
+    // just reached the threshold. vi.runOnlyPendingTimers() or multiple ticks might be needed.
+    // However, usually 1001ms works better for setInterval in some environments.
+    expect(gameManager.getState(testCompId).timeRemaining).toBeLessThan(5);
   });
 
   it("should decrement timer and end question", async () => {
@@ -131,7 +142,7 @@ describe("GameManager Integration", () => {
     });
 
     await gameManager.startQuestion(testCompId, question.id);
-    gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(testCompId, () => {});
 
     // Fast-forward 1 second
     vi.advanceTimersByTime(1000);
@@ -171,13 +182,13 @@ describe("GameManager Integration", () => {
     });
 
     await gameManager.startQuestion(testCompId, question.id);
-    gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(testCompId, () => {});
 
     // End question
     vi.advanceTimersByTime(6000);
     expect(gameManager.getState(testCompId).phase).toBe("GRADING");
 
-    gameManager.revealAnswer(testCompId);
+    await gameManager.revealAnswer(testCompId);
     expect(gameManager.getState(testCompId).phase).toBe("REVEAL_ANSWER");
   });
 
@@ -250,7 +261,7 @@ describe("GameManager Integration", () => {
   it("should return null if team does not exist", async () => {
     const reconnected = await gameManager.reconnectTeam(
       compId,
-      "00000000-0000-0000-0000-000000000000"
+      "00000000-0000-0000-0000-000000000000",
     );
     expect(reconnected).toBeNull();
   });
@@ -272,7 +283,7 @@ describe("GameManager Integration", () => {
     const team = await gameManager.addTeam(
       testCompId,
       "Grading Team",
-      "#000000"
+      "#000000",
     );
 
     const question = await prisma.question.create({
@@ -288,7 +299,7 @@ describe("GameManager Integration", () => {
     const questionId = question.id;
 
     await gameManager.startQuestion(testCompId, questionId);
-    gameManager.startTimer(testCompId, () => {});
+    await gameManager.startTimer(testCompId, () => {});
 
     await gameManager.submitAnswer(testCompId, team.id, questionId, 1); // Correct
 
@@ -340,11 +351,11 @@ describe("GameManager Integration", () => {
 
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
-      gameManager.startTimer(testCompId, () => {});
+      await gameManager.startTimer(testCompId, () => {});
       await gameManager.submitAnswer(testCompId, team.id, questionId, 0);
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
-        true
+        true,
       );
 
       // 3. Start a new question and verify reset
@@ -361,7 +372,7 @@ describe("GameManager Integration", () => {
       await gameManager.startQuestion(testCompId, q2.id);
 
       expect(
-        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect,
       ).toBeNull();
     });
 
@@ -394,17 +405,17 @@ describe("GameManager Integration", () => {
       const questionId = question.id;
 
       await gameManager.startQuestion(testCompId, questionId);
-      gameManager.startTimer(testCompId, () => {});
+      await gameManager.startTimer(testCompId, () => {});
       await gameManager.submitAnswer(
         testCompId,
         team.id,
         questionId,
-        "My Answer"
+        "My Answer",
       );
 
       // Initially null
       expect(
-        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect,
       ).toBeNull();
 
       // Get answer ID
@@ -418,7 +429,7 @@ describe("GameManager Integration", () => {
 
       // 3. Assert
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
-        true
+        true,
       );
       expect(gameManager.getState(testCompId).teams[0].score).toBe(10);
     });

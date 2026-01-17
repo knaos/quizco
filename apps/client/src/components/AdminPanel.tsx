@@ -134,10 +134,10 @@ export const AdminPanel: React.FC = () => {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
       body: JSON.stringify({
-        competition_id: selectedComp.id,
+        competitionId: selectedComp.id,
         title,
         type: "STANDARD",
-        order_index: rounds.length + 1,
+        orderIndex: rounds.length + 1,
       }),
     });
     if (res.ok) fetchRounds(selectedComp.id);
@@ -161,7 +161,7 @@ export const AdminPanel: React.FC = () => {
   };
 
   const handleReorderRound = async (id: string, direction: "up" | "down") => {
-    const index = rounds.findIndex(r => r.id === id);
+    const index = rounds.findIndex((r) => r.id === id);
     if (index === -1) return;
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= rounds.length) return;
@@ -169,8 +169,8 @@ export const AdminPanel: React.FC = () => {
     const roundA = rounds[index];
     const roundB = rounds[newIndex];
 
-    await handleUpdateRound(roundA.id, { ...roundA, order_index: roundB.order_index });
-    await handleUpdateRound(roundB.id, { ...roundB, order_index: roundA.order_index });
+    await handleUpdateRound(roundA.id, { ...roundA, orderIndex: roundB.orderIndex });
+    await handleUpdateRound(roundB.id, { ...roundB, orderIndex: roundA.orderIndex });
   };
 
   // --- Question Actions ---
@@ -179,8 +179,8 @@ export const AdminPanel: React.FC = () => {
     const isNew = !questionData.id;
     const url = isNew ? `${API_BASE}/questions` : `${API_BASE}/questions/${questionData.id}`;
     const method = isNew ? "POST" : "PUT";
-    
-    const payload = isNew ? { ...questionData, round_id: editingQuestion.roundId } : questionData;
+
+    const payload = isNew ? { ...questionData, roundId: editingQuestion.roundId } : questionData;
 
     const res = await fetch(url, {
       method,
@@ -331,22 +331,22 @@ export const AdminPanel: React.FC = () => {
               questionsByRound={questionsByRound}
               onCreateRound={handleCreateRound}
               onEditRound={(round) => {
-                  const newTitle = prompt("New Title:", round.title);
-                  if (newTitle) handleUpdateRound(round.id, { title: newTitle });
+                const newTitle = prompt("New Title:", round.title);
+                if (newTitle) handleUpdateRound(round.id, { title: newTitle });
               }}
               onDeleteRound={handleDeleteRound}
               onReorderRound={handleReorderRound}
               onCreateQuestion={(roundId) => setEditingQuestion({ roundId, question: {} })}
-              onEditQuestion={(q) => setEditingQuestion({ roundId: q.round_id, question: q })}
+              onEditQuestion={(q) => setEditingQuestion({ roundId: q.roundId, question: q })}
               onDeleteQuestion={(id) => {
-                  const roundId = rounds.find(r => questionsByRound[r.id]?.find(q => q.id === id))?.id;
-                  if (roundId) handleDeleteQuestion(id, roundId);
+                const roundId = rounds.find((r) => questionsByRound[r.id]?.find((q) => q.id === id))?.id;
+                if (roundId) handleDeleteQuestion(id, roundId);
               }}
               onReorderQuestion={(roundId, id, dir) => {
-                  const qs = questionsByRound[roundId];
-                  const index = qs.findIndex(q => q.id === id);
-                  console.log("Reorder question", id, dir);
-                  alert("Question reordering requires 'order_index' in DB. Currently ordered by creation time.");
+                const qs = questionsByRound[roundId];
+                const index = qs.findIndex((q) => q.id === id);
+                console.log("Reorder question", id, dir, index);
+                alert("Question reordering requires 'orderIndex' in DB. Currently ordered by creation time.");
               }}
             />
           </div>

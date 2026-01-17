@@ -12,6 +12,18 @@ export type GamePhase =
   | "REVEAL_ANSWER"
   | "LEADERBOARD";
 
+export type MultipleChoiceAnswer = number;
+export type OpenWordAnswer = string;
+export type ClosedAnswer = string;
+export type CrosswordAnswer = string[][];
+
+export type AnswerContent =
+  | MultipleChoiceAnswer
+  | OpenWordAnswer
+  | ClosedAnswer
+  | CrosswordAnswer;
+export type CrosswordGridState = string[][];
+
 export interface MultipleChoiceContent {
   options: string[];
   correctIndex: number;
@@ -38,16 +50,50 @@ export interface OpenWordContent {
   answer: string;
 }
 
-export interface Question {
+export interface ClosedQuestionContent {
+  options: string[]; // For CLOSED questions, content.options holds correct answers
+}
+
+export type QuestionContent =
+  | MultipleChoiceContent
+  | CrosswordContent
+  | OpenWordContent
+  | ClosedQuestionContent;
+
+interface BaseQuestion {
   id: string;
   roundId: string;
   questionText: string;
-  type: QuestionType;
   points: number;
   timeLimitSeconds: number;
-  content: any; // Using any for now to avoid breaking existing code, but with specialized interfaces available
   grading: GradingMode;
 }
+
+export interface MultipleChoiceQuestion extends BaseQuestion {
+  type: "MULTIPLE_CHOICE";
+  content: MultipleChoiceContent;
+}
+
+export interface ClosedQuestion extends BaseQuestion {
+  type: "CLOSED";
+  content: ClosedQuestionContent;
+}
+
+export interface OpenWordQuestion extends BaseQuestion {
+  type: "OPEN_WORD";
+  content: OpenWordContent;
+}
+
+export interface CrosswordQuestion extends BaseQuestion {
+  type: "CROSSWORD";
+  content: CrosswordContent;
+}
+
+export type Question =
+  | MultipleChoiceQuestion
+  | ClosedQuestion
+  | OpenWordQuestion
+  | CrosswordQuestion;
 
 export interface Competition {
   id: string;
@@ -93,12 +139,12 @@ export interface SocketEvents {
     competitionId: string;
     teamId: string;
     questionId: string;
-    answer: any;
+    answer: AnswerContent;
   }) => void;
   CROSSWORD_PROGRESS: (payload: {
     competitionId: string;
     questionId: string;
-    progress: any;
+    progress: CrosswordGridState;
   }) => void;
 
   // Host to Server

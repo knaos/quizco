@@ -1,0 +1,25 @@
+{
+  "bb789cc9-a2fa-421e-b36b-9d9ead348bc1": {
+    "phase": "GRADING",
+    "currentQuestion": {
+      "id": "4e904284-7507-4211-a84e-f135efca086b",
+      "roundId": "36d07dec-a155-4943-9418-f06648a30d91",
+      "questionText": "Q1",
+      "points": 10,
+      "timeLimitSeconds": 30,
+      "grading": "MANUAL",
+      "type": "OPEN_WORD",
+      "content": {}
+    },
+    "timeRemaining": 30,
+    "teams": [
+      {
+        "id": "e0c3b9c1-c00b-42f4-8189-754b0a7f1824",
+        "name": "T1",
+        "color": "#000",
+        "score": 10,
+        "lastAnswerCorrect": true
+      }
+    ]
+  }
+}

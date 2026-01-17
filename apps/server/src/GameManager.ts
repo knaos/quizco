@@ -1,11 +1,32 @@
-import { GameState, Team, Question, GamePhase } from "@quizco/shared";
+import {
+  GameState,
+  Team,
+  Question,
+  GamePhase,
+  AnswerContent,
+} from "@quizco/shared";
 import { IGameRepository } from "./repositories/IGameRepository";
+import { GradingService } from "./services/GradingService";
+import { StatePersistenceService } from "./services/StatePersistenceService";
 
 export class GameManager {
   private sessions: Map<string, GameState> = new Map();
   private timers: Map<string, NodeJS.Timeout> = new Map();
+  private gradingService: GradingService;
+  private persistenceService: StatePersistenceService;
 
-  constructor(private repository: IGameRepository) {}
+  constructor(private repository: IGameRepository) {
+    this.gradingService = new GradingService();
+    this.persistenceService = new StatePersistenceService();
+  }
+
+  public async initialize() {
+    this.sessions = await this.persistenceService.loadState();
+  }
+
+  private async saveState() {
+    await this.persistenceService.saveState(this.sessions);
+  }
 
   private getOrCreateSession(competitionId: string): GameState {
     if (!this.sessions.has(competitionId)) {
@@ -26,7 +47,7 @@ export class GameManager {
   public async addTeam(
     competitionId: string,
     name: string,
-    color: string
+    color: string,
   ): Promise<Team> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.name === name);
@@ -35,9 +56,10 @@ export class GameManager {
     const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
       name,
-      color
+      color,
     );
     session.teams.push(newTeam);
+    await this.saveState();
     return newTeam;
   }
 
@@ -57,9 +79,14 @@ export class GameManager {
 
     const existingTimer = this.timers.get(competitionId);
     if (existingTimer) clearInterval(existingTimer);
+
+    await this.saveState();
   }
 
-  public startTimer(competitionId: string, onTick: (state: GameState) => void) {
+  public async startTimer(
+    competitionId: string,
+    onTick: (state: GameState) => void,
+  ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_PREVIEW") return;
     session.phase = "QUESTION_ACTIVE";
@@ -67,19 +94,21 @@ export class GameManager {
     const existingTimer = this.timers.get(competitionId);
     if (existingTimer) clearInterval(existingTimer);
 
-    const timer = setInterval(() => {
+    await this.saveState();
+
+    const timer = setInterval(async () => {
       if (session.timeRemaining > 0) {
         session.timeRemaining -= 1;
         onTick(session);
       } else {
-        this.endQuestion(competitionId);
+        await this.endQuestion(competitionId);
         onTick(session);
       }
     }, 1000);
     this.timers.set(competitionId, timer);
   }
 
-  public revealAnswer(competitionId: string) {
+  public async revealAnswer(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "GRADING" && session.phase !== "QUESTION_ACTIVE")
       return;
@@ -87,42 +116,35 @@ export class GameManager {
     const timer = this.timers.get(competitionId);
     if (timer) clearInterval(timer);
     session.phase = "REVEAL_ANSWER";
+    await this.saveState();
   }
 
-  private endQuestion(competitionId: string) {
+  private async endQuestion(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
     const timer = this.timers.get(competitionId);
     if (timer) clearInterval(timer);
     session.phase = "GRADING";
+    await this.saveState();
   }
 
   public async submitAnswer(
     competitionId: string,
     teamId: string,
     questionId: string,
-    answer: any
+    answer: AnswerContent,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
     if (session.currentQuestion?.id !== questionId) return;
 
-    let isCorrect = null;
-    let scoreAwarded = 0;
+    // Use GradingService
+    const gradingResult = this.gradingService.gradeAnswer(
+      session.currentQuestion,
+      answer,
+    );
 
-    // Auto-grading for MCQ and CLOSED
-    if (session.currentQuestion.grading === "AUTO") {
-      const q = session.currentQuestion;
-      if (q.type === "MULTIPLE_CHOICE") {
-        isCorrect = answer === q.content.correctIndex;
-      } else if (q.type === "CLOSED") {
-        const correctAnswers = q.content.options.map((o: string) =>
-          o.toLowerCase().trim()
-        );
-        const submittedAnswer = String(answer).toLowerCase().trim();
-        isCorrect = correctAnswers.includes(submittedAnswer);
-      }
-      scoreAwarded = isCorrect ? q.points : 0;
-    }
+    const isCorrect = gradingResult ? gradingResult.isCorrect : null;
+    const scoreAwarded = gradingResult ? gradingResult.score : 0;
 
     // Store in Repository
     await this.repository.saveAnswer(
@@ -131,7 +153,7 @@ export class GameManager {
       session.currentQuestion.roundId,
       answer,
       isCorrect,
-      scoreAwarded
+      scoreAwarded,
     );
 
     // Update score and status in memory immediately for auto-graded questions
@@ -142,6 +164,8 @@ export class GameManager {
       }
       await this.refreshTeamScores(competitionId);
     }
+
+    await this.saveState();
 
     // Check if all teams have submitted
     const submittedCount = await this.repository.getSubmissionCount(questionId);
@@ -154,7 +178,7 @@ export class GameManager {
   public async handleGradeDecision(
     competitionId: string,
     answerId: string,
-    correct: boolean
+    correct: boolean,
   ) {
     const session = this.getOrCreateSession(competitionId);
 
@@ -174,6 +198,7 @@ export class GameManager {
 
     await this.repository.updateAnswerGrading(answerId, correct, scoreAwarded);
     await this.refreshTeamScores(competitionId);
+    await this.saveState();
   }
 
   public async refreshTeamScores(competitionId: string) {
@@ -183,9 +208,10 @@ export class GameManager {
     }
   }
 
-  public setPhase(competitionId: string, phase: GamePhase) {
+  public async setPhase(competitionId: string, phase: GamePhase) {
     const session = this.getOrCreateSession(competitionId);
     session.phase = phase;
+    await this.saveState();
   }
 
   public async getAllQuestions() {
@@ -198,7 +224,7 @@ export class GameManager {
 
   public async reconnectTeam(
     competitionId: string,
-    teamId: string
+    teamId: string,
   ): Promise<Team | null> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.id === teamId);
@@ -206,10 +232,11 @@ export class GameManager {
 
     const restoredTeam = await this.repository.reconnectTeam(
       competitionId,
-      teamId
+      teamId,
     );
     if (restoredTeam) {
       session.teams.push(restoredTeam);
+      await this.saveState();
     }
     return restoredTeam;
   }

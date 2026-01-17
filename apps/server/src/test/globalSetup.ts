@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../../.env.test") });
 
 export async function setup() {
   const adminPool = new Pool({
@@ -26,7 +26,7 @@ export async function setup() {
     WHERE pg_stat_activity.datname = $1
       AND pid <> pg_backend_pid();
   `,
-    [testDbName]
+    [testDbName],
   );
 
   await adminPool.query(`DROP DATABASE IF EXISTS ${testDbName}`);

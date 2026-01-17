@@ -5,7 +5,7 @@ import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight }
 import { Crossword } from "./Crossword";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -241,13 +241,19 @@ export const PlayerView: React.FC = () => {
     if (!state.currentQuestion) return "";
     const { type, content } = state.currentQuestion;
     if (type === "MULTIPLE_CHOICE") {
-      return content?.options?.[content?.correctIndex] || "Unknown";
+      return content.options[content.correctIndex] || "Unknown";
     }
     if (type === "CLOSED") {
-        // For CLOSED, content.options is a list of acceptable answers
-        return content?.options?.[0] || "Unknown";
+      // For CLOSED, content.options is a list of acceptable answers
+      return content.options[0] || "Unknown";
     }
-    return content?.answer || content?.correctAnswer || "Unknown";
+    if (type === "OPEN_WORD") {
+      return content.answer;
+    }
+    if (type === "CROSSWORD") {
+      return t("player.see_grid");
+    }
+    return "Unknown";
   };
 
   const isCorrect = () => {
@@ -292,7 +298,7 @@ export const PlayerView: React.FC = () => {
             <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-yellow-500">
               <span className="text-yellow-600 font-bold uppercase tracking-wider text-sm">{t('player.upcoming_question')}</span>
               <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
-                {state.currentQuestion.question_text}
+                {state.currentQuestion.questionText}
               </h2>
             </div>
             <div className="space-y-4">
@@ -307,7 +313,7 @@ export const PlayerView: React.FC = () => {
             <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-blue-500">
               <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Question</span>
               <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
-                {state.currentQuestion.question_text}
+                {state.currentQuestion.questionText}
               </h2>
             </div>
 
@@ -381,62 +387,71 @@ export const PlayerView: React.FC = () => {
           <div className="w-full max-w-3xl space-y-8 animate-in fade-in zoom-in duration-500">
             <div className="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-blue-500 text-left">
               <div className="flex items-center justify-between mb-6">
-                 <div className="flex items-center space-x-2 text-blue-600">
-                   <Info className="w-6 h-6" />
-                   <span className="font-bold uppercase tracking-widest text-sm">{t('player.reveal_phase')}</span>
-                 </div>
-                 {getGradingStatus() === true ? (
-                   <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
-                     <CheckCircle className="w-4 h-4 mr-2" /> {t('player.correct')}
-                   </span>
-                 ) : getGradingStatus() === false ? (
-                   <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
-                     <XCircle className="w-4 h-4 mr-2" /> {t('player.incorrect')}
-                   </span>
-                 ) : (
-                   <span className="bg-gray-100 text-gray-700 px-4 py-1 rounded-full font-bold flex items-center">
-                     <Clock className="w-4 h-4 mr-2" /> {t('player.waiting_grading')}
-                   </span>
-                 )}
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <Info className="w-6 h-6" />
+                  <span className="font-bold uppercase tracking-widest text-sm">{t("player.reveal_phase")}</span>
+                </div>
+                {getGradingStatus() === true ? (
+                  <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
+                  </span>
+                ) : getGradingStatus() === false ? (
+                  <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
+                    <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
+                  </span>
+                ) : (
+                  <span className="bg-gray-100 text-gray-700 px-4 py-1 rounded-full font-bold flex items-center">
+                    <Clock className="w-4 h-4 mr-2" /> {t("player.waiting_grading")}
+                  </span>
+                )}
               </div>
 
-              <h2 className="text-2xl font-bold text-gray-800 mb-8">
-                {state.currentQuestion.question_text}
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-8">{state.currentQuestion.questionText}</h2>
 
               <div className="space-y-6">
                 {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {state.currentQuestion.content?.options?.map((opt: string, i: number) => {
-                      const isOptionCorrect = i === state.currentQuestion!.content.correctIndex;
-                      const isSelected = i === parseInt(answer);
-                      
-                      let containerClass = "p-6 rounded-2xl border-2 transition-all flex items-center justify-between ";
-                      if (isOptionCorrect) {
-                        containerClass += "border-green-500 bg-green-50 shadow-md scale-[1.02]";
-                      } else if (isSelected && !isOptionCorrect) {
-                        containerClass += "border-red-500 bg-red-50 opacity-80";
-                      } else {
-                        containerClass += "border-gray-100 bg-gray-50 opacity-40";
-                      }
+                    {(() => {
+                      const question = state.currentQuestion as MultipleChoiceQuestion;
+                      return question.content.options.map((opt: string, i: number) => {
+                        const isOptionCorrect = i === question.content.correctIndex;
+                        const isSelected = i === parseInt(answer);
 
-                      return (
-                        <div key={i} className={containerClass}>
-                          <span className={`text-xl font-bold ${isOptionCorrect ? "text-green-800" : isSelected ? "text-red-800" : "text-gray-500"}`}>
-                            {opt}
-                          </span>
-                          <div className="flex items-center space-x-3">
-                            {isSelected && (
-                              <span className={`text-xs font-black uppercase px-2 py-1 rounded ${isOptionCorrect ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
-                                {t('player.your_choice')}
-                              </span>
-                            )}
-                            {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
-                            {isSelected && !isOptionCorrect && <XCircle className="text-red-600 w-8 h-8" />}
+                        let containerClass = "p-6 rounded-2xl border-2 transition-all flex items-center justify-between ";
+                        if (isOptionCorrect) {
+                          containerClass += "border-green-500 bg-green-50 shadow-md scale-[1.02]";
+                        } else if (isSelected && !isOptionCorrect) {
+                          containerClass += "border-red-500 bg-red-50 opacity-80";
+                        } else {
+                          containerClass += "border-gray-100 bg-gray-50 opacity-40";
+                        }
+
+                        return (
+                          <div key={i} className={containerClass}>
+                            <span
+                              className={`text-xl font-bold ${
+                                isOptionCorrect ? "text-green-800" : isSelected ? "text-red-800" : "text-gray-500"
+                              }`}
+                            >
+                              {opt}
+                            </span>
+                            <div className="flex items-center space-x-3">
+                              {isSelected && (
+                                <span
+                                  className={`text-xs font-black uppercase px-2 py-1 rounded ${
+                                    isOptionCorrect ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"
+                                  }`}
+                                >
+                                  {t("player.your_choice")}
+                                </span>
+                              )}
+                              {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
+                              {isSelected && !isOptionCorrect && <XCircle className="text-red-600 w-8 h-8" />}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                    })()}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

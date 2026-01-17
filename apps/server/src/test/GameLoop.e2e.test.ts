@@ -79,9 +79,9 @@ describe("Game Loop E2E (Decoupled)", () => {
   });
 
   afterEach(() => {
-    hostSocket.disconnect();
-    player1Socket.disconnect();
-    player2Socket.disconnect();
+    hostSocket?.disconnect();
+    player1Socket?.disconnect();
+    player2Socket?.disconnect();
   });
 
   it("should complete a full question cycle with two players", async () => {
@@ -93,7 +93,7 @@ describe("Game Loop E2E (Decoupled)", () => {
       player1Socket.emit(
         "JOIN_ROOM",
         { competitionId, teamName: "Team 1", color: "red" },
-        () => resolve()
+        () => resolve(),
       );
     });
 
@@ -101,7 +101,7 @@ describe("Game Loop E2E (Decoupled)", () => {
       player2Socket.emit(
         "JOIN_ROOM",
         { competitionId, teamName: "Team 2", color: "blue" },
-        () => resolve()
+        () => resolve(),
       );
     });
 

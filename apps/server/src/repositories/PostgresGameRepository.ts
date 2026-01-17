@@ -4,7 +4,7 @@ import {
   RoundType,
   GradingMode,
 } from "@prisma/client";
-import { Question, Team } from "@quizco/shared";
+import { Question, Team, QuestionContent } from "@quizco/shared";
 import prisma from "../db/prisma";
 import { IGameRepository } from "./IGameRepository";
 
@@ -12,7 +12,7 @@ export class PostgresGameRepository implements IGameRepository {
   async getOrCreateTeam(
     competitionId: string,
     name: string,
-    color: string
+    color: string,
   ): Promise<Team> {
     const dbTeam = await prisma.team.upsert({
       where: {
@@ -22,7 +22,11 @@ export class PostgresGameRepository implements IGameRepository {
         },
       },
       update: { color },
-      create: { competitionId, name, color },
+      create: {
+        competition: { connect: { id: competitionId } },
+        name,
+        color,
+      },
     });
 
     const score = await this.getTeamScore(competitionId, dbTeam.id);
@@ -55,7 +59,7 @@ export class PostgresGameRepository implements IGameRepository {
 
   async reconnectTeam(
     competitionId: string,
-    teamId: string
+    teamId: string,
   ): Promise<Team | null> {
     const dbTeam = await prisma.team.findUnique({
       where: { id: teamId },
@@ -81,16 +85,21 @@ export class PostgresGameRepository implements IGameRepository {
 
     if (!dbQuestion) return null;
 
-    return {
+    const baseQuestion = {
       id: dbQuestion.id,
       roundId: dbQuestion.roundId,
       questionText: dbQuestion.questionText,
-      type: dbQuestion.type as any,
       points: dbQuestion.points,
       timeLimitSeconds: dbQuestion.timeLimitSeconds,
-      content: dbQuestion.content,
-      grading: dbQuestion.grading as any,
+      grading: dbQuestion.grading as GradingMode,
     };
+
+    // Cast content based on the specific question type to satisfy discriminated union
+    return {
+      ...baseQuestion,
+      type: dbQuestion.type,
+      content: dbQuestion.content as unknown as QuestionContent,
+    } as Question;
   }
 
   async getAllQuestions(): Promise<any[]> {
@@ -121,7 +130,7 @@ export class PostgresGameRepository implements IGameRepository {
       },
     });
 
-    return questions.map((q) => ({
+    return questions.map((q: any) => ({
       id: q.id,
       roundId: q.roundId,
       questionText: q.questionText,
@@ -140,7 +149,7 @@ export class PostgresGameRepository implements IGameRepository {
     roundId: string,
     submittedContent: any,
     isCorrect: boolean | null,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<any> {
     return prisma.answer.create({
       data: {
@@ -163,7 +172,7 @@ export class PostgresGameRepository implements IGameRepository {
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<void> {
     await prisma.answer.update({
       where: { id: answerId },
@@ -204,7 +213,7 @@ export class PostgresGameRepository implements IGameRepository {
       },
     });
 
-    return answers.map((a) => ({
+    return answers.map((a: any) => ({
       ...a,
       team_name: a.team?.name,
       question_text: a.question?.questionText,

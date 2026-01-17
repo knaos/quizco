@@ -117,15 +117,11 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                           {qIndex + 1}.
                         </span>
                         <div className="flex flex-col">
-                          <span className="text-gray-800 font-medium">
-                            {q.question_text}
-                          </span>
+                          <span className="text-gray-800 font-medium">{q.questionText}</span>
                           <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-[10px] font-bold text-blue-600 uppercase">
-                              {q.type}
-                            </span>
+                            <span className="text-[10px] font-bold text-blue-600 uppercase">{q.type}</span>
                             <span className="text-[10px] text-gray-400">
-                              • {q.points} pts • {q.time_limit_seconds}s
+                              • {q.points} pts • {q.timeLimitSeconds}s
                             </span>
                           </div>
                         </div>

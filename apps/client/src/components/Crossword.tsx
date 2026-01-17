@@ -1,13 +1,8 @@
 import React, { useState } from "react";
+import type { CrosswordContent } from "@quizco/shared";
 
 interface CrosswordProps {
-  data: {
-    grid: string[][];
-    clues: {
-      across: { number: number; clue: string; answer: string; row: number; col: number }[];
-      down: { number: number; clue: string; answer: string; row: number; col: number }[];
-    };
-  };
+  data: CrosswordContent;
   onCrosswordCorrect?: (isCorrect: boolean) => void;
 }
 

@@ -11,16 +11,12 @@ interface QuestionEditorProps {
   onCancel: () => void;
 }
 
-export const QuestionEditor: React.FC<QuestionEditorProps> = ({
-  question,
-  onSave,
-  onCancel,
-}) => {
-  const [formData, setFormData] = useState<Partial<Question>>({
-    question_text: "",
+export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCancel }) => {
+  const [formData, setFormData] = useState<any>({
+    questionText: "",
     type: "MULTIPLE_CHOICE",
     points: 10,
-    time_limit_seconds: 30,
+    timeLimitSeconds: 30,
     grading: "AUTO",
     content: { options: ["", ""], correctIndex: 0 },
     ...question,
@@ -33,7 +29,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
     } else if (type === "OPEN_WORD") {
       content = { answer: "" };
     } else if (type === "CROSSWORD") {
-      content = { clues: { across: [], down: [] } };
+      content = { grid: [], clues: { across: [], down: [] } };
     }
     setFormData({ ...formData, type, content });
   };
@@ -85,8 +81,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-600 uppercase">Question Text</label>
             <textarea
-              value={formData.question_text}
-              onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
+              value={formData.questionText}
+              onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
               className="w-full p-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition h-24"
               placeholder="Enter your question here..."
             />
@@ -106,8 +102,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
               <label className="text-sm font-bold text-gray-600 uppercase">Time Limit (s)</label>
               <input
                 type="number"
-                value={formData.time_limit_seconds}
-                onChange={(e) => setFormData({ ...formData, time_limit_seconds: parseInt(e.target.value) })}
+                value={formData.timeLimitSeconds}
+                onChange={(e) => setFormData({ ...formData, timeLimitSeconds: parseInt(e.target.value) })}
                 className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
               />
             </div>
@@ -115,26 +111,17 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
 
           <div className="pt-6 border-t">
             <h3 className="text-lg font-bold text-gray-800 mb-4">Content Settings</h3>
-            
+
             {(formData.type === "MULTIPLE_CHOICE" || formData.type === "CLOSED") && (
-              <MultipleChoiceEditor 
-                content={formData.content} 
-                onChange={handleContentChange} 
-              />
+              <MultipleChoiceEditor content={formData.content as any} onChange={handleContentChange} />
             )}
 
             {formData.type === "OPEN_WORD" && (
-              <OpenWordEditor 
-                content={formData.content} 
-                onChange={handleContentChange} 
-              />
+              <OpenWordEditor content={formData.content as any} onChange={handleContentChange} />
             )}
 
             {formData.type === "CROSSWORD" && (
-              <CrosswordEditor 
-                content={formData.content} 
-                onChange={handleContentChange} 
-              />
+              <CrosswordEditor content={formData.content as any} onChange={handleContentChange} />
             )}
           </div>
         </div>
