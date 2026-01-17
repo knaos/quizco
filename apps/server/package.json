@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:e2e": "vitest run src/test/GameLoop.e2e.test.ts",
-    "db:seed": "ts-node src/db/seed.ts"
+    "db:seed": "ts-node src/db/seed.ts",
+    "db:reset": "prisma migrate reset"
   },
   "prisma": {
     "seed": "ts-node src/db/seed.ts"

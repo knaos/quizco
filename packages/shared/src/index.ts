@@ -118,6 +118,7 @@ export interface Team {
   color: string;
   score: number;
   lastAnswerCorrect: boolean | null;
+  lastAnswer: AnswerContent | null;
 }
 
 export interface GameState {

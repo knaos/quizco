@@ -75,6 +75,7 @@ export class GameManager {
     // Reset last answer status for all teams
     for (const team of session.teams) {
       team.lastAnswerCorrect = null;
+      team.lastAnswer = null;
     }
 
     const existingTimer = this.timers.get(competitionId);
@@ -156,12 +157,16 @@ export class GameManager {
       scoreAwarded,
     );
 
-    // Update score and status in memory immediately for auto-graded questions
-    if (isCorrect !== null) {
-      const team = session.teams.find((t) => t.id === teamId);
-      if (team) {
+    // Update score and status in memory immediately
+    const team = session.teams.find((t) => t.id === teamId);
+    if (team) {
+      team.lastAnswer = answer;
+      if (isCorrect !== null) {
         team.lastAnswerCorrect = isCorrect;
       }
+    }
+
+    if (isCorrect !== null) {
       await this.refreshTeamScores(competitionId);
     }
 

@@ -413,9 +413,12 @@ export const PlayerView: React.FC = () => {
                   <div className="grid grid-cols-1 gap-4">
                     {(() => {
                       const question = state.currentQuestion as MultipleChoiceQuestion;
+                      const team = state.teams.find((t) => t.name === teamName);
+                      const lastAnswer = team?.lastAnswer;
+                      
                       return question.content.options.map((opt: string, i: number) => {
                         const isOptionCorrect = i === question.content.correctIndex;
-                        const isSelected = i === parseInt(answer);
+                        const isSelected = lastAnswer !== null && lastAnswer !== undefined && i === Number(lastAnswer);
 
                         let containerClass = "p-6 rounded-2xl border-2 transition-all flex items-center justify-between ";
                         if (isOptionCorrect) {
@@ -462,7 +465,7 @@ export const PlayerView: React.FC = () => {
                     <div className={`${isCorrect() ? "bg-green-50 border-green-200" : getGradingStatus() === false ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"} p-6 rounded-2xl border-2`}>
                       <span className={`${isCorrect() ? "text-green-600" : getGradingStatus() === false ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
                       <p className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
-                        {answer || "(No Answer)"}
+                        {state.teams.find((t) => t.name === teamName)?.lastAnswer || "(No Answer)"}
                       </p>
                     </div>
                   </div>

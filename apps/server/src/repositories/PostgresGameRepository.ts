@@ -37,6 +37,7 @@ export class PostgresGameRepository implements IGameRepository {
       color: dbTeam.color || "",
       score,
       lastAnswerCorrect: null,
+      lastAnswer: null,
     };
   }
 
@@ -75,6 +76,7 @@ export class PostgresGameRepository implements IGameRepository {
       color: dbTeam.color || "",
       score,
       lastAnswerCorrect: null,
+      lastAnswer: null,
     };
   }
 
