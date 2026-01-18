@@ -122,6 +122,7 @@ export interface Team {
   score: number;
   lastAnswerCorrect: boolean | null;
   lastAnswer: AnswerContent | null;
+  isConnected: boolean;
 }
 
 export interface GameState {

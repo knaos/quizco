@@ -41,6 +41,26 @@ export class GameManager {
     return this.sessions.get(competitionId)!;
   }
 
+  /**
+   * Updates the connection status of a team in a session.
+   * Returns true if the status actually changed.
+   */
+  public updateTeamConnection(
+    competitionId: string,
+    teamId: string,
+    isConnected: boolean,
+  ): boolean {
+    const session = this.getOrCreateSession(competitionId);
+    const team = session.teams.find((t) => t.id === teamId);
+    if (team) {
+      if (team.isConnected !== isConnected) {
+        team.isConnected = isConnected;
+        return true;
+      }
+    }
+    return false;
+  }
+
   public getState(competitionId: string): GameState {
     return this.getOrCreateSession(competitionId);
   }
@@ -52,16 +72,28 @@ export class GameManager {
   ): Promise<Team> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.name === name);
-    if (existingTeam) return existingTeam;
+    if (existingTeam) {
+      existingTeam.isConnected = true;
+      return existingTeam;
+    }
 
     const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
       name,
       color,
     );
-    session.teams.push(newTeam);
+
+    // Double check by ID as well to prevent memory duplicates
+    const existingById = session.teams.find((t) => t.id === newTeam.id);
+    if (existingById) {
+      existingById.isConnected = true;
+      return existingById;
+    }
+
+    const teamWithStatus = { ...newTeam, isConnected: true };
+    session.teams.push(teamWithStatus);
     await this.saveState();
-    return newTeam;
+    return teamWithStatus;
   }
 
   public async startQuestion(competitionId: string, questionId: string) {
@@ -317,16 +349,28 @@ export class GameManager {
   ): Promise<Team | null> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.id === teamId);
-    if (existingTeam) return existingTeam;
+    if (existingTeam) {
+      existingTeam.isConnected = true;
+      return existingTeam;
+    }
 
     const restoredTeam = await this.repository.reconnectTeam(
       competitionId,
       teamId,
     );
     if (restoredTeam) {
-      session.teams.push(restoredTeam);
+      // Check again to be safe against race conditions
+      const doubleCheck = session.teams.find((t) => t.id === teamId);
+      if (doubleCheck) {
+        doubleCheck.isConnected = true;
+        return doubleCheck;
+      }
+
+      const teamWithStatus = { ...restoredTeam, isConnected: true };
+      session.teams.push(teamWithStatus);
       await this.saveState();
+      return teamWithStatus;
     }
-    return restoredTeam;
+    return null;
   }
 }

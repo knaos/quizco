@@ -21,6 +21,7 @@ export class MockGameRepository implements IGameRepository {
         score: 0,
         lastAnswerCorrect: null,
         lastAnswer: null,
+        isConnected: false,
       };
       this.teams.push(team);
     }

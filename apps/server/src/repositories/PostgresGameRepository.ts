@@ -38,6 +38,7 @@ export class PostgresGameRepository implements IGameRepository {
       score,
       lastAnswerCorrect: null,
       lastAnswer: null,
+      isConnected: false,
     };
   }
 
@@ -77,6 +78,7 @@ export class PostgresGameRepository implements IGameRepository {
       score,
       lastAnswerCorrect: null,
       lastAnswer: null,
+      isConnected: false,
     };
   }
 

@@ -88,6 +88,38 @@ export function createQuizServer(
     },
   });
 
+  const socketToTeam = new Map<
+    string,
+    { competitionId: string; teamId: string }
+  >();
+  const teamToSocket = new Map<string, string>(); // teamId -> socketId
+
+  // Monitoring loop: check connections every second
+  setInterval(() => {
+    for (const [teamId, socketId] of teamToSocket.entries()) {
+      const socket = io.sockets.sockets.get(socketId);
+      const info = socketToTeam.get(socketId);
+
+      if (!socket || !socket.connected) {
+        if (info) {
+          const changed = gameManager.updateTeamConnection(
+            info.competitionId,
+            info.teamId,
+            false,
+          );
+          if (changed) {
+            const room = `competition_${info.competitionId}`;
+            io.to(room).emit(
+              "SCORE_UPDATE",
+              gameManager.getState(info.competitionId).teams,
+            );
+          }
+        }
+        teamToSocket.delete(teamId);
+      }
+    }
+  }, 1000);
+
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 
@@ -114,6 +146,9 @@ export function createQuizServer(
           return callback?.({ success: false, error: "Missing competitionId" });
 
         const team = await gameManager.addTeam(competitionId, teamName, color);
+        socketToTeam.set(socket.id, { competitionId, teamId: team.id });
+        teamToSocket.set(team.id, socket.id);
+
         const room = `competition_${competitionId}`;
         socket.join(room);
 
@@ -129,9 +164,15 @@ export function createQuizServer(
 
       const team = await gameManager.reconnectTeam(competitionId, teamId);
       if (team) {
+        socketToTeam.set(socket.id, { competitionId, teamId: team.id });
+        teamToSocket.set(team.id, socket.id);
+
         const room = `competition_${competitionId}`;
         socket.join(room);
-        socket.emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
+
+        const state = gameManager.getState(competitionId);
+        socket.emit("GAME_STATE_SYNC", state);
+        io.to(room).emit("SCORE_UPDATE", state.teams);
         if (callback) callback({ success: true, team });
       } else {
         if (callback) callback({ success: false });
@@ -232,6 +273,25 @@ export function createQuizServer(
 
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
+      const info = socketToTeam.get(socket.id);
+      if (info) {
+        const changed = gameManager.updateTeamConnection(
+          info.competitionId,
+          info.teamId,
+          false,
+        );
+        if (changed) {
+          const room = `competition_${info.competitionId}`;
+          io.to(room).emit(
+            "SCORE_UPDATE",
+            gameManager.getState(info.competitionId).teams,
+          );
+        }
+        socketToTeam.delete(socket.id);
+        if (teamToSocket.get(info.teamId) === socket.id) {
+          teamToSocket.delete(info.teamId);
+        }
+      }
     });
   });
 

@@ -471,7 +471,7 @@ export const HostDashboard: React.FC = () => {
                   <p className="text-gray-400 text-center py-8 font-medium italic">No teams joined yet</p>
               ) : (
                 state.teams.sort((a,b) => b.score - a.score).map((team, idx) => (
-                    <div key={team.id} className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
+                    <div key={`${team.id}-${idx}`} className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
                         idx === 0 ? "bg-yellow-50 border-2 border-yellow-100 shadow-sm" : "bg-gray-50"
                     }`}>
                       <div className="flex items-center space-x-4">
@@ -480,13 +480,22 @@ export const HostDashboard: React.FC = () => {
                         }`}>
                             {idx + 1}
                         </div>
-                        <div 
-                          className="w-4 h-4 rounded-full" 
-                          style={{ backgroundColor: team.color }}
-                        />
-                        <span className="font-bold text-gray-800">{team.name}</span>
+                        <div className="relative">
+                          <div 
+                            className="w-4 h-4 rounded-full" 
+                            style={{ backgroundColor: team.color }}
+                          />
+                          <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                            team.isConnected ? "bg-green-500" : "bg-red-500"
+                          }`} title={team.isConnected ? "Connected" : "Disconnected"} />
+                        </div>
+                        <span className={`font-bold ${team.isConnected ? "text-gray-800" : "text-gray-400"}`}>
+                          {team.name}
+                        </span>
                       </div>
-                      <span className="font-black text-xl text-blue-600">{team.score}</span>
+                      <span className={`font-black text-xl ${team.isConnected ? "text-blue-600" : "text-blue-300"}`}>
+                        {team.score}
+                      </span>
                     </div>
                   ))
               )}
