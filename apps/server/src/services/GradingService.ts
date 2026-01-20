@@ -11,6 +11,8 @@ import {
   MatchingAnswer,
   ChronologyContent,
   ChronologyAnswer,
+  TrueFalseContent,
+  TrueFalseAnswer,
 } from "@quizco/shared";
 
 export class GradingService {
@@ -68,6 +70,14 @@ export class GradingService {
         return this.gradeChronology(
           question.content as ChronologyContent,
           answer as ChronologyAnswer,
+          question.points
+        );
+      }
+
+      if (question.type === "TRUE_FALSE") {
+        return this.gradeTrueFalse(
+          question.content as TrueFalseContent,
+          answer as unknown as boolean,
           question.points
         );
       }
@@ -229,5 +239,14 @@ export class GradingService {
     const score = correctCount + (isPerfect ? 3 : 0);
 
     return { isCorrect: isPerfect, score };
+  }
+
+  private gradeTrueFalse(
+    content: TrueFalseContent,
+    answer: boolean,
+    points: number
+  ) {
+    const isCorrect = content.isTrue === answer;
+    return { isCorrect, score: isCorrect ? points : 0 };
   }
 }

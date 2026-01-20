@@ -51,6 +51,14 @@
       "see_grid": "See Grid",
       "waiting_grading": "Waiting for grading",
       "session_lost_rejoin": "Session lost. Please rejoin."
+    },
+    "game": {
+      "true": "True",
+      "false": "False"
+    },
+    "admin": {
+      "correct_answer": "Correct Answer",
+      "true_false_hint": "Select whether the statement above is True or False."
     }
   }
 }

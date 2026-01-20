@@ -208,4 +208,21 @@ describe("GradingService", () => {
       score: 2,
     });
   });
+
+  it("grades TRUE_FALSE correctly", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "TRUE_FALSE",
+      content: { isTrue: true },
+    };
+
+    expect(service.gradeAnswer(question, true)).toEqual({
+      isCorrect: true,
+      score: 10,
+    });
+    expect(service.gradeAnswer(question, false)).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+  });
 });

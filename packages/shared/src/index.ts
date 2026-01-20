@@ -5,7 +5,8 @@ export type QuestionType =
   | "CROSSWORD"
   | "FILL_IN_THE_BLANKS"
   | "MATCHING"
-  | "CHRONOLOGY";
+  | "CHRONOLOGY"
+  | "TRUE_FALSE";
 export type GradingMode = "AUTO" | "MANUAL";
 export type GamePhase =
   | "WAITING"
@@ -25,6 +26,7 @@ export type CrosswordAnswer = string[][];
 export type FillInTheBlanksAnswer = string[]; // Values for blanks in order
 export type MatchingAnswer = Record<string, string>; // leftSideId -> rightSideId
 export type ChronologyAnswer = string[]; // IDs in submitted order
+export type TrueFalseAnswer = boolean;
 
 export type AnswerContent =
   | MultipleChoiceAnswer
@@ -33,7 +35,8 @@ export type AnswerContent =
   | CrosswordAnswer
   | FillInTheBlanksAnswer
   | MatchingAnswer
-  | ChronologyAnswer;
+  | ChronologyAnswer
+  | TrueFalseAnswer;
 
 export type CrosswordGridState = string[][];
 
@@ -101,6 +104,10 @@ export interface ChronologyContent {
   items: ChronologyItem[];
 }
 
+export interface TrueFalseContent {
+  isTrue: boolean;
+}
+
 export type QuestionContent =
   | MultipleChoiceContent
   | CrosswordContent
@@ -108,7 +115,8 @@ export type QuestionContent =
   | ClosedQuestionContent
   | FillInTheBlanksContent
   | MatchingContent
-  | ChronologyContent;
+  | ChronologyContent
+  | TrueFalseContent;
 
 interface BaseQuestion {
   id: string;
@@ -155,6 +163,11 @@ export interface ChronologyQuestion extends BaseQuestion {
   content: ChronologyContent;
 }
 
+export interface TrueFalseQuestion extends BaseQuestion {
+  type: "TRUE_FALSE";
+  content: TrueFalseContent;
+}
+
 export type Question =
   | MultipleChoiceQuestion
   | ClosedQuestion
@@ -162,7 +175,8 @@ export type Question =
   | CrosswordQuestion
   | FillInTheBlanksQuestion
   | MatchingQuestion
-  | ChronologyQuestion;
+  | ChronologyQuestion
+  | TrueFalseQuestion;
 
 export interface Competition {
   id: string;
@@ -176,7 +190,7 @@ export interface Round {
   id: string;
   competitionId: string;
   orderIndex: number;
-  type: "STANDARD" | "CROSSWORD" | "SPEED_RUN";
+  type: "STANDARD" | "CROSSWORD" | "SPEED_RUN" | "STREAK";
   title: string;
   createdAt: string;
 }
@@ -186,6 +200,7 @@ export interface Team {
   name: string;
   color: string;
   score: number;
+  streak: number;
   lastAnswerCorrect: boolean | null;
   lastAnswer: AnswerContent | null;
   isConnected: boolean;

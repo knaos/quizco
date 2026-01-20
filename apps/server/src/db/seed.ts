@@ -1,4 +1,4 @@
-import { Prisma, QuestionType } from "@prisma/client";
+import { Prisma, QuestionType, RoundType } from "@prisma/client";
 import "dotenv/config";
 import prisma from "./prisma";
 
@@ -236,6 +236,62 @@ async function seed() {
               ],
             },
             grading: "AUTO",
+          },
+        ],
+      });
+
+      // Round 5: True/False & Streaks
+      const rStreak = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 5,
+          type: "STREAK" as RoundType,
+          title: "Round 5: Speed Run (True/False)",
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: rStreak.id,
+            questionText: "Noah's ark had three decks.",
+            type: "TRUE_FALSE" as QuestionType,
+            points: 10,
+            timeLimitSeconds: 15,
+            content: { isTrue: true },
+          },
+          {
+            roundId: rStreak.id,
+            questionText: "The Israelites wandered in the desert for 50 years.",
+            type: "TRUE_FALSE" as QuestionType,
+            points: 10,
+            timeLimitSeconds: 15,
+            content: { isTrue: false },
+          },
+          {
+            roundId: rStreak.id,
+            questionText: "David was the first king of Israel.",
+            type: "TRUE_FALSE" as QuestionType,
+            points: 10,
+            timeLimitSeconds: 15,
+            content: { isTrue: false },
+          },
+          {
+            roundId: rStreak.id,
+            questionText: "Jesus was born in Bethlehem.",
+            type: "TRUE_FALSE" as QuestionType,
+            points: 10,
+            timeLimitSeconds: 15,
+            content: { isTrue: true },
+          },
+          {
+            roundId: rStreak.id,
+            questionText:
+              "The walls of Jericho fell down after the Israelites marched around them.",
+            type: "TRUE_FALSE" as QuestionType,
+            points: 10,
+            timeLimitSeconds: 15,
+            content: { isTrue: true },
           },
         ],
       });

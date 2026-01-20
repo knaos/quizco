@@ -18,13 +18,14 @@
 
 ### Iteration 2: Round 2 ("Biblical Chronology")
 
-- [ ] Support `CHRONOLOGY` question type with Drag-and-Drop.
-- [ ] Implement Chronology scoring (+1 per correct index, +3 for perfect match).
+- [x] Support `CHRONOLOGY` question type with Drag-and-Drop.
+- [x] Implement Chronology scoring (+1 per correct index, +3 for perfect match).
 
 ### Iteration 3: Round 3 ("True or False?")
 
+- [x] Support `TRUE_FALSE` question type.
+- [x] Implement "Streak Bonus" logic (5-6: +1, 7-9: +2, 10: +3).
 - [ ] Support `CORRECT_THE_ERROR` question type.
-- [ ] Implement "Streak Bonus" logic (5-6: +1, 7-9: +2, 10: +3).
 
 ### Iteration 4: Round 4 ("Final" - Crossword)
 
@@ -39,13 +40,13 @@
 
 ## Current Status
 
-- **Overall Completion:** ~55%
+- **Overall Completion:** ~75%
 - **Infrastructure:** [x] Done
-- **Database:** [x] Updated for Round 1 requirements.
+- **Database:** [x] Updated for Round 3 requirements (Team Streaks).
 - **Core State Machine:** [x] Done (Multi-session support added)
-- **Scoring & Grading:** [/] Grading exists for R1, needs expansion for R2/R3.
-- **Admin UI:** [x] Updated with R1 specialized editors.
-- **Player UI:** [/] Updated with R1 specialized components.
+- **Scoring & Grading:** [x] Expanded for R2 (Chronology) and R3 (Streaks).
+- **Admin UI:** [x] Updated with specialized editors for R1, R2, and R3.
+- **Player UI:** [x] Updated with specialized components for R1, R2, and R3.
 - **Real-Time Sync:** [x] Done (Multi-room isolation)
 - **Host Control Flow:** [x] Done (Implemented "Next" button flow)
 
@@ -57,3 +58,5 @@
 
 - **2026-01-15:** Initial project setup and memory bank initialization.
 - **2026-01-20:** Completed Iteration 1 (Round 1 specific logic). Added multi-option blanks and turn-based sections.
+- **2026-01-20:** Completed Iteration 2 (Round 2 Chronology). Added drag-and-drop and complex scoring.
+- **2026-01-20:** Completed Iteration 3 (Round 3 True/False & Streaks). Added streak persistence and bonus points.

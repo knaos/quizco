@@ -191,7 +191,35 @@ export class GameManager {
     );
 
     const isCorrect = gradingResult ? gradingResult.isCorrect : null;
-    const scoreAwarded = gradingResult ? gradingResult.score : 0;
+    let scoreAwarded = gradingResult ? gradingResult.score : 0;
+
+    const team = session.teams.find((t) => t.id === teamId);
+    if (team && isCorrect !== null) {
+      // Streak logic
+      if (isCorrect) {
+        team.streak = (team.streak || 0) + 1;
+
+        // Apply bonus if in STREAK round
+        const questions =
+          await this.repository.getQuestionsForCompetition(competitionId);
+        const questionData = questions.find((q) => q.id === questionId);
+        const round = questionData?.round;
+
+        if (round?.type === "STREAK") {
+          let bonus = 0;
+          if (team.streak >= 10) bonus = 3;
+          else if (team.streak >= 7) bonus = 2;
+          else if (team.streak >= 5) bonus = 1;
+
+          scoreAwarded += bonus;
+        }
+      } else {
+        team.streak = 0;
+      }
+
+      // Update streak in DB
+      await this.repository.updateTeamStreak(teamId, team.streak);
+    }
 
     // Store in Repository
     await this.repository.saveAnswer(
@@ -203,8 +231,7 @@ export class GameManager {
       scoreAwarded
     );
 
-    // Update score and status in memory immediately
-    const team = session.teams.find((t) => t.id === teamId);
+    // Update status in memory immediately
     if (team) {
       team.lastAnswer = answer;
       if (isCorrect !== null) {
@@ -267,9 +294,8 @@ export class GameManager {
 
   public async next(competitionId: string, onTick: (state: GameState) => void) {
     const session = this.getOrCreateSession(competitionId);
-    const questions = await this.repository.getQuestionsForCompetition(
-      competitionId
-    );
+    const questions =
+      await this.repository.getQuestionsForCompetition(competitionId);
 
     switch (session.phase) {
       case "WAITING":

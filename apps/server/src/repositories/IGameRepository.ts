@@ -8,6 +8,7 @@ export interface IGameRepository {
     color: string
   ): Promise<Team>;
   getTeamScore(competitionId: string, teamId: string): Promise<number>;
+  updateTeamStreak(teamId: string, streak: number): Promise<void>;
   reconnectTeam(competitionId: string, teamId: string): Promise<Team | null>;
 
   // Questions

@@ -6,6 +6,7 @@ import { Crossword } from "./Crossword";
 import { FillInTheBlanksPlayer } from "./player/FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./player/MatchingPlayer";
 import { ChronologyPlayer } from "./player/ChronologyPlayer";
+import TrueFalsePlayer from "./player/TrueFalsePlayer";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent } from "@quizco/shared";
@@ -82,6 +83,8 @@ export const PlayerView: React.FC = () => {
       } else if (state.currentQuestion.type === "CHRONOLOGY") {
         // Initialize with IDs from current shuffled items
         setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
+      } else if (state.currentQuestion.type === "TRUE_FALSE") {
+        setAnswer(null as any); // Use null to indicate no selection yet
       } else {
         setAnswer("");
       }
@@ -306,6 +309,9 @@ export const PlayerView: React.FC = () => {
         const chrContent = content as ChronologyContent;
         return [...chrContent.items].sort((a,b) => a.order - b.order).map(i => i.text).join(" → ");
     }
+    if (type === "TRUE_FALSE") {
+        return (content as any).isTrue ? t("game.true") : t("game.false");
+    }
     return "Unknown";
   };
 
@@ -528,6 +534,15 @@ export const PlayerView: React.FC = () => {
                         <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
                       </button>
                     </div>
+                  ) : state.currentQuestion.type === "TRUE_FALSE" ? (
+                    <TrueFalsePlayer
+                      selectedAnswer={answer as boolean | null}
+                      disabled={hasSubmitted}
+                      onAnswer={(val) => {
+                        setAnswer(val);
+                        submitAnswer(val);
+                      }}
+                    />
                   ) : (
                     <div className="flex flex-col space-y-4">
                       <input
@@ -694,7 +709,9 @@ export const PlayerView: React.FC = () => {
                       <div className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
                         {(() => {
                           const lastAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer;
-                          if (!lastAnswer) return "(No Answer)";
+                          if (lastAnswer === null || lastAnswer === undefined || lastAnswer === "") return "(No Answer)";
+                          if (lastAnswer === true) return t("game.true");
+                          if (lastAnswer === false) return t("game.false");
                           if (Array.isArray(lastAnswer)) return lastAnswer.join(", ");
                           if (typeof lastAnswer === "object") {
                             return Object.values(lastAnswer).join(", ");

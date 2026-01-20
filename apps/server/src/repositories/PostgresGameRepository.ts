@@ -12,7 +12,7 @@ export class PostgresGameRepository implements IGameRepository {
   async getOrCreateTeam(
     competitionId: string,
     name: string,
-    color: string,
+    color: string
   ): Promise<Team> {
     const dbTeam = await prisma.team.upsert({
       where: {
@@ -36,6 +36,7 @@ export class PostgresGameRepository implements IGameRepository {
       name: dbTeam.name,
       color: dbTeam.color || "",
       score,
+      streak: dbTeam.streak,
       lastAnswerCorrect: null,
       lastAnswer: null,
       isConnected: false,
@@ -59,9 +60,16 @@ export class PostgresGameRepository implements IGameRepository {
     return aggregate._sum.scoreAwarded || 0;
   }
 
+  async updateTeamStreak(teamId: string, streak: number): Promise<void> {
+    await prisma.team.update({
+      where: { id: teamId },
+      data: { streak },
+    });
+  }
+
   async reconnectTeam(
     competitionId: string,
-    teamId: string,
+    teamId: string
   ): Promise<Team | null> {
     const dbTeam = await prisma.team.findUnique({
       where: { id: teamId },
@@ -76,6 +84,7 @@ export class PostgresGameRepository implements IGameRepository {
       name: dbTeam.name,
       color: dbTeam.color || "",
       score,
+      streak: dbTeam.streak,
       lastAnswerCorrect: null,
       lastAnswer: null,
       isConnected: false,
@@ -153,7 +162,7 @@ export class PostgresGameRepository implements IGameRepository {
     roundId: string,
     submittedContent: any,
     isCorrect: boolean | null,
-    scoreAwarded: number,
+    scoreAwarded: number
   ): Promise<any> {
     return prisma.answer.create({
       data: {
@@ -176,7 +185,7 @@ export class PostgresGameRepository implements IGameRepository {
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
-    scoreAwarded: number,
+    scoreAwarded: number
   ): Promise<void> {
     await prisma.answer.update({
       where: { id: answerId },

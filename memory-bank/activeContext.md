@@ -12,6 +12,16 @@ When adding new question types:
 
 ## Recent Changes
 
+- **Iteration 3 Complete: "True/False" & Streak Logic (Round 3):**
+  - Implemented `TRUE_FALSE` question type and `STREAK` round type.
+  - **Streak Logic:** `GameManager.ts` now tracks consecutive correct answers for each team. Streak is persisted in the database (`Team.streak`).
+  - **Bonus Points:** In `STREAK` rounds, teams earn bonus points for correct answer streaks: 5-6 (+1), 7-9 (+2), 10+ (+3).
+  - **Grading:** Updated `GradingService.ts` to handle `TRUE_FALSE` questions.
+  - **Admin UI:** Created `TrueFalseEditor.tsx` for simple true/false toggle.
+  - **Player UI:** Created `TrueFalsePlayer.tsx` with large touch-friendly buttons for rapid-fire answering.
+  - **Resilience:** Updated `PostgresGameRepository` to save and restore team streaks.
+  - Updated shared types, Prisma schema, test mocks, and `seed.ts`.
+
 - **Iteration 2 Complete: "Chronology" (Round 2):**
   - Implemented `CHRONOLOGY` question type with server-side shuffling.
   - **Server-Side Shuffling:** `GameManager.ts` now deep-clones questions and shuffles items for `CHRONOLOGY` questions when they start, ensuring all players receive the same randomized order.
@@ -37,10 +47,10 @@ When adding new question types:
 
 ## Next Steps
 
-1. **Iteration 3:** Implement "True/False" & Streak Logic (Round 3).
-   - Consecutive correct answer tracking.
-   - Bonus points (+1 for 5-6, +2 for 7-9, +3 for 10).
-2. **Iteration 4:** Implement Crossword Joker (Round 4).
+1. **Iteration 4:** Implement Crossword Joker (Round 4).
+   - Allow players to request a letter.
+   - Cost: 2 points.
+   - Emit `GRID_UPDATE` to all teams.
 
 ## Active Decisions
 

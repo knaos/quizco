@@ -54,6 +54,7 @@ model Team {
   competitionId String   @db.Uuid // Linked to competition
   name          String   @db.VarChar(255)
   color         String?  @db.VarChar(50)
+  streak        Int      @default(0)
   createdAt     DateTime @default(now()) @db.Timestamptz(6)
 
   competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
@@ -98,10 +99,12 @@ enum QuestionType {
   FILL_IN_THE_BLANKS
   MATCHING
   CHRONOLOGY
+  TRUE_FALSE
 }
 
 enum RoundType {
   STANDARD
   CROSSWORD
   SPEED_RUN
+  STREAK
 }
