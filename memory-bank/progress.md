@@ -14,25 +14,44 @@
 
 ## What's Left to Build
 
-- **Game State Synchronization:** Robust handling of phase transitions and late joins.
-- **Admin/Host UI Refinement:** [x] Refined Host Dashboard to support Competitions and Rounds.
-- **Question Editors:** Dedicated UI for creating different question types (MCQ, Open, Crossword).
-- **Timer Logic:** Server-authoritative countdown with drift prevention.
-- **Leaderboard:** Real-time score aggregation and display.
-- **Crossword Integration:** Full implementation of `react-crossword` with server sync.
-- **Tests:** Unit and integration tests for game logic and state transitions.
+### Iteration 1: Round 1 ("Something for Everyone")
+
+- [ ] Support `FILL_IN_THE_BLANKS` and `MATCHING` question types.
+- [ ] Implement `section` based turns (Individual Play).
+- [ ] Create specialized editors for Fill-in-Blanks and Matching.
+
+### Iteration 2: Round 2 ("Biblical Chronology")
+
+- [ ] Support `CHRONOLOGY` question type with Drag-and-Drop.
+- [ ] Implement Chronology scoring (+1 per correct index, +3 for perfect match).
+
+### Iteration 3: Round 3 ("True or False?")
+
+- [ ] Support `CORRECT_THE_ERROR` question type.
+- [ ] Implement "Streak Bonus" logic (5-6: +1, 7-9: +2, 10: +3).
+
+### Iteration 4: Round 4 ("Final" - Crossword)
+
+- [ ] Implement "Joker" mechanic (-2 points for revealed letter).
+- [ ] Implement "Full Completion Bonus" (+3 points).
+
+### General
+
+- [ ] Timer Logic: Server-authoritative countdown with drift prevention.
+- [ ] Leaderboard: Real-time score aggregation and display.
+- [ ] Tests: Unit and integration tests for all new question types and scoring logic.
 
 ## Current Status
 
-- **Overall Completion:** ~60%
+- **Overall Completion:** ~40% (Scope expanded based on requirements)
 - **Infrastructure:** [x] Done
-- **Database:** [x] Done
+- **Database:** [/] Basic schema exists, updates needed for new types and sections.
 - **Core State Machine:** [x] Done (Multi-session support added)
-- **Scoring & Grading:** [x] Done
+- **Scoring & Grading:** [/] Basic grading exists, needs expansion for new rounds.
 - **Admin UI:** [x] Done (Competitions and Rounds management)
 - **Player UI:** [/] In Progress (Quiz selection added)
 - **Real-Time Sync:** [x] Done (Multi-room isolation)
-- **Host Control Flow:** [x] Done (Implemented "Next" button flow with incremental reveals and round screens)
+- **Host Control Flow:** [x] Done (Implemented "Next" button flow)
 
 ## Known Issues
 

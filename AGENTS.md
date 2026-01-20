@@ -89,7 +89,7 @@ SQL
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE question_type AS ENUM ('CLOSED', 'MULTIPLE_CHOICE', 'OPEN_WORD', 'CROSSWORD');
+CREATE TYPE question_type AS ENUM ('CLOSED', 'MULTIPLE_CHOICE', 'OPEN_WORD', 'CROSSWORD', 'FILL_IN_THE_BLANKS', 'MATCHING', 'CHRONOLOGY', 'CORRECT_THE_ERROR');
 CREATE TYPE grading_mode AS ENUM ('AUTO', 'MANUAL');
 
 CREATE TABLE questions (
@@ -101,7 +101,8 @@ points INTEGER DEFAULT 10,
 time_limit_seconds INTEGER DEFAULT 30,
 content JSONB NOT NULL, -- Stores options, correct index, or full crossword grid
 grading grading_mode DEFAULT 'AUTO',
-created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+section TEXT -- Added for Round 1 player assignment
 );
 CREATE INDEX idx_questions_content ON questions USING GIN (content); 5. Real-Time State Machine (Socket.io)
 The application relies on a Server-Authoritative State Machine.
@@ -135,6 +136,12 @@ Security: Reject answers submitted after the phase changes.
 CROSSWORD_PROGRESS:
 
 Throttling: Frontend must throttle this event (e.g., every 5 seconds or 3 words), NOT on every keystroke.
+
+JOKER_REVEAL:
+
+Trigger: Player requests a letter.
+Validation: Check points >= cost, has not used joker yet.
+Action: Deduct 2 points, reveal letter, emit GRID_UPDATE.
 
 6. Development Workflow (Agentic Cycle)
    When asked to build a feature, follow this loop:
@@ -190,3 +197,16 @@ Offline Resilience
 On every Question change, the Server should dump GameState to a local backup.json file.
 
 On server restart, check for backup.json to resume the session.
+
+Round 1: Individual Play
+Questions must be tagged with a `section`.
+The Client UI must prominently display "Turn: Player [Section]".
+Only answers submitted for the correct section are valid (though enforced via UI/Social contract in 1-device setup).
+
+Round 2: Chronology
+Use drag-and-drop.
+Scoring: +1 per correct index, +3 for perfect match.
+
+Round 3: Streaks
+Track consecutive correct answers in `GameState`.
+Bonus applied during grading: 5-6 (+1), 7-9 (+2), 10 (+3).
