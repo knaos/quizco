@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "QuestionType" ADD VALUE 'CORRECT_THE_ERROR';

@@ -10,7 +10,8 @@
       "save": "Save",
       "delete": "Delete",
       "edit": "Edit",
-      "create": "Create"
+      "create": "Create",
+      "remove": "Remove"
     },
     "host": {
       "dashboard": "Host Dashboard",
@@ -50,15 +51,33 @@
       "next_soon": "Next question coming soon...",
       "see_grid": "See Grid",
       "waiting_grading": "Waiting for grading",
-      "session_lost_rejoin": "Session lost. Please rejoin."
+      "session_lost_rejoin": "Session lost. Please rejoin.",
+      "questions": {
+        "correctTheError": {
+          "instruction": "Identify the incorrect phrase and type the correction.",
+          "correctionLabel": "Your correction:",
+          "correctionPlaceholder": "Type the correct word/phrase..."
+        }
+      }
     },
     "game": {
       "true": "True",
-      "false": "False"
+      "false": "False",
+      "request_joker": "Request Joker"
     },
     "admin": {
       "correct_answer": "Correct Answer",
-      "true_false_hint": "Select whether the statement above is True or False."
+      "true_false_hint": "Select whether the statement above is True or False.",
+      "questions": {
+        "correctTheError": {
+          "fullText": "Full Sentence Text",
+          "phrases": "Sentence Phrases",
+          "phrasesHelp": "Click the radio button next to the phrase that contains the error.",
+          "addPhrase": "Add Phrase",
+          "correctReplacement": "Correct Replacement",
+          "correctReplacementPlaceholder": "Enter the correct text..."
+        }
+      }
     }
   }
 }

@@ -51,6 +51,7 @@ When adding new question types:
    - Allow players to request a letter.
    - Cost: 2 points.
    - Emit `GRID_UPDATE` to all teams.
+   - Ensure goo d and usable UI is used for the whole crossword grid - both players and admin preparing the crossword.
 
 ## Active Decisions
 

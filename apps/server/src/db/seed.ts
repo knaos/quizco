@@ -254,12 +254,30 @@ async function seed() {
         data: [
           {
             roundId: rStreak.id,
+            questionText: "Correct the error in the following statement.",
+            type: "CORRECT_THE_ERROR" as QuestionType,
+            points: 2,
+            content: {
+              text: "Jesus was born in Nazareth in the days of Herod the king.",
+              phrases: [
+                "Jesus was born",
+                "in Nazareth",
+                "in the days of",
+                "Herod the king",
+              ],
+              errorPhraseIndex: 1,
+              correctReplacement: "in Bethlehem",
+            },
+          },
+          {
+            roundId: rStreak.id,
             questionText: "Noah's ark had three decks.",
             type: "TRUE_FALSE" as QuestionType,
             points: 10,
             timeLimitSeconds: 15,
             content: { isTrue: true },
           },
+
           {
             roundId: rStreak.id,
             questionText: "The Israelites wandered in the desert for 50 years.",

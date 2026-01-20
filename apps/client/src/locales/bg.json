@@ -1,7 +1,7 @@
 {
   "translation": {
     "common": {
-      "score": "Резултат",
+      "score": "Точки",
       "time": "Време",
       "teams": "Отбори",
       "loading": "Зареждане...",
@@ -10,55 +10,74 @@
       "save": "Запази",
       "delete": "Изтрий",
       "edit": "Редактирай",
-      "create": "Създай"
+      "create": "Създай",
+      "remove": "Премахни"
     },
     "host": {
       "dashboard": "Табло на Водещия",
       "connected_teams": "Свързани Отбори",
       "current_status": "Текущ Статус",
       "control_panel": "Контролен Панел",
-      "start_timer": "СТАРТИРАЙ ТАЙМЕР",
+      "start_timer": "СТАРТ ТАЙМЕР",
       "reveal_answer": "ПОКАЖИ ОТГОВОРА",
       "leaderboard": "Класиране",
       "select_question": "Избери Въпрос",
-      "access_title": "Достъп за Водещи",
-      "password_placeholder": "Парола на водещия",
+      "access_title": "Достъп за Водещ",
+      "password_placeholder": "Парола на Водещия",
       "enter_password_hint": "Въведете парола, за да продължите",
-      "login_button": "Влез като Водещ",
+      "login_button": "Вход като Водещ",
       "admin_panel": "Админ Панел"
     },
     "player": {
-      "join_title": "Влез в Куиза!",
+      "join_title": "Включи се в Куиза!",
       "team_name": "Име на Отбора",
       "pick_color": "Избери Цвят",
-      "lets_go": "Да тръгваме!",
-      "waiting_host": "Изчакване на водещия...",
+      "lets_go": "Да започваме!",
+      "waiting_host": "Изчакване на водещия да започне...",
       "get_ready": "Пригответе се!",
       "upcoming_question": "Следващ Въпрос",
-      "host_reading": "Водещият чете въпроса. Бъдете готови!",
+      "host_reading": "Водещият чете въпроса. Пригответе се за отговор!",
       "submit_answer": "Изпрати Отговор",
-      "answer_received": "Отговорът е получен!",
-      "answer_failed": "Неуспешно изпращане!",
+      "answer_received": "Отговорът е Получен!",
+      "answer_failed": "Грешка при изпращане!",
       "waiting_others": "Изчакване на другите отбори...",
       "times_up": "Времето изтече!",
-      "reveal_phase": "Разкриване",
+      "reveal_phase": "Разкриване на Отговора",
       "correct": "ПРАВИЛНО",
       "incorrect": "ГРЕШНО",
       "your_choice": "Твоят Избор",
       "correct_answer": "Правилен Отговор",
       "your_answer": "Твоят Отговор",
-      "next_soon": "Следващият въпрос предстои...",
-      "see_grid": "Виж мрежата",
+      "next_soon": "Следващият въпрос идва скоро...",
+      "see_grid": "Виж Мрежата",
       "waiting_grading": "Изчакване на оценяване",
-      "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново."
+      "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново.",
+      "questions": {
+        "correctTheError": {
+          "instruction": "Посочете грешната фраза и напишете корекцията.",
+          "correctionLabel": "Вашата корекция:",
+          "correctionPlaceholder": "Напишете правилната дума/фраза..."
+        }
+      }
     },
     "game": {
-      "true": "Вярно",
-      "false": "Грешно"
+      "true": "Истина",
+      "false": "Лъжа",
+      "request_joker": "Поискай Жокер"
     },
     "admin": {
-      "correct_answer": "Правилен отговор",
-      "true_false_hint": "Изберете дали твърдението по-горе е Вярно или Грешно."
+      "correct_answer": "Правилен Отговор",
+      "true_false_hint": "Изберете дали твърдението по-горе е Истина или Лъжа.",
+      "questions": {
+        "correctTheError": {
+          "fullText": "Пълен текст на изречението",
+          "phrases": "Фрази на изречението",
+          "phrasesHelp": "Кликнете върху бутона до фразата, която съдържа грешка.",
+          "addPhrase": "Добави фраза",
+          "correctReplacement": "Правилна корекция",
+          "correctReplacementPlaceholder": "Въведете правилния текст..."
+        }
+      }
     }
   }
 }

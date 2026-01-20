@@ -67,6 +67,13 @@ export class PostgresGameRepository implements IGameRepository {
     });
   }
 
+  async updateTeamScore(teamId: string, _score: number): Promise<void> {
+    // Current schema calculates scores from Answer table.
+    // If we want to persist score penalties (like Joker -2),
+    // we would ideally have a "scoreAdjustment" field in Team or a dedicated Adjustment table.
+    // For now, score is kept in memory in GameManager and synced.
+  }
+
   async reconnectTeam(
     competitionId: string,
     teamId: string

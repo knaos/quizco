@@ -78,8 +78,9 @@ describe("GradingService", () => {
 
     expect(service.gradeAnswer(question, correctGrid)).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 13, // 10 points + 3 bonus for no jokers
     });
+
     expect(service.gradeAnswer(question, incorrectGrid)).toEqual({
       isCorrect: false,
       score: 0,
@@ -221,6 +222,63 @@ describe("GradingService", () => {
       score: 10,
     });
     expect(service.gradeAnswer(question, false)).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+  });
+
+  it("grades CORRECT_THE_ERROR correctly", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CORRECT_THE_ERROR",
+      content: {
+        text: "Jesus was born in Nazareth.",
+        phrases: ["Jesus", "was born", "in Nazareth"],
+        errorPhraseIndex: 2,
+        correctReplacement: "in Bethlehem",
+      },
+    };
+
+    // 1. Fully correct: 1pt for index, 1pt for replacement = 2
+    expect(
+      service.gradeAnswer(question, {
+        selectedPhraseIndex: 2,
+        correction: "in Bethlehem",
+      })
+    ).toEqual({
+      isCorrect: true,
+      score: 2,
+    });
+
+    // 2. Correct index, incorrect replacement: 1pt
+    expect(
+      service.gradeAnswer(question, {
+        selectedPhraseIndex: 2,
+        correction: "in Jerusalem",
+      })
+    ).toEqual({
+      isCorrect: false,
+      score: 1,
+    });
+
+    // 3. Incorrect index, correct replacement: 1pt
+    expect(
+      service.gradeAnswer(question, {
+        selectedPhraseIndex: 0,
+        correction: "in Bethlehem",
+      })
+    ).toEqual({
+      isCorrect: false,
+      score: 1,
+    });
+
+    // 4. Incorrect index, incorrect replacement: 0pt
+    expect(
+      service.gradeAnswer(question, {
+        selectedPhraseIndex: 1,
+        correction: "wrong",
+      })
+    ).toEqual({
       isCorrect: false,
       score: 0,
     });

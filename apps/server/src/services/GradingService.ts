@@ -12,13 +12,15 @@ import {
   ChronologyContent,
   ChronologyAnswer,
   TrueFalseContent,
-  TrueFalseAnswer,
+  CorrectTheErrorContent,
+  CorrectTheErrorAnswer,
 } from "@quizco/shared";
 
 export class GradingService {
   public gradeAnswer(
     question: Question,
-    answer: AnswerContent
+    answer: AnswerContent,
+    options: { usedJokers?: boolean } = {}
   ): { isCorrect: boolean; score: number } | null {
     if (question.grading === "MANUAL") {
       return null; // Needs manual grading
@@ -46,7 +48,8 @@ export class GradingService {
         return this.gradeCrossword(
           question.content as CrosswordContent,
           answer as CrosswordAnswer,
-          question.points
+          question.points,
+          options.usedJokers || false
         );
       }
 
@@ -78,6 +81,14 @@ export class GradingService {
         return this.gradeTrueFalse(
           question.content as TrueFalseContent,
           answer as unknown as boolean,
+          question.points
+        );
+      }
+
+      if (question.type === "CORRECT_THE_ERROR") {
+        return this.gradeCorrectTheError(
+          question.content as CorrectTheErrorContent,
+          answer as unknown as CorrectTheErrorAnswer,
           question.points
         );
       }
@@ -124,7 +135,8 @@ export class GradingService {
   private gradeCrossword(
     content: CrosswordContent,
     answer: CrosswordAnswer,
-    points: number
+    points: number,
+    usedJokers: boolean
   ) {
     if (!answer || !Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -152,7 +164,13 @@ export class GradingService {
       }
     }
 
-    return { isCorrect: true, score: points };
+    let scoreAwarded = points;
+    // Add +3 bonus points if completed without jokers
+    if (!usedJokers) {
+      scoreAwarded += 3;
+    }
+
+    return { isCorrect: true, score: scoreAwarded };
   }
 
   private gradeFillInTheBlanks(
@@ -248,5 +266,35 @@ export class GradingService {
   ) {
     const isCorrect = content.isTrue === answer;
     return { isCorrect, score: isCorrect ? points : 0 };
+  }
+
+  private gradeCorrectTheError(
+    content: CorrectTheErrorContent,
+    answer: CorrectTheErrorAnswer,
+    _totalPoints: number
+  ) {
+    if (!answer || typeof answer.selectedPhraseIndex === "undefined") {
+      return { isCorrect: false, score: 0 };
+    }
+
+    let score = 0;
+
+    // 1. Correct phrase selection (1pt)
+    if (answer.selectedPhraseIndex === content.errorPhraseIndex) {
+      score += 1;
+    }
+
+    // 2. Correct text replacement (1pt)
+    const normalizedCorrection = (answer.correction || "").trim().toLowerCase();
+    const normalizedTarget = content.correctReplacement.trim().toLowerCase();
+
+    if (normalizedCorrection === normalizedTarget) {
+      score += 1;
+    }
+
+    return {
+      isCorrect: score === 2,
+      score: score,
+    };
   }
 }

@@ -10,7 +10,7 @@ import { GradingService } from "./services/GradingService";
 import { StatePersistenceService } from "./services/StatePersistenceService";
 
 export class GameManager {
-  private sessions: Map<string, GameState> = new Map();
+  private sessions: Map<string, GameState & { metadata?: any }> = new Map();
   private timers: Map<string, NodeJS.Timeout> = new Map();
   private gradingService: GradingService;
   private persistenceService: StatePersistenceService;
@@ -28,7 +28,9 @@ export class GameManager {
     await this.persistenceService.saveState(this.sessions);
   }
 
-  private getOrCreateSession(competitionId: string): GameState {
+  private getOrCreateSession(
+    competitionId: string
+  ): GameState & { metadata?: any } {
     if (!this.sessions.has(competitionId)) {
       this.sessions.set(competitionId, {
         phase: "WAITING",
@@ -36,9 +38,12 @@ export class GameManager {
         timeRemaining: 0,
         teams: [],
         revealStep: 0,
+        metadata: {},
       });
     }
-    return this.sessions.get(competitionId)!;
+    const session = this.sessions.get(competitionId)!;
+    if (!session.metadata) session.metadata = {};
+    return session;
   }
 
   /**
@@ -115,6 +120,7 @@ export class GameManager {
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
     session.revealStep = 0;
+    session.metadata = {}; // Clear metadata for new question
 
     // Reset last answer status for all teams
     for (const team of session.teams) {
@@ -184,10 +190,13 @@ export class GameManager {
     if (session.phase !== "QUESTION_ACTIVE") return;
     if (session.currentQuestion?.id !== questionId) return;
 
+    const usedJokers = session.metadata?.usedJokers?.has(teamId) || false;
+
     // Use GradingService
     const gradingResult = this.gradingService.gradeAnswer(
       session.currentQuestion,
-      answer
+      answer,
+      { usedJokers }
     );
 
     const isCorrect = gradingResult ? gradingResult.isCorrect : null;
@@ -251,6 +260,66 @@ export class GameManager {
     if (submittedCount >= session.teams.length && session.teams.length > 0) {
       this.endQuestion(competitionId);
     }
+  }
+
+  public async handleJokerReveal(
+    competitionId: string,
+    teamId: string,
+    questionId: string,
+    io: any
+  ) {
+    const session = this.getOrCreateSession(competitionId);
+    if (session.phase !== "QUESTION_ACTIVE") return;
+    if (session.currentQuestion?.type !== "CROSSWORD") return;
+    if (session.currentQuestion.id !== questionId) return;
+
+    const team = session.teams.find((t) => t.id === teamId);
+    if (!team) return;
+
+    // Rule: Joker costs 2 points
+    if (team.score < 2) {
+      io.to(competitionId).emit("JOKER_ERROR", {
+        message: "Not enough points for a joker",
+      });
+      return;
+    }
+
+    const content = session.currentQuestion.content as any;
+    const grid = content.grid;
+
+    // Find all valid cells
+    const validCells: { x: number; y: number; char: string }[] = [];
+    for (let y = 0; y < grid.length; y++) {
+      for (let x = 0; x < grid[y].length; x++) {
+        if (grid[y][x] && grid[y][x] !== "") {
+          validCells.push({ x, y, char: grid[y][x] });
+        }
+      }
+    }
+
+    if (validCells.length === 0) return;
+
+    const randomCell =
+      validCells[Math.floor(Math.random() * validCells.length)];
+
+    team.score -= 2;
+    if (!session.metadata.usedJokers) session.metadata.usedJokers = new Set();
+    session.metadata.usedJokers.add(teamId);
+
+    // Update score in DB
+    await this.repository.updateTeamScore(teamId, team.score);
+
+    io.to(competitionId).emit("JOKER_REVEAL", {
+      questionId,
+      teamId,
+      letter: randomCell.char,
+      x: randomCell.x,
+      y: randomCell.y,
+      newScore: team.score,
+    });
+
+    io.to(competitionId).emit("SCORE_UPDATE", session.teams);
+    await this.saveState();
   }
 
   public async handleGradeDecision(

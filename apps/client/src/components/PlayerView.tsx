@@ -7,9 +7,10 @@ import { FillInTheBlanksPlayer } from "./player/FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./player/MatchingPlayer";
 import { ChronologyPlayer } from "./player/ChronologyPlayer";
 import TrueFalsePlayer from "./player/TrueFalsePlayer";
+import CorrectTheErrorPlayer from "./player/CorrectTheErrorPlayer";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -85,6 +86,8 @@ export const PlayerView: React.FC = () => {
         setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
       } else if (state.currentQuestion.type === "TRUE_FALSE") {
         setAnswer(null as any); // Use null to indicate no selection yet
+      } else if (state.currentQuestion.type === "CORRECT_THE_ERROR") {
+        setAnswer({ selectedPhraseIndex: -1, correction: "" });
       } else {
         setAnswer("");
       }
@@ -311,6 +314,10 @@ export const PlayerView: React.FC = () => {
     }
     if (type === "TRUE_FALSE") {
         return (content as any).isTrue ? t("game.true") : t("game.false");
+    }
+    if (type === "CORRECT_THE_ERROR") {
+        const cteContent = content as CorrectTheErrorContent;
+        return `${cteContent.phrases[cteContent.errorPhraseIndex]} → ${cteContent.correctReplacement}`;
     }
     return "Unknown";
   };
@@ -542,6 +549,16 @@ export const PlayerView: React.FC = () => {
                         setAnswer(val);
                         submitAnswer(val);
                       }}
+                    />
+                  ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
+                    <CorrectTheErrorPlayer
+                        content={state.currentQuestion.content}
+                        onAnswer={(val) => {
+                            setAnswer(val);
+                            submitAnswer(val);
+                        }}
+                        disabled={hasSubmitted}
+                        initialAnswer={currentTeam?.lastAnswer as any}
                     />
                   ) : (
                     <div className="flex flex-col space-y-4">

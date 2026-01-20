@@ -8,6 +8,7 @@ import { FillInTheBlanksEditor } from "./editors/FillInTheBlanksEditor";
 import { MatchingEditor } from "./editors/MatchingEditor";
 import { ChronologyEditor } from "./editors/ChronologyEditor";
 import TrueFalseEditor from "./editors/TrueFalseEditor";
+import CorrectTheErrorEditor from "./editors/CorrectTheErrorEditor";
 
 interface QuestionEditorProps {
   question: Partial<Question>;
@@ -43,6 +44,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
       content = { items: [] };
     } else if (type === "TRUE_FALSE") {
       content = { isTrue: true };
+    } else if (type === "CORRECT_THE_ERROR") {
+      content = { text: "", phrases: [], errorPhraseIndex: -1, correctReplacement: "" };
     }
     setFormData({ ...formData, type, content });
   };
@@ -80,6 +83,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
                 <option value="MATCHING">Matching</option>
                 <option value="CHRONOLOGY">Chronology</option>
                 <option value="TRUE_FALSE">True / False</option>
+                <option value="CORRECT_THE_ERROR">Correct The Error</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -167,6 +171,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
 
             {formData.type === "TRUE_FALSE" && (
               <TrueFalseEditor content={formData.content as any} onChange={handleContentChange} />
+            )}
+
+            {formData.type === "CORRECT_THE_ERROR" && (
+              <CorrectTheErrorEditor content={formData.content as any} onChange={handleContentChange} />
             )}
           </div>
         </div>

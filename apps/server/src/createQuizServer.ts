@@ -9,7 +9,7 @@ import prisma from "./db/prisma";
 
 export function createQuizServer(
   gameManager: GameManager,
-  repository: IGameRepository,
+  repository: IGameRepository
 ) {
   const app = express();
   app.use(cors());
@@ -105,13 +105,13 @@ export function createQuizServer(
           const changed = gameManager.updateTeamConnection(
             info.competitionId,
             info.teamId,
-            false,
+            false
           );
           if (changed) {
             const room = `competition_${info.competitionId}`;
             io.to(room).emit(
               "SCORE_UPDATE",
-              gameManager.getState(info.competitionId).teams,
+              gameManager.getState(info.competitionId).teams
             );
           }
         }
@@ -156,7 +156,7 @@ export function createQuizServer(
         socket.emit("GAME_STATE_SYNC", state);
         io.to(room).emit("SCORE_UPDATE", state.teams);
         if (callback) callback({ success: true, team });
-      },
+      }
     );
 
     socket.on("RECONNECT_TEAM", async ({ competitionId, teamId }, callback) => {
@@ -191,7 +191,7 @@ export function createQuizServer(
             competitionId,
             teamId,
             questionId,
-            answer,
+            answer
           );
           const state = gameManager.getState(competitionId);
           const room = `competition_${competitionId}`;
@@ -202,7 +202,25 @@ export function createQuizServer(
           console.error("Error submitting answer:", err);
           callback?.({ success: false, error: (err as Error).message });
         }
-      },
+      }
+    );
+
+    socket.on(
+      "REQUEST_JOKER",
+      async ({ competitionId, teamId, questionId }) => {
+        if (!competitionId) return;
+        try {
+          await gameManager.handleJokerReveal(
+            competitionId,
+            teamId,
+            questionId,
+            io
+          );
+        } catch (err) {
+          console.error("Error handling joker reveal:", err);
+          socket.emit("JOKER_ERROR", { message: (err as Error).message });
+        }
+      }
     );
 
     socket.on("HOST_START_QUESTION", async ({ competitionId, questionId }) => {
@@ -210,7 +228,7 @@ export function createQuizServer(
       await gameManager.startQuestion(competitionId, questionId);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
+        gameManager.getState(competitionId)
       );
     });
 
@@ -234,7 +252,7 @@ export function createQuizServer(
       gameManager.revealAnswer(competitionId);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
+        gameManager.getState(competitionId)
       );
     });
 
@@ -255,7 +273,7 @@ export function createQuizServer(
       await gameManager.setPhase(competitionId, phase);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
+        gameManager.getState(competitionId)
       );
     });
 
@@ -268,7 +286,7 @@ export function createQuizServer(
         const room = `competition_${competitionId}`;
         io.to(room).emit("SCORE_UPDATE", state.teams);
         io.to(room).emit("GAME_STATE_SYNC", state);
-      },
+      }
     );
 
     socket.on("disconnect", () => {
@@ -278,13 +296,13 @@ export function createQuizServer(
         const changed = gameManager.updateTeamConnection(
           info.competitionId,
           info.teamId,
-          false,
+          false
         );
         if (changed) {
           const room = `competition_${info.competitionId}`;
           io.to(room).emit(
             "SCORE_UPDATE",
-            gameManager.getState(info.competitionId).teams,
+            gameManager.getState(info.competitionId).teams
           );
         }
         socketToTeam.delete(socket.id);

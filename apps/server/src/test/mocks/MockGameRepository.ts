@@ -44,6 +44,13 @@ export class MockGameRepository implements IGameRepository {
     }
   }
 
+  async updateTeamScore(teamId: string, score: number): Promise<void> {
+    const team = this.teams.find((t) => t.id === teamId);
+    if (team) {
+      team.score = score;
+    }
+  }
+
   async reconnectTeam(
     competitionId: string,
     teamId: string

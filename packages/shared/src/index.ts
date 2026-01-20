@@ -6,7 +6,8 @@ export type QuestionType =
   | "FILL_IN_THE_BLANKS"
   | "MATCHING"
   | "CHRONOLOGY"
-  | "TRUE_FALSE";
+  | "TRUE_FALSE"
+  | "CORRECT_THE_ERROR";
 export type GradingMode = "AUTO" | "MANUAL";
 export type GamePhase =
   | "WAITING"
@@ -27,6 +28,10 @@ export type FillInTheBlanksAnswer = string[]; // Values for blanks in order
 export type MatchingAnswer = Record<string, string>; // leftSideId -> rightSideId
 export type ChronologyAnswer = string[]; // IDs in submitted order
 export type TrueFalseAnswer = boolean;
+export type CorrectTheErrorAnswer = {
+  selectedPhraseIndex: number;
+  correction: string;
+};
 
 export type AnswerContent =
   | MultipleChoiceAnswer
@@ -36,7 +41,8 @@ export type AnswerContent =
   | FillInTheBlanksAnswer
   | MatchingAnswer
   | ChronologyAnswer
-  | TrueFalseAnswer;
+  | TrueFalseAnswer
+  | CorrectTheErrorAnswer;
 
 export type CrosswordGridState = string[][];
 
@@ -108,6 +114,13 @@ export interface TrueFalseContent {
   isTrue: boolean;
 }
 
+export interface CorrectTheErrorContent {
+  text: string;
+  phrases: string[];
+  errorPhraseIndex: number;
+  correctReplacement: string;
+}
+
 export type QuestionContent =
   | MultipleChoiceContent
   | CrosswordContent
@@ -116,7 +129,8 @@ export type QuestionContent =
   | FillInTheBlanksContent
   | MatchingContent
   | ChronologyContent
-  | TrueFalseContent;
+  | TrueFalseContent
+  | CorrectTheErrorContent;
 
 interface BaseQuestion {
   id: string;
@@ -168,6 +182,11 @@ export interface TrueFalseQuestion extends BaseQuestion {
   content: TrueFalseContent;
 }
 
+export interface CorrectTheErrorQuestion extends BaseQuestion {
+  type: "CORRECT_THE_ERROR";
+  content: CorrectTheErrorContent;
+}
+
 export type Question =
   | MultipleChoiceQuestion
   | ClosedQuestion
@@ -176,7 +195,8 @@ export type Question =
   | FillInTheBlanksQuestion
   | MatchingQuestion
   | ChronologyQuestion
-  | TrueFalseQuestion;
+  | TrueFalseQuestion
+  | CorrectTheErrorQuestion;
 
 export interface Competition {
   id: string;
@@ -233,6 +253,11 @@ export interface SocketEvents {
     questionId: string;
     progress: CrosswordGridState;
   }) => void;
+  REQUEST_JOKER: (payload: {
+    competitionId: string;
+    teamId: string;
+    questionId: string;
+  }) => void;
 
   // Host to Server
   HOST_START_QUESTION: (payload: {
@@ -252,4 +277,13 @@ export interface SocketEvents {
   GAME_STATE_SYNC: (state: GameState) => void;
   TIMER_SYNC: (seconds: number) => void;
   SCORE_UPDATE: (teams: Team[]) => void;
+  JOKER_REVEAL: (payload: {
+    questionId: string;
+    teamId: string;
+    letter: string;
+    x: number;
+    y: number;
+    newScore: number;
+  }) => void;
+  JOKER_ERROR: (payload: { message: string }) => void;
 }
