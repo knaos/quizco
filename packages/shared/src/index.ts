@@ -4,7 +4,8 @@ export type QuestionType =
   | "OPEN_WORD"
   | "CROSSWORD"
   | "FILL_IN_THE_BLANKS"
-  | "MATCHING";
+  | "MATCHING"
+  | "CHRONOLOGY";
 export type GradingMode = "AUTO" | "MANUAL";
 export type GamePhase =
   | "WAITING"
@@ -23,6 +24,7 @@ export type ClosedAnswer = string;
 export type CrosswordAnswer = string[][];
 export type FillInTheBlanksAnswer = string[]; // Values for blanks in order
 export type MatchingAnswer = Record<string, string>; // leftSideId -> rightSideId
+export type ChronologyAnswer = string[]; // IDs in submitted order
 
 export type AnswerContent =
   | MultipleChoiceAnswer
@@ -30,7 +32,8 @@ export type AnswerContent =
   | ClosedAnswer
   | CrosswordAnswer
   | FillInTheBlanksAnswer
-  | MatchingAnswer;
+  | MatchingAnswer
+  | ChronologyAnswer;
 
 export type CrosswordGridState = string[][];
 
@@ -88,13 +91,24 @@ export interface MatchingContent {
   pairs: MatchingPair[];
 }
 
+export interface ChronologyItem {
+  id: string;
+  text: string;
+  order: number; // Correct position (0-indexed)
+}
+
+export interface ChronologyContent {
+  items: ChronologyItem[];
+}
+
 export type QuestionContent =
   | MultipleChoiceContent
   | CrosswordContent
   | OpenWordContent
   | ClosedQuestionContent
   | FillInTheBlanksContent
-  | MatchingContent;
+  | MatchingContent
+  | ChronologyContent;
 
 interface BaseQuestion {
   id: string;
@@ -136,13 +150,19 @@ export interface MatchingQuestion extends BaseQuestion {
   content: MatchingContent;
 }
 
+export interface ChronologyQuestion extends BaseQuestion {
+  type: "CHRONOLOGY";
+  content: ChronologyContent;
+}
+
 export type Question =
   | MultipleChoiceQuestion
   | ClosedQuestion
   | OpenWordQuestion
   | CrosswordQuestion
   | FillInTheBlanksQuestion
-  | MatchingQuestion;
+  | MatchingQuestion
+  | ChronologyQuestion;
 
 export interface Competition {
   id: string;

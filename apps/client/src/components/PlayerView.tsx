@@ -5,9 +5,10 @@ import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight }
 import { Crossword } from "./Crossword";
 import { FillInTheBlanksPlayer } from "./player/FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./player/MatchingPlayer";
+import { ChronologyPlayer } from "./player/ChronologyPlayer";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -78,6 +79,9 @@ export const PlayerView: React.FC = () => {
         setAnswer([]);
       } else if (state.currentQuestion.type === "MATCHING") {
         setAnswer({});
+      } else if (state.currentQuestion.type === "CHRONOLOGY") {
+        // Initialize with IDs from current shuffled items
+        setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
       } else {
         setAnswer("");
       }
@@ -298,6 +302,10 @@ export const PlayerView: React.FC = () => {
     if (type === "MATCHING") {
       return (content as MatchingContent).pairs.map(p => `${p.left} → ${p.right}`).join(" | ");
     }
+    if (type === "CHRONOLOGY") {
+        const chrContent = content as ChronologyContent;
+        return [...chrContent.items].sort((a,b) => a.order - b.order).map(i => i.text).join(" → ");
+    }
     return "Unknown";
   };
 
@@ -502,6 +510,20 @@ export const PlayerView: React.FC = () => {
                             ? "bg-blue-600 text-white hover:bg-blue-700"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
+                      >
+                        <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
+                      </button>
+                    </div>
+                  ) : state.currentQuestion.type === "CHRONOLOGY" ? (
+                    <div className="space-y-6">
+                      <ChronologyPlayer
+                        key={state.currentQuestion.id}
+                        content={state.currentQuestion.content}
+                        onChange={(val) => setAnswer(val)}
+                      />
+                      <button
+                        onClick={() => submitAnswer(answer)}
+                        className="w-full bg-blue-600 text-white font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl hover:bg-blue-700 transition"
                       >
                         <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
                       </button>

@@ -9,6 +9,8 @@ import {
   FillInTheBlanksAnswer,
   MatchingContent,
   MatchingAnswer,
+  ChronologyContent,
+  ChronologyAnswer,
 } from "@quizco/shared";
 
 export class GradingService {
@@ -58,6 +60,14 @@ export class GradingService {
         return this.gradeMatching(
           question.content as MatchingContent,
           answer as MatchingAnswer,
+          question.points
+        );
+      }
+
+      if (question.type === "CHRONOLOGY") {
+        return this.gradeChronology(
+          question.content as ChronologyContent,
+          answer as ChronologyAnswer,
           question.points
         );
       }
@@ -189,5 +199,35 @@ export class GradingService {
 
     const isCorrect = correctCount === pairs.length;
     return { isCorrect, score: isCorrect ? points : 0 };
+  }
+
+  private gradeChronology(
+    content: ChronologyContent,
+    answer: ChronologyAnswer,
+    _points: number
+  ) {
+    if (!Array.isArray(answer)) {
+      return { isCorrect: false, score: 0 };
+    }
+
+    // Reconstruction of correct order based on 'order' property
+    const items = [...content.items].sort((a, b) => a.order - b.order);
+    const correctOrderIds = items.map((i) => i.id);
+
+    let correctCount = 0;
+    const n = correctOrderIds.length;
+
+    // Compare submitted IDs against correct IDs at each index
+    for (let i = 0; i < n; i++) {
+      if (answer[i] === correctOrderIds[i]) {
+        correctCount++;
+      }
+    }
+
+    const isPerfect = correctCount === n;
+    // Score: +1 per correct index, +3 bonus for perfect match
+    const score = correctCount + (isPerfect ? 3 : 0);
+
+    return { isCorrect: isPerfect, score };
   }
 }

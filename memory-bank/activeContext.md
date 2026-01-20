@@ -4,7 +4,23 @@
 
 We are evolving the Quizco prototype into a fully compliant "First National Children's Bible Competition" system. The focus is on implementing the specific game logic for all 4 rounds, including specialized question types, complex scoring (chronology bonuses, streaks), and the team-based structure.
 
+When adding new question types:
+
+- ensure both admin editors and player views are implemented.
+- update shared types, Prisma schema, and seeding data accordingly.
+- write tests to validate the new functionality.
+
 ## Recent Changes
+
+- **Iteration 2 Complete: "Chronology" (Round 2):**
+  - Implemented `CHRONOLOGY` question type with server-side shuffling.
+  - **Server-Side Shuffling:** `GameManager.ts` now deep-clones questions and shuffles items for `CHRONOLOGY` questions when they start, ensuring all players receive the same randomized order.
+  - **Complex Scoring:** Implemented in `GradingService.ts` (+1 per correct position, +3 bonus for a perfect match).
+  - **Frontend:** Integrated `@dnd-kit` for drag-and-drop support.
+  - **Admin UI:** Created `ChronologyEditor.tsx` for managing ordered items.
+  - **Player UI:** Created `ChronologyPlayer.tsx` for touch-friendly reordering.
+  - **Performance Optimization:** Applied `React.memo`, `useCallback`, and `useMemo` to `ChronologyEditor` and `ChronologyPlayer` to fix stuttering during drag-and-drop operations. Switched to `CSS.Translate` for smoother transitions.
+  - Updated shared types, Prisma schema (added `CHRONOLOGY` enum), and seed data.
 
 - **Iteration 1 Complete (and Refined):**
   - Fixed build errors in `FillInTheBlanksEditor.tsx` related to unused imports.
@@ -21,13 +37,10 @@ We are evolving the Quizco prototype into a fully compliant "First National Chil
 
 ## Next Steps
 
-1. **Iteration 2:** Implement "Chronology" (Round 2).
-   - Drag-and-drop UI for players.
-   - Complex scoring: +1 per correct index, +3 for perfect match.
-2. **Iteration 3:** Implement "True/False" & Streak Logic (Round 3).
+1. **Iteration 3:** Implement "True/False" & Streak Logic (Round 3).
    - Consecutive correct answer tracking.
    - Bonus points (+1 for 5-6, +2 for 7-9, +3 for 10).
-3. **Iteration 4:** Implement Crossword Joker (Round 4).
+2. **Iteration 4:** Implement Crossword Joker (Round 4).
 
 ## Active Decisions
 

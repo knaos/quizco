@@ -169,4 +169,43 @@ describe("GradingService", () => {
       score: 0,
     });
   });
+
+  it("grades CHRONOLOGY correctly with partial credit and bonus", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CHRONOLOGY",
+      content: {
+        items: [
+          { id: "a", text: "First", order: 0 },
+          { id: "b", text: "Second", order: 1 },
+          { id: "c", text: "Third", order: 2 },
+        ],
+      },
+    };
+
+    // Perfect match: 3 correct + 3 bonus = 6
+    expect(service.gradeAnswer(question, ["a", "b", "c"])).toEqual({
+      isCorrect: true,
+      score: 6,
+    });
+
+    // Partial match: 1 correct (at index 0) = 1
+    expect(service.gradeAnswer(question, ["a", "c", "b"])).toEqual({
+      isCorrect: false,
+      score: 1,
+    });
+
+    // Zero correct: 0
+    expect(service.gradeAnswer(question, ["b", "c", "a"])).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+
+    // All correct but shuffled IDs (this shouldn't happen if IDs are correct)
+    // Testing the logic of index matching
+    expect(service.gradeAnswer(question, ["a", "b", "x"])).toEqual({
+      isCorrect: false,
+      score: 2,
+    });
+  });
 });

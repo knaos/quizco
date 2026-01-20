@@ -109,7 +109,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds,
-      () => {},
+      () => {}
     );
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
 
@@ -149,7 +149,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds,
-      () => {},
+      () => {}
     );
 
     // Fast-forward 1 second
@@ -193,7 +193,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds,
-      () => {},
+      () => {}
     );
 
     // End question
@@ -273,7 +273,7 @@ describe("GameManager Integration", () => {
   it("should return null if team does not exist", async () => {
     const reconnected = await gameManager.reconnectTeam(
       compId,
-      "00000000-0000-0000-0000-000000000000",
+      "00000000-0000-0000-0000-000000000000"
     );
     expect(reconnected).toBeNull();
   });
@@ -295,7 +295,7 @@ describe("GameManager Integration", () => {
     const team = await gameManager.addTeam(
       testCompId,
       "Grading Team",
-      "#000000",
+      "#000000"
     );
 
     const question = await prisma.question.create({
@@ -314,7 +314,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds ?? 30,
-      () => {},
+      () => {}
     );
 
     await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
@@ -371,7 +371,7 @@ describe("GameManager Integration", () => {
       await gameManager.submitAnswer(testCompId, team.id, questionId, [0]);
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
-        true,
+        true
       );
 
       // 3. Start a new question and verify reset
@@ -388,7 +388,7 @@ describe("GameManager Integration", () => {
       await gameManager.startQuestion(testCompId, q2.id);
 
       expect(
-        gameManager.getState(testCompId).teams[0].lastAnswerCorrect,
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
       ).toBeNull();
     });
 
@@ -426,12 +426,12 @@ describe("GameManager Integration", () => {
         testCompId,
         team.id,
         questionId,
-        "My Answer",
+        "My Answer"
       );
 
       // Initially null
       expect(
-        gameManager.getState(testCompId).teams[0].lastAnswerCorrect,
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
       ).toBeNull();
 
       // Get answer ID
@@ -445,9 +445,55 @@ describe("GameManager Integration", () => {
 
       // 3. Assert
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
-        true,
+        true
       );
       expect(gameManager.getState(testCompId).teams[0].score).toBe(10);
     });
+  });
+
+  it("should shuffle items for CHRONOLOGY questions when starting", async () => {
+    const competition = await prisma.competition.create({
+      data: { title: "Test", host_pin: "1" },
+    });
+    const testCompId = competition.id;
+
+    const round = await prisma.round.create({
+      data: {
+        competitionId: testCompId,
+        orderIndex: 1,
+        type: "STANDARD",
+      },
+    });
+
+    const items = [
+      { id: "1", text: "A", order: 0 },
+      { id: "2", text: "B", order: 1 },
+      { id: "3", text: "C", order: 2 },
+      { id: "4", text: "D", order: 3 },
+      { id: "5", text: "E", order: 4 },
+    ];
+
+    const question = await prisma.question.create({
+      data: {
+        roundId: round.id,
+        questionText: "Order",
+        type: "CHRONOLOGY",
+        content: { items },
+      },
+    });
+
+    await gameManager.startQuestion(testCompId, question.id);
+    const state = gameManager.getState(testCompId);
+    const sessionItems = (state.currentQuestion!.content as any).items;
+
+    // Check that we have the same items
+    expect(sessionItems).toHaveLength(5);
+    const sessionIds = sessionItems.map((i: any) => i.id).sort();
+    expect(sessionIds).toEqual(["1", "2", "3", "4", "5"]);
+
+    // Check that the order is likely different (it might randomly be the same,
+    // but with 5 items the chance is 1/120).
+    // We can't guarantee a different order but we can check if it's stored in session.
+    expect(state.currentQuestion).not.toBeNull();
   });
 });

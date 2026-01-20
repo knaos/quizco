@@ -212,6 +212,31 @@ async function seed() {
               answer: "Adam",
             },
           },
+          {
+            roundId: r3.id,
+            questionText:
+              "Order these events in the life of Joseph chronologically:",
+            type: "CHRONOLOGY",
+            points: 10,
+            timeLimitSeconds: 45,
+            content: {
+              items: [
+                { id: "j1", text: "Given a coat of many colors", order: 0 },
+                {
+                  id: "j2",
+                  text: "Sold into slavery by his brothers",
+                  order: 1,
+                },
+                {
+                  id: "j3",
+                  text: "Becomes second in command in Egypt",
+                  order: 2,
+                },
+                { id: "j4", text: "Reunited with his family", order: 3 },
+              ],
+            },
+            grading: "AUTO",
+          },
         ],
       });
     }

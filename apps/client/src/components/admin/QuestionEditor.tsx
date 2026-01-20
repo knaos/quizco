@@ -6,6 +6,7 @@ import { OpenWordEditor } from "./editors/OpenWordEditor";
 import { CrosswordEditor } from "./editors/CrosswordEditor";
 import { FillInTheBlanksEditor } from "./editors/FillInTheBlanksEditor";
 import { MatchingEditor } from "./editors/MatchingEditor";
+import { ChronologyEditor } from "./editors/ChronologyEditor";
 
 interface QuestionEditorProps {
   question: Partial<Question>;
@@ -37,6 +38,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
       content = { text: "", blanks: [] };
     } else if (type === "MATCHING") {
       content = { pairs: [] };
+    } else if (type === "CHRONOLOGY") {
+      content = { items: [] };
     }
     setFormData({ ...formData, type, content });
   };
@@ -72,6 +75,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
                 <option value="CROSSWORD">Crossword</option>
                 <option value="FILL_IN_THE_BLANKS">Fill in the Blanks</option>
                 <option value="MATCHING">Matching</option>
+                <option value="CHRONOLOGY">Chronology</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -151,6 +155,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
 
             {formData.type === "MATCHING" && (
               <MatchingEditor content={formData.content as any} onChange={handleContentChange} />
+            )}
+
+            {formData.type === "CHRONOLOGY" && (
+              <ChronologyEditor content={formData.content as any} onChange={handleContentChange} />
             )}
           </div>
         </div>

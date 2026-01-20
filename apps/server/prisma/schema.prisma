@@ -97,6 +97,7 @@ enum QuestionType {
   CROSSWORD
   FILL_IN_THE_BLANKS
   MATCHING
+  CHRONOLOGY
 }
 
 enum RoundType {

@@ -48,7 +48,7 @@ export class GameManager {
   public updateTeamConnection(
     competitionId: string,
     teamId: string,
-    isConnected: boolean,
+    isConnected: boolean
   ): boolean {
     const session = this.getOrCreateSession(competitionId);
     const team = session.teams.find((t) => t.id === teamId);
@@ -68,7 +68,7 @@ export class GameManager {
   public async addTeam(
     competitionId: string,
     name: string,
-    color: string,
+    color: string
   ): Promise<Team> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.name === name);
@@ -80,7 +80,7 @@ export class GameManager {
     const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
       name,
-      color,
+      color
     );
 
     // Double check by ID as well to prevent memory duplicates
@@ -101,7 +101,17 @@ export class GameManager {
     const question = await this.repository.getQuestion(questionId);
     if (!question) return;
 
-    session.currentQuestion = question;
+    // Deep clone to avoid mutating repository cache
+    const sessionQuestion = JSON.parse(JSON.stringify(question));
+
+    if (sessionQuestion.type === "CHRONOLOGY") {
+      // Server-side shuffle: ensure everyone gets the same order
+      sessionQuestion.content.items = this.shuffleArray(
+        sessionQuestion.content.items
+      );
+    }
+
+    session.currentQuestion = sessionQuestion;
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
     session.revealStep = 0;
@@ -121,7 +131,7 @@ export class GameManager {
   public async startTimer(
     competitionId: string,
     durationSeconds: number,
-    onTick: (state: GameState) => void,
+    onTick: (state: GameState) => void
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_PREVIEW") return;
@@ -168,7 +178,7 @@ export class GameManager {
     competitionId: string,
     teamId: string,
     questionId: string,
-    answer: AnswerContent,
+    answer: AnswerContent
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
@@ -177,7 +187,7 @@ export class GameManager {
     // Use GradingService
     const gradingResult = this.gradingService.gradeAnswer(
       session.currentQuestion,
-      answer,
+      answer
     );
 
     const isCorrect = gradingResult ? gradingResult.isCorrect : null;
@@ -190,7 +200,7 @@ export class GameManager {
       session.currentQuestion.roundId,
       answer,
       isCorrect,
-      scoreAwarded,
+      scoreAwarded
     );
 
     // Update score and status in memory immediately
@@ -219,7 +229,7 @@ export class GameManager {
   public async handleGradeDecision(
     competitionId: string,
     answerId: string,
-    correct: boolean,
+    correct: boolean
   ) {
     const session = this.getOrCreateSession(competitionId);
 
@@ -257,8 +267,9 @@ export class GameManager {
 
   public async next(competitionId: string, onTick: (state: GameState) => void) {
     const session = this.getOrCreateSession(competitionId);
-    const questions =
-      await this.repository.getQuestionsForCompetition(competitionId);
+    const questions = await this.repository.getQuestionsForCompetition(
+      competitionId
+    );
 
     switch (session.phase) {
       case "WAITING":
@@ -299,7 +310,7 @@ export class GameManager {
         break;
       case "REVEAL_ANSWER": {
         const currentIndex = questions.findIndex(
-          (q) => q.id === session.currentQuestion?.id,
+          (q) => q.id === session.currentQuestion?.id
         );
         const nextQuestion = questions[currentIndex + 1];
 
@@ -316,7 +327,7 @@ export class GameManager {
       }
       case "ROUND_END": {
         const currentIndex = questions.findIndex(
-          (q) => q.id === session.currentQuestion?.id,
+          (q) => q.id === session.currentQuestion?.id
         );
         const nextQuestion = questions[currentIndex + 1];
         if (nextQuestion) {
@@ -343,9 +354,21 @@ export class GameManager {
     return this.repository.getQuestionsForCompetition(competitionId);
   }
 
+  /**
+   * Fisher-Yates shuffle algorithm
+   */
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   public async reconnectTeam(
     competitionId: string,
-    teamId: string,
+    teamId: string
   ): Promise<Team | null> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.id === teamId);
@@ -356,7 +379,7 @@ export class GameManager {
 
     const restoredTeam = await this.repository.reconnectTeam(
       competitionId,
-      teamId,
+      teamId
     );
     if (restoredTeam) {
       // Check again to be safe against race conditions
