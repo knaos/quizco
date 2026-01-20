@@ -89,6 +89,7 @@ export interface SocketEvents {
     color: string;
   }) => void;
   RECONNECT_TEAM: (payload: { competitionId: string; teamId: string }) => void;
+  LEAVE_ROOM: (payload: { competitionId: string; teamId: string }) => void;
   SUBMIT_ANSWER: (payload: {
     competitionId: string;
     teamId: string;
