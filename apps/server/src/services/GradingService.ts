@@ -5,12 +5,16 @@ import {
   ClosedQuestionContent,
   CrosswordContent,
   CrosswordAnswer,
+  FillInTheBlanksContent,
+  FillInTheBlanksAnswer,
+  MatchingContent,
+  MatchingAnswer,
 } from "@quizco/shared";
 
 export class GradingService {
   public gradeAnswer(
     question: Question,
-    answer: AnswerContent,
+    answer: AnswerContent
   ): { isCorrect: boolean; score: number } | null {
     if (question.grading === "MANUAL") {
       return null; // Needs manual grading
@@ -22,7 +26,7 @@ export class GradingService {
         return this.gradeMultipleChoice(
           question.content as MultipleChoiceContent,
           answer as unknown as number[],
-          question.points,
+          question.points
         );
       }
 
@@ -30,7 +34,7 @@ export class GradingService {
         return this.gradeClosed(
           question.content as ClosedQuestionContent,
           answer as string,
-          question.points,
+          question.points
         );
       }
 
@@ -38,7 +42,23 @@ export class GradingService {
         return this.gradeCrossword(
           question.content as CrosswordContent,
           answer as CrosswordAnswer,
-          question.points,
+          question.points
+        );
+      }
+
+      if (question.type === "FILL_IN_THE_BLANKS") {
+        return this.gradeFillInTheBlanks(
+          question.content as FillInTheBlanksContent,
+          answer as FillInTheBlanksAnswer,
+          question.points
+        );
+      }
+
+      if (question.type === "MATCHING") {
+        return this.gradeMatching(
+          question.content as MatchingContent,
+          answer as MatchingAnswer,
+          question.points
         );
       }
     } catch (error) {
@@ -52,7 +72,7 @@ export class GradingService {
   private gradeMultipleChoice(
     content: MultipleChoiceContent,
     answer: number[],
-    points: number,
+    points: number
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -71,10 +91,10 @@ export class GradingService {
   private gradeClosed(
     content: ClosedQuestionContent,
     answer: string,
-    points: number,
+    points: number
   ) {
     const correctAnswers = content.options.map((o: string) =>
-      o.toLowerCase().trim(),
+      o.toLowerCase().trim()
     );
     const submittedAnswer = String(answer).toLowerCase().trim();
     const isCorrect = correctAnswers.includes(submittedAnswer);
@@ -84,7 +104,7 @@ export class GradingService {
   private gradeCrossword(
     content: CrosswordContent,
     answer: CrosswordAnswer,
-    points: number,
+    points: number
   ) {
     if (!answer || !Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -113,5 +133,61 @@ export class GradingService {
     }
 
     return { isCorrect: true, score: points };
+  }
+
+  private gradeFillInTheBlanks(
+    content: FillInTheBlanksContent,
+    answer: FillInTheBlanksAnswer,
+    points: number
+  ) {
+    if (!Array.isArray(answer)) {
+      return { isCorrect: false, score: 0 };
+    }
+
+    const placeholderCount = (content.text.match(/\{(\d+)\}/g) || []).length;
+
+    if (answer.length < placeholderCount) {
+      return { isCorrect: false, score: 0 };
+    }
+
+    // Compare each submitted value against the marked correct option for that blank
+    for (let i = 0; i < placeholderCount; i++) {
+      const blank = content.blanks[i];
+      if (!blank) continue;
+
+      const correctOption = blank.options.find((opt) => opt.isCorrect);
+      if (!correctOption) return { isCorrect: false, score: 0 };
+
+      const correctVal = correctOption.value.toLowerCase().trim();
+      const submittedVal = (answer[i] || "").toLowerCase().trim();
+
+      if (submittedVal !== correctVal) {
+        return { isCorrect: false, score: 0 };
+      }
+    }
+
+    return { isCorrect: true, score: points };
+  }
+
+  private gradeMatching(
+    content: MatchingContent,
+    answer: MatchingAnswer,
+    points: number
+  ) {
+    if (!answer || typeof answer !== "object") {
+      return { isCorrect: false, score: 0 };
+    }
+
+    const pairs = content.pairs;
+    let correctCount = 0;
+
+    pairs.forEach((pair) => {
+      if (answer[pair.id] === pair.right) {
+        correctCount++;
+      }
+    });
+
+    const isCorrect = correctCount === pairs.length;
+    return { isCorrect, score: isCorrect ? points : 0 };
   }
 }

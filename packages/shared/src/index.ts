@@ -2,7 +2,9 @@ export type QuestionType =
   | "CLOSED"
   | "MULTIPLE_CHOICE"
   | "OPEN_WORD"
-  | "CROSSWORD";
+  | "CROSSWORD"
+  | "FILL_IN_THE_BLANKS"
+  | "MATCHING";
 export type GradingMode = "AUTO" | "MANUAL";
 export type GamePhase =
   | "WAITING"
@@ -19,12 +21,17 @@ export type MultipleChoiceAnswer = number[];
 export type OpenWordAnswer = string;
 export type ClosedAnswer = string;
 export type CrosswordAnswer = string[][];
+export type FillInTheBlanksAnswer = string[]; // Values for blanks in order
+export type MatchingAnswer = Record<string, string>; // leftSideId -> rightSideId
 
 export type AnswerContent =
   | MultipleChoiceAnswer
   | OpenWordAnswer
   | ClosedAnswer
-  | CrosswordAnswer;
+  | CrosswordAnswer
+  | FillInTheBlanksAnswer
+  | MatchingAnswer;
+
 export type CrosswordGridState = string[][];
 
 export interface MultipleChoiceContent {
@@ -57,11 +64,37 @@ export interface ClosedQuestionContent {
   options: string[]; // For CLOSED questions, content.options holds correct answers
 }
 
+export interface FillInTheBlanksOption {
+  value: string;
+  isCorrect: boolean;
+}
+
+export interface FillInTheBlanksBlank {
+  options: FillInTheBlanksOption[];
+}
+
+export interface FillInTheBlanksContent {
+  text: string; // "This is a {0} with {1}."
+  blanks: FillInTheBlanksBlank[]; // Array of blanks, each with its own options
+}
+
+export interface MatchingPair {
+  id: string;
+  left: string;
+  right: string;
+}
+
+export interface MatchingContent {
+  pairs: MatchingPair[];
+}
+
 export type QuestionContent =
   | MultipleChoiceContent
   | CrosswordContent
   | OpenWordContent
-  | ClosedQuestionContent;
+  | ClosedQuestionContent
+  | FillInTheBlanksContent
+  | MatchingContent;
 
 interface BaseQuestion {
   id: string;
@@ -70,6 +103,7 @@ interface BaseQuestion {
   points: number;
   timeLimitSeconds: number;
   grading: GradingMode;
+  section?: string;
 }
 
 export interface MultipleChoiceQuestion extends BaseQuestion {
@@ -92,11 +126,23 @@ export interface CrosswordQuestion extends BaseQuestion {
   content: CrosswordContent;
 }
 
+export interface FillInTheBlanksQuestion extends BaseQuestion {
+  type: "FILL_IN_THE_BLANKS";
+  content: FillInTheBlanksContent;
+}
+
+export interface MatchingQuestion extends BaseQuestion {
+  type: "MATCHING";
+  content: MatchingContent;
+}
+
 export type Question =
   | MultipleChoiceQuestion
   | ClosedQuestion
   | OpenWordQuestion
-  | CrosswordQuestion;
+  | CrosswordQuestion
+  | FillInTheBlanksQuestion
+  | MatchingQuestion;
 
 export interface Competition {
   id: string;

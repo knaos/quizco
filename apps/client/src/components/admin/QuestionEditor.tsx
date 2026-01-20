@@ -4,6 +4,8 @@ import type { Question, QuestionType, GradingMode } from "@quizco/shared";
 import { MultipleChoiceEditor } from "./editors/MultipleChoiceEditor";
 import { OpenWordEditor } from "./editors/OpenWordEditor";
 import { CrosswordEditor } from "./editors/CrosswordEditor";
+import { FillInTheBlanksEditor } from "./editors/FillInTheBlanksEditor";
+import { MatchingEditor } from "./editors/MatchingEditor";
 
 interface QuestionEditorProps {
   question: Partial<Question>;
@@ -19,17 +21,22 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
     timeLimitSeconds: 30,
     grading: "AUTO",
     content: { options: ["", ""], correctIndex: 0 },
+    section: "",
     ...question,
   });
 
   const handleTypeChange = (type: QuestionType) => {
     let content: any = {};
     if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
-      content = { options: ["", ""], correctIndex: 0 };
+      content = { options: ["", ""], correctIndices: [] };
     } else if (type === "OPEN_WORD") {
       content = { answer: "" };
     } else if (type === "CROSSWORD") {
       content = { grid: [], clues: { across: [], down: [] } };
+    } else if (type === "FILL_IN_THE_BLANKS") {
+      content = { text: "", blanks: [] };
+    } else if (type === "MATCHING") {
+      content = { pairs: [] };
     }
     setFormData({ ...formData, type, content });
   };
@@ -63,6 +70,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
                 <option value="CLOSED">Closed (One Answer)</option>
                 <option value="OPEN_WORD">Open Word</option>
                 <option value="CROSSWORD">Crossword</option>
+                <option value="FILL_IN_THE_BLANKS">Fill in the Blanks</option>
+                <option value="MATCHING">Matching</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -78,14 +87,26 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-600 uppercase">Question Text</label>
-            <textarea
-              value={formData.questionText}
-              onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-              className="w-full p-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition h-24"
-              placeholder="Enter your question here..."
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-600 uppercase">Question Text</label>
+              <textarea
+                value={formData.questionText}
+                onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
+                className="w-full p-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition h-24"
+                placeholder="Enter your question here..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-600 uppercase">Section (Round 1 only)</label>
+              <input
+                type="text"
+                value={formData.section || ""}
+                onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
+                placeholder="e.g., Player 1"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
@@ -122,6 +143,14 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
 
             {formData.type === "CROSSWORD" && (
               <CrosswordEditor content={formData.content as any} onChange={handleContentChange} />
+            )}
+
+            {formData.type === "FILL_IN_THE_BLANKS" && (
+              <FillInTheBlanksEditor content={formData.content as any} onChange={handleContentChange} />
+            )}
+
+            {formData.type === "MATCHING" && (
+              <MatchingEditor content={formData.content as any} onChange={handleContentChange} />
             )}
           </div>
         </div>

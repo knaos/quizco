@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket, API_URL } from "../socket";
 import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight } from "lucide-react";
 import { Crossword } from "./Crossword";
+import { FillInTheBlanksPlayer } from "./player/FillInTheBlanksPlayer";
+import { MatchingPlayer } from "./player/MatchingPlayer";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -22,7 +24,7 @@ export const PlayerView: React.FC = () => {
   const [teamName, setTeamName] = useState(localStorage.getItem(TEAM_NAME_KEY) || "");
   const [color, setColor] = useState(localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6");
   const [joined, setJoined] = useState(false);
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState<AnswerContent>("");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<"idle" | "success" | "error">("idle");
@@ -33,7 +35,7 @@ export const PlayerView: React.FC = () => {
   const hasSubmitted = submitted || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined);
 
   // Fetch active competitions if none selected
-  useEffect(() => {
+  React.useEffect(() => {
     if (!selectedCompId) {
         fetch(`${API_URL}/api/competitions`)
           .then((res) => res.json())
@@ -42,7 +44,7 @@ export const PlayerView: React.FC = () => {
   }, [selectedCompId]);
 
   // Attempt reconnection on mount
-  useEffect(() => {
+  React.useEffect(() => {
     const savedTeamId = localStorage.getItem(TEAM_ID_KEY);
     const savedCompId = localStorage.getItem(SELECTED_COMP_ID_KEY);
     
@@ -72,7 +74,13 @@ export const PlayerView: React.FC = () => {
 
   React.useEffect(() => {
     if (state.currentQuestion) {
-      setAnswer("");
+      if (state.currentQuestion.type === "FILL_IN_THE_BLANKS") {
+        setAnswer([]);
+      } else if (state.currentQuestion.type === "MATCHING") {
+        setAnswer({});
+      } else {
+        setAnswer("");
+      }
       setSelectedIndices([]);
       setSubmitted(false);
       setSubmissionStatus("idle");
@@ -111,7 +119,7 @@ export const PlayerView: React.FC = () => {
     return state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   };
 
-  const submitAnswer = (value: any) => {
+  const submitAnswer = (value: AnswerContent) => {
     if (!state.currentQuestion || !selectedCompId) {
         console.error("Submission attempted without active question or competition", {
             question: state.currentQuestion,
@@ -141,7 +149,6 @@ export const PlayerView: React.FC = () => {
       }
     });
     
-    setAnswer(JSON.stringify(value));
     setSubmitted(true);
   };
 
@@ -164,7 +171,7 @@ export const PlayerView: React.FC = () => {
   };
 
   // Sync Watchdog: Monitor if joined team is still in server state
-  useEffect(() => {
+  React.useEffect(() => {
     if (joined && !isReconnecting && state.teams.length > 0) {
         const teamId = getTeamId();
         const stillInGame = state.teams.some(t => t.id === teamId || t.name === teamName);
@@ -192,7 +199,7 @@ export const PlayerView: React.FC = () => {
             <div className="absolute top-4 right-4">
                 <LanguageSwitcher />
             </div>
-            <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md">
+            <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-md">
                 <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">Pick a Quiz</h1>
                 <div className="space-y-4">
                     {competitions.length === 0 ? (
@@ -276,7 +283,6 @@ export const PlayerView: React.FC = () => {
       return content.correctIndices.map((idx: number) => content.options[idx]).join(", ") || "Unknown";
     }
     if (type === "CLOSED") {
-      // For CLOSED, content.options is a list of acceptable answers
       return content.options[0] || "Unknown";
     }
     if (type === "OPEN_WORD") {
@@ -284,6 +290,13 @@ export const PlayerView: React.FC = () => {
     }
     if (type === "CROSSWORD") {
       return t("player.see_grid");
+    }
+    if (type === "FILL_IN_THE_BLANKS") {
+      const fbContent = content as FillInTheBlanksContent;
+      return fbContent.blanks.map(b => b.options.find(o => o.isCorrect)?.value || "??").join(", ");
+    }
+    if (type === "MATCHING") {
+      return (content as MatchingContent).pairs.map(p => `${p.left} → ${p.right}`).join(" | ");
     }
     return "Unknown";
   };
@@ -354,6 +367,13 @@ export const PlayerView: React.FC = () => {
 
         {state.phase === "QUESTION_PREVIEW" && state.currentQuestion && (
           <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
+            {state.currentQuestion.section && (
+              <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-400 animate-bounce">
+                <span className="text-2xl font-black text-yellow-800 uppercase">
+                  Turn: {state.currentQuestion.section}
+                </span>
+              </div>
+            )}
             <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-yellow-500">
               <span className="text-yellow-600 font-black uppercase tracking-widest text-lg mb-4 block">{t('player.upcoming_question')}</span>
               <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">
@@ -391,7 +411,14 @@ export const PlayerView: React.FC = () => {
         )}
 
         {state.phase === "QUESTION_ACTIVE" && state.currentQuestion && (
-          <div className="w-full max-w-2xl space-y-8">
+          <div className="w-full max-w-3xl space-y-8">
+            {state.currentQuestion.section && (
+              <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-400">
+                <span className="text-2xl font-black text-yellow-800 uppercase">
+                  Turn: {state.currentQuestion.section}
+                </span>
+              </div>
+            )}
             {!hasSubmitted ? (
               <div className="space-y-8">
                 <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-blue-500">
@@ -446,11 +473,44 @@ export const PlayerView: React.FC = () => {
                         }}
                       />
                     </div>
+                  ) : state.currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
+                    <div className="space-y-6">
+                      <FillInTheBlanksPlayer
+                        content={state.currentQuestion.content}
+                        value={(answer as string[]) || []}
+                        onChange={(val) => setAnswer(val)}
+                      />
+                      <button
+                        onClick={() => submitAnswer(answer)}
+                        className="w-full bg-blue-600 text-white font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl hover:bg-blue-700 transition"
+                      >
+                        <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
+                      </button>
+                    </div>
+                  ) : state.currentQuestion.type === "MATCHING" ? (
+                    <div className="space-y-6">
+                      <MatchingPlayer
+                        content={state.currentQuestion.content}
+                        value={(answer as Record<string, string>) || {}}
+                        onChange={(val) => setAnswer(val)}
+                      />
+                      <button
+                        onClick={() => submitAnswer(answer)}
+                        disabled={Object.keys(answer || {}).length < (state.currentQuestion.content as MatchingContent).pairs.length}
+                        className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${
+                          Object.keys(answer || {}).length >= (state.currentQuestion.content as MatchingContent).pairs.length
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                      >
+                        <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex flex-col space-y-4">
                       <input
                         type="text"
-                        value={answer}
+                        value={String(answer)}
                         onChange={(e) => setAnswer(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && submitAnswer(answer)}
                         className="w-full p-4 text-2xl rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
@@ -609,9 +669,17 @@ export const PlayerView: React.FC = () => {
                     </div>
                     <div className={`${isCorrect() ? "bg-green-50 border-green-200" : getGradingStatus() === false ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"} p-6 rounded-2xl border-2`}>
                       <span className={`${isCorrect() ? "text-green-600" : getGradingStatus() === false ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
-                      <p className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
-                        {state.teams.find((t) => t.name === teamName)?.lastAnswer || "(No Answer)"}
-                      </p>
+                      <div className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
+                        {(() => {
+                          const lastAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer;
+                          if (!lastAnswer) return "(No Answer)";
+                          if (Array.isArray(lastAnswer)) return lastAnswer.join(", ");
+                          if (typeof lastAnswer === "object") {
+                            return Object.values(lastAnswer).join(", ");
+                          }
+                          return String(lastAnswer);
+                        })()}
+                      </div>
                     </div>
                   </div>
                 )}

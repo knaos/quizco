@@ -5,20 +5,16 @@
 - **Monorepo Structure:** turborepo setup with `apps/client`, `apps/server`, and `packages/shared`.
 - **Frontend Scaffolding:** React, Vite, Tailwind, i18next, and Socket.io-client.
 - **Backend Scaffolding:** Node.js, Express, Socket.io, and Postgres setup.
-- **Database Schema:** Defined SQL schema with support for JSONB and UUIDs.
+- **Database Schema:** Defined SQL schema with support for JSONB and UUIDs. Added `section` field for questions.
 - **Core Game Logic:** `GameManager` with auto and manual grading.
 - **Integration Testing:** Comprehensive test suite for `GameManager` covering timer logic and async state transitions.
 - **Types:** Shared TypeScript interfaces for game state and socket events.
 - **Components:** Basic implementations of `AdminPanel`, `HostDashboard`, `PlayerView`, and `Crossword`.
 - **Manual Grading Workflow:** Host UI and server logic for adjudicating open-ended answers.
+- **New Question Types:** `FILL_IN_THE_BLANKS` and `MATCHING` fully implemented and tested.
+- **Advanced Blanks Logic:** Support for multiple options per blank with correct/distractor marking.
 
 ## What's Left to Build
-
-### Iteration 1: Round 1 ("Something for Everyone")
-
-- [ ] Support `FILL_IN_THE_BLANKS` and `MATCHING` question types.
-- [ ] Implement `section` based turns (Individual Play).
-- [ ] Create specialized editors for Fill-in-Blanks and Matching.
 
 ### Iteration 2: Round 2 ("Biblical Chronology")
 
@@ -43,20 +39,21 @@
 
 ## Current Status
 
-- **Overall Completion:** ~40% (Scope expanded based on requirements)
+- **Overall Completion:** ~55%
 - **Infrastructure:** [x] Done
-- **Database:** [/] Basic schema exists, updates needed for new types and sections.
+- **Database:** [x] Updated for Round 1 requirements.
 - **Core State Machine:** [x] Done (Multi-session support added)
-- **Scoring & Grading:** [/] Basic grading exists, needs expansion for new rounds.
-- **Admin UI:** [x] Done (Competitions and Rounds management)
-- **Player UI:** [/] In Progress (Quiz selection added)
+- **Scoring & Grading:** [/] Grading exists for R1, needs expansion for R2/R3.
+- **Admin UI:** [x] Updated with R1 specialized editors.
+- **Player UI:** [/] Updated with R1 specialized components.
 - **Real-Time Sync:** [x] Done (Multi-room isolation)
 - **Host Control Flow:** [x] Done (Implemented "Next" button flow)
 
 ## Known Issues
 
-- None yet identified as we are still in early development.
+- None yet identified.
 
 ## Project Evolution
 
 - **2026-01-15:** Initial project setup and memory bank initialization.
+- **2026-01-20:** Completed Iteration 1 (Round 1 specific logic). Added multi-option blanks and turn-based sections.

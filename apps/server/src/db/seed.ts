@@ -105,13 +105,90 @@ async function seed() {
         ],
       });
 
-      // Round 3: Open Word
-      const r3 = await prisma.round.create({
+      // New Round: Fill in the Blanks & Matching
+      const rSpecial = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 3,
           type: "STANDARD",
-          title: "Round 3: Open Word",
+          title: "Special Question Types",
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: rSpecial.id,
+            questionText: "Complete the Beatitude",
+            type: "FILL_IN_THE_BLANKS",
+            points: 15,
+            content: {
+              text: "Blessed are the {0}, for they shall inherit the {1}.",
+              blanks: [
+                {
+                  options: [
+                    { value: "meek", isCorrect: true },
+                    { value: "strong", isCorrect: false },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "earth", isCorrect: true },
+                    { value: "sky", isCorrect: false },
+                  ],
+                },
+              ],
+            },
+            section: "Player 1",
+          },
+          {
+            roundId: rSpecial.id,
+            questionText: "Fill in the missing words",
+            type: "FILL_IN_THE_BLANKS",
+            points: 15,
+            content: {
+              text: "In the {0} was the {1}, and the Word was with God.",
+              blanks: [
+                {
+                  options: [
+                    { value: "beginning", isCorrect: true },
+                    { value: "end", isCorrect: false },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "Word", isCorrect: true },
+                    { value: "Son", isCorrect: false },
+                  ],
+                },
+              ],
+            },
+            section: "Player 2",
+          },
+          {
+            roundId: rSpecial.id,
+            questionText: "Match the Son to the Father",
+            type: "MATCHING",
+            points: 20,
+            content: {
+              pairs: [
+                { id: "p1", left: "Isaac", right: "Abraham" },
+                { id: "p2", left: "Solomon", right: "David" },
+                { id: "p3", left: "Joseph", right: "Jacob" },
+              ],
+            },
+            section: "Player 3",
+          },
+        ],
+      });
+
+      // Round 3 (now Round 4): Open Word
+      const r3 = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 4,
+          type: "STANDARD",
+          title: "Round 4: Open Word",
         },
       });
 

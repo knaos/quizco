@@ -1,3 +1,6 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "CompetitionStatus" AS ENUM ('DRAFT', 'ACTIVE', 'COMPLETED');
 
@@ -5,7 +8,7 @@ CREATE TYPE "CompetitionStatus" AS ENUM ('DRAFT', 'ACTIVE', 'COMPLETED');
 CREATE TYPE "GradingMode" AS ENUM ('AUTO', 'MANUAL');
 
 -- CreateEnum
-CREATE TYPE "QuestionType" AS ENUM ('CLOSED', 'MULTIPLE_CHOICE', 'OPEN_WORD', 'CROSSWORD');
+CREATE TYPE "QuestionType" AS ENUM ('CLOSED', 'MULTIPLE_CHOICE', 'OPEN_WORD', 'CROSSWORD', 'FILL_IN_THE_BLANKS', 'MATCHING');
 
 -- CreateEnum
 CREATE TYPE "RoundType" AS ENUM ('STANDARD', 'CROSSWORD', 'SPEED_RUN');
@@ -43,6 +46,7 @@ CREATE TABLE "Question" (
     "timeLimitSeconds" INTEGER NOT NULL DEFAULT 30,
     "content" JSONB NOT NULL,
     "grading" "GradingMode" NOT NULL DEFAULT 'AUTO',
+    "section" TEXT,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Question_pkey" PRIMARY KEY ("id")
@@ -99,3 +103,4 @@ ALTER TABLE "Answer" ADD CONSTRAINT "Answer_questionId_fkey" FOREIGN KEY ("quest
 
 -- AddForeignKey
 ALTER TABLE "Answer" ADD CONSTRAINT "Answer_roundId_fkey" FOREIGN KEY ("roundId") REFERENCES "Round"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
