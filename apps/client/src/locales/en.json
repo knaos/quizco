@@ -46,7 +46,18 @@
       "your_choice": "Your Choice",
       "correct_answer": "Correct Answer",
       "your_answer": "Your Answer",
-      "next_soon": "Next question coming soon..."
+      "next_soon": "Next question coming soon...",
+      "session_expired": "Session expired. Please join again.",
+      "error_fetch_competitions": "Failed to fetch competitions",
+      "reconnection_failed": "Reconnection timed out or failed",
+      "join_failed": "Failed to join game.",
+      "confirm_leave": "Are you sure you want to leave the game?",
+      "pick_quiz": "Pick a Quiz",
+      "no_active_quizzes": "No active quizzes found.",
+      "change_quiz": "Change Quiz",
+      "unknown": "Unknown",
+      "waiting_grading": "Waiting for grading...",
+      "session_lost_rejoin": "Session lost, please rejoin"
     }
   }
 }
