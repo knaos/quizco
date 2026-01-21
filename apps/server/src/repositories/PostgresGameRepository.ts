@@ -12,7 +12,7 @@ export class PostgresGameRepository implements IGameRepository {
   async getOrCreateTeam(
     competitionId: string,
     name: string,
-    color: string
+    color: string,
   ): Promise<Team> {
     const dbTeam = await prisma.team.upsert({
       where: {
@@ -76,7 +76,7 @@ export class PostgresGameRepository implements IGameRepository {
 
   async reconnectTeam(
     competitionId: string,
-    teamId: string
+    teamId: string,
   ): Promise<Team | null> {
     const dbTeam = await prisma.team.findUnique({
       where: { id: teamId },
@@ -169,7 +169,7 @@ export class PostgresGameRepository implements IGameRepository {
     roundId: string,
     submittedContent: any,
     isCorrect: boolean | null,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<any> {
     return prisma.answer.create({
       data: {
@@ -192,7 +192,7 @@ export class PostgresGameRepository implements IGameRepository {
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<void> {
     await prisma.answer.update({
       where: { id: answerId },
@@ -237,6 +237,36 @@ export class PostgresGameRepository implements IGameRepository {
       ...a,
       team_name: a.team?.name,
       question_text: a.question?.questionText,
+    }));
+  }
+
+  async getQuestionAnswers(
+    competitionId: string,
+    questionId: string,
+  ): Promise<any[]> {
+    const answers = await prisma.answer.findMany({
+      where: {
+        questionId,
+        team: {
+          competitionId: competitionId,
+        },
+      },
+      include: {
+        team: {
+          select: {
+            name: true,
+            color: true,
+          },
+        },
+      },
+    });
+
+    return answers.map((a: any) => ({
+      teamName: a.team.name,
+      color: a.team.color,
+      submittedContent: a.submittedContent,
+      isCorrect: a.isCorrect,
+      points: a.scoreAwarded,
     }));
   }
 }

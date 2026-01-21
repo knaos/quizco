@@ -15,6 +15,14 @@ interface PendingAnswer {
   submittedContent: string;
 }
 
+interface CollectedAnswer {
+  teamName: string;
+  color: string;
+  submittedContent: any;
+  isCorrect: boolean | null;
+  points: number;
+}
+
 interface CompetitionData {
   rounds: (Round & {
     questions: (Question & {
@@ -30,7 +38,10 @@ export const HostDashboard: React.FC = () => {
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
   const [compData, setCompData] = useState<CompetitionData | null>(null);
   const [pendingAnswers, setPendingAnswers] = useState<PendingAnswer[]>([]);
+  const [collectedAnswers, setCollectedAnswers] = useState<CollectedAnswer[]>([]);
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
+  const [modalQuestion, setModalQuestion] = useState<{ id: string, text: string } | null>(null);
+  const [modalAnswers, setModalAnswers] = useState<CollectedAnswer[]>([]);
 
   const selectCompetition = useCallback((comp: Competition, updateUrl = true) => {
     setSelectedComp(comp);
@@ -89,11 +100,36 @@ export const HostDashboard: React.FC = () => {
       .then((data) => setPendingAnswers(data));
   };
 
+  const fetchCurrentQuestionAnswers = useCallback(() => {
+    if (!selectedComp || !state.currentQuestion) return;
+    fetch(`${API_URL}/api/competitions/${selectedComp.id}/questions/${state.currentQuestion.id}/answers`)
+      .then((res) => res.json())
+      .then((data) => setCollectedAnswers(data));
+  }, [selectedComp, state.currentQuestion]);
+
   useEffect(() => {
     if (state.phase === "GRADING") {
       fetchPendingAnswers();
     }
-  }, [state.phase]);
+    if (state.phase === "GRADING" || state.phase === "REVEAL_ANSWER" || state.phase === "QUESTION_ACTIVE") {
+      fetchCurrentQuestionAnswers();
+    } else {
+      setCollectedAnswers([]);
+    }
+  }, [state.phase, fetchCurrentQuestionAnswers]);
+
+  // Sync on GAME_STATE_SYNC (e.g. when someone submits)
+  useEffect(() => {
+    const onGameStateSync = () => {
+      if (state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER") {
+        fetchCurrentQuestionAnswers();
+      }
+    };
+    socket.on("GAME_STATE_SYNC", onGameStateSync);
+    return () => {
+      socket.off("GAME_STATE_SYNC", onGameStateSync);
+    };
+  }, [state.phase, fetchCurrentQuestionAnswers]);
 
   // Handle socket reconnection
   useEffect(() => {
@@ -137,6 +173,14 @@ export const HostDashboard: React.FC = () => {
 
   const toggleRound = (roundId: string) => {
     setExpandedRounds(prev => ({ ...prev, [roundId]: !prev[roundId] }));
+  };
+
+  const openAnswersModal = (qId: string, qText: string) => {
+    if (!selectedComp) return;
+    setModalQuestion({ id: qId, text: qText });
+    fetch(`${API_URL}/api/competitions/${selectedComp.id}/questions/${qId}/answers`)
+      .then((res) => res.json())
+      .then((data) => setModalAnswers(data));
   };
 
   if (!selectedComp) {
@@ -276,6 +320,10 @@ export const HostDashboard: React.FC = () => {
                   <div className="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
                     {state.currentQuestion.type}
                   </div>
+                  <div className="bg-orange-100 text-orange-700 px-4 py-1.5 rounded-full text-sm font-black flex items-center">
+                    <Users className="w-4 h-4 mr-2" />
+                    {t('host.submissions')}: {t('host.submissions_count', { count: collectedAnswers.length, total: state.teams.length })}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -318,6 +366,63 @@ export const HostDashboard: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {(state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER") && (
+            <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
+                <Users className="mr-3 text-blue-500" /> {t('host.collected_answers')}
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                      <th className="pb-4 px-2">{t('host.team')}</th>
+                      <th className="pb-4 px-2">{t('host.answer')}</th>
+                      <th className="pb-4 px-2">{t('host.points')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {collectedAnswers.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-gray-400 font-medium italic">
+                          {t('host.no_submissions')}
+                        </td>
+                      </tr>
+                    ) : (
+                      collectedAnswers.map((ans, idx) => (
+                        <tr key={idx} className="group">
+                          <td className="py-4 px-2">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: ans.color }} />
+                              <span className="font-bold text-gray-800">{ans.teamName}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-2">
+                            <div className="flex items-center space-x-2">
+                              {ans.isCorrect === true && <CheckCircle className="w-4 h-4 text-green-500" />}
+                              {ans.isCorrect === false && <XCircle className="w-4 h-4 text-red-500" />}
+                              <span className={`font-medium ${
+                                ans.isCorrect === true ? "text-green-700" : 
+                                ans.isCorrect === false ? "text-red-700" : 
+                                "text-gray-600"
+                              }`}>
+                                {typeof ans.submittedContent === 'string' ? ans.submittedContent : JSON.stringify(ans.submittedContent)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-2">
+                            <span className={`font-black ${ans.points > 0 ? "text-blue-600" : "text-gray-400"}`}>
+                              +{ans.points}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </section>
           )}
@@ -448,6 +553,16 @@ export const HostDashboard: React.FC = () => {
                                                 <div className="w-2 h-2 bg-white rounded-full animate-ping" />
                                             </div>
                                         )}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openAnswersModal(q.id, q.questionText);
+                                            }}
+                                            className="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/40 rounded-lg transition-colors"
+                                            title={t('host.view_answers')}
+                                        >
+                                            <Users className="w-4 h-4" />
+                                        </button>
                                     </button>
                                 ))}
                             </div>
@@ -503,6 +618,85 @@ export const HostDashboard: React.FC = () => {
           </section>
         </div>
       </div>
+
+      {/* Answers Modal */}
+      {modalQuestion && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-black text-gray-900">{t('host.collected_answers')}</h3>
+                <p className="text-sm text-gray-500 mt-1 line-clamp-1">{modalQuestion.text}</p>
+              </div>
+              <button 
+                onClick={() => setModalQuestion(null)}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <XCircle className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                    <th className="pb-4 px-2">{t('host.team')}</th>
+                    <th className="pb-4 px-2">{t('host.answer')}</th>
+                    <th className="pb-4 px-2">{t('host.points')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {modalAnswers.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="py-8 text-center text-gray-400 font-medium italic">
+                        {t('host.no_submissions')}
+                      </td>
+                    </tr>
+                  ) : (
+                    modalAnswers.map((ans, idx) => (
+                      <tr key={idx}>
+                        <td className="py-4 px-2">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: ans.color }} />
+                            <span className="font-bold text-gray-800">{ans.teamName}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <div className="flex items-center space-x-2">
+                            {ans.isCorrect === true && <CheckCircle className="w-4 h-4 text-green-500" />}
+                            {ans.isCorrect === false && <XCircle className="w-4 h-4 text-red-500" />}
+                            <span className={`font-medium ${
+                              ans.isCorrect === true ? "text-green-700" : 
+                              ans.isCorrect === false ? "text-red-700" : 
+                              "text-gray-600"
+                            }`}>
+                              {typeof ans.submittedContent === 'string' ? ans.submittedContent : JSON.stringify(ans.submittedContent)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <span className={`font-black ${ans.points > 0 ? "text-blue-600" : "text-gray-400"}`}>
+                            +{ans.points}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                onClick={() => setModalQuestion(null)}
+                className="px-6 py-2 bg-white border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                {t('host.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

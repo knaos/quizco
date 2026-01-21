@@ -26,7 +26,16 @@
       "password_placeholder": "Парола на Водещия",
       "enter_password_hint": "Въведете парола, за да продължите",
       "login_button": "Вход като Водещ",
-      "admin_panel": "Админ Панел"
+      "admin_panel": "Админ Панел",
+      "submissions": "Отговори",
+      "submissions_count": "{{count}} от {{total}} отбора",
+      "collected_answers": "Събрани Отговори",
+      "team": "Отбор",
+      "answer": "Отговор",
+      "points": "Точки",
+      "no_submissions": "Все още няма изпратени отговори",
+      "view_answers": "Виж Отговорите",
+      "close": "Затвори"
     },
     "player": {
       "join_title": "Включи се в Куиза!",

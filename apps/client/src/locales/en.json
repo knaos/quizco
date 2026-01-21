@@ -26,7 +26,16 @@
       "password_placeholder": "Host Password",
       "enter_password_hint": "Enter host password to continue",
       "login_button": "Login as Host",
-      "admin_panel": "Admin Panel"
+      "admin_panel": "Admin Panel",
+      "submissions": "Submissions",
+      "submissions_count": "{{count}} of {{total}} teams",
+      "collected_answers": "Collected Answers",
+      "team": "Team",
+      "answer": "Answer",
+      "points": "Points",
+      "no_submissions": "No submissions yet",
+      "view_answers": "View Answers",
+      "close": "Close"
     },
     "player": {
       "join_title": "Join the Quiz!",

@@ -5,7 +5,7 @@ export interface IGameRepository {
   getOrCreateTeam(
     competitionId: string,
     name: string,
-    color: string
+    color: string,
   ): Promise<Team>;
   getTeamScore(competitionId: string, teamId: string): Promise<number>;
   updateTeamStreak(teamId: string, streak: number): Promise<void>;
@@ -24,16 +24,17 @@ export interface IGameRepository {
     roundId: string,
     submittedContent: any,
     isCorrect: boolean | null,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<any>;
   getAnswer(answerId: string): Promise<any>;
   updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
-    scoreAwarded: number
+    scoreAwarded: number,
   ): Promise<void>;
   getSubmissionCount(questionId: string): Promise<number>;
 
   // Pending Answers for Host
   getPendingAnswers(competitionId?: string): Promise<any[]>;
+  getQuestionAnswers(competitionId: string, questionId: string): Promise<any[]>;
 }
