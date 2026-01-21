@@ -412,6 +412,12 @@ export class GameManager {
         ) {
           session.revealStep += 1;
         } else {
+          // Reset last answer status for all teams before timer starts
+          for (const team of session.teams) {
+            team.lastAnswerCorrect = null;
+            team.lastAnswer = null;
+          }
+
           const duration = session.currentQuestion?.timeLimitSeconds ?? 30;
           await this.startTimer(competitionId, duration, onTick);
         }
@@ -448,6 +454,11 @@ export class GameManager {
         if (nextQuestion) {
           session.phase = "ROUND_START";
           session.currentQuestion = nextQuestion;
+          // Reset last answer status for all teams when moving to next round
+          for (const team of session.teams) {
+            team.lastAnswerCorrect = null;
+            team.lastAnswer = null;
+          }
         } else {
           session.phase = "LEADERBOARD";
         }
