@@ -29,7 +29,7 @@ export class GameManager {
   }
 
   private getOrCreateSession(
-    competitionId: string
+    competitionId: string,
   ): GameState & { metadata?: any } {
     if (!this.sessions.has(competitionId)) {
       this.sessions.set(competitionId, {
@@ -38,6 +38,7 @@ export class GameManager {
         timeRemaining: 0,
         teams: [],
         revealStep: 0,
+        timerPaused: false,
         metadata: {},
       });
     }
@@ -53,7 +54,7 @@ export class GameManager {
   public updateTeamConnection(
     competitionId: string,
     teamId: string,
-    isConnected: boolean
+    isConnected: boolean,
   ): boolean {
     const session = this.getOrCreateSession(competitionId);
     const team = session.teams.find((t) => t.id === teamId);
@@ -73,7 +74,7 @@ export class GameManager {
   public async addTeam(
     competitionId: string,
     name: string,
-    color: string
+    color: string,
   ): Promise<Team> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.name === name);
@@ -85,7 +86,7 @@ export class GameManager {
     const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
       name,
-      color
+      color,
     );
 
     // Double check by ID as well to prevent memory duplicates
@@ -112,7 +113,7 @@ export class GameManager {
     if (sessionQuestion.type === "CHRONOLOGY") {
       // Server-side shuffle: ensure everyone gets the same order
       sessionQuestion.content.items = this.shuffleArray(
-        sessionQuestion.content.items
+        sessionQuestion.content.items,
       );
     }
 
@@ -120,6 +121,7 @@ export class GameManager {
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
     session.revealStep = 0;
+    session.timerPaused = false;
     session.metadata = {}; // Clear metadata for new question
 
     // Reset last answer status for all teams
@@ -137,12 +139,13 @@ export class GameManager {
   public async startTimer(
     competitionId: string,
     durationSeconds: number,
-    onTick: (state: GameState) => void
+    onTick: (state: GameState) => void,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_PREVIEW") return;
     session.phase = "QUESTION_ACTIVE";
     session.timeRemaining = durationSeconds;
+    session.timerPaused = false;
 
     const existingTimer = this.timers.get(competitionId);
     if (existingTimer) clearInterval(existingTimer);
@@ -150,6 +153,8 @@ export class GameManager {
     await this.saveState();
 
     const timer = setInterval(async () => {
+      if (session.timerPaused) return;
+
       if (session.timeRemaining > 0) {
         session.timeRemaining -= 1;
         onTick(session);
@@ -159,6 +164,20 @@ export class GameManager {
       }
     }, 1000);
     this.timers.set(competitionId, timer);
+  }
+
+  public async pauseTimer(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    if (session.phase !== "QUESTION_ACTIVE") return;
+    session.timerPaused = true;
+    await this.saveState();
+  }
+
+  public async resumeTimer(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    if (session.phase !== "QUESTION_ACTIVE") return;
+    session.timerPaused = false;
+    await this.saveState();
   }
 
   public async revealAnswer(competitionId: string) {
@@ -177,6 +196,7 @@ export class GameManager {
     const timer = this.timers.get(competitionId);
     if (timer) clearInterval(timer);
     session.phase = "GRADING";
+    session.timerPaused = false;
     await this.saveState();
   }
 
@@ -184,7 +204,7 @@ export class GameManager {
     competitionId: string,
     teamId: string,
     questionId: string,
-    answer: AnswerContent
+    answer: AnswerContent,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
@@ -196,7 +216,7 @@ export class GameManager {
     const gradingResult = this.gradingService.gradeAnswer(
       session.currentQuestion,
       answer,
-      { usedJokers }
+      { usedJokers },
     );
 
     const isCorrect = gradingResult ? gradingResult.isCorrect : null;
@@ -237,7 +257,7 @@ export class GameManager {
       session.currentQuestion.roundId,
       answer,
       isCorrect,
-      scoreAwarded
+      scoreAwarded,
     );
 
     // Update status in memory immediately
@@ -266,7 +286,7 @@ export class GameManager {
     competitionId: string,
     teamId: string,
     questionId: string,
-    io: any
+    io: any,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
@@ -325,7 +345,7 @@ export class GameManager {
   public async handleGradeDecision(
     competitionId: string,
     answerId: string,
-    correct: boolean
+    correct: boolean,
   ) {
     const session = this.getOrCreateSession(competitionId);
 
@@ -405,7 +425,7 @@ export class GameManager {
         break;
       case "REVEAL_ANSWER": {
         const currentIndex = questions.findIndex(
-          (q) => q.id === session.currentQuestion?.id
+          (q) => q.id === session.currentQuestion?.id,
         );
         const nextQuestion = questions[currentIndex + 1];
 
@@ -422,7 +442,7 @@ export class GameManager {
       }
       case "ROUND_END": {
         const currentIndex = questions.findIndex(
-          (q) => q.id === session.currentQuestion?.id
+          (q) => q.id === session.currentQuestion?.id,
         );
         const nextQuestion = questions[currentIndex + 1];
         if (nextQuestion) {
@@ -463,7 +483,7 @@ export class GameManager {
 
   public async reconnectTeam(
     competitionId: string,
-    teamId: string
+    teamId: string,
   ): Promise<Team | null> {
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.id === teamId);
@@ -474,7 +494,7 @@ export class GameManager {
 
     const restoredTeam = await this.repository.reconnectTeam(
       competitionId,
-      teamId
+      teamId,
     );
     if (restoredTeam) {
       // Check again to be safe against race conditions

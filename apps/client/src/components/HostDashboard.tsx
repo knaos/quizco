@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket, API_URL } from "../socket";
-import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown } from "lucide-react";
+import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown, Pause } from "lucide-react";
 import type { Question, Competition, Round } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
@@ -155,6 +155,16 @@ export const HostDashboard: React.FC = () => {
     socket.emit("HOST_START_TIMER", { competitionId: selectedComp.id });
   };
 
+  const pauseTimer = () => {
+    if (!selectedComp) return;
+    socket.emit("HOST_PAUSE_TIMER", { competitionId: selectedComp.id });
+  };
+
+  const resumeTimer = () => {
+    if (!selectedComp) return;
+    socket.emit("HOST_RESUME_TIMER", { competitionId: selectedComp.id });
+  };
+
   const revealAnswer = () => {
     if (!selectedComp) return;
     socket.emit("HOST_REVEAL_ANSWER", { competitionId: selectedComp.id });
@@ -256,6 +266,17 @@ export const HostDashboard: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          {state.phase === "QUESTION_ACTIVE" && (
+            <button
+              onClick={state.timerPaused ? resumeTimer : pauseTimer}
+              className={`flex items-center space-x-2 ${
+                state.timerPaused ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"
+              } text-white px-4 py-2 rounded-xl shadow-sm transition font-bold`}
+            >
+              {state.timerPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+              <span>{state.timerPaused ? t("host.resume_timer") : t("host.pause_timer")}</span>
+            </button>
+          )}
           <a
             href="/?admin=true"
             className="flex items-center space-x-2 bg-white text-gray-800 px-4 py-2 rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition font-bold"

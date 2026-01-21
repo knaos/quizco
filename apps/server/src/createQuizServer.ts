@@ -303,6 +303,24 @@ export function createQuizServer(
       },
     );
 
+    socket.on("HOST_PAUSE_TIMER", async ({ competitionId }) => {
+      if (!competitionId) return;
+      await gameManager.pauseTimer(competitionId);
+      io.to(`competition_${competitionId}`).emit(
+        "GAME_STATE_SYNC",
+        gameManager.getState(competitionId),
+      );
+    });
+
+    socket.on("HOST_RESUME_TIMER", async ({ competitionId }) => {
+      if (!competitionId) return;
+      await gameManager.resumeTimer(competitionId);
+      io.to(`competition_${competitionId}`).emit(
+        "GAME_STATE_SYNC",
+        gameManager.getState(competitionId),
+      );
+    });
+
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
       const info = socketToTeam.get(socket.id);

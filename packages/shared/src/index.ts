@@ -232,6 +232,7 @@ export interface GameState {
   timeRemaining: number;
   teams: Team[];
   revealStep: number;
+  timerPaused: boolean;
 }
 
 export interface SocketEvents {
@@ -272,6 +273,8 @@ export interface SocketEvents {
     answerId: string;
     correct: boolean;
   }) => void;
+  HOST_PAUSE_TIMER: (payload: { competitionId: string }) => void;
+  HOST_RESUME_TIMER: (payload: { competitionId: string }) => void;
 
   // Server to Client
   GAME_STATE_SYNC: (state: GameState) => void;

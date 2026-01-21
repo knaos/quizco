@@ -109,7 +109,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds,
-      () => {}
+      () => {},
     );
     expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
 
@@ -149,7 +149,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds,
-      () => {}
+      () => {},
     );
 
     // Fast-forward 1 second
@@ -193,7 +193,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds,
-      () => {}
+      () => {},
     );
 
     // End question
@@ -273,7 +273,7 @@ describe("GameManager Integration", () => {
   it("should return null if team does not exist", async () => {
     const reconnected = await gameManager.reconnectTeam(
       compId,
-      "00000000-0000-0000-0000-000000000000"
+      "00000000-0000-0000-0000-000000000000",
     );
     expect(reconnected).toBeNull();
   });
@@ -295,7 +295,7 @@ describe("GameManager Integration", () => {
     const team = await gameManager.addTeam(
       testCompId,
       "Grading Team",
-      "#000000"
+      "#000000",
     );
 
     const question = await prisma.question.create({
@@ -314,7 +314,7 @@ describe("GameManager Integration", () => {
     await gameManager.startTimer(
       testCompId,
       question.timeLimitSeconds ?? 30,
-      () => {}
+      () => {},
     );
 
     await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
@@ -371,7 +371,7 @@ describe("GameManager Integration", () => {
       await gameManager.submitAnswer(testCompId, team.id, questionId, [0]);
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
-        true
+        true,
       );
 
       // 3. Start a new question and verify reset
@@ -388,7 +388,7 @@ describe("GameManager Integration", () => {
       await gameManager.startQuestion(testCompId, q2.id);
 
       expect(
-        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect,
       ).toBeNull();
     });
 
@@ -426,12 +426,12 @@ describe("GameManager Integration", () => {
         testCompId,
         team.id,
         questionId,
-        "My Answer"
+        "My Answer",
       );
 
       // Initially null
       expect(
-        gameManager.getState(testCompId).teams[0].lastAnswerCorrect
+        gameManager.getState(testCompId).teams[0].lastAnswerCorrect,
       ).toBeNull();
 
       // Get answer ID
@@ -445,7 +445,7 @@ describe("GameManager Integration", () => {
 
       // 3. Assert
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
-        true
+        true,
       );
       expect(gameManager.getState(testCompId).teams[0].score).toBe(10);
     });
@@ -495,5 +495,104 @@ describe("GameManager Integration", () => {
     // but with 5 items the chance is 1/120).
     // We can't guarantee a different order but we can check if it's stored in session.
     expect(state.currentQuestion).not.toBeNull();
+  });
+
+  describe("Timer Pause/Resume", () => {
+    let testCompId: string;
+    let questionId: string;
+
+    beforeEach(async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Timer Test", host_pin: "1" },
+      });
+      testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Pause Test",
+          type: "CLOSED",
+          timeLimitSeconds: 10,
+          content: {},
+        },
+      });
+      questionId = question.id;
+
+      await gameManager.startQuestion(testCompId, questionId);
+    });
+
+    it("should pause the timer and stop decrementing timeRemaining", async () => {
+      await gameManager.startTimer(testCompId, 10, () => {});
+
+      // Advance 1s
+      vi.advanceTimersByTime(1000);
+      expect(gameManager.getState(testCompId).timeRemaining).toBe(9);
+      expect(gameManager.getState(testCompId).timerPaused).toBe(false);
+
+      // Pause
+      await gameManager.pauseTimer(testCompId);
+      expect(gameManager.getState(testCompId).timerPaused).toBe(true);
+
+      // Advance another 2s
+      vi.advanceTimersByTime(2000);
+      // Should still be 9 because it's paused
+      expect(gameManager.getState(testCompId).timeRemaining).toBe(9);
+    });
+
+    it("should resume the timer and continue decrementing timeRemaining", async () => {
+      await gameManager.startTimer(testCompId, 10, () => {});
+      await gameManager.pauseTimer(testCompId);
+
+      vi.advanceTimersByTime(2000);
+      expect(gameManager.getState(testCompId).timeRemaining).toBe(10);
+
+      // Resume
+      await gameManager.resumeTimer(testCompId);
+      expect(gameManager.getState(testCompId).timerPaused).toBe(false);
+
+      // Advance 1s
+      vi.advanceTimersByTime(1000);
+      expect(gameManager.getState(testCompId).timeRemaining).toBe(9);
+    });
+
+    it("should reset timerPaused to false when starting a new question", async () => {
+      await gameManager.startTimer(testCompId, 10, () => {});
+      await gameManager.pauseTimer(testCompId);
+      expect(gameManager.getState(testCompId).timerPaused).toBe(true);
+
+      const q2 = await prisma.question.create({
+        data: {
+          roundId: (await prisma.round.findFirst({
+            where: { competitionId: testCompId },
+          }))!.id,
+          questionText: "Q2",
+          type: "CLOSED",
+          content: {},
+        },
+      });
+
+      await gameManager.startQuestion(testCompId, q2.id);
+      expect(gameManager.getState(testCompId).timerPaused).toBe(false);
+    });
+
+    it("should reset timerPaused to false when timer ends (transition to GRADING)", async () => {
+      await gameManager.startTimer(testCompId, 2, () => {});
+      await gameManager.pauseTimer(testCompId);
+      expect(gameManager.getState(testCompId).timerPaused).toBe(true);
+
+      await gameManager.resumeTimer(testCompId);
+      vi.advanceTimersByTime(3000); // More than 2s
+
+      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
+      expect(gameManager.getState(testCompId).timerPaused).toBe(false);
+    });
   });
 });

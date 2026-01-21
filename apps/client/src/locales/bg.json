@@ -30,6 +30,8 @@
       "submissions": "Отговори",
       "submissions_count": "{{count}} от {{total}} отбора",
       "collected_answers": "Събрани Отговори",
+      "pause_timer": "Пауза Таймер",
+      "resume_timer": "Продължи Таймер",
       "team": "Отбор",
       "answer": "Отговор",
       "points": "Точки",

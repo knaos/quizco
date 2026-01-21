@@ -30,6 +30,8 @@
       "submissions": "Submissions",
       "submissions_count": "{{count}} of {{total}} teams",
       "collected_answers": "Collected Answers",
+      "pause_timer": "Pause Timer",
+      "resume_timer": "Resume Timer",
       "team": "Team",
       "answer": "Answer",
       "points": "Points",
