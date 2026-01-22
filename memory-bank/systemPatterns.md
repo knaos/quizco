@@ -32,6 +32,11 @@ The game moves through defined phases:
 
 Client clocks are not trusted. The server tracks the official start time, and clients calculate remaining time based on server-provided deltas.
 
+### 5. Decoupled Services
+
+- **TimerService:** Dedicated service for managing game timers, abstracting `setInterval` logic away from game managers.
+- **Logger:** Unified logging interface for structured output and better observability during development and production.
+
 ## Component Patterns (Frontend)
 
 - **Context API + useReducer:** Primary state management for the Game State.

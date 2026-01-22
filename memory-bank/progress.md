@@ -25,7 +25,7 @@
 
 - [x] Support `TRUE_FALSE` question type.
 - [x] Implement "Streak Bonus" logic (5-6: +1, 7-9: +2, 10: +3).
-- [ ] Support `CORRECT_THE_ERROR` question type.
+- [x] Support `CORRECT_THE_ERROR` question type.
 
 ### Iteration 4: Round 4 ("Final" - Crossword)
 
@@ -34,7 +34,7 @@
 
 ### General
 
-- [ ] Timer Logic: Server-authoritative countdown with drift prevention.
+- [x] Timer Logic: Server-authoritative countdown with dedicated `TimerService`.
 - [ ] Leaderboard: Real-time score aggregation and display.
 - [ ] Tests: Unit and integration tests for all new question types and scoring logic.
 
@@ -60,3 +60,4 @@
 - **2026-01-20:** Completed Iteration 1 (Round 1 specific logic). Added multi-option blanks and turn-based sections.
 - **2026-01-20:** Completed Iteration 2 (Round 2 Chronology). Added drag-and-drop and complex scoring.
 - **2026-01-20:** Completed Iteration 3 (Round 3 True/False & Streaks). Added streak persistence and bonus points.
+- **2026-01-21:** Refactored backend infrastructure: extracted `TimerService` and added centralized structured logging.

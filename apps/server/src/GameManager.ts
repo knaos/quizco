@@ -8,30 +8,44 @@ import {
 import { IGameRepository } from "./repositories/IGameRepository";
 import { GradingService } from "./services/GradingService";
 import { StatePersistenceService } from "./services/StatePersistenceService";
+import { TimerService } from "./services/TimerService";
+import { ILogger } from "./utils/Logger";
 
 export class GameManager {
   private sessions: Map<string, GameState & { metadata?: any }> = new Map();
-  private timers: Map<string, NodeJS.Timeout> = new Map();
   private gradingService: GradingService;
   private persistenceService: StatePersistenceService;
 
-  constructor(private repository: IGameRepository) {
+  constructor(
+    private repository: IGameRepository,
+    private timerService: TimerService,
+    private logger: ILogger,
+  ) {
     this.gradingService = new GradingService();
     this.persistenceService = new StatePersistenceService();
   }
 
   public async initialize() {
+    this.logger.info("Initializing GameManager...");
     this.sessions = await this.persistenceService.loadState();
+    this.logger.info(`Loaded ${this.sessions.size} sessions from persistence.`);
   }
 
   private async saveState() {
-    await this.persistenceService.saveState(this.sessions);
+    try {
+      await this.persistenceService.saveState(this.sessions);
+    } catch (error) {
+      this.logger.error("Failed to save state", error);
+    }
   }
 
   private getOrCreateSession(
     competitionId: string,
   ): GameState & { metadata?: any } {
     if (!this.sessions.has(competitionId)) {
+      this.logger.info(
+        `Creating new session for competition: ${competitionId}`,
+      );
       this.sessions.set(competitionId, {
         phase: "WAITING",
         currentQuestion: null,
@@ -61,8 +75,15 @@ export class GameManager {
     if (team) {
       if (team.isConnected !== isConnected) {
         team.isConnected = isConnected;
+        this.logger.info(
+          `Team ${team.name} (${teamId}) ${isConnected ? "connected" : "disconnected"} in ${competitionId}`,
+        );
         return true;
       }
+    } else {
+      this.logger.warn(
+        `Attempted to update connection for unknown team ${teamId} in ${competitionId}`,
+      );
     }
     return false;
   }
@@ -76,9 +97,11 @@ export class GameManager {
     name: string,
     color: string,
   ): Promise<Team> {
+    this.logger.info(`Adding team ${name} to competition ${competitionId}`);
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.name === name);
     if (existingTeam) {
+      this.logger.info(`Team ${name} already exists in session, reconnecting.`);
       existingTeam.isConnected = true;
       return existingTeam;
     }
@@ -92,20 +115,28 @@ export class GameManager {
     // Double check by ID as well to prevent memory duplicates
     const existingById = session.teams.find((t) => t.id === newTeam.id);
     if (existingById) {
+      this.logger.info(
+        `Team ${name} (${newTeam.id}) already exists in session by ID, reconnecting.`,
+      );
       existingById.isConnected = true;
       return existingById;
     }
 
     const teamWithStatus = { ...newTeam, isConnected: true };
     session.teams.push(teamWithStatus);
+    this.logger.info(`Team ${name} added to competition ${competitionId}`);
     await this.saveState();
     return teamWithStatus;
   }
 
   public async startQuestion(competitionId: string, questionId: string) {
+    this.logger.info(`Starting question ${questionId} in ${competitionId}`);
     const session = this.getOrCreateSession(competitionId);
     const question = await this.repository.getQuestion(questionId);
-    if (!question) return;
+    if (!question) {
+      this.logger.error(`Question ${questionId} not found!`);
+      return;
+    }
 
     // Deep clone to avoid mutating repository cache
     const sessionQuestion = JSON.parse(JSON.stringify(question));
@@ -130,8 +161,7 @@ export class GameManager {
       team.lastAnswer = null;
     }
 
-    const existingTimer = this.timers.get(competitionId);
-    if (existingTimer) clearInterval(existingTimer);
+    this.timerService.stop(competitionId);
 
     await this.saveState();
   }
@@ -141,29 +171,35 @@ export class GameManager {
     durationSeconds: number,
     onTick: (state: GameState) => void,
   ) {
+    this.logger.info(
+      `Starting timer for ${competitionId}: ${durationSeconds}s`,
+    );
     const session = this.getOrCreateSession(competitionId);
-    if (session.phase !== "QUESTION_PREVIEW") return;
+    if (session.phase !== "QUESTION_PREVIEW") {
+      this.logger.warn(
+        `Cannot start timer: session ${competitionId} is in phase ${session.phase}, expected QUESTION_PREVIEW`,
+      );
+      return;
+    }
     session.phase = "QUESTION_ACTIVE";
     session.timeRemaining = durationSeconds;
     session.timerPaused = false;
 
-    const existingTimer = this.timers.get(competitionId);
-    if (existingTimer) clearInterval(existingTimer);
+    this.timerService.stop(competitionId);
 
     await this.saveState();
 
-    const timer = setInterval(async () => {
-      if (session.timerPaused) return;
-
-      if (session.timeRemaining > 0) {
-        session.timeRemaining -= 1;
+    this.timerService.start(competitionId, durationSeconds, {
+      onTick: async (remaining) => {
+        if (session.timerPaused) return;
+        session.timeRemaining = remaining;
         onTick(session);
-      } else {
+      },
+      onEnd: async () => {
         await this.endQuestion(competitionId);
         onTick(session);
-      }
-    }, 1000);
-    this.timers.set(competitionId, timer);
+      },
+    });
   }
 
   public async pauseTimer(competitionId: string) {
@@ -185,16 +221,14 @@ export class GameManager {
     if (session.phase !== "GRADING" && session.phase !== "QUESTION_ACTIVE")
       return;
 
-    const timer = this.timers.get(competitionId);
-    if (timer) clearInterval(timer);
+    this.timerService.stop(competitionId);
     session.phase = "REVEAL_ANSWER";
     await this.saveState();
   }
 
   private async endQuestion(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
-    const timer = this.timers.get(competitionId);
-    if (timer) clearInterval(timer);
+    this.timerService.stop(competitionId);
     session.phase = "GRADING";
     session.timerPaused = false;
     await this.saveState();
@@ -206,9 +240,22 @@ export class GameManager {
     questionId: string,
     answer: AnswerContent,
   ) {
+    this.logger.info(
+      `Received answer from team ${teamId} for question ${questionId} in ${competitionId}`,
+    );
     const session = this.getOrCreateSession(competitionId);
-    if (session.phase !== "QUESTION_ACTIVE") return;
-    if (session.currentQuestion?.id !== questionId) return;
+    if (session.phase !== "QUESTION_ACTIVE") {
+      this.logger.warn(
+        `Rejecting answer from team ${teamId}: session ${competitionId} is in phase ${session.phase}`,
+      );
+      return;
+    }
+    if (session.currentQuestion?.id !== questionId) {
+      this.logger.warn(
+        `Rejecting answer from team ${teamId}: current question is ${session.currentQuestion?.id}, but answer is for ${questionId}`,
+      );
+      return;
+    }
 
     const usedJokers = session.metadata?.usedJokers?.has(teamId) || false;
 
@@ -269,6 +316,9 @@ export class GameManager {
     }
 
     if (isCorrect !== null) {
+      this.logger.info(
+        `Answer from team ${teamId} graded: ${isCorrect ? "CORRECT" : "INCORRECT"}, score awarded: ${scoreAwarded}`,
+      );
       await this.refreshTeamScores(competitionId);
     }
 
@@ -276,8 +326,14 @@ export class GameManager {
 
     // Check if all teams have submitted
     const submittedCount = await this.repository.getSubmissionCount(questionId);
+    this.logger.debug(
+      `Submissions for ${questionId}: ${submittedCount}/${session.teams.length}`,
+    );
 
     if (submittedCount >= session.teams.length && session.teams.length > 0) {
+      this.logger.info(
+        `All teams submitted for ${questionId}. Ending question.`,
+      );
       this.endQuestion(competitionId);
     }
   }
@@ -383,9 +439,13 @@ export class GameManager {
 
   public async next(competitionId: string, onTick: (state: GameState) => void) {
     const session = this.getOrCreateSession(competitionId);
+    this.logger.info(
+      `Next called for ${competitionId}. Current phase: ${session.phase}`,
+    );
     const questions =
       await this.repository.getQuestionsForCompetition(competitionId);
 
+    const oldPhase = session.phase;
     switch (session.phase) {
       case "WAITING":
         session.phase = "WELCOME";
@@ -469,6 +529,11 @@ export class GameManager {
         break;
     }
 
+    if (oldPhase !== session.phase) {
+      this.logger.info(
+        `Phase transition in ${competitionId}: ${oldPhase} -> ${session.phase}`,
+      );
+    }
     await this.saveState();
   }
 
@@ -496,9 +561,11 @@ export class GameManager {
     competitionId: string,
     teamId: string,
   ): Promise<Team | null> {
+    this.logger.info(`Reconnecting team ${teamId} in ${competitionId}`);
     const session = this.getOrCreateSession(competitionId);
     const existingTeam = session.teams.find((t) => t.id === teamId);
     if (existingTeam) {
+      this.logger.info(`Team ${teamId} found in session, reconnecting.`);
       existingTeam.isConnected = true;
       return existingTeam;
     }
@@ -511,15 +578,20 @@ export class GameManager {
       // Check again to be safe against race conditions
       const doubleCheck = session.teams.find((t) => t.id === teamId);
       if (doubleCheck) {
+        this.logger.info(
+          `Team ${teamId} found in session (race check), reconnecting.`,
+        );
         doubleCheck.isConnected = true;
         return doubleCheck;
       }
 
       const teamWithStatus = { ...restoredTeam, isConnected: true };
       session.teams.push(teamWithStatus);
+      this.logger.info(`Team ${teamId} restored from DB in ${competitionId}`);
       await this.saveState();
       return teamWithStatus;
     }
+    this.logger.warn(`Failed to reconnect team ${teamId} in ${competitionId}`);
     return null;
   }
 }

@@ -2,6 +2,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { createQuizServer } from "../createQuizServer";
 import { GameManager } from "../GameManager";
 import { MockGameRepository } from "./mocks/MockGameRepository";
+import { TimerService } from "../services/TimerService";
+import { Logger } from "../utils/Logger";
 import { Server } from "http";
 import { AddressInfo } from "net";
 
@@ -16,7 +18,9 @@ describe("Question Answers API E2E", () => {
 
   beforeAll(async () => {
     mockRepository = new MockGameRepository();
-    gameManager = new GameManager(mockRepository);
+    const timerService = new TimerService();
+    const logger = new Logger("QuestionAnswersTest");
+    gameManager = new GameManager(mockRepository, timerService, logger);
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 

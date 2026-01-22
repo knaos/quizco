@@ -10,6 +10,8 @@ import {
 import { createQuizServer } from "../createQuizServer";
 import { GameManager } from "../GameManager";
 import { MockGameRepository } from "./mocks/MockGameRepository";
+import { TimerService } from "../services/TimerService";
+import { Logger } from "../utils/Logger";
 import { io as Client, Socket } from "socket.io-client";
 import { Server } from "http";
 import { AddressInfo } from "net";
@@ -26,7 +28,9 @@ describe("Timer Pause/Resume E2E", () => {
 
   beforeAll(async () => {
     mockRepository = new MockGameRepository();
-    gameManager = new GameManager(mockRepository);
+    const timerService = new TimerService();
+    const logger = new Logger("TimerPauseResumeTest");
+    gameManager = new GameManager(mockRepository, timerService, logger);
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 

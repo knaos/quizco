@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GameManager } from "./GameManager";
 import { PostgresGameRepository } from "./repositories/PostgresGameRepository";
 import prisma from "./db/prisma";
+import { TimerService } from "./services/TimerService";
+import { Logger } from "./utils/Logger";
 
 describe("GameManager Next Flow", () => {
   let gameManager: GameManager;
@@ -11,7 +13,9 @@ describe("GameManager Next Flow", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     repository = new PostgresGameRepository();
-    gameManager = new GameManager(repository);
+    const timerService = new TimerService();
+    const logger = new Logger("NextFlowTest");
+    gameManager = new GameManager(repository, timerService, logger);
 
     const competition = await prisma.competition.create({
       data: { title: "Next Flow Comp", host_pin: "1234" },

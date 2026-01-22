@@ -12,6 +12,13 @@ When adding new question types:
 
 ## Recent Changes
 
+- **Timer and Logging Infrastructure Improvement:**
+  - **TimerService:** Extracted timer logic from `GameManager.ts` into a dedicated `TimerService.ts`. This provides a cleaner API for starting, stopping, and managing timers per competition, reducing complexity in the main game loop logic.
+  - **Centralized Logger:** Introduced a structured `Logger` utility in `apps/server/src/utils/Logger.ts`.
+  - **Observability:** Added extensive logging throughout `GameManager.ts` for phase transitions, team connections, answer submissions, and error handling.
+  - **Dependency Injection:** Updated `GameManager` to accept `TimerService` and `ILogger` as constructor dependencies, improving testability.
+  - **Test Coverage:** Updated `GameManager.test.ts` to reflect the new constructor signature and verified timer pause/resume behavior.
+
 - **Iteration 3 Complete: "True/False" & Streak Logic (Round 3):**
   - Implemented `TRUE_FALSE` question type and `STREAK` round type.
   - **Streak Logic:** `GameManager.ts` now tracks consecutive correct answers for each team. Streak is persisted in the database (`Team.streak`).

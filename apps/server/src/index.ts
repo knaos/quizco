@@ -2,11 +2,15 @@ import dotenv from "dotenv";
 import { GameManager } from "./GameManager";
 import { PostgresGameRepository } from "./repositories/PostgresGameRepository";
 import { createQuizServer } from "./createQuizServer";
+import { TimerService } from "./services/TimerService";
+import { Logger } from "./utils/Logger";
 
 dotenv.config();
 
+const logger = new Logger("Server");
 const repository = new PostgresGameRepository();
-const gameManager = new GameManager(repository);
+const timerService = new TimerService();
+const gameManager = new GameManager(repository, timerService, logger);
 
 const { httpServer } = createQuizServer(gameManager, repository);
 
