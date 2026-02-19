@@ -524,9 +524,35 @@ export class GameManager {
         }
         break;
       }
-      case "LEADERBOARD":
-        // Reset or stay?
+      case "LEADERBOARD": {
+        /**
+         * Reset the competition to allow for a replay.
+         * Clears all team scores and streaks while preserving team records.
+         * Deletes all answers from the database.
+         * Transitions back to WAITING phase.
+         */
+        session.phase = "WAITING";
+        session.currentQuestion = null;
+        session.revealStep = 0;
+        session.timeRemaining = 0;
+        session.timerPaused = false;
+
+        // Reset team scores and streaks but keep team records
+        for (const team of session.teams) {
+          team.score = 0;
+          team.streak = 0;
+          team.lastAnswerCorrect = null;
+          team.lastAnswer = null;
+        }
+
+        // Delete all answers for this competition from the database
+        await this.repository.deleteAnswersForCompetition(competitionId);
+
+        this.logger.info(
+          `Competition ${competitionId} reset from LEADERBOARD. Teams cleared for replay and answers deleted.`,
+        );
         break;
+      }
     }
 
     if (oldPhase !== session.phase) {

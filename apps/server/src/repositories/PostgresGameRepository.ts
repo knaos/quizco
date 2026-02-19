@@ -217,10 +217,10 @@ export class PostgresGameRepository implements IGameRepository {
         isCorrect: null,
         ...(competitionId
           ? {
-              round: {
-                competitionId: competitionId,
-              },
-            }
+            round: {
+              competitionId: competitionId,
+            },
+          }
           : {}),
       },
       include: {
@@ -268,5 +268,15 @@ export class PostgresGameRepository implements IGameRepository {
       isCorrect: a.isCorrect,
       points: a.scoreAwarded,
     }));
+  }
+
+  async deleteAnswersForCompetition(competitionId: string): Promise<void> {
+    await prisma.answer.deleteMany({
+      where: {
+        round: {
+          competitionId: competitionId,
+        },
+      },
+    });
   }
 }
