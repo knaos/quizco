@@ -63,6 +63,10 @@
       "see_grid": "See Grid",
       "waiting_grading": "Waiting for grading",
       "session_lost_rejoin": "Session lost. Please rejoin.",
+      "correct_position": "Correct Position",
+      "wrong_position": "Wrong Position",
+      "no_answer_submitted": "No answer submitted",
+      "should_be": "Should be",
       "questions": {
         "correctTheError": {
           "instruction": "Identify the incorrect phrase and type the correction.",

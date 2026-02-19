@@ -63,6 +63,10 @@
       "see_grid": "Виж Мрежата",
       "waiting_grading": "Изчакване на оценяване",
       "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново.",
+      "correct_position": "Правилна Позиция",
+      "wrong_position": "Грешна Позиция",
+      "no_answer_submitted": "Няма изпратен отговор",
+      "should_be": "Трябва да бъде",
       "questions": {
         "correctTheError": {
           "instruction": "Посочете грешната фраза и напишете корекцията.",
