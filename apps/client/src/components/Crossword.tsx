@@ -90,9 +90,8 @@ export const Crossword: React.FC<CrosswordProps> = ({
         <div
           className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg"
           style={{
-            gridTemplateColumns: `repeat(${
-              data.grid?.[0]?.length || 0
-            }, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0
+              }, minmax(0, 1fr))`,
           }}
         >
           {userGrid.map((row, r) =>

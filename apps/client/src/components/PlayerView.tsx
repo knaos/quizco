@@ -20,10 +20,10 @@ const SELECTED_COMP_ID_KEY = "quizco_selected_competition_id";
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
-  
+
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(localStorage.getItem(SELECTED_COMP_ID_KEY));
-  
+
   const [teamName, setTeamName] = useState(localStorage.getItem(TEAM_NAME_KEY) || "");
   const [color, setColor] = useState(localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6");
   const [joined, setJoined] = useState(false);
@@ -40,9 +40,9 @@ export const PlayerView: React.FC = () => {
   // Fetch active competitions if none selected
   React.useEffect(() => {
     if (!selectedCompId) {
-        fetch(`${API_URL}/api/competitions`)
-          .then((res) => res.json())
-          .then((data) => setCompetitions(data));
+      fetch(`${API_URL}/api/competitions`)
+        .then((res) => res.json())
+        .then((data) => setCompetitions(data));
     }
   }, [selectedCompId]);
 
@@ -50,32 +50,34 @@ export const PlayerView: React.FC = () => {
   React.useEffect(() => {
     const savedTeamId = localStorage.getItem(TEAM_ID_KEY);
     const savedCompId = localStorage.getItem(SELECTED_COMP_ID_KEY);
-    
+
     const restoreSession = async () => {
-        if (savedTeamId && savedCompId) {
-            return new Promise<void>((resolve) => {
-                socket.emit("RECONNECT_TEAM", { competitionId: savedCompId, teamId: savedTeamId }, (res: { success: boolean; team: { name: string; color: string } }) => {
-                    if (res.success) {
-                        setTeamName(res.team.name);
-                        setColor(res.team.color);
-                        setJoined(true);
-                    } else {
-                        // If reconnection fails, we don't necessarily clear competition, 
-                        // just team identity.
-                        localStorage.removeItem(TEAM_ID_KEY);
-                    }
-                    resolve();
-                });
-            });
-        }
+      if (savedTeamId && savedCompId) {
+        return new Promise<void>((resolve) => {
+          socket.emit("RECONNECT_TEAM", { competitionId: savedCompId, teamId: savedTeamId }, (res: { success: boolean; team: { name: string; color: string } }) => {
+            if (res.success) {
+              setTeamName(res.team.name);
+              setColor(res.team.color);
+              setJoined(true);
+            } else {
+              // If reconnection fails, we don't necessarily clear competition,
+              // just team identity.
+              localStorage.removeItem(TEAM_ID_KEY);
+            }
+            resolve();
+          });
+        });
+      }
     };
 
     restoreSession().finally(() => {
-        setIsReconnecting(false);
+      setIsReconnecting(false);
     });
   }, []);
 
   React.useEffect(() => {
+    document.title = "BC Player";
+
     if (state.currentQuestion) {
       if (state.currentQuestion.type === "FILL_IN_THE_BLANKS") {
         setAnswer([]);
@@ -98,30 +100,30 @@ export const PlayerView: React.FC = () => {
   }, [state.currentQuestion?.id]);
 
   const handleSelectCompetition = (id: string) => {
-      setSelectedCompId(id);
-      localStorage.setItem(SELECTED_COMP_ID_KEY, id);
+    setSelectedCompId(id);
+    localStorage.setItem(SELECTED_COMP_ID_KEY, id);
   };
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamName || !selectedCompId) return;
     socket.emit("JOIN_ROOM", { competitionId: selectedCompId, teamName, color }, (res: { success: boolean; team: { id: string; name: string; color: string } }) => {
-        if (res.success) {
-            localStorage.setItem(TEAM_ID_KEY, res.team.id);
-            localStorage.setItem(TEAM_NAME_KEY, res.team.name);
-            localStorage.setItem(TEAM_COLOR_KEY, res.team.color);
-            setJoined(true);
-        }
+      if (res.success) {
+        localStorage.setItem(TEAM_ID_KEY, res.team.id);
+        localStorage.setItem(TEAM_NAME_KEY, res.team.name);
+        localStorage.setItem(TEAM_COLOR_KEY, res.team.color);
+        setJoined(true);
+      }
     });
   };
 
   const handleLeave = () => {
     if (confirm("Are you sure you want to leave the game? Your score will be preserved if you rejoin with the same name.")) {
-        localStorage.removeItem(TEAM_ID_KEY);
-        localStorage.removeItem(TEAM_NAME_KEY);
-        localStorage.removeItem(TEAM_COLOR_KEY);
-        localStorage.removeItem(SELECTED_COMP_ID_KEY);
-        window.location.reload(); // Hard reset
+      localStorage.removeItem(TEAM_ID_KEY);
+      localStorage.removeItem(TEAM_NAME_KEY);
+      localStorage.removeItem(TEAM_COLOR_KEY);
+      localStorage.removeItem(SELECTED_COMP_ID_KEY);
+      window.location.reload(); // Hard reset
     }
   };
 
@@ -131,19 +133,19 @@ export const PlayerView: React.FC = () => {
 
   const submitAnswer = (value: AnswerContent) => {
     if (!state.currentQuestion || !selectedCompId) {
-        console.error("Submission attempted without active question or competition", {
-            question: state.currentQuestion,
-            selectedCompId
-        });
-        return;
+      console.error("Submission attempted without active question or competition", {
+        question: state.currentQuestion,
+        selectedCompId
+      });
+      return;
     }
 
     const teamId = getTeamId();
     if (!teamId) {
-        console.error("Submission attempted without teamId");
-        alert(t('player.session_lost_rejoin'));
-        setJoined(false);
-        return;
+      console.error("Submission attempted without teamId");
+      alert(t('player.session_lost_rejoin'));
+      setJoined(false);
+      return;
     }
 
     socket.emit("SUBMIT_ANSWER", {
@@ -158,7 +160,7 @@ export const PlayerView: React.FC = () => {
         setSubmissionStatus("error");
       }
     });
-    
+
     setSubmitted(true);
   };
 
@@ -183,58 +185,58 @@ export const PlayerView: React.FC = () => {
   // Sync Watchdog: Monitor if joined team is still in server state
   React.useEffect(() => {
     if (joined && !isReconnecting && state.teams.length > 0) {
-        const teamId = getTeamId();
-        const stillInGame = state.teams.some(t => t.id === teamId || t.name === teamName);
-        
-        if (!stillInGame) {
-            console.warn("Session drift detected: Team not found in server state.");
-        }
+      const teamId = getTeamId();
+      const stillInGame = state.teams.some(t => t.id === teamId || t.name === teamName);
+
+      if (!stillInGame) {
+        console.warn("Session drift detected: Team not found in server state.");
+      }
     }
   }, [state.teams, joined, isReconnecting]);
 
   if (isReconnecting) {
-      return (
-          <div className="min-h-screen bg-blue-600 flex items-center justify-center">
-              <div className="text-white font-bold animate-pulse text-xl">
-                  {t('common.loading')}
-              </div>
-          </div>
-      );
+    return (
+      <div className="min-h-screen bg-blue-600 flex items-center justify-center">
+        <div className="text-white font-bold animate-pulse text-xl">
+          {t('common.loading')}
+        </div>
+      </div>
+    );
   }
 
   // Phase 0: Select Quiz
   if (!selectedCompId) {
-      return (
-        <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4 relative">
-            <div className="absolute top-4 right-4">
-                <LanguageSwitcher />
-            </div>
-            <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-md">
-                <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">Pick a Quiz</h1>
-                <div className="space-y-4">
-                    {competitions.length === 0 ? (
-                        <p className="text-center text-gray-500 font-medium">No active quizzes found.</p>
-                    ) : (
-                        competitions.map(comp => (
-                            <button
-                                key={comp.id}
-                                onClick={() => handleSelectCompetition(comp.id)}
-                                className="w-full flex items-center justify-between p-5 bg-gray-50 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group"
-                            >
-                                <div className="flex items-center">
-                                    <div className="bg-blue-100 p-2 rounded-xl group-hover:bg-blue-500 transition-colors mr-4">
-                                        <Trophy className="w-5 h-5 text-blue-600 group-hover:text-white" />
-                                    </div>
-                                    <span className="text-lg font-bold text-gray-700">{comp.title}</span>
-                                </div>
-                                <ChevronRight className="text-gray-300 group-hover:text-blue-500" />
-                            </button>
-                        ))
-                    )}
-                </div>
-            </div>
+    return (
+      <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4 relative">
+        <div className="absolute top-4 right-4">
+          <LanguageSwitcher />
         </div>
-      );
+        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-md">
+          <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">Pick a Quiz</h1>
+          <div className="space-y-4">
+            {competitions.length === 0 ? (
+              <p className="text-center text-gray-500 font-medium">No active quizzes found.</p>
+            ) : (
+              competitions.map(comp => (
+                <button
+                  key={comp.id}
+                  onClick={() => handleSelectCompetition(comp.id)}
+                  className="w-full flex items-center justify-between p-5 bg-gray-50 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group"
+                >
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 p-2 rounded-xl group-hover:bg-blue-500 transition-colors mr-4">
+                      <Trophy className="w-5 h-5 text-blue-600 group-hover:text-white" />
+                    </div>
+                    <span className="text-lg font-bold text-gray-700">{comp.title}</span>
+                  </div>
+                  <ChevronRight className="text-gray-300 group-hover:text-blue-500" />
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Phase 1: Join Team
@@ -242,12 +244,12 @@ export const PlayerView: React.FC = () => {
     return (
       <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4 relative">
         <div className="absolute top-4 left-4">
-            <button 
-                onClick={() => { setSelectedCompId(null); localStorage.removeItem(SELECTED_COMP_ID_KEY); }}
-                className="text-white/80 hover:text-white flex items-center font-bold"
-            >
-                <ChevronRight className="w-5 h-5 rotate-180 mr-1" /> Change Quiz
-            </button>
+          <button
+            onClick={() => { setSelectedCompId(null); localStorage.removeItem(SELECTED_COMP_ID_KEY); }}
+            className="text-white/80 hover:text-white flex items-center font-bold"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180 mr-1" /> Change Quiz
+          </button>
         </div>
         <div className="absolute top-4 right-4">
           <LanguageSwitcher />
@@ -257,9 +259,9 @@ export const PlayerView: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('player.team_name')}</label>
-              <input 
-                type="text" 
-                value={teamName} 
+              <input
+                type="text"
+                value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition"
                 placeholder={t('player.team_name')}
@@ -267,15 +269,15 @@ export const PlayerView: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('player.pick_color')}</label>
-              <input 
-                type="color" 
-                value={color} 
+              <input
+                type="color"
+                value={color}
                 onChange={(e) => setColor(e.target.value)}
                 className="w-full h-12 rounded-lg cursor-pointer"
               />
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition text-lg shadow-lg"
             >
               {t('player.lets_go')}
@@ -309,15 +311,15 @@ export const PlayerView: React.FC = () => {
       return (content as MatchingContent).pairs.map(p => `${p.left} → ${p.right}`).join(" | ");
     }
     if (type === "CHRONOLOGY") {
-        const chrContent = content as ChronologyContent;
-        return [...chrContent.items].sort((a,b) => a.order - b.order).map(i => i.text).join(" → ");
+      const chrContent = content as ChronologyContent;
+      return [...chrContent.items].sort((a, b) => a.order - b.order).map(i => i.text).join(" → ");
     }
     if (type === "TRUE_FALSE") {
-        return (content as any).isTrue ? t("game.true") : t("game.false");
+      return (content as any).isTrue ? t("game.true") : t("game.false");
     }
     if (type === "CORRECT_THE_ERROR") {
-        const cteContent = content as CorrectTheErrorContent;
-        return `${cteContent.phrases[cteContent.errorPhraseIndex]} → ${cteContent.correctReplacement}`;
+      const cteContent = content as CorrectTheErrorContent;
+      return `${cteContent.phrases[cteContent.errorPhraseIndex]} → ${cteContent.correctReplacement}`;
     }
     return "Unknown";
   };
@@ -343,10 +345,10 @@ export const PlayerView: React.FC = () => {
           <LanguageSwitcher />
         </div>
         <div className="flex items-center space-x-4">
-            <div className="text-gray-600 font-medium">{t('common.score')}: {state.teams.find(t => t.name === teamName)?.score || 0}</div>
-            <button onClick={handleLeave} className="text-gray-400 hover:text-red-500 transition">
-                <LogOut className="w-5 h-5" />
-            </button>
+          <div className="text-gray-600 font-medium">{t('common.score')}: {state.teams.find(t => t.name === teamName)?.score || 0}</div>
+          <button onClick={handleLeave} className="text-gray-400 hover:text-red-500 transition">
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
       </header>
 
@@ -401,17 +403,16 @@ export const PlayerView: React.FC = () => {
                 {state.currentQuestion.questionText}
               </h2>
             </div>
-            
+
             {state.currentQuestion.type === "MULTIPLE_CHOICE" && state.revealStep > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
                 {state.currentQuestion.content.options.map((opt: string, i: number) => (
                   <div
                     key={i}
-                    className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${
-                      i < state.revealStep 
-                      ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0" 
+                    className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${i < state.revealStep
+                      ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
                       : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl mr-6 shadow-lg shadow-blue-200">
@@ -458,11 +459,10 @@ export const PlayerView: React.FC = () => {
                             <button
                               key={i}
                               onClick={() => toggleIndex(i)}
-                              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${
-                                isSelected
-                                  ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
-                                  : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
-                              }`}
+                              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${isSelected
+                                ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
+                                : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                                }`}
                             >
                               <span>{opt}</span>
                               {isSelected && <CheckCircle className="w-6 h-6 text-white" />}
@@ -473,11 +473,10 @@ export const PlayerView: React.FC = () => {
                       <button
                         onClick={() => submitAnswer(selectedIndices)}
                         disabled={selectedIndices.length === 0}
-                        className={`w-full py-5 rounded-2xl text-2xl font-black shadow-xl transition-all flex items-center justify-center space-x-3 ${
-                          selectedIndices.length > 0
-                            ? "bg-green-600 hover:bg-green-700 text-white translate-y-[-4px]"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        }`}
+                        className={`w-full py-5 rounded-2xl text-2xl font-black shadow-xl transition-all flex items-center justify-center space-x-3 ${selectedIndices.length > 0
+                          ? "bg-green-600 hover:bg-green-700 text-white translate-y-[-4px]"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          }`}
                       >
                         <Send className="w-8 h-8" />
                         <span>{t("player.submit_answer")}</span>
@@ -518,11 +517,10 @@ export const PlayerView: React.FC = () => {
                       <button
                         onClick={() => submitAnswer(answer)}
                         disabled={Object.keys(answer || {}).length < (state.currentQuestion.content as MatchingContent).pairs.length}
-                        className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${
-                          Object.keys(answer || {}).length >= (state.currentQuestion.content as MatchingContent).pairs.length
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        }`}
+                        className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${Object.keys(answer || {}).length >= (state.currentQuestion.content as MatchingContent).pairs.length
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          }`}
                       >
                         <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
                       </button>
@@ -552,13 +550,13 @@ export const PlayerView: React.FC = () => {
                     />
                   ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
                     <CorrectTheErrorPlayer
-                        content={state.currentQuestion.content}
-                        onAnswer={(val) => {
-                            setAnswer(val);
-                            submitAnswer(val);
-                        }}
-                        disabled={hasSubmitted}
-                        initialAnswer={currentTeam?.lastAnswer as any}
+                      content={state.currentQuestion.content}
+                      onAnswer={(val) => {
+                        setAnswer(val);
+                        submitAnswer(val);
+                      }}
+                      disabled={hasSubmitted}
+                      initialAnswer={currentTeam?.lastAnswer as any}
                     />
                   ) : (
                     <div className="flex flex-col space-y-4">
@@ -581,13 +579,12 @@ export const PlayerView: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className={`p-8 rounded-2xl border-2 ${
-                submissionStatus === "error" 
-                  ? "bg-red-100 border-red-500" 
-                  : (submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined))
-                    ? "bg-green-100 border-green-500"
-                    : "bg-blue-100 border-blue-500"
-              }`}>
+              <div className={`p-8 rounded-2xl border-2 ${submissionStatus === "error"
+                ? "bg-red-100 border-red-500"
+                : (submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined))
+                  ? "bg-green-100 border-green-500"
+                  : "bg-blue-100 border-blue-500"
+                }`}>
                 {submissionStatus === "error" ? (
                   <>
                     <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -611,7 +608,7 @@ export const PlayerView: React.FC = () => {
         )}
 
         {state.phase === "GRADING" && (
-           <div className="space-y-4">
+          <div className="space-y-4">
             <Clock className="w-16 h-16 text-orange-500 mx-auto" />
             <h2 className="text-3xl font-bold text-gray-800">{t('player.times_up')}</h2>
             <p className="text-xl text-gray-500">The round has ended. Waiting for the host to reveal the answer...</p>
@@ -620,25 +617,24 @@ export const PlayerView: React.FC = () => {
 
         {state.phase === "LEADERBOARD" && (
           <div className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700">
-             <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-blue-600">
-                <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
-                <h2 className="text-5xl font-black text-gray-900 mb-8">{t('host.leaderboard')}</h2>
-                
-                <div className="space-y-4">
-                  {[...state.teams].sort((a,b) => b.score - a.score).map((team, idx) => (
-                    <div key={team.id} className={`flex items-center justify-between p-6 rounded-3xl ${
-                      idx === 0 ? "bg-yellow-50 border-4 border-yellow-200" : "bg-gray-50 border-4 border-transparent"
+            <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-blue-600">
+              <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
+              <h2 className="text-5xl font-black text-gray-900 mb-8">{t('host.leaderboard')}</h2>
+
+              <div className="space-y-4">
+                {[...state.teams].sort((a, b) => b.score - a.score).map((team, idx) => (
+                  <div key={team.id} className={`flex items-center justify-between p-6 rounded-3xl ${idx === 0 ? "bg-yellow-50 border-4 border-yellow-200" : "bg-gray-50 border-4 border-transparent"
                     }`}>
-                      <div className="flex items-center space-x-6">
-                        <span className="text-3xl font-black text-gray-400 w-12">{idx + 1}</span>
-                        <div className="w-8 h-8 rounded-full shadow-inner" style={{ backgroundColor: team.color }} />
-                        <span className="text-3xl font-black text-gray-800">{team.name}</span>
-                      </div>
-                      <span className="text-4xl font-black text-blue-600">{team.score}</span>
+                    <div className="flex items-center space-x-6">
+                      <span className="text-3xl font-black text-gray-400 w-12">{idx + 1}</span>
+                      <div className="w-8 h-8 rounded-full shadow-inner" style={{ backgroundColor: team.color }} />
+                      <span className="text-3xl font-black text-gray-800">{team.name}</span>
                     </div>
-                  ))}
-                </div>
-             </div>
+                    <span className="text-4xl font-black text-blue-600">{team.score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -674,7 +670,7 @@ export const PlayerView: React.FC = () => {
                       const question = state.currentQuestion as MultipleChoiceQuestion;
                       const team = state.teams.find((t) => t.name === teamName);
                       const lastAnswer = team?.lastAnswer as number[] | null;
-                      
+
                       return question.content.options.map((opt: string, i: number) => {
                         const isOptionCorrect = question.content.correctIndices.includes(i);
                         const isSelected = Array.isArray(lastAnswer) && lastAnswer.includes(i);
@@ -691,18 +687,16 @@ export const PlayerView: React.FC = () => {
                         return (
                           <div key={i} className={containerClass}>
                             <span
-                              className={`text-xl font-bold ${
-                                isOptionCorrect ? "text-green-800" : isSelected ? "text-red-800" : "text-gray-500"
-                              }`}
+                              className={`text-xl font-bold ${isOptionCorrect ? "text-green-800" : isSelected ? "text-red-800" : "text-gray-500"
+                                }`}
                             >
                               {opt}
                             </span>
                             <div className="flex items-center space-x-3">
                               {isSelected && (
                                 <span
-                                  className={`text-xs font-black uppercase px-2 py-1 rounded ${
-                                    isOptionCorrect ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"
-                                  }`}
+                                  className={`text-xs font-black uppercase px-2 py-1 rounded ${isOptionCorrect ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"
+                                    }`}
                                 >
                                   {t("player.your_choice")}
                                 </span>
@@ -741,10 +735,10 @@ export const PlayerView: React.FC = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg animate-pulse inline-block mx-auto">
               <p className="text-xl font-bold flex items-center">
-                 <Clock className="mr-2" /> {t('player.next_soon')}
+                <Clock className="mr-2" /> {t('player.next_soon')}
               </p>
             </div>
           </div>

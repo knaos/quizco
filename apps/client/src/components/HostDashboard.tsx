@@ -46,32 +46,32 @@ export const HostDashboard: React.FC = () => {
   const selectCompetition = useCallback((comp: Competition, updateUrl = true) => {
     setSelectedComp(comp);
     socket.emit("HOST_JOIN_ROOM", { competitionId: comp.id });
-    
+
     if (updateUrl) {
-        const params = new URLSearchParams(window.location.search);
-        params.set("competitionId", comp.id);
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-        window.history.pushState({ path: newUrl }, "", newUrl);
+      const params = new URLSearchParams(window.location.search);
+      params.set("competitionId", comp.id);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({ path: newUrl }, "", newUrl);
     }
 
     fetch(`${API_URL}/api/competitions/${comp.id}/play-data`)
       .then((res) => res.json())
       .then((data) => {
-          setCompData(data);
-          // Auto-expand first round
-          if (data.rounds.length > 0) {
-              setExpandedRounds({ [data.rounds[0].id]: true });
-          }
+        setCompData(data);
+        // Auto-expand first round
+        if (data.rounds.length > 0) {
+          setExpandedRounds({ [data.rounds[0].id]: true });
+        }
       });
   }, []);
 
   const handleBack = useCallback(() => {
-      setSelectedComp(null);
-      setCompData(null);
-      const params = new URLSearchParams(window.location.search);
-      params.delete("competitionId");
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      window.history.pushState({ path: newUrl }, "", newUrl);
+    setSelectedComp(null);
+    setCompData(null);
+    const params = new URLSearchParams(window.location.search);
+    params.delete("competitionId");
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ path: newUrl }, "", newUrl);
   }, []);
 
   // Initial fetch of competitions
@@ -79,17 +79,17 @@ export const HostDashboard: React.FC = () => {
     fetch(`${API_URL}/api/competitions`)
       .then((res) => res.json())
       .then((data) => {
-          setCompetitions(data);
-          
-          // Check URL for competitionId
-          const params = new URLSearchParams(window.location.search);
-          const compId = params.get("competitionId");
-          if (compId) {
-              const comp = data.find((c: Competition) => c.id === compId);
-              if (comp) {
-                  selectCompetition(comp, false); // false = don't update URL again
-              }
+        setCompetitions(data);
+
+        // Check URL for competitionId
+        const params = new URLSearchParams(window.location.search);
+        const compId = params.get("competitionId");
+        if (compId) {
+          const comp = data.find((c: Competition) => c.id === compId);
+          if (comp) {
+            selectCompetition(comp, false); // false = don't update URL again
           }
+        }
       });
   }, [selectCompetition]);
 
@@ -134,16 +134,21 @@ export const HostDashboard: React.FC = () => {
   // Handle socket reconnection
   useEffect(() => {
     const onConnect = () => {
-        if (selectedComp) {
-            socket.emit("HOST_JOIN_ROOM", { competitionId: selectedComp.id });
-        }
+      if (selectedComp) {
+        socket.emit("HOST_JOIN_ROOM", { competitionId: selectedComp.id });
+      }
     };
 
     socket.on("connect", onConnect);
     return () => {
-        socket.off("connect", onConnect);
+      socket.off("connect", onConnect);
     };
   }, [selectedComp]);
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Host dashboard"
+  }, [])
 
   const startQuestion = (id: string) => {
     if (!selectedComp) return;
@@ -197,32 +202,31 @@ export const HostDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
         <header className="w-full max-w-4xl mb-12 flex justify-between items-center">
-            <h1 className="text-4xl font-black text-gray-900 tracking-tight">Select a Quiz</h1>
-            <LanguageSwitcher />
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Select a Quiz</h1>
+          <LanguageSwitcher />
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-            {competitions.map(comp => (
-                <button
-                    key={comp.id}
-                    onClick={() => selectCompetition(comp)}
-                    className="bg-white p-8 rounded-3xl shadow-sm border-2 border-transparent hover:border-blue-500 transition-all text-left group"
-                >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-blue-100 p-3 rounded-2xl group-hover:bg-blue-600 transition-colors">
-                            <Trophy className="w-6 h-6 text-blue-600 group-hover:text-white" />
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                            comp.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                        }`}>
-                            {comp.status}
-                        </span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">{comp.title}</h3>
-                    <p className="text-gray-500 font-medium flex items-center">
-                        Open dashboard <ChevronRight className="ml-1 w-4 h-4" />
-                    </p>
-                </button>
-            ))}
+          {competitions.map(comp => (
+            <button
+              key={comp.id}
+              onClick={() => selectCompetition(comp)}
+              className="bg-white p-8 rounded-3xl shadow-sm border-2 border-transparent hover:border-blue-500 transition-all text-left group"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="bg-blue-100 p-3 rounded-2xl group-hover:bg-blue-600 transition-colors">
+                  <Trophy className="w-6 h-6 text-blue-600 group-hover:text-white" />
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${comp.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                  {comp.status}
+                </span>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">{comp.title}</h3>
+              <p className="text-gray-500 font-medium flex items-center">
+                Open dashboard <ChevronRight className="ml-1 w-4 h-4" />
+              </p>
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -251,15 +255,15 @@ export const HostDashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-8">
       <header className="mb-8 flex items-center justify-between">
         <div className="flex items-center space-x-6">
-          <button 
+          <button
             onClick={handleBack}
             className="text-gray-400 hover:text-gray-600 transition"
           >
-              <ChevronRight className="w-6 h-6 rotate-180" />
+            <ChevronRight className="w-6 h-6 rotate-180" />
           </button>
           <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{selectedComp.title}</h1>
-              <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">{t('host.dashboard')}</p>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">{selectedComp.title}</h1>
+            <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">{t('host.dashboard')}</p>
           </div>
           <div className="bg-gray-800 p-1 rounded-full scale-90">
             <LanguageSwitcher />
@@ -269,16 +273,16 @@ export const HostDashboard: React.FC = () => {
           {state.phase === "QUESTION_ACTIVE" && (
             <button
               onClick={state.timerPaused ? resumeTimer : pauseTimer}
-              className={`flex items-center space-x-2 ${
-                state.timerPaused ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"
-              } text-white px-4 py-2 rounded-xl shadow-sm transition font-bold`}
+              className={`flex items-center space-x-2 ${state.timerPaused ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"
+                } text-white px-4 py-2 rounded-xl shadow-sm transition font-bold`}
             >
               {state.timerPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
               <span>{state.timerPaused ? t("host.resume_timer") : t("host.pause_timer")}</span>
             </button>
           )}
           <a
-            href="/?admin=true"
+            href="/admin"
+            target="_blank"
             className="flex items-center space-x-2 bg-white text-gray-800 px-4 py-2 rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition font-bold"
           >
             <Settings className="w-5 h-5" />
@@ -300,7 +304,7 @@ export const HostDashboard: React.FC = () => {
             <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
               <Play className="mr-3 text-green-500" /> {t('host.current_status')}: <span className="text-blue-600 ml-2">{state.phase}</span>
             </h2>
-            
+
             {state.currentQuestion ? (
               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-100 space-y-4">
                 <div>
@@ -348,9 +352,9 @@ export const HostDashboard: React.FC = () => {
                 </div>
               </div>
             ) : (
-                <div className="bg-blue-50 p-8 rounded-2xl border-2 border-dashed border-blue-200 text-center">
-                    <p className="text-blue-600 font-bold">No question currently active. Select one below to start.</p>
-                </div>
+              <div className="bg-blue-50 p-8 rounded-2xl border-2 border-dashed border-blue-200 text-center">
+                <p className="text-blue-600 font-bold">No question currently active. Select one below to start.</p>
+              </div>
             )}
           </section>
 
@@ -425,11 +429,10 @@ export const HostDashboard: React.FC = () => {
                             <div className="flex items-center space-x-2">
                               {ans.isCorrect === true && <CheckCircle className="w-4 h-4 text-green-500" />}
                               {ans.isCorrect === false && <XCircle className="w-4 h-4 text-red-500" />}
-                              <span className={`font-medium ${
-                                ans.isCorrect === true ? "text-green-700" : 
-                                ans.isCorrect === false ? "text-red-700" : 
-                                "text-gray-600"
-                              }`}>
+                              <span className={`font-medium ${ans.isCorrect === true ? "text-green-700" :
+                                  ans.isCorrect === false ? "text-red-700" :
+                                    "text-gray-600"
+                                }`}>
                                 {typeof ans.submittedContent === 'string' ? ans.submittedContent : JSON.stringify(ans.submittedContent)}
                               </span>
                             </div>
@@ -456,11 +459,10 @@ export const HostDashboard: React.FC = () => {
               <button
                 onClick={handleNext}
                 disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
-                className={`w-full ${
-                  state.phase === "QUESTION_ACTIVE" ? "bg-red-600 hover:bg-red-700 shadow-red-200" :
-                  state.phase === "QUESTION_PREVIEW" ? "bg-green-600 hover:bg-green-700 shadow-green-200" :
-                  "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
-                } text-white font-black py-6 rounded-2xl transition-all text-3xl flex items-center justify-center shadow-xl transform active:scale-[0.98]`}
+                className={`w-full ${state.phase === "QUESTION_ACTIVE" ? "bg-red-600 hover:bg-red-700 shadow-red-200" :
+                    state.phase === "QUESTION_PREVIEW" ? "bg-green-600 hover:bg-green-700 shadow-green-200" :
+                      "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
+                  } text-white font-black py-6 rounded-2xl transition-all text-3xl flex items-center justify-center shadow-xl transform active:scale-[0.98]`}
               >
                 <SkipForward className="mr-4 w-10 h-10" />
                 {getNextActionLabel()}
@@ -484,7 +486,7 @@ export const HostDashboard: React.FC = () => {
                     <CheckCircle className="mr-2 w-5 h-5" /> Reveal Answer
                   </button>
                 )}
-                
+
                 <button
                   onClick={() => socket.emit("HOST_SET_PHASE", { competitionId: selectedComp.id, phase: "LEADERBOARD" })}
                   className="bg-purple-100 text-purple-700 hover:bg-purple-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-purple-200"
@@ -500,94 +502,89 @@ export const HostDashboard: React.FC = () => {
                 <div className="space-y-4">
                   {compData?.rounds.map((round) => (
                     <div key={round.id} className="border border-gray-100 rounded-2xl overflow-hidden">
-                        <button 
-                            onClick={() => toggleRound(round.id)}
-                            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition font-bold text-gray-700"
-                        >
-                            <div className="flex items-center">
-                                {expandedRounds[round.id] ? <ChevronDown className="mr-2 w-5 h-5" /> : <ChevronRight className="mr-2 w-5 h-5" />}
-                                <span>Round: {round.title}</span>
-                                <span className="ml-3 text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-500 uppercase">{round.type}</span>
-                            </div>
-                            <span className="text-xs text-gray-400">{round.questions.length} Questions</span>
-                        </button>
-                        
-                        {expandedRounds[round.id] && (
-                            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
-                                {round.questions.map((q) => (
-                                    <button
-                                        key={q.id}
-                                        onClick={() => startQuestion(q.id)}
-                                        className={`${
-                                            state.currentQuestion?.id === q.id
-                                            ? "bg-blue-600 text-white ring-4 ring-blue-100"
-                                            : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
-                                        } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative`}
-                                    >
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <p className="text-xs opacity-60 uppercase">{q.type}</p>
-                                                <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider">
-                                                    <span className="flex items-center text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                                                        <Clock className="w-3 h-3 mr-1" /> {q.timeLimitSeconds}s
-                                                    </span>
-                                                    <span className="flex items-center text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
-                                                        <Trophy className="w-3 h-3 mr-1" /> {q.points} pts
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <p className="line-clamp-2 mb-2">{q.questionText}</p>
-                                            
-                                            <div className={`flex items-center space-x-3 mt-auto p-1.5 rounded-lg ${
-                                                state.currentQuestion?.id === q.id ? "bg-blue-700/50" : "bg-gray-50"
-                                            }`}>
-                                                <div className={`flex items-center text-[10px] font-bold ${
-                                                    state.currentQuestion?.id === q.id ? "text-blue-100" : "text-gray-500"
-                                                }`}>
-                                                    <Users className="w-3 h-3 mr-1" />
-                                                    {q.answers.length}/{state.teams.length}
-                                                </div>
-                                                {q.answers.length > 0 && (
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                                            state.currentQuestion?.id === q.id 
-                                                            ? "text-green-300 bg-green-900/30" 
-                                                            : "text-green-600 bg-green-50"
-                                                        }`}>
-                                                            <CheckCircle className="w-3 h-3 mr-1" />
-                                                            {q.answers.filter(a => a.isCorrect === true).length}
-                                                        </div>
-                                                        <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                                            state.currentQuestion?.id === q.id 
-                                                            ? "text-red-300 bg-red-900/30" 
-                                                            : "text-red-600 bg-red-50"
-                                                        }`}>
-                                                            <XCircle className="w-3 h-3 mr-1" />
-                                                            {q.answers.filter(a => a.isCorrect === false).length}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {state.currentQuestion?.id === q.id && (
-                                            <div className="absolute top-2 right-2">
-                                                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-                                            </div>
-                                        )}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openAnswersModal(q.id, q.questionText);
-                                            }}
-                                            className="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/40 rounded-lg transition-colors"
-                                            title={t('host.view_answers')}
-                                        >
-                                            <Users className="w-4 h-4" />
-                                        </button>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                      <button
+                        onClick={() => toggleRound(round.id)}
+                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition font-bold text-gray-700"
+                      >
+                        <div className="flex items-center">
+                          {expandedRounds[round.id] ? <ChevronDown className="mr-2 w-5 h-5" /> : <ChevronRight className="mr-2 w-5 h-5" />}
+                          <span>Round: {round.title}</span>
+                          <span className="ml-3 text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-500 uppercase">{round.type}</span>
+                        </div>
+                        <span className="text-xs text-gray-400">{round.questions.length} Questions</span>
+                      </button>
+
+                      {expandedRounds[round.id] && (
+                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
+                          {round.questions.map((q) => (
+                            <button
+                              key={q.id}
+                              onClick={() => startQuestion(q.id)}
+                              className={`${state.currentQuestion?.id === q.id
+                                  ? "bg-blue-600 text-white ring-4 ring-blue-100"
+                                  : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
+                                } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative`}
+                            >
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start mb-1">
+                                  <p className="text-xs opacity-60 uppercase">{q.type}</p>
+                                  <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider">
+                                    <span className="flex items-center text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                      <Clock className="w-3 h-3 mr-1" /> {q.timeLimitSeconds}s
+                                    </span>
+                                    <span className="flex items-center text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
+                                      <Trophy className="w-3 h-3 mr-1" /> {q.points} pts
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="line-clamp-2 mb-2">{q.questionText}</p>
+
+                                <div className={`flex items-center space-x-3 mt-auto p-1.5 rounded-lg ${state.currentQuestion?.id === q.id ? "bg-blue-700/50" : "bg-gray-50"
+                                  }`}>
+                                  <div className={`flex items-center text-[10px] font-bold ${state.currentQuestion?.id === q.id ? "text-blue-100" : "text-gray-500"
+                                    }`}>
+                                    <Users className="w-3 h-3 mr-1" />
+                                    {q.answers.length}/{state.teams.length}
+                                  </div>
+                                  {q.answers.length > 0 && (
+                                    <div className="flex items-center space-x-2">
+                                      <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${state.currentQuestion?.id === q.id
+                                          ? "text-green-300 bg-green-900/30"
+                                          : "text-green-600 bg-green-50"
+                                        }`}>
+                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                        {q.answers.filter(a => a.isCorrect === true).length}
+                                      </div>
+                                      <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${state.currentQuestion?.id === q.id
+                                          ? "text-red-300 bg-red-900/30"
+                                          : "text-red-600 bg-red-50"
+                                        }`}>
+                                        <XCircle className="w-3 h-3 mr-1" />
+                                        {q.answers.filter(a => a.isCorrect === false).length}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              {state.currentQuestion?.id === q.id && (
+                                <div className="absolute top-2 right-2">
+                                  <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+                                </div>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openAnswersModal(q.id, q.questionText);
+                                }}
+                                className="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/40 rounded-lg transition-colors"
+                                title={t('host.view_answers')}
+                              >
+                                <Users className="w-4 h-4" />
+                              </button>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -604,36 +601,33 @@ export const HostDashboard: React.FC = () => {
             </h2>
             <div className="space-y-3">
               {state.teams.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8 font-medium italic">No teams joined yet</p>
+                <p className="text-gray-400 text-center py-8 font-medium italic">No teams joined yet</p>
               ) : (
-                state.teams.sort((a,b) => b.score - a.score).map((team, idx) => (
-                    <div key={`${team.id}-${idx}`} className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
-                        idx === 0 ? "bg-yellow-50 border-2 border-yellow-100 shadow-sm" : "bg-gray-50"
+                state.teams.sort((a, b) => b.score - a.score).map((team, idx) => (
+                  <div key={`${team.id}-${idx}`} className={`flex items-center justify-between p-4 rounded-2xl transition-all ${idx === 0 ? "bg-yellow-50 border-2 border-yellow-100 shadow-sm" : "bg-gray-50"
                     }`}>
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${
-                            idx === 0 ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-500"
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${idx === 0 ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-500"
                         }`}>
-                            {idx + 1}
-                        </div>
-                        <div className="relative">
-                          <div 
-                            className="w-4 h-4 rounded-full" 
-                            style={{ backgroundColor: team.color }}
-                          />
-                          <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                            team.isConnected ? "bg-green-500" : "bg-red-500"
-                          }`} title={team.isConnected ? "Connected" : "Disconnected"} />
-                        </div>
-                        <span className={`font-bold ${team.isConnected ? "text-gray-800" : "text-gray-400"}`}>
-                          {team.name}
-                        </span>
+                        {idx + 1}
                       </div>
-                      <span className={`font-black text-xl ${team.isConnected ? "text-blue-600" : "text-blue-300"}`}>
-                        {team.score}
+                      <div className="relative">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: team.color }}
+                        />
+                        <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${team.isConnected ? "bg-green-500" : "bg-red-500"
+                          }`} title={team.isConnected ? "Connected" : "Disconnected"} />
+                      </div>
+                      <span className={`font-bold ${team.isConnected ? "text-gray-800" : "text-gray-400"}`}>
+                        {team.name}
                       </span>
                     </div>
-                  ))
+                    <span className={`font-black text-xl ${team.isConnected ? "text-blue-600" : "text-blue-300"}`}>
+                      {team.score}
+                    </span>
+                  </div>
+                ))
               )}
             </div>
           </section>
@@ -649,14 +643,14 @@ export const HostDashboard: React.FC = () => {
                 <h3 className="text-xl font-black text-gray-900">{t('host.collected_answers')}</h3>
                 <p className="text-sm text-gray-500 mt-1 line-clamp-1">{modalQuestion.text}</p>
               </div>
-              <button 
+              <button
                 onClick={() => setModalQuestion(null)}
                 className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
               >
                 <XCircle className="w-6 h-6 text-gray-400" />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6">
               <table className="w-full">
                 <thead>
@@ -686,11 +680,10 @@ export const HostDashboard: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             {ans.isCorrect === true && <CheckCircle className="w-4 h-4 text-green-500" />}
                             {ans.isCorrect === false && <XCircle className="w-4 h-4 text-red-500" />}
-                            <span className={`font-medium ${
-                              ans.isCorrect === true ? "text-green-700" : 
-                              ans.isCorrect === false ? "text-red-700" : 
-                              "text-gray-600"
-                            }`}>
+                            <span className={`font-medium ${ans.isCorrect === true ? "text-green-700" :
+                                ans.isCorrect === false ? "text-red-700" :
+                                  "text-gray-600"
+                              }`}>
                               {typeof ans.submittedContent === 'string' ? ans.submittedContent : JSON.stringify(ans.submittedContent)}
                             </span>
                           </div>
@@ -706,7 +699,7 @@ export const HostDashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            
+
             <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
               <button
                 onClick={() => setModalQuestion(null)}
