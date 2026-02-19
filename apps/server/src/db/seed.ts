@@ -25,195 +25,136 @@ async function seed() {
       },
     ];
 
-    for (const compInfo of competitions) {
-      console.log(`Creating competition: ${compInfo.title}`);
+    for (const competitionInfo of competitions) {
+      console.log(`Creating competition: ${competitionInfo.title}`);
       const competition = await prisma.competition.create({
         data: {
-          title: compInfo.title,
-          host_pin: compInfo.host_pin,
+          title: competitionInfo.title,
+          host_pin: competitionInfo.host_pin,
           status: "ACTIVE",
         },
       });
 
-      // Round 1: MCQ (Single Select)
-      const r1 = await prisma.round.create({
+      const round1_1_fill_in_the_blanks = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 1,
           type: "STANDARD",
-          title: "Round 1: MCQ (Single Select)",
+          title: "Round 1.1: Fill in the blanks"
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: r1.id,
-            questionText: "Who built the ark?",
-            type: "MULTIPLE_CHOICE",
-            points: 10,
-            content: {
-              options: ["Moses", "Noah", "Abraham", "David"],
-              correctIndices: [1],
-            },
-          },
-          {
-            roundId: r1.id,
-            questionText: "What is the shortest verse in the Bible?",
-            type: "MULTIPLE_CHOICE",
-            points: 10,
-            content: {
-              options: ["Genesis 1:1", "John 11:35", "Psalm 23:1", "John 3:16"],
-              correctIndices: [1],
-            },
-          },
-        ],
-      });
-
-      // Round 2: Multi-Select
-      const r2 = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 2,
-          type: "STANDARD",
-          title: "Round 2: Multi-Select",
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
-          {
-            roundId: r2.id,
-            questionText: "Which of these are among the 12 apostles?",
-            type: "MULTIPLE_CHOICE",
-            points: 20,
-            content: {
-              options: ["Peter", "Paul", "Andrew", "Luke"],
-              correctIndices: [0, 2],
-            },
-          },
-          {
-            roundId: r2.id,
-            questionText: "Which of these are books of the Pentateuch?",
-            type: "MULTIPLE_CHOICE",
-            points: 20,
-            content: {
-              options: ["Genesis", "Exodus", "Isaiah", "Numbers"],
-              correctIndices: [0, 1, 3],
-            },
-          },
-        ],
-      });
-
-      // New Round: Fill in the Blanks & Matching
-      const rSpecial = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 3,
-          type: "STANDARD",
-          title: "Special Question Types",
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
-          {
-            roundId: rSpecial.id,
-            questionText: "Complete the Beatitude",
+            roundId: round1_1_fill_in_the_blanks.id,
+            questionText: "Попълнете празните места",
             type: "FILL_IN_THE_BLANKS",
             points: 15,
             content: {
-              text: "Blessed are the {0}, for they shall inherit the {1}.",
+              text: "Докато Данаил и приятелите му се обучават в(ъв) {0} империя, те отказват да ядат от изрядните ястия на царя и ядат само {1} и пият {2}.",
               blanks: [
                 {
                   options: [
-                    { value: "meek", isCorrect: true },
-                    { value: "strong", isCorrect: false },
+                    { value: "Вавилонската", isCorrect: true },
+                    { value: "Персийската", isCorrect: false },
+                    { value: "Римската", isCorrect: false },
+                    { value: "Османската", isCorrect: false },
                   ],
                 },
                 {
                   options: [
-                    { value: "earth", isCorrect: true },
-                    { value: "sky", isCorrect: false },
+                    { value: "зеленчуци", isCorrect: true },
+                    { value: "агнешко", isCorrect: false },
+                    { value: "жито", isCorrect: false },
+                    { value: "мед", isCorrect: false },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "вода", isCorrect: true },
+                    { value: "вино", isCorrect: false },
+                    { value: "оцет", isCorrect: false },
+                    { value: "миро", isCorrect: false },
                   ],
                 },
               ],
             },
             section: "Player 1",
           },
-          {
-            roundId: rSpecial.id,
-            questionText: "Fill in the missing words",
-            type: "FILL_IN_THE_BLANKS",
-            points: 15,
-            content: {
-              text: "In the {0} was the {1}, and the Word was with God.",
-              blanks: [
-                {
-                  options: [
-                    { value: "beginning", isCorrect: true },
-                    { value: "end", isCorrect: false },
-                  ],
-                },
-                {
-                  options: [
-                    { value: "Word", isCorrect: true },
-                    { value: "Son", isCorrect: false },
-                  ],
-                },
-              ],
-            },
-            section: "Player 2",
-          },
-          {
-            roundId: rSpecial.id,
-            questionText: "Match the Son to the Father",
-            type: "MATCHING",
-            points: 20,
-            content: {
-              pairs: [
-                { id: "p1", left: "Isaac", right: "Abraham" },
-                { id: "p2", left: "Solomon", right: "David" },
-                { id: "p3", left: "Joseph", right: "Jacob" },
-              ],
-            },
-            section: "Player 3",
-          },
         ],
       });
 
-      // Round 3 (now Round 4): Open Word
-      const r3 = await prisma.round.create({
+      const round1_2_match_hero_to_story = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 4,
+          orderIndex: 2,
           type: "STANDARD",
-          title: "Round 4: Open Word",
+          title: "Round 1.2: Match the hero to the story"
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: r3.id,
-            questionText: "What is the first book of the Bible?",
-            type: "OPEN_WORD",
-            points: 15,
+            roundId: round1_2_match_hero_to_story.id,
+            questionText: "Свържи героя към историята му",
+            type: "MATCHING",
+            points: 20,
             content: {
-              answer: "Genesis",
+              pairs: [
+                { id: "p1", left: "Исус", right: "възкресява синът на вдовицата в Сарепта Сидонска." },
+                { id: "p2", left: "Апостол Павел", right: "възкресява дъщерята на Яир, началника на синагогата." },
+                { id: "p3", left: "Пророк Илия", right: "възкресява момче на име Евтих, което пада от прозореца." },
+              ],
             },
+            section: "Player 1",
           },
+        ]
+      });
+
+      const round1_3_continue_the_story = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 3,
+          type: "STANDARD",
+          title: "Round 1.3: Continue the story"
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
           {
-            roundId: r3.id,
-            questionText: "Who was the first man created?",
-            type: "OPEN_WORD",
-            points: 15,
+            roundId: round1_3_continue_the_story.id,
+            questionText: "Какво прави пророк Йона, след като рибата го изплюва?",
+            type: "MULTIPLE_CHOICE",
+            points: 10,
             content: {
-              answer: "Adam",
+              options: [
+                "Отива да пророкува в град Ниневия",
+                "Отива да пророкува в град Тир",
+                "Бяга от Бога в пустинята",
+                "Бяга от Бога, като се качва на лодка"
+              ],
+              correctIndices: [0],
             },
-          },
+          }
+        ],
+      });
+
+      const round2_chronology = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 4,
+          type: "STANDARD",
+          title: "Round 2: Bible chronology"
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
           {
-            roundId: r3.id,
+            roundId: round2_chronology.id,
             questionText:
               "Order these events in the life of Joseph chronologically:",
             type: "CHRONOLOGY",
@@ -221,98 +162,152 @@ async function seed() {
             timeLimitSeconds: 45,
             content: {
               items: [
-                { id: "j1", text: "Given a coat of many colors", order: 0 },
-                {
-                  id: "j2",
-                  text: "Sold into slavery by his brothers",
-                  order: 1,
-                },
-                {
-                  id: "j3",
-                  text: "Becomes second in command in Egypt",
-                  order: 2,
-                },
-                { id: "j4", text: "Reunited with his family", order: 3 },
+                { id: "j1", text: "Мойсей издига медна змия в пустинята", order: 9 },
+                { id: "j2", text: "Мойсей разделя Червено море", order: 0 },
+                { id: "j3", text: "Мойсей праща съгледвачи в Ханаанската земя", order: 8 },
+                { id: "j4", text: "Мойсей чупи плочите на завета", order: 5 },
+                { id: "j5", text: "Мойсей удря два пъти скалата Мерива при Кадис", order: 6 },
+                { id: "j6", text: "Мириам води народа в песен и танц", order: 1 },
+                { id: "j7", text: "Аарон прави златно теле", order: 4 },
+                { id: "j8", text: "Мойсей се изкачва на планината", order: 3 },
+                { id: "j9", text: "Мириам е прокажена", order: 7 },
+                { id: "j10", text: "Бог дава манна на народа", order: 2 },
               ],
             },
             grading: "AUTO",
           },
-        ],
+        ]
       });
 
-      // Round 5: True/False & Streaks
-      const rStreak = await prisma.round.create({
+      const round3_1_true_false_story = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 5,
-          type: "STREAK" as RoundType,
-          title: "Round 5: Speed Run (True/False)",
+          type: "STANDARD",
+          title: "Round 3.1: True or false: Story"
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: rStreak.id,
-            questionText: "Correct the error in the following statement.",
-            type: "CORRECT_THE_ERROR" as QuestionType,
-            points: 2,
-            content: {
-              text: "Jesus was born in Nazareth in the days of Herod the king.",
-              phrases: [
-                "Jesus was born",
-                "in Nazareth",
-                "in the days of",
-                "Herod the king",
-              ],
-              errorPhraseIndex: 1,
-              correctReplacement: "in Bethlehem",
-            },
-          },
-          {
-            roundId: rStreak.id,
-            questionText: "Noah's ark had three decks.",
+            roundId: round3_1_true_false_story.id,
+            questionText: "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
             points: 10,
             timeLimitSeconds: 15,
-            content: { isTrue: true },
+            content: { isTrue: false },
           },
+        ]
+      })
 
+      const round3_2_true_false_hero = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 6,
+          type: "STANDARD",
+          title: "Round 3.2: True or false: Hero"
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
           {
-            roundId: rStreak.id,
-            questionText: "The Israelites wandered in the desert for 50 years.",
-            type: "TRUE_FALSE" as QuestionType,
+            roundId: round3_2_true_false_hero.id,
+            questionText: "Кое твърдение за Рут е вярно?",
+            type: "MULTIPLE_CHOICE",
             points: 10,
-            timeLimitSeconds: 15,
-            content: { isTrue: false },
-          },
+            content: {
+              options: [
+                "Тя беше от народа Моав",
+                "Тя беше единствената снаха на Ноемин"
+              ],
+              correctIndices: [0],
+            },
+          }
+        ],
+      });
+
+      const round3_3_find_the_mistake_in_the_sentence = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 7,
+          type: "STANDARD",
+          title: "Round 3.3: Find the mistake in the sentence"
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
           {
-            roundId: rStreak.id,
-            questionText: "David was the first king of Israel.",
-            type: "TRUE_FALSE" as QuestionType,
-            points: 10,
-            timeLimitSeconds: 15,
-            content: { isTrue: false },
-          },
-          {
-            roundId: rStreak.id,
-            questionText: "Jesus was born in Bethlehem.",
-            type: "TRUE_FALSE" as QuestionType,
-            points: 10,
-            timeLimitSeconds: 15,
-            content: { isTrue: true },
-          },
-          {
-            roundId: rStreak.id,
-            questionText:
-              "The walls of Jericho fell down after the Israelites marched around them.",
-            type: "TRUE_FALSE" as QuestionType,
-            points: 10,
-            timeLimitSeconds: 15,
-            content: { isTrue: true },
+            roundId: round3_3_find_the_mistake_in_the_sentence.id,
+            questionText: "Попълнете празните места",
+            type: "FILL_IN_THE_BLANKS",
+            points: 15,
+            content: {
+              text: "{0} {1} {2} {3} {4} {5}",
+              blanks: [
+                {
+                  options: [
+                    { value: "Пророк", isCorrect: true },
+                    { value: "Цар", isCorrect: true },
+                    { value: "Свещеник", isCorrect: false },
+                    { value: "Левит", isCorrect: false },
+                    { value: "Съдия", isCorrect: false },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "Елисей", isCorrect: true },
+                    { value: "Илия", isCorrect: false },
+                    { value: "Данаил", isCorrect: false },
+                    { value: "Исая", isCorrect: true },
+                    { value: "Йона", isCorrect: false },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "избива", isCorrect: true },
+                    { value: "помазва", isCorrect: false },
+                    { value: "уморява", isCorrect: false },
+                    { value: "обучава", isCorrect: true },
+                    { value: "изцелява", isCorrect: false },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "450", isCorrect: true },
+                    { value: "400", isCorrect: false },
+                    { value: "4000", isCorrect: false },
+                    { value: "250", isCorrect: false },
+                    { value: "1500", isCorrect: true },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "от пророците на Ваал", isCorrect: true },
+                    { value: "от царете на Моав", isCorrect: false },
+                    { value: "от пророците на Зевс", isCorrect: false },
+                    { value: "от жреците на ашера", isCorrect: false },
+                    { value: "от синовете на Каин", isCorrect: true },
+                  ],
+                },
+                {
+                  options: [
+                    { value: "при потока Кисон.", isCorrect: true },
+                    { value: "на планината Кармил.", isCorrect: true },
+                    { value: "на планината Хорив.", isCorrect: false },
+                    { value: "при потока Кисон.", isCorrect: false },
+                    { value: "при стената Хорив.", isCorrect: false },
+                  ],
+                },
+              ],
+            },
+            section: "Player 1",
           },
         ],
       });
+
     }
 
     console.log("Seeding completed successfully.");
