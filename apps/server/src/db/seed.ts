@@ -245,6 +245,7 @@ async function seed() {
             type: "FILL_IN_THE_BLANKS",
             points: 15,
             content: {
+              prefill: true,
               text: "{0} {1} {2} {3} {4} {5}",
               blanks: [
                 {

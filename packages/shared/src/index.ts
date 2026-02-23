@@ -88,6 +88,7 @@ export interface FillInTheBlanksBlank {
 export interface FillInTheBlanksContent {
   text: string; // "This is a {0} with {1}."
   blanks: FillInTheBlanksBlank[]; // Array of blanks, each with its own options
+  prefill?: boolean; // If true, auto-fill blanks with first option
 }
 
 export interface MatchingPair {
