@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import type { CrosswordClue } from "@quizco/shared";
-import { Crossword } from "../../Crossword";
+import { CrosswordPlayer } from "../../player/CrosswordPlayer";
 import { CrosswordClueEditor } from "./CrosswordClueEditor";
 
 interface CrosswordEditorProps {
@@ -118,7 +118,7 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
         <span className="text-xs font-bold text-gray-400 uppercase mb-4">Live Preview</span>
         <div className="w-full h-full max-h-[400px] overflow-auto">
           {crosswordData && crosswordData.grid.length > 0 && crosswordData.grid[0].length > 0 ? (
-            <Crossword key={previewKey} data={crosswordData} onCrosswordCorrect={() => {}} />
+            <CrosswordPlayer key={previewKey} data={crosswordData} onCrosswordCorrect={() => {}} />
           ) : (
             <p className="text-gray-400 italic text-sm">Add clues to see preview</p>
           )}

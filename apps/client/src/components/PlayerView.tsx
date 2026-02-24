@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket, API_URL } from "../socket";
 import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight } from "lucide-react";
-import { Crossword } from "./Crossword";
+import { CrosswordPlayer } from "./player/CrosswordPlayer";
 import { FillInTheBlanksPlayer } from "./player/FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./player/MatchingPlayer";
 import { ChronologyPlayer } from "./player/ChronologyPlayer";
@@ -560,7 +560,7 @@ export const PlayerView: React.FC = () => {
                     </div>
                   ) : state.currentQuestion.type === "CROSSWORD" ? (
                     <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
-                      <Crossword
+                      <CrosswordPlayer
                         data={state.currentQuestion.content}
                         onCrosswordCorrect={(isCorrect: boolean) => {
                           if (isCorrect) {

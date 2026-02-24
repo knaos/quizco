@@ -1,53 +1,58 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { CrosswordContent } from "@quizco/shared";
-import { socket } from "../socket";
+import { socket } from "../../socket";
 import { useTranslation } from "react-i18next";
-import { useGame } from "../contexts/GameContext";
+import { useGame } from "../../contexts/GameContext";
 
-interface CrosswordProps {
+interface CrosswordPlayerProps {
   data: CrosswordContent;
+  value?: string[][];
+  onChange?: (grid: string[][]) => void;
   onCrosswordCorrect?: (isCorrect: boolean) => void;
+  onSubmit?: (grid: string[][]) => void;
 }
 
-export const Crossword: React.FC<CrosswordProps> = ({
+export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   data,
+  value,
+  onChange,
   onCrosswordCorrect,
+  onSubmit,
 }) => {
   const { t } = useTranslation();
   const { state } = useGame();
-  const [userGrid, setUserGrid] = useState(
-    data.grid ? data.grid.map((row) => row.map(() => "")) : []
-  );
 
+  // Initialize empty grid matching the data grid dimensions
+  const initializeGrid = useCallback(() => {
+    if (!data.grid) return [];
+    return data.grid.map((row) => row.map(() => ""));
+  }, [data.grid]);
+
+  // Use external value if provided, otherwise use internal state
+  const [internalGrid, setInternalGrid] = useState<string[][]>(initializeGrid);
+
+  // Use provided value or internal state
+  const userGrid = value ?? internalGrid;
+
+  // Reset internal grid when question changes
   useEffect(() => {
-    const handleJoker = (payload: {
-      x: number;
-      y: number;
-      letter: string;
-      teamId: string;
-    }) => {
-      const teamId = localStorage.getItem("quizco_team_id");
-      if (payload.teamId === teamId) {
-        setUserGrid((prev) => {
-          const newGrid = [...prev.map((row) => [...row])];
-          newGrid[payload.y][payload.x] = payload.letter.toUpperCase();
-          return newGrid;
-        });
-      }
-    };
-
-    socket.on("JOKER_REVEAL", handleJoker);
-    return () => {
-      socket.off("JOKER_REVEAL", handleJoker);
-    };
-  }, []);
+    if (!value) {
+      setInternalGrid(initializeGrid());
+    }
+  }, [data.grid, initializeGrid, value]);
 
   const handleChange = (r: number, c: number, val: string) => {
     const newGrid = [...userGrid.map((row) => [...row])];
     newGrid[r][c] = val.toUpperCase().substring(0, 1);
-    setUserGrid(newGrid);
 
-    // Simple check
+    // If external onChange is provided, use it; otherwise update internal state
+    if (onChange) {
+      onChange(newGrid);
+    } else {
+      setInternalGrid(newGrid);
+    }
+
+    // Simple check for correctness
     let allCorrect = true;
     for (let i = 0; i < data.grid.length; i++) {
       for (let j = 0; j < data.grid[i].length; j++) {
@@ -61,6 +66,32 @@ export const Crossword: React.FC<CrosswordProps> = ({
     }
   };
 
+  useEffect(() => {
+    const handleJoker = (payload: {
+      x: number;
+      y: number;
+      letter: string;
+      teamId: string;
+    }) => {
+      const teamId = localStorage.getItem("quizco_team_id");
+      if (payload.teamId === teamId) {
+        const newGrid = [...userGrid.map((row) => [...row])];
+        newGrid[payload.y][payload.x] = payload.letter.toUpperCase();
+        
+        if (onChange) {
+          onChange(newGrid);
+        } else {
+          setInternalGrid(newGrid);
+        }
+      }
+    };
+
+    socket.on("JOKER_REVEAL", handleJoker);
+    return () => {
+      socket.off("JOKER_REVEAL", handleJoker);
+    };
+  }, [userGrid, onChange]);
+
   const handleRequestJoker = () => {
     const teamId = localStorage.getItem("quizco_team_id");
     const competitionId = localStorage.getItem("quizco_selected_competition_id");
@@ -70,6 +101,12 @@ export const Crossword: React.FC<CrosswordProps> = ({
         teamId,
         questionId: state.currentQuestion.id,
       });
+    }
+  };
+
+  const handleSubmit = () => {
+    if (onSubmit) {
+      onSubmit(userGrid);
     }
   };
 
@@ -90,8 +127,7 @@ export const Crossword: React.FC<CrosswordProps> = ({
         <div
           className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg"
           style={{
-            gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0
-              }, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0}, minmax(0, 1fr))`,
           }}
         >
           {userGrid.map((row, r) =>
@@ -100,7 +136,7 @@ export const Crossword: React.FC<CrosswordProps> = ({
                 key={`${r}-${c}`}
                 className="w-10 h-10 md:w-12 md:h-12 bg-white flex items-center justify-center relative"
               >
-                {data.grid[r][c] === "" ? (
+                {data.grid[r][c].trim() === "" ? (
                   <div className="w-full h-full bg-gray-800" />
                 ) : (
                   <input
@@ -137,6 +173,19 @@ export const Crossword: React.FC<CrosswordProps> = ({
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* Submit Button */}
+      <div className="mt-6">
+        <button
+          onClick={handleSubmit}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          <span>{t("player.submit_crossword", "Submit Crossword")}</span>
+        </button>
       </div>
     </div>
   );
