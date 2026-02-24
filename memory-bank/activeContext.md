@@ -54,11 +54,9 @@ When adding new question types:
 
 ## Next Steps
 
-1. **Iteration 4:** Implement Crossword Joker (Round 4).
-   - Allow players to request a letter.
-   - Cost: 2 points.
-   - Emit `GRID_UPDATE` to all teams.
-   - Ensure goo d and usable UI is used for the whole crossword grid - both players and admin preparing the crossword.
+1. **Crossword Refinement:** Improve the "Joker" logic in `GameManager.ts` to track revealed cells and prevent repeats.
+2. **Comprehensive Testing:** Add unit tests for Crossword, Chronology, and Streak scoring to ensure robustness.
+3. **UI Polish:** Ensure the Crossword UI provides clear feedback for joker reveals and completion.
 
 ## Active Decisions
 

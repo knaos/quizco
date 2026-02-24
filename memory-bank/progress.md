@@ -29,18 +29,18 @@
 
 ### Iteration 4: Round 4 ("Final" - Crossword)
 
-- [ ] Implement "Joker" mechanic (-2 points for revealed letter).
-- [ ] Implement "Full Completion Bonus" (+3 points).
+- [x] Implement "Joker" mechanic (-2 points for revealed letter).
+- [x] Implement "Full Completion Bonus" (+3 points).
 
 ### General
 
 - [x] Timer Logic: Server-authoritative countdown with dedicated `TimerService`.
-- [ ] Leaderboard: Real-time score aggregation and display.
+- [x] Leaderboard: Real-time score aggregation and display (Integrated into Player/Host views).
 - [ ] Tests: Unit and integration tests for all new question types and scoring logic.
 
 ## Current Status
 
-- **Overall Completion:** ~75%
+- **Overall Completion:** ~85%
 - **Infrastructure:** [x] Done
 - **Database:** [x] Updated for Round 3 requirements (Team Streaks).
 - **Core State Machine:** [x] Done (Multi-session support added)

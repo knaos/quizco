@@ -363,22 +363,43 @@ export class GameManager {
     const content = session.currentQuestion.content as any;
     const grid = content.grid;
 
-    // Find all valid cells
-    const validCells: { x: number; y: number; char: string }[] = [];
+    // Ensure metadata for this question's jokers exists
+    if (!session.metadata.revealedCells) {
+      session.metadata.revealedCells = {}; // teamId -> string[] (serialized "x,y")
+    }
+    if (!session.metadata.revealedCells[teamId]) {
+      session.metadata.revealedCells[teamId] = [];
+    }
+
+    const teamRevealed = session.metadata.revealedCells[teamId];
+
+    // Find all valid cells that haven't been revealed to this team yet
+    const availableCells: { x: number; y: number; char: string }[] = [];
     for (let y = 0; y < grid.length; y++) {
       for (let x = 0; x < grid[y].length; x++) {
-        if (grid[y][x] && grid[y][x] !== "") {
-          validCells.push({ x, y, char: grid[y][x] });
+        const char = grid[y][x];
+        if (char && char !== "") {
+          const coord = `${x},${y}`;
+          if (!teamRevealed.includes(coord)) {
+            availableCells.push({ x, y, char });
+          }
         }
       }
     }
 
-    if (validCells.length === 0) return;
+    if (availableCells.length === 0) {
+      io.to(competitionId).emit("JOKER_ERROR", {
+        message: "All cells already revealed",
+      });
+      return;
+    }
 
     const randomCell =
-      validCells[Math.floor(Math.random() * validCells.length)];
+      availableCells[Math.floor(Math.random() * availableCells.length)];
 
     team.score -= 2;
+    teamRevealed.push(`${randomCell.x},${randomCell.y}`);
+
     if (!session.metadata.usedJokers) session.metadata.usedJokers = new Set();
     session.metadata.usedJokers.add(teamId);
 
