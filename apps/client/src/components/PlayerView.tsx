@@ -560,14 +560,12 @@ export const PlayerView: React.FC = () => {
                     </div>
                   ) : state.currentQuestion.type === "CROSSWORD" ? (
                     <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
-                      <CrosswordPlayer
-                        data={state.currentQuestion.content}
-                        onCrosswordCorrect={(isCorrect: boolean) => {
-                          if (isCorrect) {
-                            submitAnswer("COMPLETED");
-                          }
-                        }}
-                      />
+                    <CrosswordPlayer
+                      data={state.currentQuestion.content}
+                      onSubmit={(grid) => {
+                        submitAnswer(grid);
+                      }}
+                    />
                     </div>
                   ) : state.currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
                     <div className="space-y-6">

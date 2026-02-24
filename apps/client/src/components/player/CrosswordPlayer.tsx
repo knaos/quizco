@@ -8,7 +8,6 @@ interface CrosswordPlayerProps {
   data: CrosswordContent;
   value?: string[][];
   onChange?: (grid: string[][]) => void;
-  onCrosswordCorrect?: (isCorrect: boolean) => void;
   onSubmit?: (grid: string[][]) => void;
 }
 
@@ -16,7 +15,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   data,
   value,
   onChange,
-  onCrosswordCorrect,
   onSubmit,
 }) => {
   const { t } = useTranslation();
@@ -50,19 +48,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       onChange(newGrid);
     } else {
       setInternalGrid(newGrid);
-    }
-
-    // Simple check for correctness
-    let allCorrect = true;
-    for (let i = 0; i < data.grid.length; i++) {
-      for (let j = 0; j < data.grid[i].length; j++) {
-        if (data.grid[i][j] !== "" && newGrid[i][j] !== data.grid[i][j]) {
-          allCorrect = false;
-        }
-      }
-    }
-    if (allCorrect && onCrosswordCorrect) {
-      onCrosswordCorrect(true);
     }
   };
 
