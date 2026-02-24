@@ -338,14 +338,14 @@ async function seed() {
               clues: {
                 across: [
                   { number: 1, x: 0, y: 0, direction: "across", clue: "Това, което Давид искаше да направи за Господа, но синът му го създаде вместо него.", answer: "храм" },
-                  { number: 1, x: 2, y: 0, direction: "across", clue: "Родната земя на Рут.", answer: "моав" },
-                  { number: 1, x: 3, y: 2, direction: "across", clue: "Ковчегът на ...", answer: "ной" },
-                  { number: 1, x: 5, y: 2, direction: "across", clue: "Книжник, който поучава първите евреи, които се завръщат в Йерусалим след Вавилонския плен", answer: "ездра" },
+                  { number: 2, x: 2, y: 0, direction: "across", clue: "Родната земя на Рут.", answer: "моав" },
+                  { number: 5, x: 3, y: 2, direction: "across", clue: "Ковчегът на ...", answer: "ной" },
+                  { number: 6, x: 5, y: 2, direction: "across", clue: "Книжник, който поучава първите евреи, които се завръщат в Йерусалим след Вавилонския плен", answer: "ездра" },
                 ],
                 down: [
                   { number: 1, x: 0, y: 0, direction: "down", clue: "Един от синовете на 5 (хоризонтално).", answer: "хам" },
-                  { number: 1, x: 2, y: 0, direction: "down", clue: "Сродникът-изкупител на Рут.", answer: "аман" },
-                  { number: 1, x: 2, y: 2, direction: "down", clue: "Герой от книгата Естир, чието име говори за това колко е неприятен", answer: "вооз" },
+                  { number: 4, x: 2, y: 0, direction: "down", clue: "Сродникът-изкупител на Рут.", answer: "аман" },
+                  { number: 3, x: 2, y: 2, direction: "down", clue: "Герой от книгата Естир, чието име говори за това колко е неприятен", answer: "вооз" },
                 ],
               },
             },
