@@ -309,6 +309,50 @@ async function seed() {
         ],
       });
 
+      const round4_crossword = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 8,
+          type: "CROSSWORD",
+          title: "Round 4: Bible Crossword"
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: round4_crossword.id,
+            questionText: "Попълнете кръстословицата",
+            type: "CROSSWORD",
+            points: 30,
+            timeLimitSeconds: 120,
+            content: {
+              grid: [
+                ["х", "р", "а", "м", " ", " ", " "],
+                ["а", " ", "м", " ", " ", " ", " "],
+                ["м", "о", "а", "в", " ", " ", " "],
+                [" ", " ", "н", "о", "й", " ", " "],
+                [" ", " ", " ", "о", " ", " ", " "],
+                [" ", " ", "е", "з", "д", "р", "а"],
+              ],
+              clues: {
+                across: [
+                  { number: 1, x: 0, y: 0, direction: "across", clue: "Това, което Давид искаше да направи за Господа, но синът му го създаде вместо него.", answer: "храм" },
+                  { number: 1, x: 2, y: 0, direction: "across", clue: "Родната земя на Рут.", answer: "моав" },
+                  { number: 1, x: 3, y: 2, direction: "across", clue: "Ковчегът на ...", answer: "ной" },
+                  { number: 1, x: 5, y: 2, direction: "across", clue: "Книжник, който поучава първите евреи, които се завръщат в Йерусалим след Вавилонския плен", answer: "ездра" },
+                ],
+                down: [
+                  { number: 1, x: 0, y: 0, direction: "down", clue: "Един от синовете на 5 (хоризонтално).", answer: "хам" },
+                  { number: 1, x: 2, y: 0, direction: "down", clue: "Сродникът-изкупител на Рут.", answer: "аман" },
+                  { number: 1, x: 2, y: 2, direction: "down", clue: "Герой от книгата Естир, чието име говори за това колко е неприятен", answer: "вооз" },
+                ],
+              },
+            },
+          },
+        ],
+      });
+
     }
 
     console.log("Seeding completed successfully.");
