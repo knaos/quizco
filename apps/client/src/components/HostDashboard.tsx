@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket, API_URL } from "../socket";
 import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown, Pause } from "lucide-react";
-import type { Question, Competition, Round } from "@quizco/shared";
+import type { Question, Competition, Round, CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
@@ -314,7 +314,111 @@ export const HostDashboard: React.FC = () => {
                   <p className="text-2xl font-bold text-gray-900 leading-tight">{state.currentQuestion.questionText}</p>
                 </div>
 
-                {state.phase === "REVEAL_ANSWER" && (
+                {state.phase === "REVEAL_ANSWER" && state.currentQuestion?.type === "CROSSWORD" ? (
+                  <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
+                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-3">
+                      {t("player.correct_answer")}
+                    </p>
+                    {/* Side-by-side crossword display for host */}
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {(() => {
+                        const crosswordContent = state.currentQuestion.content as CrosswordContent;
+                        const correctGrid = crosswordContent.grid;
+
+                        // Calculate cell numbers
+                        const cellToNumber = new Map<string, number>();
+                        const allClues = [...(crosswordContent.clues.across || []), ...(crosswordContent.clues.down || [])];
+                        const uniqueStarts = new Map<string, CrosswordClue[]>();
+                        allClues.forEach(clue => {
+                          const key = `${clue.y}-${clue.x}`;
+                          if (!uniqueStarts.has(key)) {
+                            uniqueStarts.set(key, []);
+                          }
+                          uniqueStarts.get(key)!.push(clue);
+                        });
+                        uniqueStarts.forEach((clues, key) => {
+                          cellToNumber.set(key, clues[0].number);
+                        });
+
+                        return (
+                          <>
+                            {/* Left: Correct grid */}
+                            <div className="bg-white p-4 rounded-xl shadow-inner flex-1">
+                              <h4 className="font-bold text-gray-700 mb-3 text-center">Solution</h4>
+                              <div
+                                className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg mx-auto"
+                                style={{
+                                  gridTemplateColumns: `repeat(${correctGrid[0]?.length || 0}, 40px)`,
+                                }}
+                              >
+                                {correctGrid.map((row, r) =>
+                                  row.map((cell, c) => {
+                                    const cellNumber = cellToNumber.get(`${r}-${c}`);
+                                    const correctCell = cell?.trim() || "";
+                                    const isBlocked = correctCell === "";
+
+                                    let cellClass = "w-10 h-10 flex items-center justify-center rounded-sm relative ";
+                                    if (isBlocked) {
+                                      cellClass += "bg-gray-800";
+                                    } else {
+                                      cellClass += "bg-green-500 text-white";
+                                    }
+
+                                    return (
+                                      <div key={`${r}-${c}`} className={cellClass}>
+                                        {!isBlocked && (
+                                          <>
+                                            {cellNumber && (
+                                              <span className="absolute top-0.5 left-1 text-[8px] font-bold text-blue-900 leading-none">
+                                                {cellNumber}
+                                              </span>
+                                            )}
+                                            <span className="text-lg font-bold uppercase">{correctCell}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right: Clues */}
+                            <div className="bg-white p-4 rounded-xl shadow-inner flex-1">
+                              <h4 className="font-bold text-gray-700 mb-3">Clues</h4>
+                              <div className="max-h-48 overflow-y-auto space-y-3">
+                                {crosswordContent.clues.across && crosswordContent.clues.across.length > 0 && (
+                                  <div>
+                                    <p className="font-bold text-sm text-gray-600 border-b mb-2">Across</p>
+                                    <div className="space-y-1">
+                                      {crosswordContent.clues.across.map((clue, i) => (
+                                        <p key={i} className="text-sm">
+                                          <span className="font-bold">{clue.number}.</span> {clue.clue} <span className="text-green-600 font-bold">({clue.answer})</span>
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {crosswordContent.clues.down && crosswordContent.clues.down.length > 0 && (
+                                  <div>
+                                    <p className="font-bold text-sm text-gray-600 border-b mb-2">Down</p>
+                                    <div className="space-y-1">
+                                      {crosswordContent.clues.down.map((clue, i) => (
+                                        <p key={i} className="text-sm">
+                                          <span className="font-bold">{clue.number}.</span> {clue.clue} <span className="text-green-600 font-bold">({clue.answer})</span>
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ) : state.phase === "REVEAL_ANSWER" && (
                   <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
                     <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-1">
                       {t("player.correct_answer")}

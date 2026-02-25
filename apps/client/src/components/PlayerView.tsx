@@ -1123,7 +1123,6 @@ export const PlayerView: React.FC = () => {
                       // Check word correctness
                       const checkWordCorrectness = (clue: CrosswordClue): boolean => {
                         const userAnswer: string[] = [];
-                        const correctAnswer: string[] = clue.answer.split("");
 
                         let x = clue.x;
                         let y = clue.y;
@@ -1164,94 +1163,97 @@ export const PlayerView: React.FC = () => {
                             </p>
                           </div>
 
-                          {/* User's grid with color coding */}
-                          <div className="bg-white p-6 rounded-3xl shadow-xl border-b-8 border-blue-500">
-                            <h3 className="text-lg font-bold text-gray-700 mb-4">{t("player.crossword_your_grid")}</h3>
-                            <div
-                              className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg mx-auto"
-                              style={{
-                                gridTemplateColumns: `repeat(${correctGrid[0]?.length || 0}, minmax(0, 1fr))`,
-                              }}
-                            >
-                              {userGrid.map((row, r) =>
-                                row.map((cell, c) => {
-                                  const cellNumber = cellToNumber.get(`${r}-${c}`);
-                                  const correctCell = correctGrid[r]?.[c]?.trim().toUpperCase() || "";
-                                  const userCell = cell?.toUpperCase() || "";
-                                  const isCorrectChar = correctCell !== "" && userCell === correctCell;
-                                  const isWrongChar = correctCell !== "" && userCell !== "" && userCell !== correctCell;
+                          {/* Side-by-side layout: Grid and Correct Answers */}
+                          <div className="flex flex-col md:flex-row gap-8">
+                            {/* Left: User's grid with color coding */}
+                            <div className="bg-white p-6 rounded-3xl shadow-xl border-b-8 border-blue-500 flex-1">
+                              <h3 className="text-lg font-bold text-gray-700 mb-4">{t("player.crossword_your_grid")}</h3>
+                              <div
+                                className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg mx-auto"
+                                style={{
+                                  gridTemplateColumns: `repeat(${correctGrid[0]?.length || 0}, 48px)`,
+                                }}
+                              >
+                                {userGrid.map((row, r) =>
+                                  row.map((cell, c) => {
+                                    const cellNumber = cellToNumber.get(`${r}-${c}`);
+                                    const correctCell = correctGrid[r]?.[c]?.trim().toUpperCase() || "";
+                                    const userCell = cell?.toUpperCase() || "";
+                                    const isCorrectChar = correctCell !== "" && userCell === correctCell;
+                                    const isWrongChar = correctCell !== "" && userCell !== "" && userCell !== correctCell;
 
-                                  let cellClass = "w-10 h-10 md:w-12 md:h-12 flex items-center justify-center relative ";
-                                  if (isCorrectChar) {
-                                    cellClass += "bg-green-500 text-white";
-                                  } else if (isWrongChar) {
-                                    cellClass += "bg-red-500 text-white";
-                                  } else if (correctCell === "") {
-                                    cellClass += "bg-gray-800";
-                                  } else {
-                                    cellClass += "bg-white";
-                                  }
+                                    let cellClass = "w-12 h-12 flex items-center justify-center rounded-sm relative ";
+                                    if (isCorrectChar) {
+                                      cellClass += "bg-green-500 text-white";
+                                    } else if (isWrongChar) {
+                                      cellClass += "bg-red-500 text-white";
+                                    } else if (correctCell === "") {
+                                      cellClass += "bg-gray-800";
+                                    } else {
+                                      cellClass += "bg-white";
+                                    }
 
-                                  return (
-                                    <div key={`${r}-${c}`} className={cellClass}>
-                                      {correctCell !== "" && (
-                                        <>
-                                          {cellNumber && (
-                                            <span className="absolute top-0.5 left-1 text-[8px] md:text-[10px] font-bold text-blue-600 leading-none">
-                                              {cellNumber}
-                                            </span>
-                                          )}
-                                          <span className="text-xl font-bold uppercase">{userCell}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                  );
-                                })
+                                    return (
+                                      <div key={`${r}-${c}`} className={cellClass}>
+                                        {correctCell !== "" && (
+                                          <>
+                                            {cellNumber && (
+                                              <span className="absolute top-0.5 left-1 text-[8px] md:text-[10px] font-bold text-blue-600 leading-none">
+                                                {cellNumber}
+                                              </span>
+                                            )}
+                                            <span className="text-xl font-bold uppercase">{userCell}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right: Correct answers */}
+                            <div className="bg-gray-50 p-6 rounded-2xl flex-1">
+                              <p className="text-sm font-bold text-gray-600 mb-3">{t('player.crossword_correct_words')}:</p>
+
+                              {acrossWords.length > 0 && (
+                                <div className="mb-4">
+                                  <h4 className="font-bold text-gray-700 border-b mb-2">Across</h4>
+                                  <div className="flex flex-col gap-2">
+                                    {acrossWords.map((clue, i) => (
+                                      <span
+                                        key={`across-${i}`}
+                                        className={`px-3 py-2 rounded-lg text-sm font-bold ${clue.isCorrect
+                                          ? "bg-green-100 text-green-800 border-2 border-green-500"
+                                          : "bg-red-100 text-red-800 border-2 border-red-500"
+                                          }`}
+                                      >
+                                        {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {downWords.length > 0 && (
+                                <div>
+                                  <h4 className="font-bold text-gray-700 border-b mb-2">Down</h4>
+                                  <div className="flex flex-col gap-2">
+                                    {downWords.map((clue, i) => (
+                                      <span
+                                        key={`down-${i}`}
+                                        className={`px-3 py-2 rounded-lg text-sm font-bold ${clue.isCorrect
+                                          ? "bg-green-100 text-green-800 border-2 border-green-500"
+                                          : "bg-red-100 text-red-800 border-2 border-red-500"
+                                          }`}
+                                      >
+                                        {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
                               )}
                             </div>
-                          </div>
-
-                          {/* Correct words list */}
-                          <div className="bg-gray-50 p-6 rounded-2xl">
-                            <p className="text-sm font-bold text-gray-600 mb-3">{t('player.crossword_correct_words')}:</p>
-
-                            {acrossWords.length > 0 && (
-                              <div className="mb-4">
-                                <h4 className="font-bold text-gray-700 border-b mb-2">Across</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {acrossWords.map((clue, i) => (
-                                    <span
-                                      key={`across-${i}`}
-                                      className={`px-3 py-1 rounded-full text-sm font-bold ${clue.isCorrect
-                                          ? "bg-green-100 text-green-800 border-2 border-green-500"
-                                          : "bg-red-100 text-red-800 border-2 border-red-500"
-                                        }`}
-                                    >
-                                      {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {downWords.length > 0 && (
-                              <div>
-                                <h4 className="font-bold text-gray-700 border-b mb-2">Down</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {downWords.map((clue, i) => (
-                                    <span
-                                      key={`down-${i}`}
-                                      className={`px-3 py-1 rounded-full text-sm font-bold ${clue.isCorrect
-                                          ? "bg-green-100 text-green-800 border-2 border-green-500"
-                                          : "bg-red-100 text-red-800 border-2 border-red-500"
-                                        }`}
-                                    >
-                                      {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
                           </div>
                         </>
                       );

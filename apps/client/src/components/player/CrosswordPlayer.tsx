@@ -146,7 +146,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         <div
           className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg"
           style={{
-            gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0}, 48px)`,
           }}
         >
           {userGrid.map((row, r) =>
@@ -155,10 +155,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
               return (
                 <div
                   key={`${r}-${c}`}
-                  className="w-10 h-10 md:w-12 md:h-12 bg-white flex items-center justify-center relative"
+                  className="w-12 h-12 bg-white flex items-center justify-center rounded-sm relative"
                 >
                   {data.grid[r][c].trim() === "" ? (
-                    <div className="w-full h-full bg-gray-800" />
+                    <div className="w-full h-full bg-gray-800 rounded-sm" />
                   ) : (
                     <>
                       {cellNumber && (
@@ -170,7 +170,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                         type="text"
                         value={cell}
                         onChange={(e) => handleChange(r, c, e.target.value)}
-                        className="w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100"
+                        className="w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm"
                       />
                     </>
                   )}
