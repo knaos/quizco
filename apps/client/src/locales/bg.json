@@ -61,8 +61,16 @@
       "your_answer": "Твоят Отговор",
       "next_soon": "Следващият въпрос идва скоро...",
       "see_grid": "Виж Мрежата",
+      "crossword_words_guessed": "Отгаднати думи: {{correct}}/{{total}}",
+      "crossword_correct_words": "Правилни Думи",
+      "crossword_your_grid": "Вашият Отговор",
+      "crossword_no_answer": "Няма изпратен отговор",
       "waiting_grading": "Изчакване на оценяване",
       "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново.",
+      "correct_position": "Правилна Позиция",
+      "wrong_position": "Грешна Позиция",
+      "no_answer_submitted": "Няма изпратен отговор",
+      "should_be": "Трябва да бъде",
       "questions": {
         "correctTheError": {
           "instruction": "Посочете грешната фраза в изречението.",

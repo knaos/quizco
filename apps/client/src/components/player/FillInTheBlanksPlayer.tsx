@@ -16,6 +16,14 @@ export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
 }) => {
   const parts = content.text.split(/(\{?\d+\}?)/g);
 
+  // Initialize with prefill if enabled and no value exists
+  React.useEffect(() => {
+    if (content.prefill && value.length === 0 && content.blanks.length > 0) {
+      const prefilled = content.blanks.map((blank) => blank.options[0]?.value || "");
+      onChange(prefilled);
+    }
+  }, [content.prefill]);
+
   const updateBlank = (index: number, val: string) => {
     const newValue = [...value];
     while (newValue.length <= index) {
