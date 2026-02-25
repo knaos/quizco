@@ -2,71 +2,75 @@
 
 ## Current Work Focus
 
-We are evolving the Quizco prototype into a fully compliant "First National Children's Bible Competition" system. The focus is on implementing the specific game logic for all 4 rounds, including specialized question types, complex scoring (chronology bonuses, streaks), and the team-based structure.
+The Quizco project has evolved significantly from its initial prototype into a comprehensive Bible competition platform. The focus has shifted from implementing new question types to ensuring stability, testing, and polish.
 
 When adding new question types:
+- Ensure both admin editors and player views are implemented
+- Update shared types, Prisma schema, and seeding data accordingly
+- Write tests to validate the new functionality
 
-- ensure both admin editors and player views are implemented.
-- update shared types, Prisma schema, and seeding data accordingly.
-- write tests to validate the new functionality.
+## Completed Iterations
 
-## Recent Changes
+### Iteration 4: Crossword Joker (Round 4)
+- **Joker Mechanic:** Players can request one letter reveal at -2 points cost
+- **Full Completion Bonus:** +3 points for completing crossword without using jokers
+- **Implementation:** `handleJokerReveal` in GameManager, JOKER_REVEAL socket event
+- **UI:** CrosswordPlayer updated to support joker functionality
 
-- **Timer and Logging Infrastructure Improvement:**
-  - **TimerService:** Extracted timer logic from `GameManager.ts` into a dedicated `TimerService.ts`. This provides a cleaner API for starting, stopping, and managing timers per competition, reducing complexity in the main game loop logic.
-  - **Centralized Logger:** Introduced a structured `Logger` utility in `apps/server/src/utils/Logger.ts`.
-  - **Observability:** Added extensive logging throughout `GameManager.ts` for phase transitions, team connections, answer submissions, and error handling.
-  - **Dependency Injection:** Updated `GameManager` to accept `TimerService` and `ILogger` as constructor dependencies, improving testability.
-  - **Test Coverage:** Updated `GameManager.test.ts` to reflect the new constructor signature and verified timer pause/resume behavior.
+### Iteration 3: True/False & Streak Logic (Round 3)
+- Implemented `TRUE_FALSE` question type and `STREAK` round type
+- **Streak Logic:** GameManager.ts tracks consecutive correct answers per team
+- **Bonus Points:** In STREAK rounds: 5-6 streak (+1), 7-9 streak (+2), 10+ streak (+3)
+- **CorrectTheError:** Added new question type for finding and fixing errors
+- **Grading:** Updated GradingService.ts to handle TRUE_FALSE and CORRECT_THE_ERROR
+- **Admin UI:** TrueFalseEditor.tsx, CorrectTheErrorEditor.tsx
+- **Player UI:** TrueFalsePlayer.tsx, CorrectTheErrorPlayer.tsx
+- **Persistence:** Team streak persisted in database
 
-- **Iteration 3 Complete: "True/False" & Streak Logic (Round 3):**
-  - Implemented `TRUE_FALSE` question type and `STREAK` round type.
-  - **Streak Logic:** `GameManager.ts` now tracks consecutive correct answers for each team. Streak is persisted in the database (`Team.streak`).
-  - **Bonus Points:** In `STREAK` rounds, teams earn bonus points for correct answer streaks: 5-6 (+1), 7-9 (+2), 10+ (+3).
-  - **Grading:** Updated `GradingService.ts` to handle `TRUE_FALSE` questions.
-  - **Admin UI:** Created `TrueFalseEditor.tsx` for simple true/false toggle.
-  - **Player UI:** Created `TrueFalsePlayer.tsx` with large touch-friendly buttons for rapid-fire answering.
-  - **Resilience:** Updated `PostgresGameRepository` to save and restore team streaks.
-  - Updated shared types, Prisma schema, test mocks, and `seed.ts`.
+### Iteration 2: Chronology (Round 2)
+- Implemented `CHRONOLOGY` question type with server-side shuffling
+- **Server-Side Shuffling:** GameManager shuffles items when question starts
+- **Complex Scoring:** +1 per correct position, +3 for perfect match
+- **Frontend:** Integrated @dnd-kit for drag-and-drop
+- **Performance:** React.memo, useCallback, useMemo for smooth drag operations
+- **Admin UI:** ChronologyEditor.tsx
+- **Player UI:** ChronologyPlayer.tsx
 
-- **Iteration 2 Complete: "Chronology" (Round 2):**
-  - Implemented `CHRONOLOGY` question type with server-side shuffling.
-  - **Server-Side Shuffling:** `GameManager.ts` now deep-clones questions and shuffles items for `CHRONOLOGY` questions when they start, ensuring all players receive the same randomized order.
-  - **Complex Scoring:** Implemented in `GradingService.ts` (+1 per correct position, +3 bonus for a perfect match).
-  - **Frontend:** Integrated `@dnd-kit` for drag-and-drop support.
-  - **Admin UI:** Created `ChronologyEditor.tsx` for managing ordered items.
-  - **Player UI:** Created `ChronologyPlayer.tsx` for touch-friendly reordering.
-  - **Performance Optimization:** Applied `React.memo`, `useCallback`, and `useMemo` to `ChronologyEditor` and `ChronologyPlayer` to fix stuttering during drag-and-drop operations. Switched to `CSS.Translate` for smoother transitions.
-  - Updated shared types, Prisma schema (added `CHRONOLOGY` enum), and seed data.
+### Iteration 1: Fill-in-the-blanks & Matching (Round 1)
+- Implemented FILL_IN_THE_BLANKS with multiple options per blank
+- Implemented MATCHING question type
+- Added `section` field for Round 1 player turns
 
-- **Iteration 1 Complete (and Refined):**
-  - Fixed build errors in `FillInTheBlanksEditor.tsx` related to unused imports.
-  - Synchronized `apps/server/src/db/schema.sql` with `schema.prisma` to resolve test failures where the test database was missing new columns (e.g., `section`).
-  - Implemented `FILL_IN_THE_BLANKS` and `MATCHING` question types.
-  - **Data Structure Refinement:** `FILL_IN_THE_BLANKS` questions now support multiple options per blank, with one explicitly marked as correct.
-  - Updated shared types in `packages/shared/src/index.ts`.
-  - Updated Prisma schema in `apps/server/prisma/schema.prisma` (added `section` field and new `QuestionType` enums).
-  - Implemented and tested auto-grading logic in `GradingService.ts` for these complex structures.
-  - Created admin editors: `FillInTheBlanksEditor.tsx` (supports multiple options/distractors per placeholder) and `MatchingEditor.tsx`.
-  - Created player components: `FillInTheBlanksPlayer.tsx` (using dropdowns for choices) and `MatchingPlayer.tsx`.
-  - Updated `QuestionEditor.tsx` and `PlayerView.tsx` to integrate new types and handle correct answer formatting during reveal.
-  - Updated `seed.ts` with demo questions for the new types.
+### Infrastructure Improvements
+- **TimerService:** Extracted timer logic into dedicated service
+- **Logger:** Centralized structured logging utility
+- **StatePersistence:** Backup/restore game state for crash recovery
+- **Dependency Injection:** GameManager accepts services as constructor dependencies
 
-## Next Steps
+## Next Steps (Future Work)
 
-1. **Iteration 4:** Implement Crossword Joker (Round 4).
-   - Allow players to request a letter.
-   - Cost: 2 points.
-   - Emit `GRID_UPDATE` to all teams.
-   - Ensure goo d and usable UI is used for the whole crossword grid - both players and admin preparing the crossword.
+1. **Polish & Testing:**
+   - Complete end-to-end test coverage
+   - UI/UX refinements for child accessibility
+   - Performance optimization for large competitions
+
+2. **Feature Enhancements:**
+   - Sound effects for correct/incorrect answers
+   - Animation polish for transitions
+   - Leaderboard animations
 
 ## Active Decisions
 
-- **Fill in the Blanks UI:** Chose `<select>` dropdowns over free-text input to match competition requirements for provided options.
-- **Round 1 Strategy:** Using `section` field to indicate turns (e.g., "Player 1"). UI displays "Turn: [Section Name]" during preview and active phases.
-- **Data Model:** Answers for `FILL_IN_THE_BLANKS` are `string[]`, for `MATCHING` they are `Record<string, string>`.
+- **Data Model:** Uses JSONB for polymorphic question content
+- **Streak Persistence:** Team streaks saved to database after each answer
+- **Server Authority:** All scoring happens server-side
+- **Round Reset:** LEADERBOARD phase allows replay (resets scores/streaks, keeps teams)
+- **Chronology Shuffling:** Done server-side to ensure fairness
 
 ## Learnings
 
-- Complex nested JSON structures in `QuestionContent` require careful handling in both `GradingService` and frontend "Reveal Answer" logic to avoid `[object Object]` display issues.
-- Fisher-Yates shuffle is the preferred way to shuffle items in `useEffect` to satisfy React's purity requirements and avoid infinite re-renders.
+- Complex nested JSON in QuestionContent requires careful handling in both grading and reveal logic
+- Fisher-Yates shuffle preferred for React compatibility
+- @dnd-kit requires memoization for smooth performance with complex lists
+- Section field enables fair turn-taking in Round 1
+- Joker system adds strategic depth to crossword round
