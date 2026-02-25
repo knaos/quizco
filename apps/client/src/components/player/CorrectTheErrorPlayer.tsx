@@ -19,10 +19,9 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(
     initialAnswer?.selectedPhraseIndex ?? null
   );
-  const [correction, setCorrection] = useState(initialAnswer?.correction || '');
 
-  const handleSubmit = () => {
-    if (selectedIndex === null) return;
+  const handleCorrectionSelect = (correction: string) => {
+    if (selectedIndex === null || disabled) return;
     onAnswer({
       selectedPhraseIndex: selectedIndex,
       correction,
@@ -31,50 +30,49 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h3 className="text-xl font-semibold mb-4 text-center">
+      <div className="bg-white p-8 rounded-2xl shadow-xl border-4 border-indigo-100">
+        <h3 className="text-2xl font-bold mb-8 text-center text-indigo-900">
           {t('player.questions.correctTheError.instruction')}
         </h3>
-        
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
+
+        <div className="flex flex-wrap justify-center gap-4 mb-10">
           {content.phrases.map((phrase, index) => (
             <button
               key={index}
               disabled={disabled}
               onClick={() => setSelectedIndex(index)}
-              className={`px-4 py-2 rounded-lg text-lg transition-all ${
+              className={`px-6 py-4 rounded-xl text-xl font-medium transition-all duration-200 border-2 ${
                 selectedIndex === index
-                  ? 'bg-red-500 text-white shadow-md transform scale-105'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  ? 'bg-red-500 text-white border-red-600 shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-red-300 hover:bg-red-50'
               } ${disabled && selectedIndex !== index ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {phrase}
+              {phrase.text}
             </button>
           ))}
         </div>
 
         {selectedIndex !== null && (
-          <div className="animate-fade-in">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('player.questions.correctTheError.correctionLabel')}
-            </label>
-            <input
-              type="text"
-              value={correction}
-              disabled={disabled}
-              onChange={(e) => setCorrection(e.target.value)}
-              className="w-full border-2 border-indigo-200 rounded-xl p-4 text-xl focus:border-indigo-500 focus:ring-0 transition-colors"
-              placeholder={t('player.questions.correctTheError.correctionPlaceholder')}
-            />
-            
-            {!disabled && (
-              <button
-                onClick={handleSubmit}
-                className="mt-6 w-full bg-indigo-600 text-white py-4 rounded-xl text-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg"
-              >
-                {t('common.submit')}
-              </button>
-            )}
+          <div className="animate-fade-in bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-200">
+            <p className="text-center text-lg font-semibold text-indigo-900 mb-4">
+              {t('player.questions.correctTheError.selectCorrection')}
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {content.phrases[selectedIndex].alternatives.map((alt, aIdx) => (
+                <button
+                  key={aIdx}
+                  disabled={disabled}
+                  onClick={() => handleCorrectionSelect(alt)}
+                  className={`py-4 px-6 rounded-xl text-lg font-bold transition-all ${
+                    initialAnswer?.correction === alt
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'bg-white text-indigo-700 border-2 border-indigo-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 shadow-sm'
+                  } ${disabled ? 'cursor-not-allowed' : 'active:scale-95'}`}
+                >
+                  {alt}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

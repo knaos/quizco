@@ -114,11 +114,16 @@ export interface TrueFalseContent {
   isTrue: boolean;
 }
 
-export interface CorrectTheErrorContent {
+export interface CorrectTheErrorPhrase {
   text: string;
-  phrases: string[];
+  alternatives: string[]; // Exactly 3
+}
+
+export interface CorrectTheErrorContent {
+  text: string; // The full sentence for display/reference
+  phrases: CorrectTheErrorPhrase[]; // 1 to 4 phrases
   errorPhraseIndex: number;
-  correctReplacement: string;
+  correctReplacement: string; // The correct alternative for the error phrase
 }
 
 export type QuestionContent =

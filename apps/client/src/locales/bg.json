@@ -65,7 +65,8 @@
       "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново.",
       "questions": {
         "correctTheError": {
-          "instruction": "Посочете грешната фраза и напишете корекцията.",
+          "instruction": "Посочете грешната фраза в изречението.",
+          "selectCorrection": "Изберете правилната корекция за тази фраза:",
           "correctionLabel": "Вашата корекция:",
           "correctionPlaceholder": "Напишете правилната дума/фраза..."
         }
@@ -82,9 +83,14 @@
       "questions": {
         "correctTheError": {
           "fullText": "Пълен текст на изречението",
+          "fullTextPlaceholder": "Въведете цялото изречение тук за справка...",
           "phrases": "Фрази на изречението",
           "phrasesHelp": "Кликнете върху бутона до фразата, която съдържа грешка.",
           "addPhrase": "Добави фраза",
+          "markAsError": "Маркирай като грешна фраза",
+          "phraseTextPlaceholder": "Текст на фразата...",
+          "alternative": "Вариант",
+          "markAsCorrectReplacement": "Маркирай като верен отговор",
           "correctReplacement": "Правилна корекция",
           "correctReplacementPlaceholder": "Въведете правилния текст..."
         }
