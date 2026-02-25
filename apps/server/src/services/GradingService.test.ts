@@ -85,6 +85,13 @@ describe("GradingService", () => {
       isCorrect: false,
       score: 0,
     });
+
+    expect(
+      service.gradeAnswer(question, correctGrid, { usedJokers: true }),
+    ).toEqual({
+      isCorrect: true,
+      score: 10, // No bonus
+    });
   });
 
   it("returns null for MANUAL grading", () => {
@@ -154,13 +161,13 @@ describe("GradingService", () => {
     };
 
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin" })
+      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin" }),
     ).toEqual({
       isCorrect: true,
       score: 10,
     });
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Munich" })
+      service.gradeAnswer(question, { "1": "Paris", "2": "Munich" }),
     ).toEqual({
       isCorrect: false,
       score: 0,
@@ -244,7 +251,7 @@ describe("GradingService", () => {
       service.gradeAnswer(question, {
         selectedPhraseIndex: 2,
         correction: "in Bethlehem",
-      })
+      }),
     ).toEqual({
       isCorrect: true,
       score: 2,
@@ -255,7 +262,7 @@ describe("GradingService", () => {
       service.gradeAnswer(question, {
         selectedPhraseIndex: 2,
         correction: "in Jerusalem",
-      })
+      }),
     ).toEqual({
       isCorrect: false,
       score: 1,
@@ -266,7 +273,7 @@ describe("GradingService", () => {
       service.gradeAnswer(question, {
         selectedPhraseIndex: 0,
         correction: "in Bethlehem",
-      })
+      }),
     ).toEqual({
       isCorrect: false,
       score: 1,
@@ -277,7 +284,7 @@ describe("GradingService", () => {
       service.gradeAnswer(question, {
         selectedPhraseIndex: 1,
         correction: "wrong",
-      })
+      }),
     ).toEqual({
       isCorrect: false,
       score: 0,
