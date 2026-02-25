@@ -35,19 +35,19 @@ async function seed() {
         },
       });
 
-      const round1_1_fill_in_the_blanks = await prisma.round.create({
+      const round_1 = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 1,
           type: "STANDARD",
-          title: "Round 1.1: Fill in the blanks"
+          title: "Round 1: Individual game"
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: round1_1_fill_in_the_blanks.id,
+            roundId: round_1.id,
             questionText: "Попълнете празните места",
             type: "FILL_IN_THE_BLANKS",
             points: 15,
@@ -82,22 +82,8 @@ async function seed() {
             },
             section: "Player 1",
           },
-        ],
-      });
-
-      const round1_2_match_hero_to_story = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 2,
-          type: "STANDARD",
-          title: "Round 1.2: Match the hero to the story"
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
           {
-            roundId: round1_2_match_hero_to_story.id,
+            roundId: round_1.id,
             questionText: "Свържи героя към историята му",
             type: "MATCHING",
             points: 20,
@@ -110,22 +96,8 @@ async function seed() {
             },
             section: "Player 1",
           },
-        ]
-      });
-
-      const round1_3_continue_the_story = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 3,
-          type: "STANDARD",
-          title: "Round 1.3: Continue the story"
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
           {
-            roundId: round1_3_continue_the_story.id,
+            roundId: round_1.id,
             questionText: "Какво прави пророк Йона, след като рибата го изплюва?",
             type: "MULTIPLE_CHOICE",
             points: 10,
@@ -142,10 +114,10 @@ async function seed() {
         ],
       });
 
-      const round2_chronology = await prisma.round.create({
+      const round_2 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 4,
+          orderIndex: 2,
           type: "STANDARD",
           title: "Round 2: Bible chronology"
         },
@@ -154,7 +126,7 @@ async function seed() {
       await prisma.question.createMany({
         data: [
           {
-            roundId: round2_chronology.id,
+            roundId: round_2.id,
             questionText:
               "Order these events in the life of Joseph chronologically:",
             type: "CHRONOLOGY",
@@ -179,41 +151,27 @@ async function seed() {
         ]
       });
 
-      const round3_1_true_false_story = await prisma.round.create({
+      const round_3 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 5,
+          orderIndex: 3,
           type: "STANDARD",
-          title: "Round 3.1: True or false: Story"
+          title: "Round 3: True or False"
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: round3_1_true_false_story.id,
+            roundId: round_3.id,
             questionText: "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
             points: 10,
             timeLimitSeconds: 15,
             content: { isTrue: false },
           },
-        ]
-      })
-
-      const round3_2_true_false_hero = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 6,
-          type: "STANDARD",
-          title: "Round 3.2: True or false: Hero"
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
           {
-            roundId: round3_2_true_false_hero.id,
+            roundId: round_3.id,
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
             points: 10,
@@ -224,23 +182,9 @@ async function seed() {
               ],
               correctIndices: [0],
             },
-          }
-        ],
-      });
-
-      const round3_3_find_the_mistake_in_the_sentence = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 7,
-          type: "STANDARD",
-          title: "Round 3.3: Find the mistake in the sentence"
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
+          },
           {
-            roundId: round3_3_find_the_mistake_in_the_sentence.id,
+            roundId: round_3.id,
             questionText: "Попълнете празните места",
             type: "FILL_IN_THE_BLANKS",
             points: 15,
@@ -306,13 +250,13 @@ async function seed() {
             },
             section: "Player 1",
           },
-        ],
-      });
+        ]
+      })
 
-      const round4_crossword = await prisma.round.create({
+      const round_4 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 8,
+          orderIndex: 4,
           type: "CROSSWORD",
           title: "Round 4: Bible Crossword"
         },
@@ -321,7 +265,7 @@ async function seed() {
       await prisma.question.createMany({
         data: [
           {
-            roundId: round4_crossword.id,
+            roundId: round_4.id,
             questionText: "Попълнете кръстословицата",
             type: "CROSSWORD",
             points: 30,
