@@ -79,6 +79,19 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
         />
       </div>
 
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="prefill"
+          checked={content.prefill || false}
+          onChange={(e) => onChange({ ...content, prefill: e.target.checked })}
+          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+        />
+        <label htmlFor="prefill" className="text-sm font-medium text-gray-700">
+          Prefill blanks with first option
+        </label>
+      </div>
+
       <div className="space-y-6">
         <label className="block text-sm font-medium text-gray-700">
           Blanks Configuration

@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { GripVertical } from "lucide-react";
 import type { ChronologyContent } from "@quizco/shared";
 import {
   DndContext,
@@ -48,30 +47,22 @@ const SortableItem = React.memo<SortableItemProps>(({ id, text }) => {
     transition: isDragging ? undefined : transition,
     zIndex: isDragging ? 10 : 0,
     // Optimization: Use touch-action: none to prevent browser scrolling while dragging
-    touchAction: "none" 
+    touchAction: "none"
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       // FIX 3: Removed scale-[1.05] to prevent layout jitter since we aren't using DragOverlay
       // If you want the scale effect, you must implement <DragOverlay />
-      className={`flex items-center space-x-4 p-5 bg-white border-2 rounded-2xl transition-colors ${
-        isDragging 
-          ? "border-blue-500 shadow-2xl relative z-10" 
-          : "border-gray-100 hover:border-gray-200"
-      }`}
+      className={`flex items-center space-x-4 p-5 bg-white border-2 rounded-2xl transition-colors cursor-grab active:cursor-grabbing ${isDragging
+        ? "border-blue-500 shadow-2xl relative z-10"
+        : "border-gray-100 hover:border-gray-200"
+        }`}
     >
-      <div
-        {...attributes}
-        {...listeners}
-        // focus:outline-none helps with keyboard nav visuals
-        className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 cursor-grab active:cursor-grabbing focus:outline-none"
-      >
-        <GripVertical className="w-6 h-6" />
-      </div>
-
       <span className="flex-1 text-xl font-bold text-gray-800 select-none">
         {text}
       </span>
@@ -106,11 +97,11 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({ content, onC
         const oldIndex = currentItems.findIndex((i) => i.id === active.id);
         const newIndex = currentItems.findIndex((i) => i.id === over.id);
         const newItems = arrayMove(currentItems, oldIndex, newIndex);
-        
+
         // Defer the onChange callback to avoid blocking the render
         // Wrapping in requestAnimationFrame or setTimeout can make the drop feel snappier
         setTimeout(() => onChange(newItems.map(i => i.id)), 0);
-        
+
         return newItems;
       });
     }
@@ -118,9 +109,9 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({ content, onC
 
   return (
     <div className="w-full space-y-4">
-      <DndContext 
-        sensors={sensors} 
-        collisionDetection={closestCenter} 
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
         modifiers={[restrictToVerticalAxis]}
       >

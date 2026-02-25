@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Lock, LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -10,6 +10,10 @@ interface HostLoginProps {
 export const HostLogin: React.FC<HostLoginProps> = ({ onLogin }) => {
   const { t } = useTranslation();
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    document.title = "Host login"
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

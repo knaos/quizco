@@ -61,8 +61,16 @@
       "your_answer": "Your Answer",
       "next_soon": "Next question coming soon...",
       "see_grid": "See Grid",
+      "crossword_words_guessed": "Words guessed: {{correct}}/{{total}}",
+      "crossword_correct_words": "Correct Words",
+      "crossword_your_grid": "Your Answer",
+      "crossword_no_answer": "No answer submitted",
       "waiting_grading": "Waiting for grading",
       "session_lost_rejoin": "Session lost. Please rejoin.",
+      "correct_position": "Correct Position",
+      "wrong_position": "Wrong Position",
+      "no_answer_submitted": "No answer submitted",
+      "should_be": "Should be",
       "questions": {
         "correctTheError": {
           "instruction": "Identify the incorrect phrase and type the correction.",

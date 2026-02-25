@@ -143,4 +143,8 @@ export class MockGameRepository implements IGameRepository {
         };
       });
   }
+
+  async deleteAnswersForCompetition(competitionId: string): Promise<void> {
+    this.answers = [];
+  }
 }
