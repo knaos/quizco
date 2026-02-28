@@ -720,19 +720,59 @@ export const PlayerView: React.FC = () => {
                   <Info className="w-6 h-6" />
                   <span className="font-bold uppercase tracking-widest text-sm">{t("player.reveal_phase")}</span>
                 </div>
-                {getGradingStatus() === true ? (
-                  <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
-                  </span>
-                ) : getGradingStatus() === false ? (
-                  <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
-                    <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
-                  </span>
-                ) : (
-                  <span className="bg-gray-100 text-gray-700 px-4 py-1 rounded-full font-bold flex items-center">
-                    <Clock className="w-4 h-4 mr-2" /> {t("player.waiting_grading")}
-                  </span>
-                )}
+                {(() => {
+                  // For FILL_IN_THE_BLANKS, show the count of correct blanks
+                  if (state.currentQuestion?.type === "FILL_IN_THE_BLANKS") {
+                    const fbContent = state.currentQuestion.content as FillInTheBlanksContent;
+                    const team = state.teams.find((t) => t.name === teamName);
+                    const lastAnswer = team?.lastAnswer as string[] | null;
+                    
+                    if (lastAnswer && Array.isArray(lastAnswer)) {
+                      let correctCount = 0;
+                      const totalBlanks = fbContent.blanks.length;
+                      
+                      for (let i = 0; i < totalBlanks; i++) {
+                        const blank = fbContent.blanks[i];
+                        const correctOption = blank?.options.find(o => o.isCorrect);
+                        const correctVal = correctOption?.value.toLowerCase().trim();
+                        const submittedVal = (lastAnswer[i] || "").toLowerCase().trim();
+                        
+                        if (submittedVal === correctVal) {
+                          correctCount++;
+                        }
+                      }
+                      
+                      const isAllCorrect = correctCount === totalBlanks;
+                      return (
+                        <span className={`px-4 py-1 rounded-full font-bold flex items-center ${isAllCorrect ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          {correctCount}/{totalBlanks} {t("player.correct")}
+                        </span>
+                      );
+                    }
+                  }
+                  
+                  // Default behavior for other question types
+                  if (getGradingStatus() === true) {
+                    return (
+                      <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
+                        <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
+                      </span>
+                    );
+                  } else if (getGradingStatus() === false) {
+                    return (
+                      <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
+                        <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
+                      </span>
+                    );
+                  } else {
+                    return (
+                      <span className="bg-gray-100 text-gray-700 px-4 py-1 rounded-full font-bold flex items-center">
+                        <Clock className="w-4 h-4 mr-2" /> {t("player.waiting_grading")}
+                      </span>
+                    );
+                  }
+                })()}
               </div>
 
               <h2 className="text-2xl font-bold text-gray-800 mb-8">{state.currentQuestion.questionText}</h2>

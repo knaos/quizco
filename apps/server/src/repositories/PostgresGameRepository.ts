@@ -50,7 +50,9 @@ export class PostgresGameRepository implements IGameRepository {
       },
       where: {
         teamId: teamId,
-        isCorrect: true,
+        // Include all answers that have been graded (not null)
+        // This allows partial scoring for FILL_IN_THE_BLANKS to be counted
+        isCorrect: { not: null },
         round: {
           competitionId: competitionId,
         },

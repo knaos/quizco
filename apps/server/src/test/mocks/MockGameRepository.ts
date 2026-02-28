@@ -30,9 +30,11 @@ export class MockGameRepository implements IGameRepository {
   }
 
   async getTeamScore(competitionId: string, teamId: string): Promise<number> {
+    // Include all answers that have been graded (not null)
+    // This allows partial scoring for FILL_IN_THE_BLANKS to be counted
     return (
       this.answers
-        .filter((a) => a.teamId === teamId && a.isCorrect === true)
+        .filter((a) => a.teamId === teamId && a.isCorrect !== null)
         .reduce((sum, a) => sum + a.scoreAwarded, 0) || 0
     );
   }

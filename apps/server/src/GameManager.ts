@@ -271,7 +271,7 @@ export class GameManager {
 
     const team = session.teams.find((t) => t.id === teamId);
     if (team && isCorrect !== null) {
-      // Streak logic
+      // Streak logic - only increment streak for perfect answers
       if (isCorrect) {
         team.streak = (team.streak || 0) + 1;
 
@@ -290,7 +290,11 @@ export class GameManager {
           scoreAwarded += bonus;
         }
       } else {
-        team.streak = 0;
+        // For partial scoring (e.g., FILL_IN_THE_BLANKS), don't reset streak to 0
+        // if they got some points. Only reset if scoreAwarded is 0.
+        if (scoreAwarded === 0) {
+          team.streak = 0;
+        }
       }
 
       // Update streak in DB

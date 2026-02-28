@@ -176,7 +176,7 @@ export class GradingService {
   private gradeFillInTheBlanks(
     content: FillInTheBlanksContent,
     answer: FillInTheBlanksAnswer,
-    points: number
+    _points: number
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -188,7 +188,9 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    // Compare each submitted value against the marked correct option for that blank
+    // Count correct blanks - 1 point per correct blank
+    let correctCount = 0;
+
     for (let i = 0; i < placeholderCount; i++) {
       const blank = content.blanks[i];
       if (!blank) continue;
@@ -199,12 +201,13 @@ export class GradingService {
       const correctVal = correctOption.value.toLowerCase().trim();
       const submittedVal = (answer[i] || "").toLowerCase().trim();
 
-      if (submittedVal !== correctVal) {
-        return { isCorrect: false, score: 0 };
+      if (submittedVal === correctVal) {
+        correctCount++;
       }
     }
 
-    return { isCorrect: true, score: points };
+    const isCorrect = correctCount === placeholderCount;
+    return { isCorrect, score: correctCount };
   }
 
   private gradeMatching(

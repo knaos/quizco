@@ -103,7 +103,7 @@ describe("GradingService", () => {
     expect(service.gradeAnswer(question, "some answer")).toBeNull();
   });
 
-  it("grades FILL_IN_THE_BLANKS correctly", () => {
+  it("grades FILL_IN_THE_BLANKS correctly with partial scoring", () => {
     const question: Question = {
       ...baseQuestion,
       type: "FILL_IN_THE_BLANKS",
@@ -126,23 +126,33 @@ describe("GradingService", () => {
       },
     };
 
+    // All correct: 2 points (1 per blank)
     expect(service.gradeAnswer(question, ["sky", "blue"])).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 2,
     });
+    // Case insensitive
     expect(service.gradeAnswer(question, ["SKY ", " Blue"])).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 2,
     });
+    // One correct: 1 point
     expect(service.gradeAnswer(question, ["sky", "red"])).toEqual({
       isCorrect: false,
-      score: 0,
+      score: 1,
     });
+    // One correct (different blank): 1 point
     expect(service.gradeAnswer(question, ["sea", "blue"])).toEqual({
+      isCorrect: false,
+      score: 1,
+    });
+    // Incomplete answer: 0 points
+    expect(service.gradeAnswer(question, ["sky"])).toEqual({
       isCorrect: false,
       score: 0,
     });
-    expect(service.gradeAnswer(question, ["sky"])).toEqual({
+    // Empty answer: 0 points
+    expect(service.gradeAnswer(question, [])).toEqual({
       isCorrect: false,
       score: 0,
     });

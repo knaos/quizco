@@ -50,7 +50,7 @@ async function seed() {
             roundId: round_1.id,
             questionText: "Попълнете празните места",
             type: "FILL_IN_THE_BLANKS",
-            points: 15,
+            timeLimitSeconds: 20,
             content: {
               text: "Докато Данаил и приятелите му се обучават в(ъв) {0} империя, те отказват да ядат от изрядните ястия на царя и ядат само {1} и пият {2}.",
               blanks: [
