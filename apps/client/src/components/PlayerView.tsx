@@ -773,6 +773,55 @@ export const PlayerView: React.FC = () => {
                     }
                   }
                   
+                  // For CROSSWORD, show the count of correct words
+                  if (state.currentQuestion?.type === "CROSSWORD") {
+                    const crosswordContent = state.currentQuestion.content as CrosswordContent;
+                    const team = state.teams.find((t) => t.name === teamName);
+                    const userGrid = team?.lastAnswer as string[][] | null;
+                    
+                    if (userGrid && Array.isArray(userGrid) && userGrid.length > 0) {
+                      // Check word correctness
+                      const checkWordCorrectness = (clue: CrosswordClue): boolean => {
+                        const userAnswer: string[] = [];
+                        let x = clue.x;
+                        let y = clue.y;
+
+                        for (let i = 0; i < clue.answer.length; i++) {
+                          if (y < userGrid.length && x < userGrid[y].length) {
+                            userAnswer.push(userGrid[y][x]?.toUpperCase() || "");
+                          }
+                          if (clue.direction === "across") {
+                            x++;
+                          } else {
+                            y++;
+                          }
+                        }
+
+                        return userAnswer.join("") === clue.answer.toUpperCase();
+                      };
+
+                      const acrossWords = crosswordContent.clues.across.map(clue => ({
+                        ...clue,
+                        isCorrect: checkWordCorrectness(clue)
+                      }));
+                      const downWords = crosswordContent.clues.down.map(clue => ({
+                        ...clue,
+                        isCorrect: checkWordCorrectness(clue)
+                      }));
+
+                      const totalWords = acrossWords.length + downWords.length;
+                      const correctWords = acrossWords.filter(w => w.isCorrect).length + downWords.filter(w => w.isCorrect).length;
+                      const isAllCorrect = correctWords === totalWords;
+
+                      return (
+                        <span className={`px-4 py-1 rounded-full font-bold flex items-center ${isAllCorrect ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          {correctWords}/{totalWords} {t("player.correct")}
+                        </span>
+                      );
+                    }
+                  }
+                  
                   // Default behavior for other question types
                   if (getGradingStatus() === true) {
                     return (
@@ -1217,13 +1266,6 @@ export const PlayerView: React.FC = () => {
 
                       return (
                         <>
-                          {/* Words counter */}
-                          <div className="text-center p-4 bg-blue-50 rounded-2xl border-2 border-blue-200">
-                            <p className="text-xl font-bold text-blue-800">
-                              {t("player.crossword_words_guessed", { correct: correctWords, total: totalWords })}
-                            </p>
-                          </div>
-
                           {/* Side-by-side layout: Grid and Correct Answers */}
                           <div className="flex flex-col md:flex-row gap-8">
                             {/* Left: User's grid with color coding */}
