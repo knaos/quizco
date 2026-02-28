@@ -721,6 +721,32 @@ export const PlayerView: React.FC = () => {
                   <span className="font-bold uppercase tracking-widest text-sm">{t("player.reveal_phase")}</span>
                 </div>
                 {(() => {
+                  // For MATCHING, show the count of correct matches
+                  if (state.currentQuestion?.type === "MATCHING") {
+                    const matchingContent = state.currentQuestion.content as MatchingContent;
+                    const team = state.teams.find((t) => t.name === teamName);
+                    const lastAnswer = team?.lastAnswer as Record<string, string> | null;
+                    
+                    if (lastAnswer && typeof lastAnswer === "object") {
+                      let correctCount = 0;
+                      const totalPairs = matchingContent.pairs.length;
+                      
+                      matchingContent.pairs.forEach((pair) => {
+                        if (lastAnswer[pair.id] === pair.right) {
+                          correctCount++;
+                        }
+                      });
+                      
+                      const isAllCorrect = correctCount === totalPairs;
+                      return (
+                        <span className={`px-4 py-1 rounded-full font-bold flex items-center ${isAllCorrect ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          {correctCount}/{totalPairs} {t("player.correct")}
+                        </span>
+                      );
+                    }
+                  }
+                  
                   // For FILL_IN_THE_BLANKS, show the count of correct blanks
                   if (state.currentQuestion?.type === "FILL_IN_THE_BLANKS") {
                     const fbContent = state.currentQuestion.content as FillInTheBlanksContent;

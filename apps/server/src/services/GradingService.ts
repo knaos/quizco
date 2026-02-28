@@ -213,7 +213,7 @@ export class GradingService {
   private gradeMatching(
     content: MatchingContent,
     answer: MatchingAnswer,
-    points: number
+    _points: number
   ) {
     if (!answer || typeof answer !== "object") {
       return { isCorrect: false, score: 0 };
@@ -229,7 +229,8 @@ export class GradingService {
     });
 
     const isCorrect = correctCount === pairs.length;
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // 1 point per correct match
+    return { isCorrect, score: correctCount };
   }
 
   private gradeChronology(

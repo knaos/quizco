@@ -158,7 +158,7 @@ describe("GradingService", () => {
     });
   });
 
-  it("grades MATCHING correctly", () => {
+  it("grades MATCHING correctly with 1 point per correct match", () => {
     const question: Question = {
       ...baseQuestion,
       type: "MATCHING",
@@ -166,25 +166,47 @@ describe("GradingService", () => {
         pairs: [
           { id: "1", left: "France", right: "Paris" },
           { id: "2", left: "Germany", right: "Berlin" },
+          { id: "3", left: "Spain", right: "Madrid" },
         ],
       },
     };
 
+    // All 3 correct: 3 points
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin" }),
+      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin", "3": "Madrid" }),
     ).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 3,
     });
+
+    // 2 correct: 2 points
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Munich" }),
+      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin", "3": "Barcelona" }),
+    ).toEqual({
+      isCorrect: false,
+      score: 2,
+    });
+
+    // 1 correct: 1 point
+    expect(
+      service.gradeAnswer(question, { "1": "Paris", "2": "Munich", "3": "Barcelona" }),
+    ).toEqual({
+      isCorrect: false,
+      score: 1,
+    });
+
+    // 0 correct: 0 points
+    expect(
+      service.gradeAnswer(question, { "1": "London", "2": "Munich", "3": "Barcelona" }),
     ).toEqual({
       isCorrect: false,
       score: 0,
     });
+
+    // Incomplete answer (only 1 pair submitted, but correct): 1 point
     expect(service.gradeAnswer(question, { "1": "Paris" })).toEqual({
       isCorrect: false,
-      score: 0,
+      score: 1,
     });
   });
 

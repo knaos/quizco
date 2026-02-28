@@ -329,6 +329,9 @@ describe("GameManager Integration", () => {
 
     await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
 
+    // Scores are now updated when revealAnswer is called, not on submit
+    await gameManager.revealAnswer(testCompId);
+
     const updatedTeam = gameManager
       .getState(testCompId)
       .teams.find((t) => t.id === team.id);

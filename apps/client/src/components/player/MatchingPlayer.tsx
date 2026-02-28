@@ -171,7 +171,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
             <path
               d={path}
               fill="none"
-              stroke="#22c55e"
+              stroke="#3b82f6"
               strokeWidth="3"
               strokeLinecap="round"
             />
@@ -207,7 +207,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
               className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all flex items-center justify-between ${selectedLeft === item.id
                 ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
                 : value[item.id]
-                  ? "bg-green-50 border-green-200 text-green-800"
+                  ? "bg-blue-50 border-blue-200 text-blue-800"
                   : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
                 }`}
             >
@@ -218,7 +218,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
                     e.stopPropagation();
                     clearMatch(item.id);
                   }}
-                  className="text-green-600 hover:text-red-500 ml-2"
+                  className="text-blue-600 hover:text-red-500 ml-2"
                 >
                   ✕
                 </button>
@@ -241,7 +241,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
                 onClick={() => handleRightClick(text)}
                 disabled={disabled || !selectedLeft}
                 className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all text-left ${isMatched
-                  ? "bg-green-50 border-green-200 text-green-800"
+                  ? "bg-blue-50 border-blue-200 text-blue-800"
                   : selectedLeft
                     ? "bg-white border-blue-200 text-blue-600 animate-pulse"
                     : "bg-gray-50 border-transparent text-gray-400 cursor-not-allowed"

@@ -223,6 +223,10 @@ export class GameManager {
 
     this.timerService.stop(competitionId);
     session.phase = "REVEAL_ANSWER";
+    
+    // Refresh team scores when revealing answer - this emits SCORE_UPDATE to clients
+    await this.refreshTeamScores(competitionId);
+    
     await this.saveState();
   }
 
@@ -323,7 +327,7 @@ export class GameManager {
       this.logger.info(
         `Answer from team ${teamId} graded: ${isCorrect ? "CORRECT" : "INCORRECT"}, score awarded: ${scoreAwarded}`,
       );
-      await this.refreshTeamScores(competitionId);
+      // Score will be refreshed in revealAnswer when answers are revealed
     }
 
     await this.saveState();
