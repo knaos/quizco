@@ -490,12 +490,7 @@ export const PlayerView: React.FC = () => {
                       : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
                       }`}
                   >
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl mr-6 shadow-lg shadow-blue-200">
-                        {String.fromCharCode(65 + i)}
-                      </div>
-                      <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
-                    </div>
+                    <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
                   </div>
                 ))}
               </div>

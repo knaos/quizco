@@ -103,20 +103,30 @@ export class GradingService {
   private gradeMultipleChoice(
     content: MultipleChoiceContent,
     answer: number[],
-    points: number
+    _points: number
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
     }
 
-    const correctIndices = [...content.correctIndices].sort((a, b) => a - b);
-    const submittedIndices = [...answer].sort((a, b) => a - b);
+    const correctIndices = new Set(content.correctIndices);
+    const submittedIndices = new Set(answer);
 
+    // Count how many correct indices were selected
+    let correctCount = 0;
+    submittedIndices.forEach((index) => {
+      if (correctIndices.has(index)) {
+        correctCount++;
+      }
+    });
+
+    // isCorrect is true only if ALL correct indices were selected and no wrong ones
     const isCorrect =
-      correctIndices.length === submittedIndices.length &&
-      correctIndices.every((val, index) => val === submittedIndices[index]);
+      correctIndices.size === submittedIndices.size &&
+      correctCount === correctIndices.size;
 
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // 1 point per correct answer
+    return { isCorrect, score: correctCount };
   }
 
   private gradeClosed(

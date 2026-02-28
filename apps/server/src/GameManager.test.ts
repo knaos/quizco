@@ -335,7 +335,7 @@ describe("GameManager Integration", () => {
     const updatedTeam = gameManager
       .getState(testCompId)
       .teams.find((t) => t.id === team.id);
-    expect(updatedTeam?.score).toBe(15);
+    expect(updatedTeam?.score).toBe(1); // 1 point per correct answer
 
     // Wait for DB to settle if needed, though submitAnswer is awaited
     const answer = await prisma.answer.findFirst({

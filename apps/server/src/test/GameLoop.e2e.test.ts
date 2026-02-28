@@ -179,7 +179,7 @@ describe("Game Loop E2E (Decoupled)", () => {
     const team1 = finalState.teams.find((t) => t.id === team1Id);
     const team2 = finalState.teams.find((t) => t.id === team2Id);
 
-    expect(team1?.score).toBe(10);
+    expect(team1?.score).toBe(1); // 1 point per correct answer
     expect(team2?.score).toBe(0);
     expect(team1?.lastAnswerCorrect).toBe(true);
     expect(team2?.lastAnswerCorrect).toBe(false);

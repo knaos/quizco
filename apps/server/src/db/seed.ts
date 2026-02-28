@@ -100,6 +100,7 @@ async function seed() {
             roundId: round_1.id,
             questionText: "Какво прави пророк Йона, след като рибата го изплюва?",
             type: "MULTIPLE_CHOICE",
+            timeLimitSeconds: 15,
             points: 10,
             content: {
               options: [
@@ -167,13 +168,14 @@ async function seed() {
             questionText: "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
             points: 10,
-            timeLimitSeconds: 15,
+            timeLimitSeconds: 10,
             content: { isTrue: false },
           },
           {
             roundId: round_3.id,
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
+            timeLimitSeconds: 15,
             points: 10,
             content: {
               options: [
