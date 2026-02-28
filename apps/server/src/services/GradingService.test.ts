@@ -296,7 +296,7 @@ describe("GradingService", () => {
 
     expect(service.gradeAnswer(question, true)).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 1,
     });
     expect(service.gradeAnswer(question, false)).toEqual({
       isCorrect: false,

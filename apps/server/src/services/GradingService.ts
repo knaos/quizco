@@ -276,10 +276,11 @@ export class GradingService {
   private gradeTrueFalse(
     content: TrueFalseContent,
     answer: boolean,
-    points: number
+    _points: number
   ) {
     const isCorrect = content.isTrue === answer;
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // Each correct answer scores 1 point
+    return { isCorrect, score: isCorrect ? 1 : 0 };
   }
 
   private gradeCorrectTheError(
