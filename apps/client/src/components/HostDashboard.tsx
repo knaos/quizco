@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useGame } from "../contexts/GameContext";
 import { socket, API_URL } from "../socket";
 import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown, Pause } from "lucide-react";
-import type { Question, Competition, Round, CrosswordContent, CrosswordClue } from "@quizco/shared";
+import type { Question, Competition, Round, CrosswordContent, CrosswordClue, ChronologyContent, FillInTheBlanksContent, MatchingContent, TrueFalseContent, CorrectTheErrorContent } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
@@ -423,7 +423,7 @@ export const HostDashboard: React.FC = () => {
                     <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-1">
                       {t("player.correct_answer")}
                     </p>
-                    <p className="text-xl font-black text-green-900">
+                    <p className="text-xl font-black text-green-900 whitespace-pre-wrap">
                       {(() => {
                         const q = state.currentQuestion;
                         if (q.type === "MULTIPLE_CHOICE") {
@@ -434,6 +434,32 @@ export const HostDashboard: React.FC = () => {
                         }
                         if (q.type === "OPEN_WORD") {
                           return q.content.answer;
+                        }
+                        if (q.type === "CHRONOLOGY") {
+                          const content = q.content as ChronologyContent;
+                          const sortedItems = [...content.items].sort((a, b) => a.order - b.order);
+                          return sortedItems.map(item => `${item.order + 1}. ${item.text}`).join("\n");
+                        }
+                        if (q.type === "FILL_IN_THE_BLANKS") {
+                          const content = q.content as FillInTheBlanksContent;
+                          let text = content.text;
+                          content.blanks.forEach((blank, idx) => {
+                            const correctOption = blank.options.find(o => o.isCorrect);
+                            text = text.replace(`{${idx}}`, correctOption?.value ? `[${correctOption.value}]` : "[???]");
+                          });
+                          return text;
+                        }
+                        if (q.type === "MATCHING") {
+                          const content = q.content as MatchingContent;
+                          return content.pairs.map(pair => `${pair.left} ↔ ${pair.right}`).join("\n");
+                        }
+                        if (q.type === "TRUE_FALSE") {
+                          const content = q.content as TrueFalseContent;
+                          return content.isTrue ? "True" : "False";
+                        }
+                        if (q.type === "CORRECT_THE_ERROR") {
+                          const content = q.content as CorrectTheErrorContent;
+                          return `Error: "${content.phrases[content.errorPhraseIndex]}" → Correction: "${content.correctReplacement}"`;
                         }
                         return "See Grid";
                       })()}
