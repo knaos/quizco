@@ -153,7 +153,14 @@ export class GameManager {
     session.timeRemaining = question.timeLimitSeconds;
     session.revealStep = 0;
     session.timerPaused = false;
-    session.metadata = {}; // Clear metadata for new question
+    
+    // Preserve chronology tracking across questions - only clear question-specific metadata
+    // Keep chronologyPerfectAnswers and chronologyBonusAwarded for the completion bonus
+    const preservedChronologyPerfect = session.metadata?.chronologyPerfectAnswers;
+    const preservedChronologyBonus = session.metadata?.chronologyBonusAwarded;
+    session.metadata = {};
+    if (preservedChronologyPerfect) session.metadata.chronologyPerfectAnswers = preservedChronologyPerfect;
+    if (preservedChronologyBonus) session.metadata.chronologyBonusAwarded = preservedChronologyBonus;
 
     // Reset last answer status for all teams
     for (const team of session.teams) {
@@ -293,11 +300,28 @@ export class GameManager {
 
           scoreAwarded += bonus;
         }
+
+        // Chronology completion bonus: +4 points if ALL chronology questions are answered perfectly
+        if (session.currentQuestion?.type === "CHRONOLOGY") {
+          const chronologyBonus = await this.checkChronologyCompletionBonus(
+            competitionId,
+            teamId,
+            questionId,
+            questions,
+            team,
+          );
+          scoreAwarded += chronologyBonus;
+        }
       } else {
         // For partial scoring (e.g., FILL_IN_THE_BLANKS), don't reset streak to 0
         // if they got some points. Only reset if scoreAwarded is 0.
         if (scoreAwarded === 0) {
           team.streak = 0;
+        }
+
+        // Reset chronology perfect tracking if answer is incorrect
+        if (session.currentQuestion?.type === "CHRONOLOGY") {
+          this.resetChronologyTracking(session, teamId, questionId);
         }
       }
 
@@ -577,6 +601,9 @@ export class GameManager {
         // Delete all answers for this competition from the database
         await this.repository.deleteAnswersForCompetition(competitionId);
 
+        // Clear chronology tracking for fresh replay
+        session.metadata = {};
+
         this.logger.info(
           `Competition ${competitionId} reset from LEADERBOARD. Teams cleared for replay and answers deleted.`,
         );
@@ -648,5 +675,92 @@ export class GameManager {
     }
     this.logger.warn(`Failed to reconnect team ${teamId} in ${competitionId}`);
     return null;
+  }
+
+  /**
+   * Checks if the team has completed all chronology questions perfectly
+   * and awards a +4 bonus if so.
+   * Returns the bonus points to award (0 or 4).
+   * Note: Uses arrays instead of Sets for JSON serialization compatibility.
+   */
+  private async checkChronologyCompletionBonus(
+    competitionId: string,
+    teamId: string,
+    questionId: string,
+    allQuestions: Question[],
+    team: Team,
+  ): Promise<number> {
+    const session = this.getOrCreateSession(competitionId);
+
+    // Get all chronology questions in this competition
+    const chronologyQuestions = allQuestions.filter(
+      (q) => q.type === "CHRONOLOGY",
+    );
+
+    if (chronologyQuestions.length === 0) {
+      return 0;
+    }
+
+    // Initialize tracking structures if needed (use arrays for JSON serialization)
+    if (!session.metadata.chronologyPerfectAnswers) {
+      session.metadata.chronologyPerfectAnswers = {};
+    }
+    if (!session.metadata.chronologyPerfectAnswers[teamId]) {
+      session.metadata.chronologyPerfectAnswers[teamId] = [];
+    }
+    if (!session.metadata.chronologyBonusAwarded) {
+      session.metadata.chronologyBonusAwarded = {};
+    }
+
+    const teamPerfectAnswers: string[] = session.metadata.chronologyPerfectAnswers[teamId];
+    const teamBonusAwarded: boolean = session.metadata.chronologyBonusAwarded[teamId] || false;
+
+    // Add this question to the team's perfect answers (if not already present)
+    if (!teamPerfectAnswers.includes(questionId)) {
+      teamPerfectAnswers.push(questionId);
+    }
+
+    // Check if all chronology questions are answered perfectly
+    const allAnsweredPerfectly =
+      teamPerfectAnswers.length >= chronologyQuestions.length;
+
+    // Award bonus only once
+    if (allAnsweredPerfectly && !teamBonusAwarded) {
+      session.metadata.chronologyBonusAwarded[teamId] = true;
+
+      // Update team score
+      team.score += 4;
+      await this.repository.updateTeamScore(teamId, team.score);
+
+      this.logger.info(
+        `Team ${teamId} completed all ${chronologyQuestions.length} chronology questions perfectly! Awarded +4 bonus points.`,
+      );
+
+      return 4;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Resets the chronology tracking for a team when they get an incorrect answer.
+   * This ensures they must complete all chronology questions perfectly to get the bonus.
+   */
+  private resetChronologyTracking(
+    session: GameState & { metadata?: any },
+    teamId: string,
+    _questionId: string,
+  ) {
+    if (!session.metadata.chronologyPerfectAnswers) {
+      session.metadata.chronologyPerfectAnswers = {};
+    }
+
+    // Clear the team's perfect answers for chronology (use array)
+    session.metadata.chronologyPerfectAnswers[teamId] = [];
+
+    // Allow bonus to be awarded again
+    if (session.metadata.chronologyBonusAwarded) {
+      session.metadata.chronologyBonusAwarded[teamId] = false;
+    }
   }
 }
