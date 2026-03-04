@@ -260,10 +260,34 @@ async function seed() {
             content: {
               text: "Jesus was born in Nazareth in the days of Herod the king.",
               phrases: [
-                "Jesus was born",
-                "in Nazareth",
-                "in the days of",
-                "Herod the king",
+                {
+                  text: "Jesus was born",
+                  alternatives: [
+                    "Jesus died",
+                    "Peter was born",
+                    "John was born",
+                  ],
+                },
+                {
+                  text: "in Nazareth",
+                  alternatives: ["in Bethlehem", "in Jerusalem", "in Egypt"],
+                },
+                {
+                  text: "in the days of",
+                  alternatives: [
+                    "after the death of",
+                    "before the birth of",
+                    "during the exile of",
+                  ],
+                },
+                {
+                  text: "Herod the king",
+                  alternatives: [
+                    "David the king",
+                    "Saul the king",
+                    "Solomon the king",
+                  ],
+                },
               ],
               errorPhraseIndex: 1,
               correctReplacement: "in Bethlehem",
