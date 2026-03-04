@@ -81,6 +81,8 @@ export const AdminPanel: React.FC = () => {
   }, [adminPassword, logoutAdmin]);
 
   useEffect(() => {
+    document.title = "Admin panel";
+
     if (isAdminAuthenticated) {
         fetchCompetitions();
     }
@@ -261,7 +263,8 @@ export const AdminPanel: React.FC = () => {
             <Settings className="mr-4 w-6 h-6" /> Settings
           </button>
           <a
-            href="/?host=true"
+            href="/host"
+            target="_blank"
             className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:white transition-all font-bold"
           >
             <Monitor className="mr-4 w-6 h-6" /> Host View

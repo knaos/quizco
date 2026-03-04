@@ -37,4 +37,7 @@ export interface IGameRepository {
   // Pending Answers for Host
   getPendingAnswers(competitionId?: string): Promise<any[]>;
   getQuestionAnswers(competitionId: string, questionId: string): Promise<any[]>;
+
+  // Reset
+  deleteAnswersForCompetition(competitionId: string): Promise<void>;
 }
