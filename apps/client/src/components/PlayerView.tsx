@@ -199,6 +199,32 @@ export const PlayerView: React.FC = () => {
     });
   };
 
+  // Auto-submit on timer end or phase change
+  React.useEffect(() => {
+    if (state.phase !== "QUESTION_ACTIVE" && joined && !hasSubmitted && answer !== "" && answer !== null && answer !== undefined) {
+      // Don't auto-submit if it's just an empty/initial state for certain types
+      if (state.currentQuestion?.type === "CORRECT_THE_ERROR") {
+        const cteAnswer = answer as CorrectTheErrorAnswer;
+        if (cteAnswer.selectedPhraseIndex !== -1 && cteAnswer.correction) {
+          submitAnswer(answer);
+        }
+      } else if (state.currentQuestion?.type === "FILL_IN_THE_BLANKS") {
+        if (Array.isArray(answer) && answer.length > 0 && answer.some(a => a !== "")) {
+          submitAnswer(answer);
+        }
+      } else if (state.currentQuestion?.type === "MATCHING") {
+        if (Object.keys(answer as object).length > 0) {
+          submitAnswer(answer);
+        }
+      } else if (state.currentQuestion?.type === "CHRONOLOGY") {
+        // Chronology always has a state, so we can always submit
+        submitAnswer(answer);
+      } else if (answer !== "") {
+        submitAnswer(answer);
+      }
+    }
+  }, [state.phase, joined, hasSubmitted]);
+
   // Sync Watchdog: Monitor if joined team is still in server state
   React.useEffect(() => {
     if (joined && !isReconnecting && state.teams.length > 0) {
@@ -625,15 +651,26 @@ export const PlayerView: React.FC = () => {
                       }}
                     />
                   ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
-                    <CorrectTheErrorPlayer
-                      content={state.currentQuestion.content}
-                      onAnswer={(val) => {
-                        setAnswer(val);
-                        submitAnswer(val);
-                      }}
-                      disabled={hasSubmitted}
-                      initialAnswer={currentTeam?.lastAnswer as CorrectTheErrorAnswer}
-                    />
+                    <div className="space-y-6">
+                      <CorrectTheErrorPlayer
+                        content={state.currentQuestion.content}
+                        value={(answer as CorrectTheErrorAnswer) || { selectedPhraseIndex: -1, correction: "" }}
+                        onChange={(val) => setAnswer(val)}
+                        disabled={hasSubmitted}
+                      />
+                      {!hasSubmitted && (
+                        <button
+                          onClick={() => submitAnswer(answer)}
+                          disabled={(answer as CorrectTheErrorAnswer).selectedPhraseIndex === -1 || !(answer as CorrectTheErrorAnswer).correction}
+                          className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${(answer as CorrectTheErrorAnswer).selectedPhraseIndex !== -1 && (answer as CorrectTheErrorAnswer).correction
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            }`}
+                        >
+                          <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <div className="flex flex-col space-y-4">
                       <input

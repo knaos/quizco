@@ -1,29 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { CorrectTheErrorContent, CorrectTheErrorAnswer } from '@quizco/shared';
 import { useTranslation } from 'react-i18next';
 
 interface CorrectTheErrorPlayerProps {
   content: CorrectTheErrorContent;
-  onAnswer: (answer: CorrectTheErrorAnswer) => void;
+  value: CorrectTheErrorAnswer;
+  onChange: (value: CorrectTheErrorAnswer) => void;
   disabled?: boolean;
-  initialAnswer?: CorrectTheErrorAnswer;
 }
 
 const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
   content,
-  onAnswer,
+  value,
+  onChange,
   disabled,
-  initialAnswer,
 }) => {
   const { t } = useTranslation();
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(
-    initialAnswer?.selectedPhraseIndex ?? null
-  );
+  
+  const handlePhraseSelect = (index: number) => {
+    if (disabled) return;
+    onChange({
+      ...value,
+      selectedPhraseIndex: index,
+      // Clear correction when switching phrases to avoid confusion
+      correction: index === value.selectedPhraseIndex ? value.correction : ''
+    });
+  };
 
   const handleCorrectionSelect = (correction: string) => {
-    if (selectedIndex === null || disabled) return;
-    onAnswer({
-      selectedPhraseIndex: selectedIndex,
+    if (value.selectedPhraseIndex === -1 || disabled) return;
+    onChange({
+      ...value,
       correction,
     });
   };
@@ -40,31 +47,31 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
             <button
               key={index}
               disabled={disabled}
-              onClick={() => setSelectedIndex(index)}
+              onClick={() => handlePhraseSelect(index)}
               className={`px-6 py-4 rounded-xl text-xl font-medium transition-all duration-200 border-2 ${
-                selectedIndex === index
+                value.selectedPhraseIndex === index
                   ? 'bg-red-500 text-white border-red-600 shadow-lg transform scale-105'
                   : 'bg-white text-gray-700 border-gray-200 hover:border-red-300 hover:bg-red-50'
-              } ${disabled && selectedIndex !== index ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${disabled && value.selectedPhraseIndex !== index ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {phrase.text}
             </button>
           ))}
         </div>
 
-        {selectedIndex !== null && (
+        {value.selectedPhraseIndex !== -1 && (
           <div className="animate-fade-in bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-200">
             <p className="text-center text-lg font-semibold text-indigo-900 mb-4">
               {t('player.questions.correctTheError.selectCorrection')}
             </p>
             <div className="grid grid-cols-1 gap-3">
-              {content.phrases[selectedIndex].alternatives.map((alt, aIdx) => (
+              {content.phrases[value.selectedPhraseIndex].alternatives.map((alt, aIdx) => (
                 <button
                   key={aIdx}
                   disabled={disabled}
                   onClick={() => handleCorrectionSelect(alt)}
                   className={`py-4 px-6 rounded-xl text-lg font-bold transition-all ${
-                    initialAnswer?.correction === alt
+                    value.correction === alt
                       ? 'bg-indigo-600 text-white shadow-md'
                       : 'bg-white text-indigo-700 border-2 border-indigo-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 shadow-sm'
                   } ${disabled ? 'cursor-not-allowed' : 'active:scale-95'}`}
