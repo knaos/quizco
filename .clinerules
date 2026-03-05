@@ -152,3 +152,7 @@ REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is
 - Don't use hardcoded UI strings in the UI, but always use translations
 - when creating new UI make sure you update the translations accordingly
 - the app should be available in English and Bulgarian
+
+## Tools
+
+- Do not run write commands in git: `git add`, `git commit`, `git push` - these are reserved for the human developer. Instead, use `git status` to check the state of the repository and `git log` to review commit history. Always communicate your intended git actions before executing them.

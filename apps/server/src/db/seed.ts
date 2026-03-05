@@ -35,12 +35,13 @@ async function seed() {
         },
       });
 
+      // Round 1
       const round_1 = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 1,
           type: "STANDARD",
-          title: "Round 1: Individual game"
+          title: "Round 1: Individual game",
         },
       });
 
@@ -89,16 +90,30 @@ async function seed() {
             points: 20,
             content: {
               pairs: [
-                { id: "p1", left: "Исус", right: "възкресява синът на вдовицата в Сарепта Сидонска." },
-                { id: "p2", left: "Апостол Павел", right: "възкресява дъщерята на Яир, началника на синагогата." },
-                { id: "p3", left: "Пророк Илия", right: "възкресява момче на име Евтих, което пада от прозореца." },
+                {
+                  id: "p1",
+                  left: "Исус",
+                  right: "възкресява синът на вдовицата в Сарепта Сидонска.",
+                },
+                {
+                  id: "p2",
+                  left: "Апостол Павел",
+                  right: "възкресява дъщерята на Яир, началника на синагогата.",
+                },
+                {
+                  id: "p3",
+                  left: "Пророк Илия",
+                  right:
+                    "възкресява момче на име Евтих, което пада от прозореца.",
+                },
               ],
             },
             section: "Player 1",
           },
           {
             roundId: round_1.id,
-            questionText: "Какво прави пророк Йона, след като рибата го изплюва?",
+            questionText:
+              "Какво прави пророк Йона, след като рибата го изплюва?",
             type: "MULTIPLE_CHOICE",
             points: 10,
             content: {
@@ -106,20 +121,21 @@ async function seed() {
                 "Отива да пророкува в град Ниневия",
                 "Отива да пророкува в град Тир",
                 "Бяга от Бога в пустинята",
-                "Бяга от Бога, като се качва на лодка"
+                "Бяга от Бога, като се качва на лодка",
               ],
               correctIndices: [0],
             },
-          }
+          },
         ],
       });
 
+      // Round 2 (Moved from 5)
       const round_2 = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 2,
           type: "STANDARD",
-          title: "Round 2: Bible chronology"
+          title: "Round 2: Поправи грешката",
         },
       });
 
@@ -127,6 +143,132 @@ async function seed() {
         data: [
           {
             roundId: round_2.id,
+            questionText: "Поправи грешката в изречението",
+            type: "CORRECT_THE_ERROR" as QuestionType,
+            points: 2,
+            content: {
+              text: "Пророк Илия избива 450 от пророците на Ваал при потока Кисон.",
+              phrases: [
+                {
+                  text: "Пророк Илия",
+                  alternatives: ["Пророк Елисей", "Цар Давид", "Пророк Йона"],
+                },
+                {
+                  text: "избива 450",
+                  alternatives: ["помазва 450", "изцелява 450", "избива 400"],
+                },
+                {
+                  text: "от пророците на Ваал",
+                  alternatives: [
+                    "от жреците на Ашера",
+                    "от синовете на Израел",
+                    "от войниците на Ахав",
+                  ],
+                },
+                {
+                  text: "при потока Кисон.",
+                  alternatives: [
+                    "на планината Кармил.",
+                    "в град Самария.",
+                    "при река Йордан.",
+                  ],
+                },
+              ],
+              errorPhraseIndex: 0,
+              correctReplacement: "Пророк Елисей",
+            },
+          },
+          {
+            roundId: round_2.id,
+            questionText: "Поправи грешката в изречението",
+            type: "CORRECT_THE_ERROR" as QuestionType,
+            points: 2,
+            content: {
+              text: "Мойсей изведе израилтяните от Египет през Мъртво море.",
+              phrases: [
+                {
+                  text: "Мойсей",
+                  alternatives: ["Аарон", "Исус Навин", "Йосиф"],
+                },
+                {
+                  text: "изведе израилтяните",
+                  alternatives: [
+                    "вкара египтяните",
+                    "изпрати левитите",
+                    "изведе филистимците",
+                  ],
+                },
+                {
+                  text: "от Египет",
+                  alternatives: ["от Ханаан", "от Вавилон", "от Пустинята"],
+                },
+                {
+                  text: "през Мъртво море.",
+                  alternatives: [
+                    "през Червено море",
+                    "през река Йордан",
+                    "през Галилейското езеро",
+                  ],
+                },
+              ],
+              errorPhraseIndex: 3,
+              correctReplacement: "през Червено море",
+            },
+          },
+          {
+            roundId: round_2.id,
+            questionText: "Поправи грешката в изречението",
+            type: "CORRECT_THE_ERROR" as QuestionType,
+            points: 2,
+            content: {
+              text: "Давид победи великана Голиат с помощта на меч и щит.",
+              phrases: [
+                {
+                  text: "Давид",
+                  alternatives: ["Саул", "Йонатан", "Самсон"],
+                },
+                {
+                  text: "победи великана",
+                  alternatives: [
+                    "избяга от великана",
+                    "помогна на великана",
+                    "уби звяра",
+                  ],
+                },
+                {
+                  text: "Голиат",
+                  alternatives: ["Ахав", "Навуходоносор", "Ирод"],
+                },
+                {
+                  text: "с помощта на меч и щит.",
+                  alternatives: [
+                    "с помощта на прашка и камък",
+                    "с помощта на лък и стрели",
+                    "с помощта на копие и брадва",
+                  ],
+                },
+              ],
+              errorPhraseIndex: 3,
+              correctReplacement: "с помощта на прашка и камък",
+            },
+          },
+        ],
+      });
+
+      // Round 3 (Moved from 2)
+      const round_3 = await prisma.round.create({
+        data: {
+          competitionId: competition.id,
+          orderIndex: 3,
+          type: "STANDARD",
+          title: "Round 3: Bible chronology",
+        },
+      });
+
+      await prisma.question.createMany({
+        data: [
+          {
+            roundId: round_3.id,
             questionText:
               "Order these events in the life of Joseph chronologically:",
             type: "CHRONOLOGY",
@@ -134,12 +276,28 @@ async function seed() {
             timeLimitSeconds: 45,
             content: {
               items: [
-                { id: "j1", text: "Мойсей издига медна змия в пустинята", order: 9 },
+                {
+                  id: "j1",
+                  text: "Мойсей издига медна змия в пустинята",
+                  order: 9,
+                },
                 { id: "j2", text: "Мойсей разделя Червено море", order: 0 },
-                { id: "j3", text: "Мойсей праща съгледвачи в Ханаанската земя", order: 8 },
+                {
+                  id: "j3",
+                  text: "Мойсей праща съгледвачи в Ханаанската земя",
+                  order: 8,
+                },
                 { id: "j4", text: "Мойсей чупи плочите на завета", order: 5 },
-                { id: "j5", text: "Мойсей удря два пъти скалата Мерива при Кадис", order: 6 },
-                { id: "j6", text: "Мириам води народа в песен и танц", order: 1 },
+                {
+                  id: "j5",
+                  text: "Мойсей удря два пъти скалата Мерива при Кадис",
+                  order: 6,
+                },
+                {
+                  id: "j6",
+                  text: "Мириам води народа в песен и танц",
+                  order: 1,
+                },
                 { id: "j7", text: "Аарон прави златно теле", order: 4 },
                 { id: "j8", text: "Мойсей се изкачва на планината", order: 3 },
                 { id: "j9", text: "Мириам е прокажена", order: 7 },
@@ -148,43 +306,45 @@ async function seed() {
             },
             grading: "AUTO",
           },
-        ]
+        ],
       });
 
-      const round_3 = await prisma.round.create({
+      // Round 4 (Moved from 3)
+      const round_4 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 3,
+          orderIndex: 4,
           type: "STANDARD",
-          title: "Round 3: True or False"
+          title: "Round 4: True or False",
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: round_3.id,
-            questionText: "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
+            roundId: round_4.id,
+            questionText:
+              "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
             points: 10,
             timeLimitSeconds: 15,
             content: { isTrue: false },
           },
           {
-            roundId: round_3.id,
+            roundId: round_4.id,
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
             points: 10,
             content: {
               options: [
                 "Тя беше от народа Моав",
-                "Тя беше единствената снаха на Ноемин"
+                "Тя беше единствената снаха на Ноемин",
               ],
               correctIndices: [0],
             },
           },
           {
-            roundId: round_3.id,
+            roundId: round_4.id,
             questionText: "Попълнете празните места",
             type: "FILL_IN_THE_BLANKS",
             points: 15,
@@ -250,22 +410,23 @@ async function seed() {
             },
             section: "Player 1",
           },
-        ]
-      })
+        ],
+      });
 
-      const round_4 = await prisma.round.create({
+      // Round 5 (Moved from 4)
+      const round_5 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 4,
+          orderIndex: 5,
           type: "CROSSWORD",
-          title: "Round 4: Bible Crossword"
+          title: "Round 5: Bible Crossword",
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: round_4.id,
+            roundId: round_5.id,
             questionText: "Попълнете кръстословицата",
             type: "CROSSWORD",
             points: 30,
@@ -281,22 +442,70 @@ async function seed() {
               ],
               clues: {
                 across: [
-                  { number: 1, x: 0, y: 0, direction: "across", clue: "Това, което Давид искаше да направи за Господа, но синът му го създаде вместо него.", answer: "храм" },
-                  { number: 2, x: 0, y: 2, direction: "across", clue: "Родната земя на Рут.", answer: "моав" },
-                  { number: 5, x: 2, y: 3, direction: "across", clue: "Ковчегът на ...", answer: "ной" },
-                  { number: 6, x: 2, y: 5, direction: "across", clue: "Книжник, който поучава първите евреи, които се завръщат в Йерусалим след Вавилонския плен", answer: "ездра" },
+                  {
+                    number: 1,
+                    x: 0,
+                    y: 0,
+                    direction: "across",
+                    clue: "Това, което Давид искаше да направи за Господа, но синът му го създаде вместо него.",
+                    answer: "храм",
+                  },
+                  {
+                    number: 2,
+                    x: 0,
+                    y: 2,
+                    direction: "across",
+                    clue: "Родната земя на Рут.",
+                    answer: "моав",
+                  },
+                  {
+                    number: 5,
+                    x: 2,
+                    y: 3,
+                    direction: "across",
+                    clue: "Ковчегът на ...",
+                    answer: "ной",
+                  },
+                  {
+                    number: 6,
+                    x: 2,
+                    y: 5,
+                    direction: "across",
+                    clue: "Книжник, който поучава първите евреи, които се завръщат в Йерусалим след Вавилонския плен",
+                    answer: "ездра",
+                  },
                 ],
                 down: [
-                  { number: 1, x: 0, y: 0, direction: "down", clue: "Един от синовете на 5 (хоризонтално).", answer: "хам" },
-                  { number: 4, x: 2, y: 0, direction: "down", clue: "Сродникът-изкупител на Рут.", answer: "аман" },
-                  { number: 3, x: 3, y: 2, direction: "down", clue: "Герой от книгата Естир, чието име говори за това колко е неприятен", answer: "вооз" },
+                  {
+                    number: 1,
+                    x: 0,
+                    y: 0,
+                    direction: "down",
+                    clue: "Един от синовете на 5 (хоризонтално).",
+                    answer: "хам",
+                  },
+                  {
+                    number: 4,
+                    x: 2,
+                    y: 0,
+                    direction: "down",
+                    clue: "Сродникът-изкупител на Рут.",
+                    answer: "аман",
+                  },
+                  {
+                    number: 3,
+                    x: 3,
+                    y: 2,
+                    direction: "down",
+                    clue: "Герой от книгата Естир, чието име говори за това колко е неприятен",
+                    answer: "вооз",
+                  },
                 ],
               },
             },
           },
         ],
       });
-
     }
 
     console.log("Seeding completed successfully.");

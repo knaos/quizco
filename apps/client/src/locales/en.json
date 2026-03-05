@@ -73,7 +73,8 @@
       "should_be": "Should be",
       "questions": {
         "correctTheError": {
-          "instruction": "Identify the incorrect phrase and type the correction.",
+          "instruction": "Identify the incorrect phrase in the sentence.",
+          "selectCorrection": "Select the correct replacement for this phrase:",
           "correctionLabel": "Your correction:",
           "correctionPlaceholder": "Type the correct word/phrase..."
         }
@@ -90,9 +91,14 @@
       "questions": {
         "correctTheError": {
           "fullText": "Full Sentence Text",
+          "fullTextPlaceholder": "Enter the full sentence here for reference...",
           "phrases": "Sentence Phrases",
           "phrasesHelp": "Click the radio button next to the phrase that contains the error.",
           "addPhrase": "Add Phrase",
+          "markAsError": "Mark as Error Phrase",
+          "phraseTextPlaceholder": "Phrase text...",
+          "alternative": "Alternative",
+          "markAsCorrectReplacement": "Mark as Correct Replacement",
           "correctReplacement": "Correct Replacement",
           "correctReplacementPlaceholder": "Enter the correct text..."
         }

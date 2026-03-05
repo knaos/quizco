@@ -10,7 +10,14 @@ import TrueFalsePlayer from "./player/TrueFalsePlayer";
 import CorrectTheErrorPlayer from "./player/CorrectTheErrorPlayer";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, ChronologyItem, CorrectTheErrorContent, CrosswordContent, CrosswordClue } from "@quizco/shared";
+import { MultipleChoiceReveal } from "./player/MultipleChoiceReveal";
+import { ChronologyReveal } from "./player/ChronologyReveal";
+import { MatchingReveal } from "./player/MatchingReveal";
+import { FillInTheBlanksReveal } from "./player/FillInTheBlanksReveal";
+import { CrosswordReveal } from "./player/CrosswordReveal";
+import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
+import { TrueFalseReveal } from "./player/TrueFalseReveal";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -104,7 +111,7 @@ export const PlayerView: React.FC = () => {
         // Initialize with IDs from current shuffled items
         setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
       } else if (state.currentQuestion.type === "TRUE_FALSE") {
-        setAnswer(null as any); // Use null to indicate no selection yet
+        setAnswer(null as unknown as boolean); // Use null to indicate no selection yet
       } else if (state.currentQuestion.type === "CORRECT_THE_ERROR") {
         setAnswer({ selectedPhraseIndex: -1, correction: "" });
       } else {
@@ -198,6 +205,38 @@ export const PlayerView: React.FC = () => {
       return [...prev, index];
     });
   };
+
+  // Auto-submit on timer end or phase change
+  React.useEffect(() => {
+    if (state.phase === "GRADING" && joined && !hasSubmitted && answer !== "" && answer !== null && answer !== undefined) {
+      // Don't auto-submit if it's just an empty/initial state for certain types
+      if (state.currentQuestion?.type === "CORRECT_THE_ERROR") {
+        const cteAnswer = answer as CorrectTheErrorAnswer;
+        // Auto-submit if at least a phrase is selected, even if correction is missing
+        if (cteAnswer.selectedPhraseIndex !== -1) {
+          submitAnswer(answer);
+        }
+      } else if (state.currentQuestion?.type === "FILL_IN_THE_BLANKS") {
+        if (Array.isArray(answer) && answer.length > 0 && answer.some(a => a !== "")) {
+          submitAnswer(answer);
+        }
+      } else if (state.currentQuestion?.type === "MATCHING") {
+        if (Object.keys(answer as object).length > 0) {
+          submitAnswer(answer);
+        }
+      } else if (state.currentQuestion?.type === "CHRONOLOGY") {
+        // Chronology always has a state, so we can always submit
+        submitAnswer(answer);
+      } else if (state.currentQuestion?.type === "MULTIPLE_CHOICE") {
+        if (selectedIndices.length > 0) {
+          submitAnswer(selectedIndices);
+        }
+      } else if (answer !== "") {
+        submitAnswer(answer);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase, joined, hasSubmitted, answer, selectedIndices, state.currentQuestion]);
 
   // Sync Watchdog: Monitor if joined team is still in server state
   React.useEffect(() => {
@@ -391,11 +430,13 @@ export const PlayerView: React.FC = () => {
       return [...chrContent.items].sort((a, b) => a.order - b.order).map(i => i.text).join(" → ");
     }
     if (type === "TRUE_FALSE") {
-      return (content as any).isTrue ? t("game.true") : t("game.false");
+      return (content as TrueFalseContent).isTrue ? t("game.true") : t("game.false");
     }
     if (type === "CORRECT_THE_ERROR") {
       const cteContent = content as CorrectTheErrorContent;
-      return `${cteContent.phrases[cteContent.errorPhraseIndex]} → ${cteContent.correctReplacement}`;
+      const errorPhrase = cteContent.phrases[cteContent.errorPhraseIndex];
+      const errorText = typeof errorPhrase === 'object' ? errorPhrase.text : errorPhrase;
+      return `${errorText} → ${cteContent.correctReplacement}`;
     }
     return "Unknown";
   };
@@ -619,19 +660,31 @@ export const PlayerView: React.FC = () => {
                       disabled={hasSubmitted}
                       onAnswer={(val) => {
                         setAnswer(val);
+                        // True/False is instant submission on click
                         submitAnswer(val);
                       }}
                     />
                   ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
-                    <CorrectTheErrorPlayer
-                      content={state.currentQuestion.content}
-                      onAnswer={(val) => {
-                        setAnswer(val);
-                        submitAnswer(val);
-                      }}
-                      disabled={hasSubmitted}
-                      initialAnswer={currentTeam?.lastAnswer as any}
-                    />
+                    <div className="space-y-6">
+                      <CorrectTheErrorPlayer
+                        content={state.currentQuestion.content}
+                        value={(answer as CorrectTheErrorAnswer) || { selectedPhraseIndex: -1, correction: "" }}
+                        onChange={(val) => setAnswer(val)}
+                        disabled={hasSubmitted}
+                      />
+                      {!hasSubmitted && (
+                        <button
+                          onClick={() => submitAnswer(answer)}
+                          disabled={(answer as CorrectTheErrorAnswer).selectedPhraseIndex === -1 || !(answer as CorrectTheErrorAnswer).correction}
+                          className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${(answer as CorrectTheErrorAnswer).selectedPhraseIndex !== -1 && (answer as CorrectTheErrorAnswer).correction
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            }`}
+                        >
+                          <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <div className="flex flex-col space-y-4">
                       <input
@@ -739,526 +792,44 @@ export const PlayerView: React.FC = () => {
 
               <div className="space-y-6">
                 {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
-                  <div className="grid grid-cols-1 gap-4">
-                    {(() => {
-                      const question = state.currentQuestion as MultipleChoiceQuestion;
-                      const team = state.teams.find((t) => t.name === teamName);
-                      const lastAnswer = team?.lastAnswer as number[] | null;
-
-                      return question.content.options.map((opt: string, i: number) => {
-                        const isOptionCorrect = question.content.correctIndices.includes(i);
-                        const isSelected = Array.isArray(lastAnswer) && lastAnswer.includes(i);
-
-                        let containerClass = "p-6 rounded-2xl border-2 transition-all flex items-center justify-between ";
-                        if (isOptionCorrect) {
-                          containerClass += "border-green-500 bg-green-50 shadow-md scale-[1.02]";
-                        } else if (isSelected && !isOptionCorrect) {
-                          containerClass += "border-red-500 bg-red-50 opacity-80";
-                        } else {
-                          containerClass += "border-gray-100 bg-gray-50 opacity-40";
-                        }
-
-                        return (
-                          <div key={i} className={containerClass}>
-                            <span
-                              className={`text-xl font-bold ${isOptionCorrect ? "text-green-800" : isSelected ? "text-red-800" : "text-gray-500"
-                                }`}
-                            >
-                              {opt}
-                            </span>
-                            <div className="flex items-center space-x-3">
-                              {isSelected && (
-                                <span
-                                  className={`text-xs font-black uppercase px-2 py-1 rounded ${isOptionCorrect ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"
-                                    }`}
-                                >
-                                  {t("player.your_choice")}
-                                </span>
-                              )}
-                              {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
-                              {isSelected && !isOptionCorrect && <XCircle className="text-red-600 w-8 h-8" />}
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
+                  <MultipleChoiceReveal
+                    question={state.currentQuestion as MultipleChoiceQuestion}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as number[] | null}
+                  />
                 ) : state.currentQuestion.type === "CHRONOLOGY" ? (
-                  <div className="space-y-4">
-                    {/* Items in submitted order with correctness indicators */}
-                    {(() => {
-                      const chrContent = state.currentQuestion.content as ChronologyContent;
-                      const team = state.teams.find((t) => t.name === teamName);
-                      const lastAnswer = team?.lastAnswer as string[] | null;
-
-                      if (!lastAnswer || !Array.isArray(lastAnswer)) {
-                        return (
-                          <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
-                            <p className="text-gray-500 text-center font-medium">{t("player.no_answer_submitted")}</p>
-                          </div>
-                        );
-                      }
-
-                      // Map submitted answer to items with their correctness
-                      const submittedItems = lastAnswer
-                        .map((id) => chrContent.items.find((item) => item.id === id))
-                        .filter(Boolean) as ChronologyItem[];
-
-                      return (
-                        <div className="space-y-3">
-                          {submittedItems.map((item, index) => {
-                            const isCorrectPosition = item.order === index;
-
-                            let containerClass = "flex items-center space-x-4 p-5 border-2 rounded-2xl transition-all ";
-                            if (isCorrectPosition) {
-                              containerClass += "border-green-500 bg-green-50 shadow-md";
-                            } else {
-                              containerClass += "border-red-500 bg-red-50";
-                            }
-
-                            return (
-                              <div key={item.id} className={containerClass}>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-lg ${isCorrectPosition ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                                  }`}>
-                                  {index + 1}
-                                </div>
-                                <span className={`flex-1 text-xl font-bold ${isCorrectPosition ? "text-green-900" : "text-red-900"
-                                  }`}>
-                                  {item.text}
-                                </span>
-                                {isCorrectPosition ? (
-                                  <CheckCircle className="text-green-600 w-8 h-8" />
-                                ) : (
-                                  <div className="text-right">
-                                    <XCircle className="text-red-600 w-8 h-8" />
-                                    <span className="text-xs font-medium text-red-700">
-                                      {t("player.should_be")} #{item.order + 1}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <ChronologyReveal
+                    content={state.currentQuestion.content as ChronologyContent}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as string[] | null}
+                  />
                 ) : state.currentQuestion.type === "MATCHING" ? (
-                  <div className="w-full" ref={matchingRevealContainerRef}>
-                    {(() => {
-                      const matchingContent = state.currentQuestion.content as MatchingContent;
-                      const team = state.teams.find((t) => t.name === teamName);
-                      const lastAnswer = team?.lastAnswer as Record<string, string> | null;
-
-                      if (!lastAnswer || typeof lastAnswer !== "object" || Object.keys(lastAnswer).length === 0) {
-                        return (
-                          <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
-                            <p className="text-gray-500 text-center font-medium">{t("player.no_answer_submitted")}</p>
-                          </div>
-                        );
-                      }
-
-                      // Build a map of correct matches: leftId -> rightText
-                      const correctMatches: Record<string, string> = {};
-                      matchingContent.pairs.forEach((pair) => {
-                        correctMatches[pair.id] = pair.right;
-                      });
-
-                      // Get left items and right items in a stable order
-                      const leftItems = matchingContent.pairs.map((p) => ({ id: p.id, text: p.left }));
-                      const rightItems = matchingContent.pairs.map((p) => p.right);
-
-                      return (
-                        <div className="relative">
-                          {/* SVG layer for arrows - positioned behind cards */}
-                          <svg
-                            className="absolute inset-0 pointer-events-none"
-                            style={{ zIndex: 0 }}
-                            width="100%"
-                            height="100%"
-                          >
-                            {/* Render paths using actual card positions */}
-                            {leftItems.map((leftItem) => {
-                              const userRightText = lastAnswer[leftItem.id];
-                              const correctRightText = correctMatches[leftItem.id];
-                              const isCorrect = userRightText === correctRightText;
-
-                              if (!userRightText) return null;
-
-                              const leftPos = matchingRevealPositions.left[leftItem.id];
-                              const rightPos = matchingRevealPositions.right[userRightText];
-
-                              if (!leftPos || !rightPos) return null;
-
-                              const startX = leftPos.right;
-                              const startY = leftPos.centerY;
-                              const endX = rightPos.left;
-                              const endY = rightPos.centerY;
-
-                              // Calculate control points for a curved bezier path
-                              const curvature = 30;
-
-                              // Create a smooth S-curve
-                              const path = `M ${startX} ${startY} C ${startX + curvature} ${startY}, ${endX - curvature} ${endY}, ${endX} ${endY}`;
-
-                              return (
-                                <g key={`${leftItem.id}-${userRightText}`}>
-                                  {/* Shadow/glow effect */}
-                                  <path
-                                    d={path}
-                                    fill="none"
-                                    stroke="white"
-                                    strokeWidth="6"
-                                    strokeLinecap="round"
-                                  />
-                                  {/* Main arrow line */}
-                                  <path
-                                    d={path}
-                                    fill="none"
-                                    stroke={isCorrect ? "#22c55e" : "#ef4444"}
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                  />
-                                </g>
-                              );
-                            })}
-                          </svg>
-
-                          {/* Cards grid - positioned above SVG */}
-                          <div className="grid grid-cols-2 gap-16 relative" style={{ zIndex: 1 }}>
-                            {/* Left side cards */}
-                            <div className="space-y-4">
-                              {leftItems.map((item) => {
-                                const userRightText = lastAnswer[item.id];
-                                const correctRightText = correctMatches[item.id];
-                                const isCorrect = userRightText === correctRightText;
-
-                                let cardClass = "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all flex items-center justify-between ";
-                                if (isCorrect) {
-                                  cardClass += "bg-green-50 border-green-500 text-green-900 shadow-md";
-                                } else if (userRightText) {
-                                  cardClass += "bg-red-50 border-red-500 text-red-900 shadow-md";
-                                } else {
-                                  cardClass += "bg-gray-50 border-gray-200 text-gray-500";
-                                }
-
-                                return (
-                                  <div
-                                    key={item.id}
-                                    ref={(el) => { if (el) matchingRevealLeftRefs.current[item.id] = el; }}
-                                    className={cardClass}
-                                  >
-                                    <span>{item.text}</span>
-                                    {userRightText && (
-                                      isCorrect ? (
-                                        <CheckCircle className="w-6 h-6 text-green-600" />
-                                      ) : (
-                                        <XCircle className="w-6 h-6 text-red-600" />
-                                      )
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Right side cards - show user's selections */}
-                            <div className="space-y-4">
-                              {rightItems.map((text) => {
-                                // Find which left item this right item is connected to
-                                const connectedLeftId = Object.keys(lastAnswer).find(
-                                  (key) => lastAnswer[key] === text
-                                );
-                                const isMatched = !!connectedLeftId;
-                                const isCorrect = isMatched && lastAnswer[connectedLeftId] === correctMatches[connectedLeftId];
-
-                                let cardClass = "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all ";
-                                if (isMatched) {
-                                  if (isCorrect) {
-                                    cardClass += "bg-green-50 border-green-500 text-green-900 shadow-md";
-                                  } else {
-                                    cardClass += "bg-red-50 border-red-500 text-red-900 shadow-md";
-                                  }
-                                } else {
-                                  cardClass += "bg-gray-50 border-gray-200 text-gray-400";
-                                }
-
-                                return (
-                                  <div
-                                    key={text}
-                                    ref={(el) => { if (el) matchingRevealRightRefs.current[text] = el; }}
-                                    className={cardClass}
-                                  >
-                                    <span>{text}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          {/* Show correct answers summary */}
-                          <div className="mt-6 p-4 bg-gray-50 rounded-2xl">
-                            <p className="text-sm font-bold text-gray-600 mb-2">{t('player.correct_answer')}:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {matchingContent.pairs.map((pair) => (
-                                <span
-                                  key={pair.id}
-                                  className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
-                                >
-                                  {pair.left} → {pair.right}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <MatchingReveal
+                    content={state.currentQuestion.content as MatchingContent}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as Record<string, string> | null}
+                    revealPositions={matchingRevealPositions}
+                    revealLeftRefs={matchingRevealLeftRefs}
+                    revealRightRefs={matchingRevealRightRefs}
+                    containerRef={matchingRevealContainerRef}
+                  />
                 ) : state.currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
-                  <div className="space-y-6">
-                    {(() => {
-                      const fbContent = state.currentQuestion.content as FillInTheBlanksContent;
-                      const team = state.teams.find((t) => t.name === teamName);
-                      const lastAnswer = team?.lastAnswer as string[] | null;
-
-                      // Parse the question text to extract parts and blanks
-                      const parts = fbContent.text.split(/(\{?\d+\}?)/g);
-
-                      return (
-                        <div className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
-                          {parts.map((part, i) => {
-                            const match = part.match(/\{?(\d+)\}?/);
-                            if (match) {
-                              const index = parseInt(match[1]);
-                              const blankConfig = fbContent.blanks[index];
-                              if (!blankConfig) return <span key={i} className="text-red-500">[{part}]</span>;
-
-                              // Get user's answer for this blank
-                              const userAnswer = lastAnswer && lastAnswer[index] ? lastAnswer[index] : null;
-                              // Get the correct answer
-                              const correctOption = blankConfig.options.find(o => o.isCorrect);
-                              const correctAnswer = correctOption ? correctOption.value : "??";
-                              const isCorrect = userAnswer === correctAnswer;
-
-                              let containerClass = "inline-flex items-center mx-2 px-4 py-2 border-b-4 rounded-lg transition-all ";
-                              if (isCorrect) {
-                                containerClass += "bg-green-50 border-green-500 text-green-900";
-                              } else if (userAnswer) {
-                                containerClass += "bg-red-50 border-red-500 text-red-900";
-                              } else {
-                                containerClass += "bg-gray-50 border-gray-300 text-gray-400";
-                              }
-
-                              return (
-                                <span key={i} className={containerClass}>
-                                  <span className="mr-2">
-                                    {userAnswer || "(No answer)"}
-                                  </span>
-                                  {isCorrect ? (
-                                    <CheckCircle className="w-6 h-6 text-green-600" />
-                                  ) : userAnswer ? (
-                                    <XCircle className="w-6 h-6 text-red-600" />
-                                  ) : null}
-                                </span>
-                              );
-                            }
-                            return <span key={i}>{part}</span>;
-                          })}
-                        </div>
-                      );
-                    })()}
-
-                    {/* Show correct answers summary */}
-                    <div className="p-6 bg-gray-50 rounded-2xl">
-                      <p className="text-sm font-bold text-gray-600 mb-3">{t('player.correct_answer')}:</p>
-                      <div className="flex flex-wrap gap-3">
-                        {(() => {
-                          const fbContent = state.currentQuestion.content as FillInTheBlanksContent;
-                          return fbContent.blanks.map((blank, idx) => {
-                            const correctOption = blank.options.find(o => o.isCorrect);
-                            return (
-                              <span
-                                key={idx}
-                                className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-lg font-bold"
-                              >
-                                #{idx + 1}: {correctOption?.value || "??"}
-                              </span>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </div>
+                  <FillInTheBlanksReveal
+                    content={state.currentQuestion.content as FillInTheBlanksContent}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as string[] | null}
+                  />
                 ) : state.currentQuestion.type === "CROSSWORD" ? (
-                  <div className="space-y-6">
-                    {(() => {
-                      const crosswordContent = state.currentQuestion.content as CrosswordContent;
-                      const team = state.teams.find((t) => t.name === teamName);
-                      const userGrid = team?.lastAnswer as string[][] | null;
-                      const correctGrid = crosswordContent.grid;
-
-                      // If no answer submitted
-                      if (!userGrid || !Array.isArray(userGrid) || userGrid.length === 0) {
-                        return (
-                          <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
-                            <p className="text-gray-500 text-center font-medium">{t("player.crossword_no_answer")}</p>
-                          </div>
-                        );
-                      }
-
-                      // Calculate cell numbers (same logic as CrosswordPlayer)
-                      const cellToNumber = new Map<string, number>();
-                      const allClues = [...(crosswordContent.clues.across || []), ...(crosswordContent.clues.down || [])];
-                      const uniqueStarts = new Map<string, CrosswordClue[]>();
-                      allClues.forEach(clue => {
-                        const key = `${clue.y}-${clue.x}`;
-                        if (!uniqueStarts.has(key)) {
-                          uniqueStarts.set(key, []);
-                        }
-                        uniqueStarts.get(key)!.push(clue);
-                      });
-                      uniqueStarts.forEach((clues, key) => {
-                        cellToNumber.set(key, clues[0].number);
-                      });
-
-                      // Check word correctness
-                      const checkWordCorrectness = (clue: CrosswordClue): boolean => {
-                        const userAnswer: string[] = [];
-
-                        let x = clue.x;
-                        let y = clue.y;
-
-                        for (let i = 0; i < clue.answer.length; i++) {
-                          if (y < userGrid.length && x < userGrid[y].length) {
-                            userAnswer.push(userGrid[y][x]?.toUpperCase() || "");
-                          }
-                          if (clue.direction === "across") {
-                            x++;
-                          } else {
-                            y++;
-                          }
-                        }
-
-                        return userAnswer.join("") === clue.answer.toUpperCase();
-                      };
-
-                      // Collect all clues with their correctness
-                      const acrossWords = crosswordContent.clues.across.map(clue => ({
-                        ...clue,
-                        isCorrect: checkWordCorrectness(clue)
-                      }));
-                      const downWords = crosswordContent.clues.down.map(clue => ({
-                        ...clue,
-                        isCorrect: checkWordCorrectness(clue)
-                      }));
-
-                      const totalWords = acrossWords.length + downWords.length;
-                      const correctWords = acrossWords.filter(w => w.isCorrect).length + downWords.filter(w => w.isCorrect).length;
-
-                      return (
-                        <>
-                          {/* Words counter */}
-                          <div className="text-center p-4 bg-blue-50 rounded-2xl border-2 border-blue-200">
-                            <p className="text-xl font-bold text-blue-800">
-                              {t("player.crossword_words_guessed", { correct: correctWords, total: totalWords })}
-                            </p>
-                          </div>
-
-                          {/* Side-by-side layout: Grid and Correct Answers */}
-                          <div className="flex flex-col md:flex-row gap-8">
-                            {/* Left: User's grid with color coding */}
-                            <div className="bg-white p-6 rounded-3xl shadow-xl border-b-8 border-blue-500 flex-1">
-                              <h3 className="text-lg font-bold text-gray-700 mb-4">{t("player.crossword_your_grid")}</h3>
-                              <div
-                                className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg mx-auto"
-                                style={{
-                                  gridTemplateColumns: `repeat(${correctGrid[0]?.length || 0}, 48px)`,
-                                }}
-                              >
-                                {userGrid.map((row, r) =>
-                                  row.map((cell, c) => {
-                                    const cellNumber = cellToNumber.get(`${r}-${c}`);
-                                    const correctCell = correctGrid[r]?.[c]?.trim().toUpperCase() || "";
-                                    const userCell = cell?.toUpperCase() || "";
-                                    const isCorrectChar = correctCell !== "" && userCell === correctCell;
-                                    const isWrongChar = correctCell !== "" && userCell !== "" && userCell !== correctCell;
-
-                                    let cellClass = "w-12 h-12 flex items-center justify-center rounded-sm relative ";
-                                    if (isCorrectChar) {
-                                      cellClass += "bg-green-500 text-white";
-                                    } else if (isWrongChar) {
-                                      cellClass += "bg-red-500 text-white";
-                                    } else if (correctCell === "") {
-                                      cellClass += "bg-gray-800";
-                                    } else {
-                                      cellClass += "bg-white";
-                                    }
-
-                                    return (
-                                      <div key={`${r}-${c}`} className={cellClass}>
-                                        {correctCell !== "" && (
-                                          <>
-                                            {cellNumber && (
-                                              <span className="absolute top-0.5 left-1 text-[8px] md:text-[10px] font-bold text-blue-600 leading-none">
-                                                {cellNumber}
-                                              </span>
-                                            )}
-                                            <span className="text-xl font-bold uppercase">{userCell}</span>
-                                          </>
-                                        )}
-                                      </div>
-                                    );
-                                  })
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Right: Correct answers */}
-                            <div className="bg-gray-50 p-6 rounded-2xl flex-1">
-                              <p className="text-sm font-bold text-gray-600 mb-3">{t('player.crossword_correct_words')}:</p>
-
-                              {acrossWords.length > 0 && (
-                                <div className="mb-4">
-                                  <h4 className="font-bold text-gray-700 border-b mb-2">Across</h4>
-                                  <div className="flex flex-col gap-2">
-                                    {acrossWords.map((clue, i) => (
-                                      <span
-                                        key={`across-${i}`}
-                                        className={`px-3 py-2 rounded-lg text-sm font-bold ${clue.isCorrect
-                                          ? "bg-green-100 text-green-800 border-2 border-green-500"
-                                          : "bg-red-100 text-red-800 border-2 border-red-500"
-                                          }`}
-                                      >
-                                        {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {downWords.length > 0 && (
-                                <div>
-                                  <h4 className="font-bold text-gray-700 border-b mb-2">Down</h4>
-                                  <div className="flex flex-col gap-2">
-                                    {downWords.map((clue, i) => (
-                                      <span
-                                        key={`down-${i}`}
-                                        className={`px-3 py-2 rounded-lg text-sm font-bold ${clue.isCorrect
-                                          ? "bg-green-100 text-green-800 border-2 border-green-500"
-                                          : "bg-red-100 text-red-800 border-2 border-red-500"
-                                          }`}
-                                      >
-                                        {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
+                  <CrosswordReveal
+                    content={state.currentQuestion.content as CrosswordContent}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as string[][] | null}
+                  />
+                ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
+                  <CorrectTheErrorReveal
+                    content={state.currentQuestion.content as CorrectTheErrorContent}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as { selectedPhraseIndex: number; correction: string } | null}
+                  />
+                ) : state.currentQuestion.type === "TRUE_FALSE" ? (
+                  <TrueFalseReveal
+                    content={state.currentQuestion.content as TrueFalseContent}
+                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as boolean | null}
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
@@ -1269,14 +840,9 @@ export const PlayerView: React.FC = () => {
                       <span className={`${isCorrect() ? "text-green-600" : getGradingStatus() === false ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
                       <div className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
                         {(() => {
-                          const lastAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer;
+                          const team = state.teams.find((t) => t.name === teamName);
+                          const lastAnswer = team?.lastAnswer;
                           if (lastAnswer === null || lastAnswer === undefined || lastAnswer === "") return "(No Answer)";
-                          if (lastAnswer === true) return t("game.true");
-                          if (lastAnswer === false) return t("game.false");
-                          if (Array.isArray(lastAnswer)) return lastAnswer.join(", ");
-                          if (typeof lastAnswer === "object") {
-                            return Object.values(lastAnswer).join(", ");
-                          }
                           return String(lastAnswer);
                         })()}
                       </div>
