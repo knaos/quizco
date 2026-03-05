@@ -10,7 +10,7 @@ import TrueFalsePlayer from "./player/TrueFalsePlayer";
 import CorrectTheErrorPlayer from "./player/CorrectTheErrorPlayer";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, ChronologyItem, CorrectTheErrorContent, CrosswordContent, CrosswordClue } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, ChronologyItem, CorrectTheErrorContent, CrosswordContent, CrosswordClue, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -104,7 +104,7 @@ export const PlayerView: React.FC = () => {
         // Initialize with IDs from current shuffled items
         setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
       } else if (state.currentQuestion.type === "TRUE_FALSE") {
-        setAnswer(null as any); // Use null to indicate no selection yet
+        setAnswer(null as unknown as boolean); // Use null to indicate no selection yet
       } else if (state.currentQuestion.type === "CORRECT_THE_ERROR") {
         setAnswer({ selectedPhraseIndex: -1, correction: "" });
       } else {
@@ -391,11 +391,13 @@ export const PlayerView: React.FC = () => {
       return [...chrContent.items].sort((a, b) => a.order - b.order).map(i => i.text).join(" → ");
     }
     if (type === "TRUE_FALSE") {
-      return (content as any).isTrue ? t("game.true") : t("game.false");
+      return (content as TrueFalseContent).isTrue ? t("game.true") : t("game.false");
     }
     if (type === "CORRECT_THE_ERROR") {
       const cteContent = content as CorrectTheErrorContent;
-      return `${cteContent.phrases[cteContent.errorPhraseIndex]} → ${cteContent.correctReplacement}`;
+      const errorPhrase = cteContent.phrases[cteContent.errorPhraseIndex];
+      const errorText = typeof errorPhrase === 'object' ? errorPhrase.text : errorPhrase;
+      return `${errorText} → ${cteContent.correctReplacement}`;
     }
     return "Unknown";
   };
@@ -630,7 +632,7 @@ export const PlayerView: React.FC = () => {
                         submitAnswer(val);
                       }}
                       disabled={hasSubmitted}
-                      initialAnswer={currentTeam?.lastAnswer as any}
+                      initialAnswer={currentTeam?.lastAnswer as CorrectTheErrorAnswer}
                     />
                   ) : (
                     <div className="flex flex-col space-y-4">
@@ -1269,12 +1271,20 @@ export const PlayerView: React.FC = () => {
                       <span className={`${isCorrect() ? "text-green-600" : getGradingStatus() === false ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
                       <div className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
                         {(() => {
-                          const lastAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer;
+                          const team = state.teams.find((t) => t.name === teamName);
+                          const lastAnswer = team?.lastAnswer;
                           if (lastAnswer === null || lastAnswer === undefined || lastAnswer === "") return "(No Answer)";
                           if (lastAnswer === true) return t("game.true");
                           if (lastAnswer === false) return t("game.false");
                           if (Array.isArray(lastAnswer)) return lastAnswer.join(", ");
                           if (typeof lastAnswer === "object") {
+                            if (state.currentQuestion?.type === "CORRECT_THE_ERROR") {
+                              const cteAnswer = lastAnswer as { selectedPhraseIndex: number; correction: string };
+                              const cteContent = state.currentQuestion.content as CorrectTheErrorContent;
+                              const selectedPhrase = cteContent.phrases[cteAnswer.selectedPhraseIndex];
+                              const phraseText = selectedPhrase ? (typeof selectedPhrase === 'object' ? selectedPhrase.text : selectedPhrase) : `Phrase ${cteAnswer.selectedPhraseIndex + 1}`;
+                              return `${phraseText} → ${cteAnswer.correction}`;
+                            }
                             return Object.values(lastAnswer).join(", ");
                           }
                           return String(lastAnswer);
