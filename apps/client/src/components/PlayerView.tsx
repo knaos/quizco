@@ -17,6 +17,7 @@ import { FillInTheBlanksReveal } from "./player/FillInTheBlanksReveal";
 import { CrosswordReveal } from "./player/CrosswordReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
+import { useSounds } from "../utils/sounds";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 
 const TEAM_ID_KEY = "quizco_team_id";
@@ -35,6 +36,7 @@ interface CardPosition {
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
+  const sounds = useSounds();
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(localStorage.getItem(SELECTED_COMP_ID_KEY));
@@ -309,6 +311,18 @@ export const PlayerView: React.FC = () => {
     }
   }, [state.phase, state.currentQuestion, updateMatchingRevealPositions]);
 
+  // Play sound when phase changes to REVEAL_ANSWER and grading status is known
+  React.useEffect(() => {
+    if (state.phase === "REVEAL_ANSWER") {
+      const team = state.teams.find((t) => t.name === teamName);
+      if (team?.lastAnswerCorrect === true) {
+        sounds.playCorrect();
+      } else if (team?.lastAnswerCorrect === false) {
+        sounds.playIncorrect();
+      }
+    }
+  }, [state.phase, teamName, state.teams, sounds]);
+
   if (isReconnecting) {
     return (
       <div className="min-h-screen bg-blue-600 flex items-center justify-center">
@@ -510,7 +524,7 @@ export const PlayerView: React.FC = () => {
             {state.currentQuestion.section && (
               <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-400 animate-bounce">
                 <span className="text-2xl font-black text-yellow-800 uppercase">
-                  Turn: {state.currentQuestion.section}
+                  {t("playerView.turn", { section: state.currentQuestion.section })}
                 </span>
               </div>
             )}
@@ -554,7 +568,7 @@ export const PlayerView: React.FC = () => {
             {state.currentQuestion.section && (
               <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-400">
                 <span className="text-2xl font-black text-yellow-800 uppercase">
-                  Turn: {state.currentQuestion.section}
+                  {t("playerView.turn", { section: state.currentQuestion.section })}
                 </span>
               </div>
             )}

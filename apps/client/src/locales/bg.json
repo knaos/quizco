@@ -39,6 +39,9 @@
       "view_answers": "Виж Отговорите",
       "close": "Затвори"
     },
+    "playerView": {
+      "turn": "Ред на: {{section}}"
+    },
     "player": {
       "join_title": "Включи се в Куиза!",
       "team_name": "Име на Отбора",

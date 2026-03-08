@@ -1,3 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 18px; /* Enforce minimum 18px font size for legibility */
+  }
+
+  /* Ensure all interactive elements have a minimum 48x48px touch target size */
+  button, 
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  a {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+@layer utilities {
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}

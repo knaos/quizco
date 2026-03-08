@@ -39,6 +39,9 @@
       "view_answers": "View Answers",
       "close": "Close"
     },
+    "playerView": {
+      "turn": "Turn: {{section}}"
+    },
     "player": {
       "join_title": "Join the Quiz!",
       "team_name": "Team Name",
