@@ -20,7 +20,7 @@ export class GradingService {
   public gradeAnswer(
     question: Question,
     answer: AnswerContent,
-    options: { usedJokers?: boolean } = {}
+    options: { usedJokers?: boolean } = {},
   ): { isCorrect: boolean; score: number } | null {
     if (question.grading === "MANUAL") {
       return null; // Needs manual grading
@@ -32,7 +32,7 @@ export class GradingService {
         return this.gradeMultipleChoice(
           question.content as MultipleChoiceContent,
           answer as unknown as number[],
-          question.points
+          question.points,
         );
       }
 
@@ -40,7 +40,7 @@ export class GradingService {
         return this.gradeClosed(
           question.content as ClosedQuestionContent,
           answer as string,
-          question.points
+          question.points,
         );
       }
 
@@ -49,7 +49,7 @@ export class GradingService {
           question.content as CrosswordContent,
           answer as CrosswordAnswer,
           question.points,
-          options.usedJokers || false
+          options.usedJokers || false,
         );
       }
 
@@ -57,7 +57,7 @@ export class GradingService {
         return this.gradeFillInTheBlanks(
           question.content as FillInTheBlanksContent,
           answer as FillInTheBlanksAnswer,
-          question.points
+          question.points,
         );
       }
 
@@ -65,7 +65,7 @@ export class GradingService {
         return this.gradeMatching(
           question.content as MatchingContent,
           answer as MatchingAnswer,
-          question.points
+          question.points,
         );
       }
 
@@ -73,7 +73,7 @@ export class GradingService {
         return this.gradeChronology(
           question.content as ChronologyContent,
           answer as ChronologyAnswer,
-          question.points
+          question.points,
         );
       }
 
@@ -81,7 +81,7 @@ export class GradingService {
         return this.gradeTrueFalse(
           question.content as TrueFalseContent,
           answer as unknown as boolean,
-          question.points
+          question.points,
         );
       }
 
@@ -89,7 +89,7 @@ export class GradingService {
         return this.gradeCorrectTheError(
           question.content as CorrectTheErrorContent,
           answer as unknown as CorrectTheErrorAnswer,
-          question.points
+          question.points,
         );
       }
     } catch (error) {
@@ -103,7 +103,7 @@ export class GradingService {
   private gradeMultipleChoice(
     content: MultipleChoiceContent,
     answer: number[],
-    points: number
+    points: number,
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -122,10 +122,10 @@ export class GradingService {
   private gradeClosed(
     content: ClosedQuestionContent,
     answer: string,
-    points: number
+    points: number,
   ) {
     const correctAnswers = content.options.map((o: string) =>
-      o.toLowerCase().trim()
+      o.toLowerCase().trim(),
     );
     const submittedAnswer = String(answer).toLowerCase().trim();
     const isCorrect = correctAnswers.includes(submittedAnswer);
@@ -136,7 +136,7 @@ export class GradingService {
     content: CrosswordContent,
     answer: CrosswordAnswer,
     points: number,
-    usedJokers: boolean
+    usedJokers: boolean,
   ) {
     if (!answer || !Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -173,10 +173,15 @@ export class GradingService {
     return { isCorrect: true, score: scoreAwarded };
   }
 
+  /**
+   * Grading for Fill-in-the-blanks questions.
+   * Per competition rules: awards 1 point per correct blank.
+   * Example: 3 blanks with 2 correct = 2 points
+   */
   private gradeFillInTheBlanks(
     content: FillInTheBlanksContent,
     answer: FillInTheBlanksAnswer,
-    points: number
+    _points: number,
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -188,7 +193,9 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    // Compare each submitted value against the marked correct option for that blank
+    // Count correct blanks - award 1 point per correct blank (per competition rules)
+    let correctCount = 0;
+
     for (let i = 0; i < placeholderCount; i++) {
       const blank = content.blanks[i];
       if (!blank) continue;
@@ -199,18 +206,28 @@ export class GradingService {
       const correctVal = correctOption.value.toLowerCase().trim();
       const submittedVal = (answer[i] || "").toLowerCase().trim();
 
-      if (submittedVal !== correctVal) {
-        return { isCorrect: false, score: 0 };
+      if (submittedVal === correctVal) {
+        correctCount++;
       }
     }
 
-    return { isCorrect: true, score: points };
+    // isCorrect is true only if ALL blanks are correct (for streak tracking)
+    const isCorrect = correctCount === placeholderCount;
+    // Score: 1 point per correct blank
+    const score = correctCount;
+
+    return { isCorrect, score };
   }
 
+  /**
+   * Grading for Matching questions.
+   * Per competition rules: awards 1 point per correct pair.
+   * Example: 3 pairs with 2 correct = 2 points
+   */
   private gradeMatching(
     content: MatchingContent,
     answer: MatchingAnswer,
-    points: number
+    _points: number,
   ) {
     if (!answer || typeof answer !== "object") {
       return { isCorrect: false, score: 0 };
@@ -219,20 +236,25 @@ export class GradingService {
     const pairs = content.pairs;
     let correctCount = 0;
 
+    // Count correct pairs - award 1 point per correct pair
     pairs.forEach((pair) => {
       if (answer[pair.id] === pair.right) {
         correctCount++;
       }
     });
 
+    // isCorrect is true only if ALL pairs match (for streak tracking)
     const isCorrect = correctCount === pairs.length;
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // Score: 1 point per correct pair
+    const score = correctCount;
+
+    return { isCorrect, score };
   }
 
   private gradeChronology(
     content: ChronologyContent,
     answer: ChronologyAnswer,
-    _points: number
+    _points: number,
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -262,7 +284,7 @@ export class GradingService {
   private gradeTrueFalse(
     content: TrueFalseContent,
     answer: boolean,
-    points: number
+    points: number,
   ) {
     const isCorrect = content.isTrue === answer;
     return { isCorrect, score: isCorrect ? points : 0 };
@@ -271,7 +293,7 @@ export class GradingService {
   private gradeCorrectTheError(
     content: CorrectTheErrorContent,
     answer: CorrectTheErrorAnswer,
-    _totalPoints: number
+    _totalPoints: number,
   ) {
     if (!answer || typeof answer.selectedPhraseIndex === "undefined") {
       return { isCorrect: false, score: 0 };

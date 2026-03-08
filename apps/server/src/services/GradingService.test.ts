@@ -103,7 +103,7 @@ describe("GradingService", () => {
     expect(service.gradeAnswer(question, "some answer")).toBeNull();
   });
 
-  it("grades FILL_IN_THE_BLANKS correctly", () => {
+  it("grades FILL_IN_THE_BLANKS correctly - 1 point per correct blank", () => {
     const question: Question = {
       ...baseQuestion,
       type: "FILL_IN_THE_BLANKS",
@@ -126,29 +126,34 @@ describe("GradingService", () => {
       },
     };
 
+    // All correct: 2 correct blanks = 2 points
     expect(service.gradeAnswer(question, ["sky", "blue"])).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 2,
     });
+    // Case insensitive: 2 correct blanks = 2 points
     expect(service.gradeAnswer(question, ["SKY ", " Blue"])).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 2,
     });
+    // 1 correct: 1 correct blank = 1 point
     expect(service.gradeAnswer(question, ["sky", "red"])).toEqual({
       isCorrect: false,
-      score: 0,
+      score: 1,
     });
+    // 1 correct (different): 1 correct blank = 1 point
     expect(service.gradeAnswer(question, ["sea", "blue"])).toEqual({
       isCorrect: false,
-      score: 0,
+      score: 1,
     });
+    // Incomplete answer: 0 points
     expect(service.gradeAnswer(question, ["sky"])).toEqual({
       isCorrect: false,
       score: 0,
     });
   });
 
-  it("grades MATCHING correctly", () => {
+  it("grades MATCHING correctly - 1 point per correct pair", () => {
     const question: Question = {
       ...baseQuestion,
       type: "MATCHING",
@@ -160,21 +165,24 @@ describe("GradingService", () => {
       },
     };
 
+    // All correct: 2 correct pairs = 2 points
     expect(
       service.gradeAnswer(question, { "1": "Paris", "2": "Berlin" }),
     ).toEqual({
       isCorrect: true,
-      score: 10,
+      score: 2,
     });
+    // 1 correct: 1 correct pair = 1 point
     expect(
       service.gradeAnswer(question, { "1": "Paris", "2": "Munich" }),
     ).toEqual({
       isCorrect: false,
-      score: 0,
+      score: 1,
     });
+    // Incomplete answer: 0 points
     expect(service.gradeAnswer(question, { "1": "Paris" })).toEqual({
       isCorrect: false,
-      score: 0,
+      score: 1,
     });
   });
 
