@@ -1,6 +1,9 @@
 import React from "react";
 import { Plus, ChevronRight, Trash2, Edit2 } from "lucide-react";
 import type { Competition } from "@quizco/shared";
+import Button from "../ui/Button";
+import { Card } from "../ui/Card";
+import Badge from "../ui/Badge";
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -20,62 +23,61 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Competitions</h1>
-        <button
+        <h1 className="text-3xl font-black text-gray-800 tracking-tight">Competitions</h1>
+        <Button
           onClick={onCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center font-semibold transition"
         >
           <Plus className="mr-2 w-5 h-5" /> New Quiz
-        </button>
+        </Button>
       </div>
 
       <div className="grid gap-4">
         {competitions.map((comp) => (
-          <div
+          <Card
             key={comp.id}
-            className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition group"
+            className="p-6 flex justify-between items-center hover:shadow-md cursor-pointer group"
+            onClick={() => onSelect(comp)}
           >
-            <div 
-              className="flex-1 cursor-pointer"
-              onClick={() => onSelect(comp)}
-            >
+            <div className="flex-1 text-left">
               <h3 className="text-xl font-bold text-gray-800">{comp.title}</h3>
               <div className="flex items-center space-x-3 mt-1">
-                <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${
-                  comp.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 
-                  comp.status === 'COMPLETED' ? 'bg-gray-100 text-gray-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
+                <Badge variant={
+                  comp.status === 'ACTIVE' ? 'green' : 
+                  comp.status === 'COMPLETED' ? 'gray' : 'yellow'
+                }>
                   {comp.status}
-                </span>
-                <span className="text-gray-400 text-sm">PIN: {comp.host_pin}</span>
+                </Badge>
+                <span className="text-gray-400 text-sm font-bold uppercase">PIN: {comp.host_pin}</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button
+              <Button
+                variant="ghost"
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(comp);
                 }}
-                className="p-2 text-gray-400 hover:text-blue-600 transition"
+                className="p-2"
                 title="Edit Settings"
               >
-                <Edit2 className="w-5 h-5" />
-              </button>
-              <button
+                <Edit2 className="w-5 h-5 text-gray-400 hover:text-blue-600" />
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (confirm("Are you sure you want to delete this competition?")) {
                     onDelete(comp.id);
                   }
                 }}
-                className="p-2 text-gray-400 hover:text-red-600 transition"
+                className="p-2"
                 title="Delete Competition"
               >
-                <Trash2 className="w-5 h-5" />
-              </button>
+                <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-600" />
+              </Button>
               <ChevronRight className="text-gray-300 group-hover:text-blue-500 transition ml-2" />
             </div>
-          </div>
+          </Card>
         ))}
         {competitions.length === 0 && (
           <div className="text-center py-12 text-gray-400">

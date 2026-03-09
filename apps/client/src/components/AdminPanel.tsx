@@ -15,6 +15,10 @@ import { RoundManager } from "./admin/RoundManager";
 import { QuestionEditor } from "./admin/QuestionEditor";
 import { useAuth } from "../contexts/AuthContext";
 import { API_URL } from "../socket";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
+import { Card } from "./ui/Card";
+import Badge from "./ui/Badge";
 
 const API_BASE = `${API_URL}/api/admin`;
 
@@ -217,21 +221,20 @@ export const AdminPanel: React.FC = () => {
           <h1 className="text-3xl font-black text-center mb-2 text-gray-800 tracking-tight">Quizco Admin</h1>
           <p className="text-center text-gray-400 mb-8 font-medium">Enter your credentials to continue</p>
           <div className="space-y-4">
-            <input
+            <Input
               type="password"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-blue-500 outline-none transition-all font-medium text-lg bg-gray-50"
               placeholder="Admin Password"
               autoFocus
             />
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 disabled:bg-blue-300 transform active:scale-95"
+              isLoading={isLoading}
+              className="w-full py-4 rounded-2xl text-lg"
             >
-              {isLoading ? "Authenticating..." : "Login to Dashboard"}
-            </button>
+              Login to Dashboard
+            </Button>
           </div>
         </form>
       </div>
@@ -249,35 +252,38 @@ export const AdminPanel: React.FC = () => {
           <LanguageSwitcher />
         </div>
         <nav className="flex-1 p-6 space-y-3">
-          <button
+          <Button
+            variant={view === "COMPETITIONS" ? "primary" : "ghost"}
             onClick={() => { setView("COMPETITIONS"); setSelectedComp(null); }}
-            className={`w-full flex items-center px-5 py-4 rounded-2xl transition-all font-bold ${
-              view === "COMPETITIONS" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50" : "text-gray-400 hover:bg-gray-800 hover:white"
+            className={`w-full justify-start px-5 py-4 rounded-2xl ${
+              view === "COMPETITIONS" ? "shadow-lg shadow-blue-900/50" : ""
             }`}
           >
             <List className="mr-4 w-6 h-6" /> Competitions
-          </button>
-          <button
-            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:white transition-all font-bold"
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-5 py-4 rounded-2xl"
           >
             <Settings className="mr-4 w-6 h-6" /> Settings
-          </button>
+          </Button>
           <a
             href="/host"
             target="_blank"
-            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:white transition-all font-bold"
+            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:text-white transition-all font-bold"
           >
             <Monitor className="mr-4 w-6 h-6" /> Host View
           </a>
         </nav>
         <div className="p-6 border-t border-gray-800">
-          <button 
+          <Button
+            variant="ghost"
             onClick={logoutAdmin}
-            className="w-full flex items-center justify-center space-x-2 text-gray-500 hover:text-white font-bold py-3 rounded-xl transition-colors"
+            className="w-full space-x-2 py-3 rounded-xl hover:bg-transparent"
           >
             <LogOut className="w-5 h-5" />
             <span>Logout</span>
-          </button>
+          </Button>
         </div>
       </aside>
 
@@ -296,39 +302,39 @@ export const AdminPanel: React.FC = () => {
           />
         ) : (
           <div className="max-w-5xl mx-auto">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => { setView("COMPETITIONS"); setSelectedComp(null); setRounds([]); }}
-              className="group text-blue-600 hover:text-blue-800 mb-6 flex items-center font-bold transition-all"
+              className="group text-blue-600 hover:text-blue-800 mb-6 flex items-center p-0 hover:bg-transparent"
             >
               <ChevronLeft className="mr-1 group-hover:-translate-x-1 transition-transform" /> Back to Quizzes
-            </button>
+            </Button>
             
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-10 flex justify-between items-center">
+            <Card className="p-8 mb-10 flex justify-between items-center">
                 <div>
                     <h1 className="text-4xl font-black text-gray-900 tracking-tight">
                         {selectedComp?.title}
                     </h1>
                     <div className="flex items-center space-x-3 mt-2">
-                        <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                        <Badge variant="blue">
                             ID: {selectedComp?.id.substring(0,8)}...
-                        </span>
-                        <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${
-                            selectedComp?.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                        }`}>
+                        </Badge>
+                        <Badge variant={selectedComp?.status === 'ACTIVE' ? 'green' : 'yellow'}>
                             {selectedComp?.status}
-                        </span>
+                        </Badge>
                     </div>
                 </div>
-                <button 
+                <Button 
+                    variant="secondary"
                     onClick={() => {
                         const newStatus = selectedComp?.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE';
                         if (selectedComp) handleUpdateCompetition(selectedComp.id, { status: newStatus as any });
                     }}
-                    className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-200"
+                    className="px-6 py-3 text-sm shadow-xl shadow-gray-200"
                 >
                     {selectedComp?.status === 'ACTIVE' ? 'Deactivate' : 'Publish Quiz'}
-                </button>
-            </div>
+                </Button>
+            </Card>
 
             <RoundManager 
               rounds={rounds}

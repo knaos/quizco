@@ -1,6 +1,8 @@
 import React from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { MultipleChoiceContent } from "@quizco/shared";
+import Button from "../../ui/Button";
+import Input from "../../ui/Input";
 
 interface MultipleChoiceEditorProps {
   content: MultipleChoiceContent;
@@ -56,27 +58,28 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
             onChange={() => toggleCorrect(i)}
             className="w-5 h-5 text-blue-600 rounded"
           />
-          <input
+          <Input
             type="text"
             value={opt}
             onChange={(e) => updateOption(i, e.target.value)}
-            className="flex-1 p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
             placeholder={`Option ${i + 1}`}
           />
-          <button
+          <Button
+            variant="ghost"
             onClick={() => removeOption(i)}
-            className="p-2 text-gray-400 hover:text-red-500 transition"
+            className="p-2"
           >
-            <Trash2 className="w-5 h-5" />
-          </button>
+            <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-500" />
+          </Button>
         </div>
       ))}
-      <button
+      <Button
+        variant="ghost"
         onClick={addOption}
-        className="text-blue-600 font-bold flex items-center hover:underline"
+        className="text-blue-600 p-0 hover:bg-transparent hover:underline"
       >
         <Plus className="w-4 h-4 mr-1" /> Add Option
-      </button>
+      </Button>
     </div>
   );
 };

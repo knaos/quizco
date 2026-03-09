@@ -1,5 +1,6 @@
 import React from "react";
 import type { OpenWordContent } from "@quizco/shared";
+import Input from "../../ui/Input";
 
 interface OpenWordEditorProps {
   content: OpenWordContent;
@@ -11,15 +12,12 @@ export const OpenWordEditor: React.FC<OpenWordEditorProps> = ({
   onChange,
 }) => {
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-bold text-gray-600 uppercase">Correct Answer</label>
-      <input
-        type="text"
-        value={content?.answer || ""}
-        onChange={(e) => onChange({ ...content, answer: e.target.value })}
-        className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-        placeholder="Enter the correct answer"
-      />
-    </div>
+    <Input
+      label="Correct Answer"
+      type="text"
+      value={content?.answer || ""}
+      onChange={(e) => onChange({ ...content, answer: e.target.value })}
+      placeholder="Enter the correct answer"
+    />
   );
 };

@@ -9,6 +9,9 @@ import { MatchingEditor } from "./editors/MatchingEditor";
 import { ChronologyEditor } from "./editors/ChronologyEditor";
 import TrueFalseEditor from "./editors/TrueFalseEditor";
 import CorrectTheErrorEditor from "./editors/CorrectTheErrorEditor";
+import Button from "../ui/Button";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/Card";
+import Input, { TextArea } from "../ui/Input";
 
 interface QuestionEditorProps {
   question: Partial<Question>;
@@ -56,17 +59,17 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
-          <h2 className="text-2xl font-bold text-gray-800">
+      <Card variant="elevated" className="w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-none">
+        <CardHeader className="flex flex-row justify-between items-center bg-gray-50">
+          <CardTitle>
             {question.id ? "Edit Question" : "New Question"}
-          </h2>
-          <button onClick={onCancel} className="p-2 hover:bg-gray-200 rounded-full transition">
+          </CardTitle>
+          <Button variant="ghost" onClick={onCancel} className="p-2 rounded-full">
             <X />
-          </button>
-        </div>
+          </Button>
+        </CardHeader>
 
-        <div className="flex-1 overflow-auto p-8 space-y-8">
+        <CardContent className="flex-1 overflow-auto p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-gray-600 uppercase">Question Type</label>
@@ -99,47 +102,36 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-600 uppercase">Question Text</label>
-              <textarea
-                value={formData.questionText}
-                onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-                className="w-full p-4 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition h-24"
-                placeholder="Enter your question here..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-600 uppercase">Section (Round 1 only)</label>
-              <input
-                type="text"
-                value={formData.section || ""}
-                onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-                placeholder="e.g., Player 1"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+            <TextArea
+              label="Question Text"
+              value={formData.questionText}
+              onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
+              className="h-24"
+              placeholder="Enter your question here..."
+            />
+            <Input
+              label="Section (Round 1 only)"
+              type="text"
+              value={formData.section || ""}
+              onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+              placeholder="e.g., Player 1"
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-600 uppercase">Points</label>
-              <input
-                type="number"
-                value={formData.points}
-                onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
-                className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-600 uppercase">Time Limit (s)</label>
-              <input
-                type="number"
-                value={formData.timeLimitSeconds}
-                onChange={(e) => setFormData({ ...formData, timeLimitSeconds: parseInt(e.target.value) })}
-                className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-6 text-left">
+            <Input
+              label="Points"
+              type="number"
+              value={formData.points}
+              onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
+            />
+            <Input
+              label="Time Limit (s)"
+              type="number"
+              value={formData.timeLimitSeconds}
+              onChange={(e) => setFormData({ ...formData, timeLimitSeconds: parseInt(e.target.value) })}
+            />
           </div>
 
           <div className="pt-6 border-t">
@@ -177,23 +169,24 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
               <CorrectTheErrorEditor content={formData.content as any} onChange={handleContentChange} />
             )}
           </div>
-        </div>
+        </CardContent>
 
-        <div className="p-6 border-t bg-gray-50 flex justify-end space-x-4 rounded-b-2xl">
-          <button
+        <CardFooter className="flex justify-end space-x-4">
+          <Button
+            variant="outline"
             onClick={onCancel}
-            className="px-6 py-2 rounded-xl font-bold text-gray-600 hover:bg-gray-200 transition"
+            className="px-6"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => onSave(formData)}
-            className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center shadow-lg transition"
+            className="px-8"
           >
             <Save className="mr-2 w-5 h-5" /> Save Question
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
