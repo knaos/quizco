@@ -18,6 +18,11 @@ import { CrosswordReveal } from "./player/CrosswordReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
+import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
+import Button from "./ui/Button";
+import { Card } from "./ui/Card";
+import Input from "./ui/Input";
+import Badge from "./ui/Badge";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -44,9 +49,10 @@ export const PlayerView: React.FC = () => {
   const [joined, setJoined] = useState(false);
   const [answer, setAnswer] = useState<AnswerContent>("");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const [submitted, setSubmitted] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<"idle" | "success" | "error">("idle");
   const [isReconnecting, setIsReconnecting] = useState(true);
+  const lastQuestionIdRef = useRef<string | null>(null);
+  const lastPartialSubmissionKeyRef = useRef<string | null>(null);
 
   // State and Refs for the revealing phase of question type "MATCHING"
   const [matchingRevealPositions, setMatchingRevealPositions] = useState<{
@@ -59,7 +65,7 @@ export const PlayerView: React.FC = () => {
 
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   const currentTeam = state.teams.find(t => t.id === teamId);
-  const hasSubmitted = submitted || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined);
+  const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
 
   // Fetch active competitions if none selected
   React.useEffect(() => {
@@ -102,26 +108,18 @@ export const PlayerView: React.FC = () => {
   React.useEffect(() => {
     document.title = "BC Player";
 
-    if (state.currentQuestion) {
-      if (state.currentQuestion.type === "FILL_IN_THE_BLANKS") {
-        setAnswer([]);
-      } else if (state.currentQuestion.type === "MATCHING") {
-        setAnswer({});
-      } else if (state.currentQuestion.type === "CHRONOLOGY") {
-        // Initialize with IDs from current shuffled items
-        setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
-      } else if (state.currentQuestion.type === "TRUE_FALSE") {
-        setAnswer(null as unknown as boolean); // Use null to indicate no selection yet
-      } else if (state.currentQuestion.type === "CORRECT_THE_ERROR") {
-        setAnswer({ selectedPhraseIndex: -1, correction: "" });
-      } else {
-        setAnswer("");
-      }
-      setSelectedIndices([]);
-      setSubmitted(false);
+    if (state.currentQuestion && state.currentQuestion.id !== lastQuestionIdRef.current) {
+      lastQuestionIdRef.current = state.currentQuestion.id;
+      lastPartialSubmissionKeyRef.current = null;
+      const hydrated = getHydratedPlayerAnswerState(
+        state.currentQuestion,
+        currentTeam?.lastAnswer,
+      );
+      setSelectedIndices(hydrated.selectedIndices);
+      setAnswer(hydrated.answer as AnswerContent);
       setSubmissionStatus("idle");
     }
-  }, [state.currentQuestion?.id]);
+  }, [state.currentQuestion, currentTeam?.lastAnswer]);
 
   const handleSelectCompetition = (id: string) => {
     setSelectedCompId(id);
@@ -151,11 +149,11 @@ export const PlayerView: React.FC = () => {
     }
   };
 
-  const getTeamId = () => {
+  const getTeamId = useCallback(() => {
     return state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
-  };
+  }, [state.teams, teamName]);
 
-  const submitAnswer = (value: AnswerContent) => {
+  const submitAnswer = useCallback((value: AnswerContent, isFinal: boolean = false) => {
     if (!state.currentQuestion || !selectedCompId) {
       console.error("Submission attempted without active question or competition", {
         question: state.currentQuestion,
@@ -172,21 +170,29 @@ export const PlayerView: React.FC = () => {
       return;
     }
 
+    if (!isFinal) {
+      const partialKey = `${state.currentQuestion.id}:${JSON.stringify(value)}`;
+      if (partialKey === lastPartialSubmissionKeyRef.current) {
+        return;
+      }
+      lastPartialSubmissionKeyRef.current = partialKey;
+    }
+
     socket.emit("SUBMIT_ANSWER", {
       competitionId: selectedCompId,
       teamId,
       questionId: state.currentQuestion.id,
-      answer: value
+      answer: value,
+      isFinal
     }, (res?: { success: boolean }) => {
       if (res && res.success) {
-        setSubmissionStatus("success");
+        if (isFinal) setSubmissionStatus("success");
       } else {
-        setSubmissionStatus("error");
+        if (isFinal) setSubmissionStatus("error");
       }
     });
 
-    setSubmitted(true);
-  };
+  }, [selectedCompId, state.currentQuestion, getTeamId, t]);
 
   const toggleIndex = (index: number) => {
     if (hasSubmitted) return;
@@ -195,48 +201,34 @@ export const PlayerView: React.FC = () => {
     const content = state.currentQuestion?.content as MultipleChoiceContent;
     const isSingleChoice = isMultipleChoice && content?.correctIndices?.length === 1;
 
-    setSelectedIndices(prev => {
-      if (prev.includes(index)) {
-        return prev.filter(i => i !== index);
-      }
-      if (isSingleChoice) {
-        return [index];
-      }
-      return [...prev, index];
-    });
+    let newIndices: number[];
+    if (selectedIndices.includes(index)) {
+      newIndices = selectedIndices.filter(i => i !== index);
+    } else if (isSingleChoice) {
+      newIndices = [index];
+    } else {
+      newIndices = [...selectedIndices, index];
+    }
+
+    setSelectedIndices(newIndices);
+    submitAnswer(newIndices, false);
   };
 
-  // Auto-submit on timer end or phase change
+  // Partial sync for other question types
   React.useEffect(() => {
-    if (state.phase === "GRADING" && joined && !hasSubmitted && answer !== "" && answer !== null && answer !== undefined) {
-      // Don't auto-submit if it's just an empty/initial state for certain types
-      if (state.currentQuestion?.type === "CORRECT_THE_ERROR") {
-        const cteAnswer = answer as CorrectTheErrorAnswer;
-        // Auto-submit if at least a phrase is selected, even if correction is missing
-        if (cteAnswer.selectedPhraseIndex !== -1) {
-          submitAnswer(answer);
-        }
-      } else if (state.currentQuestion?.type === "FILL_IN_THE_BLANKS") {
-        if (Array.isArray(answer) && answer.length > 0 && answer.some(a => a !== "")) {
-          submitAnswer(answer);
-        }
-      } else if (state.currentQuestion?.type === "MATCHING") {
-        if (Object.keys(answer as object).length > 0) {
-          submitAnswer(answer);
-        }
-      } else if (state.currentQuestion?.type === "CHRONOLOGY") {
-        // Chronology always has a state, so we can always submit
-        submitAnswer(answer);
-      } else if (state.currentQuestion?.type === "MULTIPLE_CHOICE") {
-        if (selectedIndices.length > 0) {
-          submitAnswer(selectedIndices);
-        }
-      } else if (answer !== "") {
-        submitAnswer(answer);
+    if (!joined || hasSubmitted || state.phase !== "QUESTION_ACTIVE") return;
+
+    // Use a small timeout for partial sync to avoid spamming for things like OPEN_WORD
+    const timer = setTimeout(() => {
+      if (state.currentQuestion?.type === "MULTIPLE_CHOICE") {
+        // Handled in toggleIndex
+      } else if (answer !== "" && answer !== null && answer !== undefined) {
+        submitAnswer(answer, false);
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, joined, hasSubmitted, answer, selectedIndices, state.currentQuestion]);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [answer, joined, hasSubmitted, state.phase, state.currentQuestion?.type, submitAnswer]);
 
   // Sync Watchdog: Monitor if joined team is still in server state
   React.useEffect(() => {
@@ -248,7 +240,7 @@ export const PlayerView: React.FC = () => {
         console.warn("Session drift detected: Team not found in server state.");
       }
     }
-  }, [state.teams, joined, isReconnecting]);
+  }, [state.teams, joined, isReconnecting, getTeamId, teamName]);
 
   // Update card positions for the reveal phase of question type "MATCHING"
   const updateMatchingRevealPositions = useCallback(() => {
@@ -326,7 +318,7 @@ export const PlayerView: React.FC = () => {
         <div className="absolute top-4 right-4">
           <LanguageSwitcher />
         </div>
-        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-md">
+        <Card className="p-8 shadow-2xl w-full max-w-md border-none">
           <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">Pick a Quiz</h1>
           <div className="space-y-4">
             {competitions.length === 0 ? (
@@ -349,7 +341,7 @@ export const PlayerView: React.FC = () => {
               ))
             )}
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -359,46 +351,46 @@ export const PlayerView: React.FC = () => {
     return (
       <div className="min-h-screen bg-blue-600 flex items-center justify-center p-4 relative">
         <div className="absolute top-4 left-4">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => { setSelectedCompId(null); localStorage.removeItem(SELECTED_COMP_ID_KEY); }}
-            className="text-white/80 hover:text-white flex items-center font-bold"
+            className="text-white/80 hover:text-white flex items-center font-bold p-0 hover:bg-transparent"
           >
             <ChevronRight className="w-5 h-5 rotate-180 mr-1" /> Change Quiz
-          </button>
+          </Button>
         </div>
         <div className="absolute top-4 right-4">
           <LanguageSwitcher />
         </div>
-        <form onSubmit={handleJoin} className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <Card className="p-8 shadow-xl w-full max-w-md border-none">
           <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">{t('player.join_title')}</h1>
-          <div className="space-y-4">
+          <form onSubmit={handleJoin} className="space-y-4 text-left">
+            <Input
+              label={t('player.team_name')}
+              type="text"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              placeholder={t('player.team_name')}
+              required
+            />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('player.team_name')}</label>
-              <input
-                type="text"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition"
-                placeholder={t('player.team_name')}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('player.pick_color')}</label>
+              <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1 mb-1.5">{t('player.pick_color')}</label>
               <input
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="w-full h-12 rounded-lg cursor-pointer"
+                className="w-full h-12 rounded-xl cursor-pointer bg-gray-50 border-2 border-gray-100 p-1"
               />
             </div>
-            <button
+            <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition text-lg shadow-lg"
+              size="xl"
+              className="w-full"
             >
               {t('player.lets_go')}
-            </button>
-          </div>
-        </form>
+            </Button>
+          </form>
+        </Card>
       </div>
     );
   }
@@ -472,54 +464,52 @@ export const PlayerView: React.FC = () => {
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         {(state.phase === "WAITING" || state.phase === "WELCOME") && (
           <div className="space-y-8 animate-in fade-in zoom-in duration-700">
-            <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-blue-600">
+            <Card variant="elevated" className="p-12 rounded-[3rem] border-b-8 border-blue-600">
               <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
               <h2 className="text-5xl font-black text-gray-900 mb-4">{t('player.waiting_host')}</h2>
               <p className="text-2xl text-gray-500 font-bold">{t('player.get_ready')}</p>
-            </div>
+            </Card>
           </div>
         )}
 
         {state.phase === "ROUND_START" && (
           <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
-            <div className="bg-white p-16 rounded-[4rem] shadow-2xl border-b-8 border-purple-600">
+            <Card variant="elevated" className="p-16 rounded-[4rem] border-b-8 border-purple-600">
               <span className="text-purple-600 font-black uppercase tracking-[0.3em] text-xl mb-4 block">New Round</span>
               <h2 className="text-6xl font-black text-gray-900 mb-2">
                 {state.currentQuestion?.roundId ? "Get Ready!" : "Round Start"}
               </h2>
               <p className="text-3xl text-gray-500 font-bold italic">Prepare your hearts and minds!</p>
-            </div>
+            </Card>
           </div>
         )}
 
         {state.phase === "ROUND_END" && (
           <div className="space-y-8 animate-in zoom-in duration-700">
-            <div className="bg-white p-16 rounded-[4rem] shadow-2xl border-b-8 border-green-600">
+            <Card variant="elevated" className="p-16 rounded-[4rem] border-b-8 border-green-600">
               <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
               <h2 className="text-5xl font-black text-gray-900 mb-4">Round Finished!</h2>
               <p className="text-2xl text-gray-500 font-bold">Great job, everyone!</p>
               <div className="mt-8 p-6 bg-green-50 rounded-3xl inline-block">
                 <p className="text-green-800 font-black text-xl">Waiting for the next round...</p>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {state.phase === "QUESTION_PREVIEW" && state.currentQuestion && (
           <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
             {state.currentQuestion.section && (
-              <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-400 animate-bounce">
-                <span className="text-2xl font-black text-yellow-800 uppercase">
-                  Turn: {state.currentQuestion.section}
-                </span>
-              </div>
+              <Badge variant="yellow" className="p-4 rounded-2xl border-2 border-yellow-400 animate-bounce text-2xl">
+                Turn: {state.currentQuestion.section}
+              </Badge>
             )}
-            <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-yellow-500">
+            <Card variant="elevated" className="p-10 rounded-[2.5rem] border-b-8 border-yellow-500">
               <span className="text-yellow-600 font-black uppercase tracking-widest text-lg mb-4 block">{t('player.upcoming_question')}</span>
               <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">
                 {state.currentQuestion.questionText}
               </h2>
-            </div>
+            </Card>
 
             {state.currentQuestion.type === "MULTIPLE_CHOICE" && state.revealStep > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
@@ -552,20 +542,18 @@ export const PlayerView: React.FC = () => {
         {state.phase === "QUESTION_ACTIVE" && state.currentQuestion && (
           <div className="w-full max-w-3xl space-y-8">
             {state.currentQuestion.section && (
-              <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-400">
-                <span className="text-2xl font-black text-yellow-800 uppercase">
-                  Turn: {state.currentQuestion.section}
-                </span>
-              </div>
+              <Badge variant="yellow" className="p-4 rounded-2xl border-2 border-yellow-400 text-2xl">
+                Turn: {state.currentQuestion.section}
+              </Badge>
             )}
             {!hasSubmitted ? (
-              <div className="space-y-8">
-                <div className="bg-white p-8 rounded-2xl shadow-md border-b-4 border-blue-500">
+              <div className="space-y-8 text-left">
+                <Card className="p-8 border-b-4 border-blue-500">
                   <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Question</span>
                   <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
                     {state.currentQuestion.questionText}
                   </h2>
-                </div>
+                </Card>
                 <div className="space-y-6 w-full">
                   {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
                     <div className="space-y-6">
@@ -587,24 +575,27 @@ export const PlayerView: React.FC = () => {
                           );
                         })}
                       </div>
-                      <button
-                        onClick={() => submitAnswer(selectedIndices)}
+                      <Button
+                        variant={selectedIndices.length > 0 ? "success" : "secondary"}
+                        onClick={() => submitAnswer(selectedIndices, true)}
                         disabled={selectedIndices.length === 0}
-                        className={`w-full py-5 rounded-2xl text-2xl font-black shadow-xl transition-all flex items-center justify-center space-x-3 ${selectedIndices.length > 0
-                          ? "bg-green-600 hover:bg-green-700 text-white translate-y-[-4px]"
-                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          }`}
+                        size="xl"
+                        className={`w-full ${selectedIndices.length > 0 ? "translate-y-[-4px]" : ""}`}
                       >
-                        <Send className="w-8 h-8" />
+                        <Send className="w-8 h-8 mr-3" />
                         <span>{t("player.submit_answer")}</span>
-                      </button>
+                      </Button>
                     </div>
                   ) : state.currentQuestion.type === "CROSSWORD" ? (
                     <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
                       <CrosswordPlayer
                         data={state.currentQuestion.content}
+                        value={answer as string[][]}
+                        onChange={(grid) => {
+                          setAnswer(grid);
+                        }}
                         onSubmit={(grid) => {
-                          submitAnswer(grid);
+                          submitAnswer(grid, true);
                         }}
                       />
                     </div>
@@ -615,12 +606,12 @@ export const PlayerView: React.FC = () => {
                         value={(answer as string[]) || []}
                         onChange={(val) => setAnswer(val)}
                       />
-                      <button
-                        onClick={() => submitAnswer(answer)}
-                        className="w-full bg-blue-600 text-white font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl hover:bg-blue-700 transition"
+                      <Button
+                        onClick={() => submitAnswer(answer, true)}
+                        className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
-                        <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
-                      </button>
+                        <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
+                      </Button>
                     </div>
                   ) : state.currentQuestion.type === "MATCHING" ? (
                     <div className="space-y-6">
@@ -629,16 +620,13 @@ export const PlayerView: React.FC = () => {
                         value={(answer as Record<string, string>) || {}}
                         onChange={(val) => setAnswer(val)}
                       />
-                      <button
-                        onClick={() => submitAnswer(answer)}
+                      <Button
+                        onClick={() => submitAnswer(answer, true)}
                         disabled={Object.keys(answer || {}).length < (state.currentQuestion.content as MatchingContent).pairs.length}
-                        className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${Object.keys(answer || {}).length >= (state.currentQuestion.content as MatchingContent).pairs.length
-                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          }`}
+                        className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
-                        <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
-                      </button>
+                        <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
+                      </Button>
                     </div>
                   ) : state.currentQuestion.type === "CHRONOLOGY" ? (
                     <div className="space-y-6">
@@ -647,23 +635,30 @@ export const PlayerView: React.FC = () => {
                         content={state.currentQuestion.content}
                         onChange={(val) => setAnswer(val)}
                       />
-                      <button
-                        onClick={() => submitAnswer(answer)}
-                        className="w-full bg-blue-600 text-white font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl hover:bg-blue-700 transition"
+                      <Button
+                        onClick={() => submitAnswer(answer, true)}
+                        className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
-                        <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
-                      </button>
+                        <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
+                      </Button>
                     </div>
                   ) : state.currentQuestion.type === "TRUE_FALSE" ? (
-                    <TrueFalsePlayer
-                      selectedAnswer={answer as boolean | null}
-                      disabled={hasSubmitted}
-                      onAnswer={(val) => {
-                        setAnswer(val);
-                        // True/False is instant submission on click
-                        submitAnswer(val);
-                      }}
-                    />
+                    <div className="space-y-6">
+                      <TrueFalsePlayer
+                        selectedAnswer={answer as boolean | null}
+                        disabled={hasSubmitted}
+                        onAnswer={(val) => {
+                          setAnswer(val);
+                        }}
+                      />
+                      <Button
+                        onClick={() => submitAnswer(answer, true)}
+                        disabled={answer === null}
+                        className="w-full py-6 rounded-3xl text-3xl shadow-xl"
+                      >
+                        <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
+                      </Button>
+                    </div>
                   ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
                     <div className="space-y-6">
                       <CorrectTheErrorPlayer
@@ -673,34 +668,32 @@ export const PlayerView: React.FC = () => {
                         disabled={hasSubmitted}
                       />
                       {!hasSubmitted && (
-                        <button
-                          onClick={() => submitAnswer(answer)}
+                        <Button
+                          onClick={() => submitAnswer(answer, true)}
                           disabled={(answer as CorrectTheErrorAnswer).selectedPhraseIndex === -1 || !(answer as CorrectTheErrorAnswer).correction}
-                          className={`w-full font-bold py-6 rounded-3xl text-3xl flex items-center justify-center space-x-2 shadow-xl transition ${(answer as CorrectTheErrorAnswer).selectedPhraseIndex !== -1 && (answer as CorrectTheErrorAnswer).correction
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            }`}
+                          className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                         >
-                          <Send className="w-8 h-8" /> <span>{t("player.submit_answer")}</span>
-                        </button>
+                          <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
+                        </Button>
                       )}
                     </div>
                   ) : (
                     <div className="flex flex-col space-y-4">
-                      <input
+                      <Input
                         type="text"
                         value={String(answer)}
                         onChange={(e) => setAnswer(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && submitAnswer(answer)}
-                        className="w-full p-4 text-2xl rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
+                        className="text-2xl"
                         placeholder="Type your answer..."
                       />
-                      <button
-                        onClick={() => submitAnswer(answer)}
-                        className="bg-blue-600 text-white font-bold py-4 rounded-xl text-xl flex items-center justify-center space-x-2 shadow-lg"
+                      <Button
+                        onClick={() => submitAnswer(answer, true)}
+                        size="lg"
+                        className="shadow-lg"
                       >
-                        <Send /> <span>{t("player.submit_answer")}</span>
-                      </button>
+                        <Send className="mr-2" /> <span>{t("player.submit_answer")}</span>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -708,7 +701,7 @@ export const PlayerView: React.FC = () => {
             ) : (
               <div className={`p-8 rounded-2xl border-2 ${submissionStatus === "error"
                 ? "bg-red-100 border-red-500"
-                : (submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined))
+                : (submissionStatus === "success" || currentTeam?.isExplicitlySubmitted)
                   ? "bg-green-100 border-green-500"
                   : "bg-blue-100 border-blue-500"
                 }`}>
@@ -719,9 +712,9 @@ export const PlayerView: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <CheckCircle className={`w-16 h-16 ${(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-500" : "text-blue-500"} mx-auto mb-4 ${submissionStatus === "idle" && !currentTeam?.lastAnswer ? "animate-pulse" : ""}`} />
-                    <h2 className={`text-2xl font-bold ${(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-800" : "text-blue-800"}`}>{t('player.answer_received')}</h2>
-                    <p className={(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-700" : "text-blue-700"}>{t('player.waiting_others')}</p>
+                    <CheckCircle className={`w-16 h-16 ${(submissionStatus === "success" || currentTeam?.isExplicitlySubmitted) ? "text-green-500" : "text-blue-500"} mx-auto mb-4 ${submissionStatus === "idle" && !currentTeam?.isExplicitlySubmitted ? "animate-pulse" : ""}`} />
+                    <h2 className={`text-2xl font-bold ${(submissionStatus === "success" || currentTeam?.isExplicitlySubmitted) ? "text-green-800" : "text-blue-800"}`}>{t('player.answer_received')}</h2>
+                    <p className={(submissionStatus === "success" || currentTeam?.isExplicitlySubmitted) ? "text-green-700" : "text-blue-700"}>{t('player.waiting_others')}</p>
                   </>
                 )}
               </div>
@@ -744,7 +737,7 @@ export const PlayerView: React.FC = () => {
 
         {state.phase === "LEADERBOARD" && (
           <div className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700">
-            <div className="bg-white p-12 rounded-[3rem] shadow-2xl border-b-8 border-blue-600">
+            <Card variant="elevated" className="p-12 rounded-[3rem] border-b-8 border-blue-600">
               <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
               <h2 className="text-5xl font-black text-gray-900 mb-8">{t('host.leaderboard')}</h2>
 
@@ -761,30 +754,30 @@ export const PlayerView: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {state.phase === "REVEAL_ANSWER" && state.currentQuestion && (
           <div className="w-full max-w-3xl space-y-8 animate-in fade-in zoom-in duration-500">
-            <div className="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-blue-500 text-left">
+            <Card className="p-8 border-t-8 border-blue-500 text-left">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2 text-blue-600">
                   <Info className="w-6 h-6" />
                   <span className="font-bold uppercase tracking-widest text-sm">{t("player.reveal_phase")}</span>
                 </div>
                 {getGradingStatus() === true ? (
-                  <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold flex items-center">
+                  <Badge variant="green">
                     <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
-                  </span>
+                  </Badge>
                 ) : getGradingStatus() === false ? (
-                  <span className="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold flex items-center">
+                  <Badge variant="red">
                     <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
-                  </span>
+                  </Badge>
                 ) : (
-                  <span className="bg-gray-100 text-gray-700 px-4 py-1 rounded-full font-bold flex items-center">
+                  <Badge variant="gray">
                     <Clock className="w-4 h-4 mr-2" /> {t("player.waiting_grading")}
-                  </span>
+                  </Badge>
                 )}
               </div>
 
@@ -850,7 +843,7 @@ export const PlayerView: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
 
             <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg animate-pulse inline-block mx-auto">
               <p className="text-xl font-bold flex items-center">

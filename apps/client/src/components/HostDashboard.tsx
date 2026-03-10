@@ -5,6 +5,9 @@ import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy
 import type { Question, Competition, Round, CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import Button from "./ui/Button";
+import { Card, CardHeader, CardTitle, CardFooter } from "./ui/Card";
+import Badge from "./ui/Badge";
 
 interface PendingAnswer {
   id: string;
@@ -207,25 +210,25 @@ export const HostDashboard: React.FC = () => {
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
           {competitions.map(comp => (
-            <button
+            <Card
               key={comp.id}
+              variant="default"
               onClick={() => selectCompetition(comp)}
-              className="bg-white p-8 rounded-3xl shadow-sm border-2 border-transparent hover:border-blue-500 transition-all text-left group"
+              className="p-8 cursor-pointer hover:border-blue-500 group"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-blue-100 p-3 rounded-2xl group-hover:bg-blue-600 transition-colors">
                   <Trophy className="w-6 h-6 text-blue-600 group-hover:text-white" />
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${comp.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
+                <Badge variant={comp.status === 'ACTIVE' ? 'green' : 'yellow'}>
                   {comp.status}
-                </span>
+                </Badge>
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">{comp.title}</h3>
               <p className="text-gray-500 font-medium flex items-center">
                 Open dashboard <ChevronRight className="ml-1 w-4 h-4" />
               </p>
-            </button>
+            </Card>
           ))}
         </div>
       </div>
@@ -271,14 +274,14 @@ export const HostDashboard: React.FC = () => {
         </div>
         <div className="flex items-center space-x-4">
           {state.phase === "QUESTION_ACTIVE" && (
-            <button
+            <Button
+              variant={state.timerPaused ? "success" : "warning"}
               onClick={state.timerPaused ? resumeTimer : pauseTimer}
-              className={`flex items-center space-x-2 ${state.timerPaused ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"
-                } text-white px-4 py-2 rounded-xl shadow-sm transition font-bold`}
+              className="space-x-2"
             >
               {state.timerPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
               <span>{state.timerPaused ? t("host.resume_timer") : t("host.pause_timer")}</span>
-            </button>
+            </Button>
           )}
           <a
             href="/admin"
@@ -300,7 +303,7 @@ export const HostDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Game Control */}
         <div className="lg:col-span-2 space-y-6">
-          <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+          <Card className="p-8">
             <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
               <Play className="mr-3 text-green-500" /> {t('host.current_status')}: <span className="text-blue-600 ml-2">{state.phase}</span>
             </h2>
@@ -442,17 +445,17 @@ export const HostDashboard: React.FC = () => {
                 )}
 
                 <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-black flex items-center">
+                  <Badge variant="blue">
                     <Clock className="w-4 h-4 mr-2" />
                     {t('common.time')}: {state.timeRemaining}s
-                  </div>
-                  <div className="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
+                  </Badge>
+                  <Badge variant="purple">
                     {state.currentQuestion.type}
-                  </div>
-                  <div className="bg-orange-100 text-orange-700 px-4 py-1.5 rounded-full text-sm font-black flex items-center">
+                  </Badge>
+                  <Badge variant="orange">
                     <Users className="w-4 h-4 mr-2" />
                     {t('host.submissions')}: {t('host.submissions_count', { count: collectedAnswers.length, total: state.teams.length })}
-                  </div>
+                  </Badge>
                 </div>
               </div>
             ) : (
@@ -460,10 +463,10 @@ export const HostDashboard: React.FC = () => {
                 <p className="text-blue-600 font-bold">No question currently active. Select one below to start.</p>
               </div>
             )}
-          </section>
+          </Card>
 
           {state.phase === "GRADING" && pendingAnswers.length > 0 && (
-            <section className="bg-white p-8 rounded-3xl shadow-sm border-2 border-yellow-400">
+            <Card className="p-8 border-2 border-yellow-400">
               <h2 className="text-xl font-black mb-6 flex items-center text-yellow-700 uppercase tracking-wider">
                 <Clock className="mr-3" /> {t('host.manual_grading_queue')} ({pendingAnswers.length})
               </h2>
@@ -496,11 +499,11 @@ export const HostDashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </section>
+            </Card>
           )}
 
           {(state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER") && (
-            <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+            <Card className="p-8">
               <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
                 <Users className="mr-3 text-blue-500" /> {t('host.collected_answers')}
               </h2>
@@ -552,51 +555,53 @@ export const HostDashboard: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-            </section>
+            </Card>
           )}
 
-          <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+          <Card className="p-8">
             <h2 className="text-xl font-black mb-8 flex items-center text-gray-800 uppercase tracking-wider">
               <SkipForward className="mr-3 text-purple-500" /> {t('host.control_panel')}
             </h2>
             <div className="space-y-8">
-              <button
+              <Button
+                variant={state.phase === "QUESTION_ACTIVE" ? "danger" : 
+                         state.phase === "QUESTION_PREVIEW" ? "success" : "primary"}
                 onClick={handleNext}
                 disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
-                className={`w-full ${state.phase === "QUESTION_ACTIVE" ? "bg-red-600 hover:bg-red-700 shadow-red-200" :
-                    state.phase === "QUESTION_PREVIEW" ? "bg-green-600 hover:bg-green-700 shadow-green-200" :
-                      "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
-                  } text-white font-black py-6 rounded-2xl transition-all text-3xl flex items-center justify-center shadow-xl transform active:scale-[0.98]`}
+                className="w-full py-6 rounded-2xl text-3xl shadow-xl"
               >
                 <SkipForward className="mr-4 w-10 h-10" />
                 {getNextActionLabel()}
-              </button>
+              </Button>
 
               <div className="grid grid-cols-2 gap-4">
                 {state.phase === "QUESTION_PREVIEW" && (
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={startTimer}
-                    className="bg-green-100 text-green-700 hover:bg-green-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-green-200"
+                    className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
                   >
                     <Play className="mr-2 w-5 h-5" /> Skip to Timer
-                  </button>
+                  </Button>
                 )}
 
                 {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && (
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={revealAnswer}
-                    className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-yellow-200"
+                    className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200"
                   >
                     <CheckCircle className="mr-2 w-5 h-5" /> Reveal Answer
-                  </button>
+                  </Button>
                 )}
 
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => socket.emit("HOST_SET_PHASE", { competitionId: selectedComp.id, phase: "LEADERBOARD" })}
-                  className="bg-purple-100 text-purple-700 hover:bg-purple-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center border-2 border-purple-200"
+                  className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-purple-200"
                 >
                   <Trophy className="mr-2 w-5 h-5" /> Show Leaderboard
-                </button>
+                </Button>
               </div>
 
               <div className="space-y-4">
@@ -694,12 +699,12 @@ export const HostDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </Card>
         </div>
 
         {/* Right Column: Leaderboard */}
         <div className="space-y-6">
-          <section className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-8">
+          <Card className="p-8 sticky top-8">
             <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
               <Trophy className="mr-3 text-yellow-500" /> {t('host.leaderboard')}
             </h2>
@@ -734,26 +739,27 @@ export const HostDashboard: React.FC = () => {
                 ))
               )}
             </div>
-          </section>
+          </Card>
         </div>
       </div>
 
       {/* Answers Modal */}
       {modalQuestion && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-start">
+          <Card className="w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border-none shadow-2xl">
+            <CardHeader className="flex flex-row justify-between items-start">
               <div>
-                <h3 className="text-xl font-black text-gray-900">{t('host.collected_answers')}</h3>
+                <CardTitle className="text-gray-900">{t('host.collected_answers')}</CardTitle>
                 <p className="text-sm text-gray-500 mt-1 line-clamp-1">{modalQuestion.text}</p>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setModalQuestion(null)}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-xl"
               >
-                <XCircle className="w-6 h-6 text-gray-400" />
-              </button>
-            </div>
+                <XCircle className="w-6 h-6" />
+              </Button>
+            </CardHeader>
 
             <div className="flex-1 overflow-y-auto p-6">
               <table className="w-full">
@@ -804,15 +810,15 @@ export const HostDashboard: React.FC = () => {
               </table>
             </div>
 
-            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
-              <button
+            <CardFooter className="flex justify-end">
+              <Button
+                variant="outline"
                 onClick={() => setModalQuestion(null)}
-                className="px-6 py-2 bg-white border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
               >
                 {t('host.close')}
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       )}
     </div>

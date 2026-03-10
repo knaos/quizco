@@ -327,7 +327,7 @@ describe("GameManager Integration", () => {
       () => {},
     );
 
-    await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
+    await gameManager.submitAnswer(testCompId, team.id, questionId, [1], true); // Correct & Final
 
     const updatedTeam = gameManager
       .getState(testCompId)
@@ -339,6 +339,255 @@ describe("GameManager Integration", () => {
       where: { teamId: team.id, questionId: questionId },
     });
     expect(answer?.isCorrect).toBe(true);
+  });
+
+  describe("explicit submit and partial persistence", () => {
+    it("stores partial answer without grading or explicit submission", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Submit Model", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Pick B",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [1] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(testCompId, "Partial Team", "#111");
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+      await gameManager.submitAnswer(testCompId, team.id, question.id, [0], false);
+
+      const stateTeam = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
+      expect(stateTeam?.lastAnswer).toEqual([0]);
+      expect(stateTeam?.isExplicitlySubmitted).toBe(false);
+      expect(stateTeam?.lastAnswerCorrect).toBeNull();
+      expect(stateTeam?.score).toBe(0);
+      expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
+
+      const dbAnswer = await prisma.answer.findFirst({
+        where: { teamId: team.id, questionId: question.id },
+      });
+      expect(dbAnswer).not.toBeNull();
+      expect(dbAnswer?.submittedContent).toEqual([0]);
+      expect(dbAnswer?.isCorrect).toBeNull();
+      expect(dbAnswer?.scoreAwarded).toBe(0);
+    });
+
+    it("grades the latest partial answer on question end and keeps a single answer row", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Latest Wins", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Pick B",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 2,
+          content: { options: ["A", "B"], correctIndices: [1] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(testCompId, "Latest Team", "#222");
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+
+      await gameManager.submitAnswer(testCompId, team.id, question.id, [0], false);
+      await gameManager.submitAnswer(testCompId, team.id, question.id, [1], false);
+
+      await gameManager.next(testCompId, () => {});
+
+      const stateTeam = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
+      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
+      expect(stateTeam?.lastAnswer).toEqual([1]);
+      expect(stateTeam?.lastAnswerCorrect).toBe(true);
+      expect(stateTeam?.score).toBe(10);
+
+      const dbAnswers = await prisma.answer.findMany({
+        where: { teamId: team.id, questionId: question.id },
+      });
+      expect(dbAnswers).toHaveLength(1);
+      expect(dbAnswers[0].submittedContent).toEqual([1]);
+      expect(dbAnswers[0].isCorrect).toBe(true);
+      expect(dbAnswers[0].scoreAwarded).toBe(10);
+    });
+
+    it("ends early only when all teams explicitly submit final answers", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Explicit Final", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Pick B",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [1] },
+          grading: "AUTO",
+        },
+      });
+
+      const teamA = await gameManager.addTeam(testCompId, "Team A", "#0a0");
+      const teamB = await gameManager.addTeam(testCompId, "Team B", "#00a");
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+
+      await gameManager.submitAnswer(testCompId, teamA.id, question.id, [1], false);
+      await gameManager.submitAnswer(testCompId, teamB.id, question.id, [1], false);
+      expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
+
+      await gameManager.submitAnswer(testCompId, teamA.id, question.id, [1], true);
+      expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
+
+      await gameManager.submitAnswer(testCompId, teamB.id, question.id, [1], true);
+      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
+      expect(gameManager.getState(testCompId).teams.find((t) => t.id === teamA.id)?.isExplicitlySubmitted).toBe(true);
+      expect(gameManager.getState(testCompId).teams.find((t) => t.id === teamB.id)?.isExplicitlySubmitted).toBe(true);
+    });
+
+    it("does not account untouched team answers but preserves touched team answer", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Touched vs Untouched", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "True or False",
+          type: "TRUE_FALSE",
+          points: 5,
+          timeLimitSeconds: 30,
+          content: { isTrue: true },
+          grading: "AUTO",
+        },
+      });
+
+      const touchedTeam = await gameManager.addTeam(testCompId, "Touched", "#123");
+      const untouchedTeam = await gameManager.addTeam(testCompId, "Untouched", "#456");
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+
+      await gameManager.submitAnswer(testCompId, touchedTeam.id, question.id, true, false);
+      await gameManager.next(testCompId, () => {});
+
+      const touched = gameManager.getState(testCompId).teams.find((t) => t.id === touchedTeam.id);
+      const untouched = gameManager.getState(testCompId).teams.find((t) => t.id === untouchedTeam.id);
+
+      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
+      expect(touched?.lastAnswer).toBe(true);
+      expect(touched?.lastAnswerCorrect).toBe(true);
+      expect(touched?.score).toBe(5);
+
+      expect(untouched?.lastAnswer).toBeNull();
+      expect(untouched?.lastAnswerCorrect).toBeNull();
+      expect(untouched?.score).toBe(0);
+
+      const touchedDbAnswer = await prisma.answer.findFirst({
+        where: { teamId: touchedTeam.id, questionId: question.id },
+      });
+      const untouchedDbAnswer = await prisma.answer.findFirst({
+        where: { teamId: untouchedTeam.id, questionId: question.id },
+      });
+      expect(touchedDbAnswer).not.toBeNull();
+      expect(untouchedDbAnswer).toBeNull();
+    });
+
+    it("rejects submissions from unknown teams", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Reject Unknown Team", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Pick B",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [1] },
+          grading: "AUTO",
+        },
+      });
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+
+      const result = await gameManager.submitAnswer(
+        testCompId,
+        "00000000-0000-0000-0000-000000000000",
+        question.id,
+        [1],
+        true,
+      );
+
+      expect(result).toEqual({ accepted: false, reason: "TEAM_NOT_FOUND" });
+      expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
+
+      const dbAnswers = await prisma.answer.findMany({
+        where: { questionId: question.id },
+      });
+      expect(dbAnswers).toHaveLength(0);
+    });
   });
 
   describe("lastAnswerCorrect tracking", () => {
@@ -378,7 +627,13 @@ describe("GameManager Integration", () => {
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
       await gameManager.startTimer(testCompId, 10, () => {});
-      await gameManager.submitAnswer(testCompId, team.id, questionId, [0]);
+      await gameManager.submitAnswer(
+        testCompId,
+        team.id,
+        questionId,
+        [0],
+        true,
+      );
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
         true,

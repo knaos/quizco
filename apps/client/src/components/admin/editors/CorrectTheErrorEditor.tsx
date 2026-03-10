@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { CorrectTheErrorContent, CorrectTheErrorPhrase } from '@quizco/shared';
 import { useTranslation } from 'react-i18next';
+import Button from '../../ui/Button';
+import Input, { TextArea } from '../../ui/Input';
+import { Card } from '../../ui/Card';
 
 
 interface CorrectTheErrorEditorProps {
@@ -61,33 +64,31 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">{t('admin.questions.correctTheError.fullText')}</label>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-          rows={2}
-          placeholder={t('admin.questions.correctTheError.fullTextPlaceholder')}
-        />
-      </div>
+      <TextArea
+        label={t('admin.questions.correctTheError.fullText')}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={2}
+        placeholder={t('admin.questions.correctTheError.fullTextPlaceholder')}
+      />
 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">
             {t('admin.questions.correctTheError.phrases')} (1-4)
           </label>
-          <button
+          <Button
             onClick={addPhrase}
             disabled={phrases.length >= 4}
-            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400"
+            size="sm"
+            variant="purple"
           >
             {t('admin.questions.correctTheError.addPhrase')}
-          </button>
+          </Button>
         </div>
 
         {phrases.map((phrase, pIdx) => (
-          <div key={pIdx} className={`p-4 border rounded-lg space-y-3 ${errorPhraseIndex === pIdx ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}>
+          <Card key={pIdx} variant="flat" className={`p-4 space-y-3 ${errorPhraseIndex === pIdx ? 'border-red-500 bg-red-50' : ''}`}>
             <div className="flex items-start space-x-3">
               <div className="flex items-center h-10">
                 <input
@@ -98,39 +99,40 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
                     setErrorPhraseIndex(pIdx);
                     setCorrectReplacement('');
                   }}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                   title={t('admin.questions.correctTheError.markAsError')}
                 />
               </div>
               <div className="flex-1">
-                <input
+                <Input
                   type="text"
                   value={phrase.text}
                   onChange={(e) => updatePhraseText(pIdx, e.target.value)}
                   placeholder={t('admin.questions.correctTheError.phraseTextPlaceholder')}
-                  className="w-full border border-gray-300 rounded-md p-2"
+                  className="py-2 text-base"
                 />
               </div>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => removePhrase(pIdx)}
-                className="text-red-600 hover:text-red-800 h-10"
+                className="text-red-600 h-10 px-2"
               >
                 {t('common.remove')}
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pl-7">
               {phrase.alternatives.map((alt, aIdx) => (
                 <div key={aIdx} className="relative">
-                  <input
+                  <Input
                     type="text"
                     value={alt}
                     onChange={(e) => updateAlternative(pIdx, aIdx, e.target.value)}
                     placeholder={`${t('admin.questions.correctTheError.alternative')} ${aIdx + 1}`}
-                    className={`w-full text-sm border rounded-md p-2 pr-8 ${
+                    className={`py-2 text-sm pr-8 ${
                       errorPhraseIndex === pIdx && correctReplacement === alt && alt !== ''
                         ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200'
+                        : ''
                     }`}
                   />
                   {errorPhraseIndex === pIdx && (
@@ -152,7 +154,7 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

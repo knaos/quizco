@@ -9,6 +9,7 @@ interface CrosswordPlayerProps {
   value?: string[][];
   onChange?: (grid: string[][]) => void;
   onSubmit?: (grid: string[][]) => void;
+  onProgress?: (grid: string[][]) => void;
 }
 
 /**
@@ -47,6 +48,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   value,
   onChange,
   onSubmit,
+  onProgress,
 }) => {
   const { t } = useTranslation();
   const { state } = useGame();
@@ -61,17 +63,18 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   }, [data.grid]);
 
   // Use external value if provided, otherwise use internal state
-  const [internalGrid, setInternalGrid] = useState<string[][]>(initializeGrid);
+  const [internalGrid, setInternalGrid] = useState<string[][]>(() => initializeGrid());
 
-  // Use provided value or internal state
-  const userGrid = value ?? internalGrid;
+  const hasValidInternalGridShape =
+    internalGrid.length === data.grid.length &&
+    internalGrid.every(
+      (row, rowIndex) => row.length === (data.grid[rowIndex]?.length ?? 0),
+    );
 
-  // Reset internal grid when question changes
-  useEffect(() => {
-    if (!value) {
-      setInternalGrid(initializeGrid());
-    }
-  }, [data.grid, initializeGrid, value]);
+  // Use provided value or internal state. If the grid shape changed in uncontrolled mode,
+  // fallback to a fresh grid without setting state inside an effect.
+  const userGrid =
+    value ?? (hasValidInternalGridShape ? internalGrid : initializeGrid());
 
   const handleChange = (r: number, c: number, val: string) => {
     const newGrid = [...userGrid.map((row) => [...row])];
@@ -82,6 +85,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       onChange(newGrid);
     } else {
       setInternalGrid(newGrid);
+    }
+
+    if (onProgress) {
+      onProgress(newGrid);
     }
   };
 

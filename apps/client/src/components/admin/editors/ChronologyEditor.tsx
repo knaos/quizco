@@ -19,6 +19,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import Button from "../../ui/Button";
+import Input from "../../ui/Input";
 
 interface ChronologyEditorProps {
   content: ChronologyContent;
@@ -56,28 +58,29 @@ const SortableItem = React.memo<SortableItemProps>(({ id, text, onRemove, onText
         isDragging ? "border-blue-500 shadow-xl scale-[1.02] relative" : "border-gray-100"
       }`}
     >
-      <button
+      <Button
+        variant="ghost"
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-2 hover:bg-gray-100 rounded-lg text-gray-400"
+        className="cursor-grab active:cursor-grabbing p-2"
       >
         <GripVertical className="w-5 h-5" />
-      </button>
+      </Button>
 
-      <input
+      <Input
         type="text"
         value={text}
         onChange={(e) => onTextChange(id, e.target.value)}
-        className="flex-1 p-3 rounded-lg border border-gray-100 focus:border-blue-500 outline-none transition"
         placeholder="Enter event or item..."
       />
 
-      <button
+      <Button
+        variant="ghost"
         onClick={() => onRemove(id)}
-        className="p-3 text-red-500 hover:bg-red-50 rounded-lg transition"
+        className="p-3 text-red-500 hover:bg-red-50"
       >
         <Trash2 className="w-5 h-5" />
-      </button>
+      </Button>
     </div>
   );
 });
@@ -146,12 +149,13 @@ export const ChronologyEditor: React.FC<ChronologyEditorProps> = ({ content, onC
         <p className="text-sm font-medium text-gray-500 italic">
           Arrange items in the CORRECT chronological order.
         </p>
-        <button
+        <Button
+          variant="outline"
           onClick={addItem}
-          className="flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition"
+          className="bg-blue-50 text-blue-600 border-none hover:bg-blue-100"
         >
           <Plus className="w-5 h-5 mr-2" /> Add Item
-        </button>
+        </Button>
       </div>
 
       <DndContext 
