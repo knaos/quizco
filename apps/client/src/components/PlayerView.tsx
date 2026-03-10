@@ -15,6 +15,7 @@ import { ChronologyReveal } from "./player/ChronologyReveal";
 import { MatchingReveal } from "./player/MatchingReveal";
 import { FillInTheBlanksReveal } from "./player/FillInTheBlanksReveal";
 import { CrosswordReveal } from "./player/CrosswordReveal";
+import { DefaultReveal } from "./player/DefaultReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
@@ -523,12 +524,7 @@ export const PlayerView: React.FC = () => {
                       : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
                       }`}
                   >
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl mr-6 shadow-lg shadow-blue-200">
-                        {String.fromCharCode(65 + i)}
-                      </div>
-                      <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
-                    </div>
+                    <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
                   </div>
                 ))}
               </div>
@@ -792,32 +788,30 @@ export const PlayerView: React.FC = () => {
                 {state.currentQuestion.type === "MULTIPLE_CHOICE" ? (
                   <MultipleChoiceReveal
                     question={state.currentQuestion as MultipleChoiceQuestion}
-                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as number[] | null}
+                    lastAnswer={currentTeam?.lastAnswer as number[] | null}
+                    teamName={teamName}
                   />
                 ) : state.currentQuestion.type === "CHRONOLOGY" ? (
                   <ChronologyReveal
                     content={state.currentQuestion.content as ChronologyContent}
-                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as string[] | null}
+                    lastAnswer={currentTeam?.lastAnswer as string[] | null}
                   />
                 ) : state.currentQuestion.type === "MATCHING" ? (
                   <MatchingReveal
                     content={state.currentQuestion.content as MatchingContent}
-                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as Record<string, string> | null}
-                    revealPositions={matchingRevealPositions}
-                    revealLeftRefs={matchingRevealLeftRefs}
-                    revealRightRefs={matchingRevealRightRefs}
-                    containerRef={matchingRevealContainerRef}
+                    lastAnswer={currentTeam?.lastAnswer as Record<string, string> | null}
                   />
                 ) : state.currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
                   <FillInTheBlanksReveal
                     content={state.currentQuestion.content as FillInTheBlanksContent}
-                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as string[] | null}
+                    lastAnswer={currentTeam?.lastAnswer as string[] | null}
                   />
                 ) : state.currentQuestion.type === "CROSSWORD" ? (
                   <CrosswordReveal
                     content={state.currentQuestion.content as CrosswordContent}
-                    lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as string[][] | null}
+                    lastAnswer={currentTeam?.lastAnswer as string[][] | null}
                   />
+
                 ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
                   <CorrectTheErrorReveal
                     content={state.currentQuestion.content as CorrectTheErrorContent}
@@ -829,23 +823,12 @@ export const PlayerView: React.FC = () => {
                     lastAnswer={state.teams.find((t) => t.name === teamName)?.lastAnswer as boolean | null}
                   />
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
-                      <span className="text-green-600 text-xs font-bold uppercase">{t('player.correct_answer')}</span>
-                      <p className="text-2xl font-black text-green-900 mt-1">{getCorrectAnswer()}</p>
-                    </div>
-                    <div className={`${isCorrect() ? "bg-green-50 border-green-200" : getGradingStatus() === false ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"} p-6 rounded-2xl border-2`}>
-                      <span className={`${isCorrect() ? "text-green-600" : getGradingStatus() === false ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
-                      <div className={`text-2xl font-black ${isCorrect() ? "text-green-900" : getGradingStatus() === false ? "text-red-900" : "text-gray-900"} mt-1`}>
-                        {(() => {
-                          const team = state.teams.find((t) => t.name === teamName);
-                          const lastAnswer = team?.lastAnswer;
-                          if (lastAnswer === null || lastAnswer === undefined || lastAnswer === "") return "(No Answer)";
-                          return String(lastAnswer);
-                        })()}
-                      </div>
-                    </div>
-                  </div>
+                  <DefaultReveal
+                    question={state.currentQuestion}
+                    lastAnswer={currentTeam?.lastAnswer}
+                    gradingStatus={getGradingStatus()}
+                    getCorrectAnswer={getCorrectAnswer}
+                  />
                 )}
               </div>
             </Card>

@@ -5,6 +5,7 @@ import {
   ClosedQuestionContent,
   CrosswordContent,
   CrosswordAnswer,
+  CrosswordClue,
   FillInTheBlanksContent,
   FillInTheBlanksAnswer,
   MatchingContent,
@@ -103,20 +104,30 @@ export class GradingService {
   private gradeMultipleChoice(
     content: MultipleChoiceContent,
     answer: number[],
-    points: number
+    _points: number
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
     }
 
-    const correctIndices = [...content.correctIndices].sort((a, b) => a - b);
-    const submittedIndices = [...answer].sort((a, b) => a - b);
+    const correctIndices = new Set(content.correctIndices);
+    const submittedIndices = new Set(answer);
 
+    // Count how many correct indices were selected
+    let correctCount = 0;
+    submittedIndices.forEach((index) => {
+      if (correctIndices.has(index)) {
+        correctCount++;
+      }
+    });
+
+    // isCorrect is true only if ALL correct indices were selected and no wrong ones
     const isCorrect =
-      correctIndices.length === submittedIndices.length &&
-      correctIndices.every((val, index) => val === submittedIndices[index]);
+      correctIndices.size === submittedIndices.size &&
+      correctCount === correctIndices.size;
 
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // 1 point per correct answer
+    return { isCorrect, score: correctCount };
   }
 
   private gradeClosed(
@@ -151,32 +162,106 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    // Coordinate by coordinate check
-    for (let row = 0; row < solutionGrid.length; row++) {
-      for (let col = 0; col < solutionGrid[0].length; col++) {
-        const solutionChar = (solutionGrid[row][col] || "").toUpperCase();
-        const answerChar = (answer[row][col] || "").toUpperCase();
+    // Get all clues (across + down)
+    const allClues: CrosswordClue[] = [
+      ...(content.clues?.across || []),
+      ...(content.clues?.down || []),
+    ];
 
-        // If solution has a character (is part of a word), answer must match
-        if (solutionChar !== "" && solutionChar !== answerChar) {
-          return { isCorrect: false, score: 0 };
+    // If there are no clues, fall back to the old cell-by-cell grading
+    if (allClues.length === 0) {
+      // Coordinate by coordinate check (old behavior)
+      for (let row = 0; row < solutionGrid.length; row++) {
+        for (let col = 0; col < solutionGrid[0].length; col++) {
+          const solutionChar = (solutionGrid[row][col] || "").toUpperCase();
+          const answerChar = (answer[row][col] || "").toUpperCase();
+
+          // If solution has a character (is part of a word), answer must match
+          if (solutionChar !== "" && solutionChar !== answerChar) {
+            return { isCorrect: false, score: 0 };
+          }
         }
+      }
+
+      let scoreAwarded = points;
+      // Add +3 bonus points if completed without jokers
+      if (!usedJokers) {
+        scoreAwarded += 3;
+      }
+
+      return { isCorrect: true, score: scoreAwarded };
+    }
+
+    // NEW BEHAVIOR: Score 3 points per correct guessed word
+    let correctWordCount = 0;
+
+    for (const clue of allClues) {
+      // Extract the word from the player's answer grid based on clue position and direction
+      const word = this.extractWordFromGrid(
+        answer,
+        clue.x,
+        clue.y,
+        clue.direction,
+        clue.answer.length
+      );
+
+      // Compare (case-insensitive)
+      if (word.toUpperCase() === clue.answer.toUpperCase()) {
+        correctWordCount++;
       }
     }
 
-    let scoreAwarded = points;
-    // Add +3 bonus points if completed without jokers
-    if (!usedJokers) {
+    // Calculate score: 3 points per correct word
+    let scoreAwarded = correctWordCount * 3;
+
+    // Check if all words are correct
+    const allCorrect = correctWordCount === allClues.length;
+
+    // Add +3 bonus if all words are correct AND no jokers were used
+    if (allCorrect && !usedJokers) {
       scoreAwarded += 3;
     }
 
-    return { isCorrect: true, score: scoreAwarded };
+    return { isCorrect: allCorrect, score: scoreAwarded };
+  }
+
+  /**
+   * Extracts a word from the grid at the specified position and direction
+   */
+  private extractWordFromGrid(
+    grid: CrosswordAnswer,
+    startX: number,
+    startY: number,
+    direction: "across" | "down",
+    length: number
+  ): string {
+    let word = "";
+
+    for (let i = 0; i < length; i++) {
+      const x = direction === "across" ? startX + i : startX;
+      const y = direction === "down" ? startY + i : startY;
+
+      // Check bounds
+      if (y >= grid.length || x >= grid[0].length) {
+        break;
+      }
+
+      const cell = grid[y][x];
+      if (cell === undefined || cell === null || cell === "") {
+        // Stop at empty cell (black square)
+        break;
+      }
+
+      word += cell;
+    }
+
+    return word;
   }
 
   private gradeFillInTheBlanks(
     content: FillInTheBlanksContent,
     answer: FillInTheBlanksAnswer,
-    points: number
+    _points: number
   ) {
     if (!Array.isArray(answer)) {
       return { isCorrect: false, score: 0 };
@@ -188,7 +273,9 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    // Compare each submitted value against the marked correct option for that blank
+    // Count correct blanks - 1 point per correct blank
+    let correctCount = 0;
+
     for (let i = 0; i < placeholderCount; i++) {
       const blank = content.blanks[i];
       if (!blank) continue;
@@ -199,18 +286,19 @@ export class GradingService {
       const correctVal = correctOption.value.toLowerCase().trim();
       const submittedVal = (answer[i] || "").toLowerCase().trim();
 
-      if (submittedVal !== correctVal) {
-        return { isCorrect: false, score: 0 };
+      if (submittedVal === correctVal) {
+        correctCount++;
       }
     }
 
-    return { isCorrect: true, score: points };
+    const isCorrect = correctCount === placeholderCount;
+    return { isCorrect, score: correctCount };
   }
 
   private gradeMatching(
     content: MatchingContent,
     answer: MatchingAnswer,
-    points: number
+    _points: number
   ) {
     if (!answer || typeof answer !== "object") {
       return { isCorrect: false, score: 0 };
@@ -226,7 +314,8 @@ export class GradingService {
     });
 
     const isCorrect = correctCount === pairs.length;
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // 1 point per correct match
+    return { isCorrect, score: correctCount };
   }
 
   private gradeChronology(
@@ -262,10 +351,11 @@ export class GradingService {
   private gradeTrueFalse(
     content: TrueFalseContent,
     answer: boolean,
-    points: number
+    _points: number
   ) {
     const isCorrect = content.isTrue === answer;
-    return { isCorrect, score: isCorrect ? points : 0 };
+    // Each correct answer scores 1 point
+    return { isCorrect, score: isCorrect ? 1 : 0 };
   }
 
   private gradeCorrectTheError(

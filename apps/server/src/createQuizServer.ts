@@ -278,10 +278,13 @@ export function createQuizServer(
     socket.on("HOST_REVEAL_ANSWER", ({ competitionId }) => {
       if (!competitionId) return;
       gameManager.revealAnswer(competitionId);
+      const state = gameManager.getState(competitionId);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
+        state,
       );
+      // Emit SCORE_UPDATE when revealing answer - scores are now updated
+      io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", state.teams);
     });
 
     socket.on("HOST_NEXT", async ({ competitionId }) => {

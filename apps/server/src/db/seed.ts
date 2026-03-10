@@ -51,7 +51,7 @@ async function seed() {
             roundId: round_1.id,
             questionText: "Попълнете празните места",
             type: "FILL_IN_THE_BLANKS",
-            points: 15,
+            timeLimitSeconds: 20,
             content: {
               text: "Докато Данаил и приятелите му се обучават в(ъв) {0} империя, те отказват да ядат от изрядните ястия на царя и ядат само {1} и пият {2}.",
               blanks: [
@@ -87,25 +87,12 @@ async function seed() {
             roundId: round_1.id,
             questionText: "Свържи героя към историята му",
             type: "MATCHING",
-            points: 20,
+            timeLimitSeconds: 20,
             content: {
               pairs: [
-                {
-                  id: "p1",
-                  left: "Исус",
-                  right: "възкресява синът на вдовицата в Сарепта Сидонска.",
-                },
-                {
-                  id: "p2",
-                  left: "Апостол Павел",
-                  right: "възкресява дъщерята на Яир, началника на синагогата.",
-                },
-                {
-                  id: "p3",
-                  left: "Пророк Илия",
-                  right:
-                    "възкресява момче на име Евтих, което пада от прозореца.",
-                },
+                { id: "p1", left: "Исус", right: "възкресява дъщерята на Яир, началника на синагогата." },
+                { id: "p2", left: "Апостол Павел", right: "възкресява момче на име Евтих, което пада от прозореца." },
+                { id: "p3", left: "Пророк Илия", right: "възкресява синът на вдовицата в Сарепта Сидонска." },
               ],
             },
             section: "Player 1",
@@ -115,6 +102,7 @@ async function seed() {
             questionText:
               "Какво прави пророк Йона, след като рибата го изплюва?",
             type: "MULTIPLE_CHOICE",
+            timeLimitSeconds: 15,
             points: 10,
             content: {
               options: [
@@ -270,6 +258,29 @@ async function seed() {
           {
             roundId: round_3.id,
             questionText:
+              "Order these events in the life of Moses chronologically:",
+            type: "CHRONOLOGY",
+            points: 10,
+            timeLimitSeconds: 45,
+            content: {
+              items: [
+                { id: "j1", text: "Мойсей издига медна змия в пустинята", order: 9 },
+                { id: "j2", text: "Мойсей разделя Червено море", order: 0 },
+                { id: "j3", text: "Мойсей праща съгледвачи в Ханаанската земя", order: 8 },
+                { id: "j4", text: "Мойсей чупи плочите на завета", order: 5 },
+                { id: "j5", text: "Мойсей удря два пъти скалата Мерива при Кадис", order: 6 },
+                { id: "j6", text: "Мириам води народа в песен и танц", order: 1 },
+                { id: "j7", text: "Аарон прави златно теле", order: 4 },
+                { id: "j8", text: "Мойсей се изкачва на планината", order: 3 },
+                { id: "j9", text: "Мириам е прокажена", order: 7 },
+                { id: "j10", text: "Бог дава манна на народа", order: 2 },
+              ],
+            },
+            grading: "AUTO",
+          },
+          {
+            roundId: round_2.id,
+            questionText:
               "Order these events in the life of Joseph chronologically:",
             type: "CHRONOLOGY",
             points: 10,
@@ -327,13 +338,14 @@ async function seed() {
               "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
             points: 10,
-            timeLimitSeconds: 15,
+            timeLimitSeconds: 10,
             content: { isTrue: false },
           },
           {
             roundId: round_4.id,
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
+            timeLimitSeconds: 15,
             points: 10,
             content: {
               options: [

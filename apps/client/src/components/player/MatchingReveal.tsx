@@ -1,7 +1,7 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { CheckCircle, XCircle } from 'lucide-react';
-import type { MatchingContent } from '@quizco/shared';
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { CheckCircle, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import type { MatchingContent } from "@quizco/shared";
 
 interface CardPosition {
   left: number;
@@ -14,29 +14,100 @@ interface CardPosition {
 interface MatchingRevealProps {
   content: MatchingContent;
   lastAnswer: Record<string, string> | null;
-  revealPositions: {
-    left: Record<string, CardPosition>;
-    right: Record<string, CardPosition>;
-  };
-  revealLeftRefs: React.MutableRefObject<Record<string, HTMLDivElement>>;
-  revealRightRefs: React.MutableRefObject<Record<string, HTMLDivElement>>;
-  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
+/**
+ * Reveal component for MATCHING questions.
+ * Shows cards with SVG arrows connecting matches.
+ * Green = correct match, Red = incorrect match.
+ * Includes positioning logic to draw arrows between cards.
+ */
 export const MatchingReveal: React.FC<MatchingRevealProps> = ({
   content,
   lastAnswer,
-  revealPositions,
-  revealLeftRefs,
-  revealRightRefs,
-  containerRef,
 }) => {
   const { t } = useTranslation();
 
-  if (!lastAnswer || typeof lastAnswer !== "object" || Object.keys(lastAnswer).length === 0) {
+  const [positions, setPositions] = useState<{
+    left: Record<string, CardPosition>;
+    right: Record<string, CardPosition>;
+  }>({ left: {}, right: {} });
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const leftRefs = useRef<Record<string, HTMLDivElement>>({});
+  const rightRefs = useRef<Record<string, HTMLDivElement>>({});
+
+  const updatePositions = useCallback(() => {
+    if (!containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newPositions = {
+      left: {} as Record<string, CardPosition>,
+      right: {} as Record<string, CardPosition>,
+    };
+
+    const leftItems = content.pairs.map((p) => ({ id: p.id, text: p.left }));
+    const rightItems = content.pairs.map((p) => p.right);
+
+    leftItems.forEach((item) => {
+      const el = leftRefs.current[item.id];
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        newPositions.left[item.id] = {
+          left: rect.left - containerRect.left,
+          right: rect.right - containerRect.left,
+          top: rect.top - containerRect.top,
+          bottom: rect.bottom - containerRect.top,
+          centerY: (rect.top + rect.bottom) / 2 - containerRect.top,
+        };
+      }
+    });
+
+    rightItems.forEach((text) => {
+      const el = rightRefs.current[text];
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        newPositions.right[text] = {
+          left: rect.left - containerRect.left,
+          right: rect.right - containerRect.left,
+          top: rect.top - containerRect.top,
+          bottom: rect.bottom - containerRect.top,
+          centerY: (rect.top + rect.bottom) / 2 - containerRect.top,
+        };
+      }
+    });
+
+    setPositions(newPositions);
+  }, [content]);
+
+  // Update positions on mount and resize
+  useEffect(() => {
+    const timer = setTimeout(updatePositions, 100);
+    const handleResize = () => updatePositions();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [updatePositions]);
+
+  // Also update when lastAnswer changes (to ensure positions are correct after state updates)
+  useEffect(() => {
+    const timer = setTimeout(updatePositions, 100);
+    return () => clearTimeout(timer);
+  }, [lastAnswer, updatePositions]);
+
+  if (
+    !lastAnswer ||
+    typeof lastAnswer !== "object" ||
+    Object.keys(lastAnswer).length === 0
+  ) {
     return (
       <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
-        <p className="text-gray-500 text-center font-medium">{t("player.no_answer_submitted")}</p>
+        <p className="text-gray-500 text-center font-medium">
+          {t("player.no_answer_submitted")}
+        </p>
       </div>
     );
   }
@@ -69,8 +140,8 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
 
             if (!userRightText) return null;
 
-            const leftPos = revealPositions.left[leftItem.id];
-            const rightPos = revealPositions.right[userRightText];
+            const leftPos = positions.left[leftItem.id];
+            const rightPos = positions.right[userRightText];
 
             if (!leftPos || !rightPos) return null;
 
@@ -109,7 +180,10 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
         </svg>
 
         {/* Cards grid - positioned above SVG */}
-        <div className="grid grid-cols-2 gap-16 relative" style={{ zIndex: 1 }}>
+        <div
+          className="grid grid-cols-2 gap-16 relative"
+          style={{ zIndex: 1 }}
+        >
           {/* Left side cards */}
           <div className="space-y-4">
             {leftItems.map((item) => {
@@ -117,11 +191,14 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
               const correctRightText = correctMatches[item.id];
               const isCorrect = userRightText === correctRightText;
 
-              let cardClass = "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all flex items-center justify-between ";
+              let cardClass =
+                "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all flex items-center justify-between ";
               if (isCorrect) {
-                cardClass += "bg-green-50 border-green-500 text-green-900 shadow-md";
+                cardClass +=
+                  "bg-green-50 border-green-500 text-green-900 shadow-md";
               } else if (userRightText) {
-                cardClass += "bg-red-50 border-red-500 text-red-900 shadow-md";
+                cardClass +=
+                  "bg-red-50 border-red-500 text-red-900 shadow-md";
               } else {
                 cardClass += "bg-gray-50 border-gray-200 text-gray-500";
               }
@@ -129,17 +206,18 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
               return (
                 <div
                   key={item.id}
-                  ref={(el) => { if (el) revealLeftRefs.current[item.id] = el; }}
+                  ref={(el) => {
+                    if (el) leftRefs.current[item.id] = el;
+                  }}
                   className={cardClass}
                 >
                   <span>{item.text}</span>
-                  {userRightText && (
-                    isCorrect ? (
+                  {userRightText &&
+                    (isCorrect ? (
                       <CheckCircle className="w-6 h-6 text-green-600" />
                     ) : (
                       <XCircle className="w-6 h-6 text-red-600" />
-                    )
-                  )}
+                    ))}
                 </div>
               );
             })}
@@ -153,14 +231,18 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
                 (key) => lastAnswer[key] === text
               );
               const isMatched = !!connectedLeftId;
-              const isCorrect = isMatched && lastAnswer[connectedLeftId] === correctMatches[connectedLeftId];
+              const isCorrect =
+                isMatched && lastAnswer[connectedLeftId] === correctMatches[connectedLeftId];
 
-              let cardClass = "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all ";
+              let cardClass =
+                "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all ";
               if (isMatched) {
                 if (isCorrect) {
-                  cardClass += "bg-green-50 border-green-500 text-green-900 shadow-md";
+                  cardClass +=
+                    "bg-green-50 border-green-500 text-green-900 shadow-md";
                 } else {
-                  cardClass += "bg-red-50 border-red-500 text-red-900 shadow-md";
+                  cardClass +=
+                    "bg-red-50 border-red-500 text-red-900 shadow-md";
                 }
               } else {
                 cardClass += "bg-gray-50 border-gray-200 text-gray-400";
@@ -169,7 +251,9 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
               return (
                 <div
                   key={text}
-                  ref={(el) => { if (el) revealRightRefs.current[text] = el; }}
+                  ref={(el) => {
+                    if (el) rightRefs.current[text] = el;
+                  }}
                   className={cardClass}
                 >
                   <span>{text}</span>
@@ -181,7 +265,9 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
 
         {/* Show correct answers summary */}
         <div className="mt-6 p-4 bg-gray-50 rounded-2xl">
-          <p className="text-sm font-bold text-gray-600 mb-2">{t('player.correct_answer')}:</p>
+          <p className="text-sm font-bold text-gray-600 mb-2">
+            {t("player.correct_answer")}:
+          </p>
           <div className="flex flex-wrap gap-2">
             {content.pairs.map((pair) => (
               <span
