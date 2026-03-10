@@ -16,7 +16,7 @@ import { MatchingReveal } from "./player/MatchingReveal";
 import { FillInTheBlanksReveal } from "./player/FillInTheBlanksReveal";
 import { CrosswordReveal } from "./player/CrosswordReveal";
 import { DefaultReveal } from "./player/DefaultReveal";
-import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
+import { CorrectTheErrorReveal, calculatePartialScore } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
@@ -757,7 +757,34 @@ export const PlayerView: React.FC = () => {
                   <Info className="w-6 h-6" />
                   <span className="font-bold uppercase tracking-widest text-sm">{t("player.reveal_phase")}</span>
                 </div>
-                {getGradingStatus() === true ? (
+                {state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
+                  // Special handling for CORRECT_THE_ERROR to show partial score
+                  (() => {
+                    const cteContent = state.currentQuestion!.content as CorrectTheErrorContent;
+                    const teamAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer as { selectedPhraseIndex: number; correction: string } | null;
+                    const partialScore = calculatePartialScore(cteContent, teamAnswer);
+                    
+                    if (partialScore === 2) {
+                      return (
+                        <Badge variant="green">
+                          <CheckCircle className="w-4 h-4 mr-2" /> 2/2
+                        </Badge>
+                      );
+                    } else if (partialScore === 1) {
+                      return (
+                        <Badge variant="yellow">
+                          <CheckCircle className="w-4 h-4 mr-2" /> 1/2
+                        </Badge>
+                      );
+                    } else {
+                      return (
+                        <Badge variant="red">
+                          <XCircle className="w-4 h-4 mr-2" /> 0/2
+                        </Badge>
+                      );
+                    }
+                  })()
+                ) : getGradingStatus() === true ? (
                   <Badge variant="green">
                     <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
                   </Badge>
