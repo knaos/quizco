@@ -131,7 +131,7 @@ export const PlayerView: React.FC = () => {
       setSelectedIndices([]);
       setSubmissionStatus("idle");
     }
-  }, [state.currentQuestion?.id]);
+  }, [state.currentQuestion]);
 
   const handleSelectCompetition = (id: string) => {
     setSelectedCompId(id);
