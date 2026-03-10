@@ -195,23 +195,37 @@ export function createQuizServer(
 
     socket.on(
       "SUBMIT_ANSWER",
-      async ({ competitionId, teamId, questionId, answer }, callback) => {
+      async (
+        { competitionId, teamId, questionId, answer, isFinal },
+        callback,
+      ) => {
         if (!competitionId) {
           callback?.({ success: false, error: "Missing competitionId" });
           return;
         }
         try {
-          await gameManager.submitAnswer(
+          const submitResult = await gameManager.submitAnswer(
             competitionId,
             teamId,
             questionId,
             answer,
+            isFinal,
           );
+
+          if (!submitResult.accepted) {
+            callback?.({ success: false, error: submitResult.reason });
+            return;
+          }
+
           const state = gameManager.getState(competitionId);
           const room = `competition_${competitionId}`;
-          // Only emit GAME_STATE_SYNC, not SCORE_UPDATE - scores update when answer is revealed
-          io.to(room).emit("GAME_STATE_SYNC", state);
-          callback?.({ success: true });
+          if (submitResult.questionEnded) {
+            io.to(room).emit("GAME_STATE_SYNC", state);
+            io.to(room).emit("SCORE_UPDATE", state.teams);
+          } else if (isFinal) {
+            io.to(room).emit("GAME_STATE_SYNC", state);
+          }
+          callback?.({ success: true, questionEnded: submitResult.questionEnded });
         } catch (err) {
           console.error("Error submitting answer:", err);
           callback?.({ success: false, error: (err as Error).message });

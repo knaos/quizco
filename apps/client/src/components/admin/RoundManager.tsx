@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Edit2, ArrowUp, ArrowDown, ChevronDown, ChevronUp } from "lucide-react";
 import type { Round, Question } from "@quizco/shared";
+import Button from "../ui/Button";
+import { Card, CardHeader, CardContent } from "../ui/Card";
+import Badge from "../ui/Badge";
 
 interface RoundManagerProps {
   rounds: Round[];
@@ -36,62 +39,67 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-800">Rounds</h2>
-        <button
+        <h2 className="text-2xl font-black text-gray-800 tracking-tight">Rounds</h2>
+        <Button
           onClick={onCreateRound}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center font-semibold transition"
+          variant="success"
         >
           <Plus className="mr-2 w-5 h-5" /> Add Round
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-4">
         {rounds.map((round, index) => (
-          <div
+          <Card
             key={round.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+            className="overflow-hidden"
           >
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <CardHeader className="bg-gray-50 flex flex-row justify-between items-center py-4">
               <div className="flex items-center space-x-4">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => toggleRound(round.id)}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition"
+                  className="p-1"
                 >
                   {expandedRounds[round.id] ? <ChevronUp /> : <ChevronDown />}
-                </button>
+                </Button>
                 <div>
                   <h3 className="font-bold text-gray-800">
                     {index + 1}. {round.title}
                   </h3>
-                  <span className="text-[10px] font-black uppercase bg-gray-200 text-gray-600 px-2 py-0.5 rounded ml-2">
+                  <Badge variant="gray" className="text-[10px] ml-2">
                     {round.type}
-                  </span>
+                  </Badge>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => onReorderRound(round.id, "up")}
                   disabled={index === 0}
-                  className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                  className="p-1 text-gray-400 hover:text-blue-600"
                 >
                   <ArrowUp className="w-4 h-4" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => onReorderRound(round.id, "down")}
                   disabled={index === rounds.length - 1}
-                  className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                  className="p-1 text-gray-400 hover:text-blue-600"
                 >
                   <ArrowDown className="w-4 h-4" />
-                </button>
+                </Button>
                 <div className="w-px h-4 bg-gray-200 mx-2" />
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => onEditRound(round)}
                   className="p-1 text-gray-400 hover:text-blue-600"
                 >
                   <Edit2 className="w-4 h-4" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     if (confirm("Delete this round and all its questions?")) {
                       onDeleteRound(round.id);
@@ -100,12 +108,12 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                   className="p-1 text-gray-400 hover:text-red-600"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
-            </div>
+            </CardHeader>
 
             {expandedRounds[round.id] && (
-              <div className="p-6 bg-white animate-in slide-in-from-top-2 duration-200">
+              <CardContent className="animate-in slide-in-from-top-2 duration-200">
                 <div className="space-y-3 mb-6">
                   {questionsByRound[round.id]?.map((q, qIndex) => (
                     <div
@@ -167,15 +175,16 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                     </p>
                   )}
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => onCreateQuestion(round.id)}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-bold flex items-center transition"
+                  className="text-sm text-blue-600 p-0 hover:bg-transparent hover:underline"
                 >
                   <Plus className="w-4 h-4 mr-1" /> Add Question
-                </button>
-              </div>
+                </Button>
+              </CardContent>
             )}
-          </div>
+          </Card>
         ))}
         {rounds.length === 0 && (
           <div className="text-center py-12 text-gray-400 bg-white rounded-xl border-2 border-dashed">

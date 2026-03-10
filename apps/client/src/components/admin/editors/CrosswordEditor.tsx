@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import type { CrosswordClue } from "@quizco/shared";
 import { CrosswordPlayer } from "../../player/CrosswordPlayer";
 import { CrosswordClueEditor } from "./CrosswordClueEditor";
+import { Card } from "../../ui/Card";
 
 interface CrosswordEditorProps {
   content: {
@@ -114,8 +115,8 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
           onRemove={(i) => removeClue("down", i)}
         />
       </div>
-      <div className="bg-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[300px]">
-        <span className="text-xs font-bold text-gray-400 uppercase mb-4">Live Preview</span>
+      <Card variant="flat" className="p-4 flex flex-col items-center justify-center min-h-[300px]">
+        <span className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Live Preview</span>
         <div className="w-full h-full max-h-[400px] overflow-auto">
           {crosswordData && crosswordData.grid.length > 0 && crosswordData.grid[0].length > 0 ? (
             <CrosswordPlayer key={previewKey} data={crosswordData} />
@@ -123,7 +124,7 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
             <p className="text-gray-400 italic text-sm">Add clues to see preview</p>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

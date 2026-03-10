@@ -310,7 +310,14 @@ describe("GradingService", () => {
       type: "CORRECT_THE_ERROR",
       content: {
         text: "Jesus was born in Nazareth.",
-        phrases: ["Jesus", "was born", "in Nazareth"],
+        phrases: [
+          { text: "Jesus", alternatives: ["Peter", "John", "Paul"] },
+          { text: "was born", alternatives: ["died", "lived", "preached"] },
+          {
+            text: "in Nazareth",
+            alternatives: ["in Bethlehem", "in Jerusalem", "in Egypt"],
+          },
+        ],
         errorPhraseIndex: 2,
         correctReplacement: "in Bethlehem",
       },

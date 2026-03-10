@@ -89,6 +89,12 @@
 - [x] Implement "Streak Bonus" logic (5-6: +1, 7-9: +2, 10: +3).
 - [x] Support `CORRECT_THE_ERROR` question type.
 
+### Iteration 5: Unified Partial Submissions & Final Grading
+
+- [x] Partial Submissions for all question types.
+- [x] Unified Grading at the end of `QUESTION_ACTIVE` phase.
+- [x] Explicit Submission with "Waiting for host" screen.
+
 ### Iteration 4: Round 4 ("Final" - Crossword)
 
 - [x] Implement "Joker" mechanic (-2 points for revealed letter).

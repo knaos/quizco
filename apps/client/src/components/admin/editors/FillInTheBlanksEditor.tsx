@@ -1,6 +1,9 @@
 import React from "react";
 import { Plus, Trash2, CheckCircle2, Circle } from "lucide-react";
 import type { FillInTheBlanksContent } from "@quizco/shared";
+import Button from "../../ui/Button";
+import Input, { TextArea } from "../../ui/Input";
+import { Card } from "../../ui/Card";
 
 interface FillInTheBlanksEditorProps {
   content: FillInTheBlanksContent;
@@ -67,17 +70,12 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
 
   return (
     <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Text with placeholders (e.g., "The {0} is {1}.")
-        </label>
-        <textarea
-          value={content.text}
-          onChange={(e) => updateText(e.target.value)}
-          className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
-          rows={3}
-        />
-      </div>
+      <TextArea
+        label='Text with placeholders (e.g., "The {0} is {1}.")'
+        value={content.text}
+        onChange={(e) => updateText(e.target.value)}
+        rows={3}
+      />
 
       <div className="flex items-center gap-3">
         <input
@@ -93,11 +91,11 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
       </div>
 
       <div className="space-y-6">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">
           Blanks Configuration
         </label>
         {content.blanks.map((blank, bIdx) => (
-          <div key={bIdx} className="space-y-3 p-5 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm">
+          <Card key={bIdx} variant="flat" className="space-y-3 p-5">
             <div className="flex items-center justify-between">
               <span className="font-mono text-blue-600 font-black text-lg">{`Placeholder {${bIdx}}`}</span>
               <span className="text-xs font-bold uppercase text-gray-400">Options for this blank</span>
@@ -106,40 +104,43 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
             <div className="space-y-2">
               {blank.options.map((option, oIdx) => (
                 <div key={oIdx} className="flex items-center space-x-3">
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setCorrect(bIdx, oIdx)}
-                    className={`transition-colors ${option.isCorrect ? 'text-green-500' : 'text-gray-300 hover:text-green-200'}`}
+                    className={`p-0 hover:bg-transparent transition-colors ${option.isCorrect ? 'text-green-500' : 'text-gray-300 hover:text-green-200'}`}
                   >
                     {option.isCorrect ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
-                  </button>
-                  <input
+                  </Button>
+                  <Input
                     type="text"
                     value={option.value}
                     onChange={(e) => updateOption(bIdx, oIdx, e.target.value)}
-                    className="flex-1 p-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none font-medium"
+                    className="flex-1 py-2 text-base"
                     placeholder={`Option ${oIdx + 1}`}
                   />
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => removeOption(bIdx, oIdx)}
                     disabled={blank.options.length <= 1}
-                    className="p-2 text-gray-300 hover:text-red-500 disabled:opacity-0 transition-colors"
+                    className="p-2 text-gray-300 hover:text-red-500 disabled:opacity-0"
                   >
                     <Trash2 className="w-5 h-5" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
 
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => addOption(bIdx)}
-              className="text-blue-600 font-bold flex items-center hover:underline text-sm mt-2"
+              className="text-blue-600 p-0 hover:bg-transparent hover:underline text-sm mt-2"
             >
               <Plus className="w-4 h-4 mr-1" /> Add Option
-            </button>
-          </div>
+            </Button>
+          </Card>
         ))}
 
         {content.blanks.length === 0 && (

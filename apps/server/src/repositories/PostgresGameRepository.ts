@@ -39,6 +39,7 @@ export class PostgresGameRepository implements IGameRepository {
       streak: dbTeam.streak,
       lastAnswerCorrect: null,
       lastAnswer: null,
+      isExplicitlySubmitted: false,
       isConnected: false,
     };
   }
@@ -96,6 +97,7 @@ export class PostgresGameRepository implements IGameRepository {
       streak: dbTeam.streak,
       lastAnswerCorrect: null,
       lastAnswer: null,
+      isExplicitlySubmitted: false,
       isConnected: false,
     };
   }
@@ -173,14 +175,26 @@ export class PostgresGameRepository implements IGameRepository {
     isCorrect: boolean | null,
     scoreAwarded: number,
   ): Promise<any> {
-    return prisma.answer.create({
-      data: {
-        teamId: teamId,
-        questionId: questionId,
-        roundId: roundId,
-        submittedContent: submittedContent,
-        isCorrect: isCorrect,
-        scoreAwarded: scoreAwarded,
+    return prisma.answer.upsert({
+      where: {
+        teamId_questionId: {
+          teamId,
+          questionId,
+        },
+      },
+      update: {
+        submittedContent,
+        isCorrect,
+        scoreAwarded,
+        submittedAt: new Date(),
+      },
+      create: {
+        teamId,
+        questionId,
+        roundId,
+        submittedContent,
+        isCorrect,
+        scoreAwarded,
       },
     });
   }
@@ -219,10 +233,10 @@ export class PostgresGameRepository implements IGameRepository {
         isCorrect: null,
         ...(competitionId
           ? {
-            round: {
-              competitionId: competitionId,
-            },
-          }
+              round: {
+                competitionId: competitionId,
+              },
+            }
           : {}),
       },
       include: {

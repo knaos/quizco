@@ -2,6 +2,8 @@ import React from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { MatchingContent, MatchingPair } from "@quizco/shared";
 import { v4 as uuidv4 } from "uuid";
+import Button from "../../ui/Button";
+import Input from "../../ui/Input";
 
 interface MatchingEditorProps {
   content: MatchingContent;
@@ -49,36 +51,36 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
       
       {content.pairs.map((pair) => (
         <div key={pair.id} className="flex items-center space-x-3">
-          <input
+          <Input
             type="text"
             value={pair.left}
             onChange={(e) => updatePair(pair.id, "left", e.target.value)}
-            className="flex-1 p-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none"
             placeholder="Left item"
           />
           <span className="text-gray-400">↔</span>
-          <input
+          <Input
             type="text"
             value={pair.right}
             onChange={(e) => updatePair(pair.id, "right", e.target.value)}
-            className="flex-1 p-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none"
             placeholder="Right item"
           />
-          <button
+          <Button
+            variant="ghost"
             onClick={() => removePair(pair.id)}
-            className="p-2 text-gray-400 hover:text-red-500 transition"
+            className="p-2"
           >
-            <Trash2 className="w-5 h-5" />
-          </button>
+            <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-500" />
+          </Button>
         </div>
       ))}
 
-      <button
+      <Button
+        variant="ghost"
         onClick={addPair}
-        className="text-blue-600 font-bold flex items-center hover:underline"
+        className="text-blue-600 p-0 hover:bg-transparent hover:underline"
       >
         <Plus className="w-4 h-4 mr-1" /> Add Pair
-      </button>
+      </Button>
     </div>
   );
 };

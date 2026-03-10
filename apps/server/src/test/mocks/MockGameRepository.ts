@@ -22,6 +22,7 @@ export class MockGameRepository implements IGameRepository {
         streak: 0,
         lastAnswerCorrect: null,
         lastAnswer: null,
+        isExplicitlySubmitted: false,
         isConnected: false,
       };
       this.teams.push(team);
@@ -84,16 +85,25 @@ export class MockGameRepository implements IGameRepository {
     isCorrect: boolean | null,
     scoreAwarded: number,
   ): Promise<any> {
-    const answer = {
-      id: uuidv4(),
-      teamId: teamId,
-      questionId: questionId,
-      roundId: roundId,
-      submittedContent: submittedContent,
-      isCorrect: isCorrect,
-      scoreAwarded: scoreAwarded,
-    };
-    this.answers.push(answer);
+    let answer = this.answers.find(
+      (a) => a.teamId === teamId && a.questionId === questionId,
+    );
+    if (answer) {
+      answer.submittedContent = submittedContent;
+      answer.isCorrect = isCorrect;
+      answer.scoreAwarded = scoreAwarded;
+    } else {
+      answer = {
+        id: uuidv4(),
+        teamId: teamId,
+        questionId: questionId,
+        roundId: roundId,
+        submittedContent: submittedContent,
+        isCorrect: isCorrect,
+        scoreAwarded: scoreAwarded,
+      };
+      this.answers.push(answer);
+    }
     return answer;
   }
 

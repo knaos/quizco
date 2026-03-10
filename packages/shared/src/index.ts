@@ -115,11 +115,16 @@ export interface TrueFalseContent {
   isTrue: boolean;
 }
 
-export interface CorrectTheErrorContent {
+export interface CorrectTheErrorPhrase {
   text: string;
-  phrases: string[];
+  alternatives: string[]; // Exactly 3
+}
+
+export interface CorrectTheErrorContent {
+  text: string; // The full sentence for display/reference
+  phrases: CorrectTheErrorPhrase[]; // 1 to 4 phrases
   errorPhraseIndex: number;
-  correctReplacement: string;
+  correctReplacement: string; // The correct alternative for the error phrase
 }
 
 export type QuestionContent =
@@ -224,6 +229,7 @@ export interface Team {
   streak: number;
   lastAnswerCorrect: boolean | null;
   lastAnswer: AnswerContent | null;
+  isExplicitlySubmitted: boolean;
   isConnected: boolean;
 }
 
@@ -249,11 +255,7 @@ export interface SocketEvents {
     teamId: string;
     questionId: string;
     answer: AnswerContent;
-  }) => void;
-  CROSSWORD_PROGRESS: (payload: {
-    competitionId: string;
-    questionId: string;
-    progress: CrosswordGridState;
+    isFinal?: boolean;
   }) => void;
   REQUEST_JOKER: (payload: {
     competitionId: string;

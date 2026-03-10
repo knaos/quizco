@@ -25,6 +25,15 @@ When adding new question types:
 
 ## Completed Iterations
 
+### Iteration 5: Unified Partial Submissions & Final Grading
+
+- **Partial Submissions:** Every answer modification is now sent to the server and stored in the database immediately.
+- **Unified Grading:** Grading is now performed exclusively at the end of the `QUESTION_ACTIVE` phase (when the timer runs out or all teams explicitly submit).
+- **Explicit Submission:** Added "Submit" buttons for all question types. Clicking them transitions the player to a "Waiting for host" view.
+- **Race Condition Prevention:** Unified `SUBMIT_ANSWER` event with `isFinal` flag ensures the latest answer is always graded.
+- **Crossword Sync:** Crossword progress is now unified under the `SUBMIT_ANSWER` event.
+- **Technical Improvements:** `saveAnswer` now uses `upsert` to maintain only one answer record per team per question.
+
 ### Iteration 4: Crossword Joker (Round 4)
 
 - **Joker Mechanic:** Players can request one letter reveal at -2 points cost

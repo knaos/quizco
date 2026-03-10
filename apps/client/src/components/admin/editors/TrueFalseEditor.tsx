@@ -1,6 +1,7 @@
 import React from "react";
 import type { TrueFalseContent } from "@quizco/shared";
 import { useTranslation } from "react-i18next";
+import Button from "../../ui/Button";
 
 interface TrueFalseEditorProps {
   content: TrueFalseContent;
@@ -21,16 +22,13 @@ const TrueFalseEditor: React.FC<TrueFalseEditorProps> = ({
     <div className="space-y-4">
       <div className="flex items-center space-x-4">
         <span className="font-medium text-lg">{t("admin.correct_answer")}:</span>
-        <button
+        <Button
           onClick={toggleAnswer}
-          className={`px-6 py-2 rounded-full font-bold transition-colors ${
-            content.isTrue
-              ? "bg-green-500 text-white"
-              : "bg-red-500 text-white"
-          }`}
+          variant={content.isTrue ? "success" : "danger"}
+          className="rounded-full"
         >
           {content.isTrue ? t("game.true") : t("game.false")}
-        </button>
+        </Button>
       </div>
       <p className="text-sm text-gray-500 italic">
         {t("admin.true_false_hint")}

@@ -184,4 +184,55 @@ describe("Game Loop E2E (Decoupled)", () => {
     expect(team1?.lastAnswerCorrect).toBe(true);
     expect(team2?.lastAnswerCorrect).toBe(false);
   });
+
+  it("should reject SUBMIT_ANSWER for unknown team and return failure callback", async () => {
+    const rejectCompetitionId = "test-competition-reject";
+    hostSocket.emit("HOST_JOIN_ROOM", { competitionId: rejectCompetitionId });
+
+    await new Promise<void>((resolve) => {
+      player1Socket.emit(
+        "JOIN_ROOM",
+        { competitionId: rejectCompetitionId, teamName: "Team 1", color: "red" },
+        () => resolve(),
+      );
+    });
+
+    hostSocket.emit("HOST_START_QUESTION", { competitionId: rejectCompetitionId, questionId: "q1" });
+
+    await new Promise<void>((resolve) => {
+      player1Socket.on("GAME_STATE_SYNC", (syncState) => {
+        if (syncState.phase === "QUESTION_PREVIEW") {
+          resolve();
+        }
+      });
+    });
+
+    hostSocket.emit("HOST_START_TIMER", { competitionId: rejectCompetitionId });
+
+    await new Promise<void>((resolve) => {
+      player1Socket.on("GAME_STATE_SYNC", (syncState) => {
+        if (syncState.phase === "QUESTION_ACTIVE") {
+          resolve();
+        }
+      });
+    });
+
+    const callbackResponse = await new Promise<{ success: boolean; error?: string }>((resolve) => {
+      player1Socket.emit(
+        "SUBMIT_ANSWER",
+        {
+          competitionId: rejectCompetitionId,
+          teamId: "00000000-0000-0000-0000-000000000000",
+          questionId: "q1",
+          answer: [1],
+          isFinal: true,
+        },
+        (res: { success: boolean; error?: string }) => resolve(res),
+      );
+    });
+
+    expect(callbackResponse.success).toBe(false);
+    expect(callbackResponse.error).toBe("TEAM_NOT_FOUND");
+    expect(mockRepository.answers).toHaveLength(0);
+  });
 });
