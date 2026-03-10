@@ -1,30 +1,55 @@
 {
-  "f71dfebf-f5fe-410a-bcc0-89cdc9bee966": {
-    "phase": "QUESTION_ACTIVE",
+  "test-competition-id": {
+    "phase": "GRADING",
     "currentQuestion": {
-      "id": "5db773d0-8b1f-4448-a85f-8a78233ed5d5",
-      "roundId": "5dec0706-ea6b-4e44-9a60-4af6f2f9a6df",
-      "questionText": "Q1",
-      "type": "CLOSED",
+      "id": "q1",
+      "roundId": "r1",
+      "questionText": "What is 1+1?",
+      "type": "MULTIPLE_CHOICE",
       "points": 10,
-      "timeLimitSeconds": 15,
+      "timeLimitSeconds": 2,
       "content": {
         "options": [
-          "Ans"
+          "1",
+          "2"
+        ],
+        "correctIndices": [
+          1
         ]
       },
-      "grading": "AUTO",
-      "round": {
-        "id": "5dec0706-ea6b-4e44-9a60-4af6f2f9a6df",
-        "competitionId": "f71dfebf-f5fe-410a-bcc0-89cdc9bee966",
-        "orderIndex": 1,
-        "type": "STANDARD",
-        "title": "R1",
-        "createdAt": "2026-01-17T15:14:06.328Z"
-      }
+      "grading": "AUTO"
     },
-    "timeRemaining": 15,
-    "teams": [],
-    "revealStep": 0
+    "timeRemaining": 0,
+    "teams": [
+      {
+        "id": "2c9b763d-8f15-4ea1-9034-7a128084dd63",
+        "name": "Team 1",
+        "color": "red",
+        "score": 10,
+        "streak": 1,
+        "lastAnswerCorrect": true,
+        "lastAnswer": [
+          1
+        ],
+        "isExplicitlySubmitted": false,
+        "isConnected": true
+      },
+      {
+        "id": "9d67bd19-e846-47f5-99e2-9776330755c6",
+        "name": "Team 2",
+        "color": "blue",
+        "score": 0,
+        "streak": 0,
+        "lastAnswerCorrect": false,
+        "lastAnswer": [
+          0
+        ],
+        "isExplicitlySubmitted": false,
+        "isConnected": true
+      }
+    ],
+    "revealStep": 0,
+    "timerPaused": false,
+    "metadata": {}
   }
 }

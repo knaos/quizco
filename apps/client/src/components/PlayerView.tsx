@@ -48,9 +48,10 @@ export const PlayerView: React.FC = () => {
   const [joined, setJoined] = useState(false);
   const [answer, setAnswer] = useState<AnswerContent>("");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const [submitted, setSubmitted] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<"idle" | "success" | "error">("idle");
   const [isReconnecting, setIsReconnecting] = useState(true);
+  const lastQuestionIdRef = useRef<string | null>(null);
+  const lastPartialSubmissionKeyRef = useRef<string | null>(null);
 
   // State and Refs for the revealing phase of question type "MATCHING"
   const [matchingRevealPositions, setMatchingRevealPositions] = useState<{
@@ -63,7 +64,7 @@ export const PlayerView: React.FC = () => {
 
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   const currentTeam = state.teams.find(t => t.id === teamId);
-  const hasSubmitted = submitted || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined);
+  const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
 
   // Fetch active competitions if none selected
   React.useEffect(() => {
@@ -106,7 +107,10 @@ export const PlayerView: React.FC = () => {
   React.useEffect(() => {
     document.title = "BC Player";
 
-    if (state.currentQuestion) {
+    if (state.currentQuestion && state.currentQuestion.id !== lastQuestionIdRef.current) {
+      lastQuestionIdRef.current = state.currentQuestion.id;
+      lastPartialSubmissionKeyRef.current = null;
+
       if (state.currentQuestion.type === "FILL_IN_THE_BLANKS") {
         setAnswer([]);
       } else if (state.currentQuestion.type === "MATCHING") {
@@ -118,14 +122,16 @@ export const PlayerView: React.FC = () => {
         setAnswer(null as unknown as boolean); // Use null to indicate no selection yet
       } else if (state.currentQuestion.type === "CORRECT_THE_ERROR") {
         setAnswer({ selectedPhraseIndex: -1, correction: "" });
+      } else if (state.currentQuestion.type === "CROSSWORD") {
+        const grid = (state.currentQuestion.content as CrosswordContent).grid;
+        setAnswer(grid.map(row => row.map(() => "")));
       } else {
         setAnswer("");
       }
       setSelectedIndices([]);
-      setSubmitted(false);
       setSubmissionStatus("idle");
     }
-  }, [state.currentQuestion]);
+  }, [state.currentQuestion?.id]);
 
   const handleSelectCompetition = (id: string) => {
     setSelectedCompId(id);
@@ -159,7 +165,7 @@ export const PlayerView: React.FC = () => {
     return state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   }, [state.teams, teamName]);
 
-  const submitAnswer = (value: AnswerContent) => {
+  const submitAnswer = useCallback((value: AnswerContent, isFinal: boolean = false) => {
     if (!state.currentQuestion || !selectedCompId) {
       console.error("Submission attempted without active question or competition", {
         question: state.currentQuestion,
@@ -176,21 +182,29 @@ export const PlayerView: React.FC = () => {
       return;
     }
 
+    if (!isFinal) {
+      const partialKey = `${state.currentQuestion.id}:${JSON.stringify(value)}`;
+      if (partialKey === lastPartialSubmissionKeyRef.current) {
+        return;
+      }
+      lastPartialSubmissionKeyRef.current = partialKey;
+    }
+
     socket.emit("SUBMIT_ANSWER", {
       competitionId: selectedCompId,
       teamId,
       questionId: state.currentQuestion.id,
-      answer: value
+      answer: value,
+      isFinal
     }, (res?: { success: boolean }) => {
       if (res && res.success) {
-        setSubmissionStatus("success");
+        if (isFinal) setSubmissionStatus("success");
       } else {
-        setSubmissionStatus("error");
+        if (isFinal) setSubmissionStatus("error");
       }
     });
 
-    setSubmitted(true);
-  };
+  }, [selectedCompId, state.currentQuestion, getTeamId, t]);
 
   const toggleIndex = (index: number) => {
     if (hasSubmitted) return;
@@ -199,48 +213,34 @@ export const PlayerView: React.FC = () => {
     const content = state.currentQuestion?.content as MultipleChoiceContent;
     const isSingleChoice = isMultipleChoice && content?.correctIndices?.length === 1;
 
-    setSelectedIndices(prev => {
-      if (prev.includes(index)) {
-        return prev.filter(i => i !== index);
-      }
-      if (isSingleChoice) {
-        return [index];
-      }
-      return [...prev, index];
-    });
+    let newIndices: number[];
+    if (selectedIndices.includes(index)) {
+      newIndices = selectedIndices.filter(i => i !== index);
+    } else if (isSingleChoice) {
+      newIndices = [index];
+    } else {
+      newIndices = [...selectedIndices, index];
+    }
+
+    setSelectedIndices(newIndices);
+    submitAnswer(newIndices, false);
   };
 
-  // Auto-submit on timer end or phase change
+  // Partial sync for other question types
   React.useEffect(() => {
-    if (state.phase === "GRADING" && joined && !hasSubmitted && answer !== "" && answer !== null && answer !== undefined) {
-      // Don't auto-submit if it's just an empty/initial state for certain types
-      if (state.currentQuestion?.type === "CORRECT_THE_ERROR") {
-        const cteAnswer = answer as CorrectTheErrorAnswer;
-        // Auto-submit if at least a phrase is selected, even if correction is missing
-        if (cteAnswer.selectedPhraseIndex !== -1) {
-          submitAnswer(answer);
-        }
-      } else if (state.currentQuestion?.type === "FILL_IN_THE_BLANKS") {
-        if (Array.isArray(answer) && answer.length > 0 && answer.some(a => a !== "")) {
-          submitAnswer(answer);
-        }
-      } else if (state.currentQuestion?.type === "MATCHING") {
-        if (Object.keys(answer as object).length > 0) {
-          submitAnswer(answer);
-        }
-      } else if (state.currentQuestion?.type === "CHRONOLOGY") {
-        // Chronology always has a state, so we can always submit
-        submitAnswer(answer);
-      } else if (state.currentQuestion?.type === "MULTIPLE_CHOICE") {
-        if (selectedIndices.length > 0) {
-          submitAnswer(selectedIndices);
-        }
-      } else if (answer !== "") {
-        submitAnswer(answer);
+    if (!joined || hasSubmitted || state.phase !== "QUESTION_ACTIVE") return;
+
+    // Use a small timeout for partial sync to avoid spamming for things like OPEN_WORD
+    const timer = setTimeout(() => {
+      if (state.currentQuestion?.type === "MULTIPLE_CHOICE") {
+        // Handled in toggleIndex
+      } else if (answer !== "" && answer !== null && answer !== undefined) {
+        submitAnswer(answer, false);
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, joined, hasSubmitted, answer, selectedIndices, state.currentQuestion]);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [answer, joined, hasSubmitted, state.phase, state.currentQuestion?.type, submitAnswer]);
 
   // Sync Watchdog: Monitor if joined team is still in server state
   React.useEffect(() => {
@@ -589,7 +589,7 @@ export const PlayerView: React.FC = () => {
                       </div>
                       <Button
                         variant={selectedIndices.length > 0 ? "success" : "secondary"}
-                        onClick={() => submitAnswer(selectedIndices)}
+                        onClick={() => submitAnswer(selectedIndices, true)}
                         disabled={selectedIndices.length === 0}
                         size="xl"
                         className={`w-full ${selectedIndices.length > 0 ? "translate-y-[-4px]" : ""}`}
@@ -602,8 +602,12 @@ export const PlayerView: React.FC = () => {
                     <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
                       <CrosswordPlayer
                         data={state.currentQuestion.content}
+                        value={answer as string[][]}
+                        onChange={(grid) => {
+                          setAnswer(grid);
+                        }}
                         onSubmit={(grid) => {
-                          submitAnswer(grid);
+                          submitAnswer(grid, true);
                         }}
                       />
                     </div>
@@ -615,7 +619,7 @@ export const PlayerView: React.FC = () => {
                         onChange={(val) => setAnswer(val)}
                       />
                       <Button
-                        onClick={() => submitAnswer(answer)}
+                        onClick={() => submitAnswer(answer, true)}
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
                         <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -629,7 +633,7 @@ export const PlayerView: React.FC = () => {
                         onChange={(val) => setAnswer(val)}
                       />
                       <Button
-                        onClick={() => submitAnswer(answer)}
+                        onClick={() => submitAnswer(answer, true)}
                         disabled={Object.keys(answer || {}).length < (state.currentQuestion.content as MatchingContent).pairs.length}
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
@@ -644,22 +648,29 @@ export const PlayerView: React.FC = () => {
                         onChange={(val) => setAnswer(val)}
                       />
                       <Button
-                        onClick={() => submitAnswer(answer)}
+                        onClick={() => submitAnswer(answer, true)}
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
                         <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
                       </Button>
                     </div>
                   ) : state.currentQuestion.type === "TRUE_FALSE" ? (
-                    <TrueFalsePlayer
-                      selectedAnswer={answer as boolean | null}
-                      disabled={hasSubmitted}
-                      onAnswer={(val) => {
-                        setAnswer(val);
-                        // True/False is instant submission on click
-                        submitAnswer(val);
-                      }}
-                    />
+                    <div className="space-y-6">
+                      <TrueFalsePlayer
+                        selectedAnswer={answer as boolean | null}
+                        disabled={hasSubmitted}
+                        onAnswer={(val) => {
+                          setAnswer(val);
+                        }}
+                      />
+                      <Button
+                        onClick={() => submitAnswer(answer, true)}
+                        disabled={answer === null}
+                        className="w-full py-6 rounded-3xl text-3xl shadow-xl"
+                      >
+                        <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
+                      </Button>
+                    </div>
                   ) : state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
                     <div className="space-y-6">
                       <CorrectTheErrorPlayer
@@ -670,7 +681,7 @@ export const PlayerView: React.FC = () => {
                       />
                       {!hasSubmitted && (
                         <Button
-                          onClick={() => submitAnswer(answer)}
+                          onClick={() => submitAnswer(answer, true)}
                           disabled={(answer as CorrectTheErrorAnswer).selectedPhraseIndex === -1 || !(answer as CorrectTheErrorAnswer).correction}
                           className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                         >
@@ -689,7 +700,7 @@ export const PlayerView: React.FC = () => {
                         placeholder="Type your answer..."
                       />
                       <Button
-                        onClick={() => submitAnswer(answer)}
+                        onClick={() => submitAnswer(answer, true)}
                         size="lg"
                         className="shadow-lg"
                       >
@@ -702,7 +713,7 @@ export const PlayerView: React.FC = () => {
             ) : (
               <div className={`p-8 rounded-2xl border-2 ${submissionStatus === "error"
                 ? "bg-red-100 border-red-500"
-                : (submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined))
+                : (submissionStatus === "success" || currentTeam?.isExplicitlySubmitted)
                   ? "bg-green-100 border-green-500"
                   : "bg-blue-100 border-blue-500"
                 }`}>
@@ -713,9 +724,9 @@ export const PlayerView: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <CheckCircle className={`w-16 h-16 ${(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-500" : "text-blue-500"} mx-auto mb-4 ${submissionStatus === "idle" && !currentTeam?.lastAnswer ? "animate-pulse" : ""}`} />
-                    <h2 className={`text-2xl font-bold ${(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-800" : "text-blue-800"}`}>{t('player.answer_received')}</h2>
-                    <p className={(submissionStatus === "success" || (currentTeam?.lastAnswer !== null && currentTeam?.lastAnswer !== undefined)) ? "text-green-700" : "text-blue-700"}>{t('player.waiting_others')}</p>
+                    <CheckCircle className={`w-16 h-16 ${(submissionStatus === "success" || currentTeam?.isExplicitlySubmitted) ? "text-green-500" : "text-blue-500"} mx-auto mb-4 ${submissionStatus === "idle" && !currentTeam?.isExplicitlySubmitted ? "animate-pulse" : ""}`} />
+                    <h2 className={`text-2xl font-bold ${(submissionStatus === "success" || currentTeam?.isExplicitlySubmitted) ? "text-green-800" : "text-blue-800"}`}>{t('player.answer_received')}</h2>
+                    <p className={(submissionStatus === "success" || currentTeam?.isExplicitlySubmitted) ? "text-green-700" : "text-blue-700"}>{t('player.waiting_others')}</p>
                   </>
                 )}
               </div>

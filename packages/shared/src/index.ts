@@ -229,6 +229,7 @@ export interface Team {
   streak: number;
   lastAnswerCorrect: boolean | null;
   lastAnswer: AnswerContent | null;
+  isExplicitlySubmitted: boolean;
   isConnected: boolean;
 }
 
@@ -254,11 +255,7 @@ export interface SocketEvents {
     teamId: string;
     questionId: string;
     answer: AnswerContent;
-  }) => void;
-  CROSSWORD_PROGRESS: (payload: {
-    competitionId: string;
-    questionId: string;
-    progress: CrosswordGridState;
+    isFinal?: boolean;
   }) => void;
   REQUEST_JOKER: (payload: {
     competitionId: string;

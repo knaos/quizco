@@ -195,7 +195,10 @@ export function createQuizServer(
 
     socket.on(
       "SUBMIT_ANSWER",
-      async ({ competitionId, teamId, questionId, answer }, callback) => {
+      async (
+        { competitionId, teamId, questionId, answer, isFinal },
+        callback,
+      ) => {
         if (!competitionId) {
           callback?.({ success: false, error: "Missing competitionId" });
           return;
@@ -206,6 +209,7 @@ export function createQuizServer(
             teamId,
             questionId,
             answer,
+            isFinal,
           );
           const state = gameManager.getState(competitionId);
           const room = `competition_${competitionId}`;

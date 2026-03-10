@@ -327,7 +327,7 @@ describe("GameManager Integration", () => {
       () => {},
     );
 
-    await gameManager.submitAnswer(testCompId, team.id, questionId, [1]); // Correct
+    await gameManager.submitAnswer(testCompId, team.id, questionId, [1], true); // Correct & Final
 
     const updatedTeam = gameManager
       .getState(testCompId)
@@ -378,7 +378,13 @@ describe("GameManager Integration", () => {
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
       await gameManager.startTimer(testCompId, 10, () => {});
-      await gameManager.submitAnswer(testCompId, team.id, questionId, [0]);
+      await gameManager.submitAnswer(
+        testCompId,
+        team.id,
+        questionId,
+        [0],
+        true,
+      );
 
       expect(gameManager.getState(testCompId).teams[0].lastAnswerCorrect).toBe(
         true,

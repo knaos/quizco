@@ -159,6 +159,7 @@ export class GameManager {
     for (const team of session.teams) {
       team.lastAnswerCorrect = null;
       team.lastAnswer = null;
+      team.isExplicitlySubmitted = false;
     }
 
     this.timerService.stop(competitionId);
@@ -231,6 +232,84 @@ export class GameManager {
     this.timerService.stop(competitionId);
     session.phase = "GRADING";
     session.timerPaused = false;
+
+    if (!session.currentQuestion) {
+      await this.saveState();
+      return;
+    }
+
+    this.logger.info(`Grading all teams for ${competitionId}...`);
+
+    for (const team of session.teams) {
+      // Skip if no answer was ever sent for this question
+      if (team.lastAnswer === null) {
+        this.logger.debug(`Skipping grading for team ${team.name} (no answer)`);
+        continue;
+      }
+
+      const usedJokers = session.metadata?.usedJokers?.has(team.id) || false;
+
+      // Grade the answer
+      const gradingResult = this.gradingService.gradeAnswer(
+        session.currentQuestion,
+        team.lastAnswer,
+        { usedJokers },
+      );
+
+      const isCorrect = gradingResult ? gradingResult.isCorrect : null;
+      let scoreAwarded = gradingResult ? gradingResult.score : 0;
+
+      this.logger.info(
+        `Grading team ${team.name}: answer=${JSON.stringify(team.lastAnswer)}, isCorrect=${isCorrect}, scoreAwarded=${scoreAwarded}`,
+      );
+
+      if (isCorrect !== null) {
+        // Streak logic
+        if (isCorrect) {
+          team.streak = (team.streak || 0) + 1;
+
+          // Apply bonus if in STREAK round
+          const questions =
+            await this.repository.getQuestionsForCompetition(competitionId);
+          const questionData = questions.find(
+            (q) => q.id === session.currentQuestion!.id,
+          );
+          const round = questionData?.round;
+
+          if (round?.type === "STREAK") {
+            let bonus = 0;
+            if (team.streak >= 10) bonus = 3;
+            else if (team.streak >= 7) bonus = 2;
+            else if (team.streak >= 5) bonus = 1;
+
+            scoreAwarded += bonus;
+          }
+        } else {
+          team.streak = 0;
+        }
+
+        // Update streak in DB
+        await this.repository.updateTeamStreak(team.id, team.streak);
+
+        // Update answer in DB with final grading
+        await this.repository.saveAnswer(
+          team.id,
+          session.currentQuestion.id,
+          session.currentQuestion.roundId,
+          team.lastAnswer,
+          isCorrect,
+          scoreAwarded,
+        );
+
+        team.lastAnswerCorrect = isCorrect;
+        team.score = await this.repository.getTeamScore(competitionId, team.id);
+        this.logger.info(
+          `Team ${team.name} graded: ${isCorrect ? "CORRECT" : "INCORRECT"}, score: ${scoreAwarded}`,
+        );
+      }
+    }
+
+    await this.refreshTeamScores(competitionId);
     await this.saveState();
   }
 
@@ -239,9 +318,10 @@ export class GameManager {
     teamId: string,
     questionId: string,
     answer: AnswerContent,
+    isFinal: boolean = false,
   ) {
-    this.logger.info(
-      `Received answer from team ${teamId} for question ${questionId} in ${competitionId}`,
+    this.logger.debug(
+      `Received answer update from team ${teamId} for question ${questionId} in ${competitionId} (isFinal: ${isFinal})`,
     );
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") {
@@ -257,84 +337,38 @@ export class GameManager {
       return;
     }
 
-    const usedJokers = session.metadata?.usedJokers?.has(teamId) || false;
-
-    // Use GradingService
-    const gradingResult = this.gradingService.gradeAnswer(
-      session.currentQuestion,
-      answer,
-      { usedJokers },
-    );
-
-    const isCorrect = gradingResult ? gradingResult.isCorrect : null;
-    let scoreAwarded = gradingResult ? gradingResult.score : 0;
-
     const team = session.teams.find((t) => t.id === teamId);
-    if (team && isCorrect !== null) {
-      // Streak logic
-      if (isCorrect) {
-        team.streak = (team.streak || 0) + 1;
-
-        // Apply bonus if in STREAK round
-        const questions =
-          await this.repository.getQuestionsForCompetition(competitionId);
-        const questionData = questions.find((q) => q.id === questionId);
-        const round = questionData?.round;
-
-        if (round?.type === "STREAK") {
-          let bonus = 0;
-          if (team.streak >= 10) bonus = 3;
-          else if (team.streak >= 7) bonus = 2;
-          else if (team.streak >= 5) bonus = 1;
-
-          scoreAwarded += bonus;
-        }
-      } else {
-        team.streak = 0;
+    if (team) {
+      team.lastAnswer = answer;
+      if (isFinal) {
+        team.isExplicitlySubmitted = true;
       }
-
-      // Update streak in DB
-      await this.repository.updateTeamStreak(teamId, team.streak);
     }
 
-    // Store in Repository
+    // Store in Repository as partial submission (isCorrect: null, scoreAwarded: 0)
     await this.repository.saveAnswer(
       teamId,
       questionId,
       session.currentQuestion.roundId,
       answer,
-      isCorrect,
-      scoreAwarded,
+      null,
+      0,
     );
-
-    // Update status in memory immediately
-    if (team) {
-      team.lastAnswer = answer;
-      if (isCorrect !== null) {
-        team.lastAnswerCorrect = isCorrect;
-      }
-    }
-
-    if (isCorrect !== null) {
-      this.logger.info(
-        `Answer from team ${teamId} graded: ${isCorrect ? "CORRECT" : "INCORRECT"}, score awarded: ${scoreAwarded}`,
-      );
-      await this.refreshTeamScores(competitionId);
-    }
 
     await this.saveState();
 
-    // Check if all teams have submitted
-    const submittedCount = await this.repository.getSubmissionCount(questionId);
-    this.logger.debug(
-      `Submissions for ${questionId}: ${submittedCount}/${session.teams.length}`,
-    );
-
-    if (submittedCount >= session.teams.length && session.teams.length > 0) {
+    // Check if all teams have explicitly submitted
+    const explicitlySubmittedCount = session.teams.filter(
+      (t) => t.isExplicitlySubmitted,
+    ).length;
+    if (
+      explicitlySubmittedCount >= session.teams.length &&
+      session.teams.length > 0
+    ) {
       this.logger.info(
-        `All teams submitted for ${questionId}. Ending question.`,
+        `All teams explicitly submitted for ${questionId}. Ending question.`,
       );
-      this.endQuestion(competitionId);
+      await this.endQuestion(competitionId);
     }
   }
 
@@ -497,6 +531,7 @@ export class GameManager {
           for (const team of session.teams) {
             team.lastAnswerCorrect = null;
             team.lastAnswer = null;
+            team.isExplicitlySubmitted = false;
           }
 
           const duration = session.currentQuestion?.timeLimitSeconds ?? 30;
@@ -539,6 +574,7 @@ export class GameManager {
           for (const team of session.teams) {
             team.lastAnswerCorrect = null;
             team.lastAnswer = null;
+            team.isExplicitlySubmitted = false;
           }
         } else {
           session.phase = "LEADERBOARD";
@@ -564,6 +600,7 @@ export class GameManager {
           team.streak = 0;
           team.lastAnswerCorrect = null;
           team.lastAnswer = null;
+          team.isExplicitlySubmitted = false;
         }
 
         // Delete all answers for this competition from the database
