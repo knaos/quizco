@@ -97,9 +97,6 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
     isCorrect: checkWordCorrectness(clue),
   }));
 
-  const totalWords = acrossWords.length + downWords.length;
-  const correctWords = acrossWords.filter((w) => w.isCorrect).length + downWords.filter((w) => w.isCorrect).length;
-
   return (
     <div className="space-y-6">
       {/* Side-by-side layout: Grid and Correct Answers */}

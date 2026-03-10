@@ -56,7 +56,7 @@ export const PlayerView: React.FC = () => {
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
 
   // State and Refs for the revealing phase of question type "MATCHING"
-  const [matchingRevealPositions, setMatchingRevealPositions] = useState<{
+  const [_matchingRevealPositions, setMatchingRevealPositions] = useState<{
     left: Record<string, CardPosition>;
     right: Record<string, CardPosition>;
   }>({ left: {}, right: {} });
@@ -432,11 +432,6 @@ export const PlayerView: React.FC = () => {
       return `${errorText} → ${cteContent.correctReplacement}`;
     }
     return "Unknown";
-  };
-
-  const isCorrect = () => {
-    const team = state.teams.find(t => t.name === teamName);
-    return team?.lastAnswerCorrect === true;
   };
 
   const getGradingStatus = () => {

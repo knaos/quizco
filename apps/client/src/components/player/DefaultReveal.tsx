@@ -1,12 +1,12 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import type { AnswerContent } from "@quizco/shared";
+import type { AnswerContent, Question } from "@quizco/shared";
 
 interface DefaultRevealProps {
-  correctAnswer: string;
-  userAnswer: AnswerContent;
-  isCorrect: boolean | null;
-  gradingStatus: boolean | null | undefined;
+  question?: Question;
+  lastAnswer?: AnswerContent | null | undefined;
+  gradingStatus?: boolean | null | undefined;
+  getCorrectAnswer?: () => string;
 }
 
 /**
@@ -19,15 +19,17 @@ interface DefaultRevealProps {
  * Shows correct answer vs user's answer in a simple two-column layout.
  */
 export const DefaultReveal: React.FC<DefaultRevealProps> = ({
-  correctAnswer,
-  userAnswer,
-  isCorrect,
+  question: _question,
+  lastAnswer,
   gradingStatus,
+  getCorrectAnswer,
 }) => {
   const { t } = useTranslation();
 
+  const correctAnswer = getCorrectAnswer ? getCorrectAnswer() : "";
+
   // Format the user's answer for display
-  const formatUserAnswer = (answer: AnswerContent): string => {
+  const formatUserAnswer = (answer: AnswerContent | null | undefined): string => {
     if (answer === null || answer === undefined || answer === "") {
       return "(No Answer)";
     }
@@ -58,7 +60,7 @@ export const DefaultReveal: React.FC<DefaultRevealProps> = ({
       </div>
       <div
         className={`${
-          isCorrect
+          gradingStatus === true
             ? "bg-green-50 border-green-200"
             : gradingStatus === false
             ? "bg-red-50 border-red-200"
@@ -67,7 +69,7 @@ export const DefaultReveal: React.FC<DefaultRevealProps> = ({
       >
         <span
           className={`${
-            isCorrect
+            gradingStatus === true
               ? "text-green-600"
               : gradingStatus === false
               ? "text-red-600"
@@ -78,14 +80,14 @@ export const DefaultReveal: React.FC<DefaultRevealProps> = ({
         </span>
         <div
           className={`text-2xl font-black ${
-            isCorrect
+            gradingStatus === true
               ? "text-green-900"
               : gradingStatus === false
               ? "text-red-900"
               : "text-gray-900"
           } mt-1`}
         >
-          {formatUserAnswer(userAnswer)}
+          {formatUserAnswer(lastAnswer)}
         </div>
       </div>
     </div>
