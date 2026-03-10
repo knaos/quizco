@@ -204,18 +204,28 @@ export function createQuizServer(
           return;
         }
         try {
-          await gameManager.submitAnswer(
+          const submitResult = await gameManager.submitAnswer(
             competitionId,
             teamId,
             questionId,
             answer,
             isFinal,
           );
+
+          if (!submitResult.accepted) {
+            callback?.({ success: false, error: submitResult.reason });
+            return;
+          }
+
           const state = gameManager.getState(competitionId);
           const room = `competition_${competitionId}`;
-          io.to(room).emit("GAME_STATE_SYNC", state);
-          io.to(room).emit("SCORE_UPDATE", state.teams);
-          callback?.({ success: true });
+          if (submitResult.questionEnded) {
+            io.to(room).emit("GAME_STATE_SYNC", state);
+            io.to(room).emit("SCORE_UPDATE", state.teams);
+          } else if (isFinal) {
+            io.to(room).emit("GAME_STATE_SYNC", state);
+          }
+          callback?.({ success: true, questionEnded: submitResult.questionEnded });
         } catch (err) {
           console.error("Error submitting answer:", err);
           callback?.({ success: false, error: (err as Error).message });

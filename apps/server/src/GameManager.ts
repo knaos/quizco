@@ -319,7 +319,10 @@ export class GameManager {
     questionId: string,
     answer: AnswerContent,
     isFinal: boolean = false,
-  ) {
+  ): Promise<
+    | { accepted: true; questionEnded: boolean }
+    | { accepted: false; reason: "INVALID_PHASE" | "QUESTION_MISMATCH" | "TEAM_NOT_FOUND" }
+  > {
     this.logger.debug(
       `Received answer update from team ${teamId} for question ${questionId} in ${competitionId} (isFinal: ${isFinal})`,
     );
@@ -328,21 +331,26 @@ export class GameManager {
       this.logger.warn(
         `Rejecting answer from team ${teamId}: session ${competitionId} is in phase ${session.phase}`,
       );
-      return;
+      return { accepted: false, reason: "INVALID_PHASE" };
     }
     if (session.currentQuestion?.id !== questionId) {
       this.logger.warn(
         `Rejecting answer from team ${teamId}: current question is ${session.currentQuestion?.id}, but answer is for ${questionId}`,
       );
-      return;
+      return { accepted: false, reason: "QUESTION_MISMATCH" };
     }
 
     const team = session.teams.find((t) => t.id === teamId);
-    if (team) {
-      team.lastAnswer = answer;
-      if (isFinal) {
-        team.isExplicitlySubmitted = true;
-      }
+    if (!team) {
+      this.logger.warn(
+        `Rejecting answer from unknown team ${teamId} in competition ${competitionId}`,
+      );
+      return { accepted: false, reason: "TEAM_NOT_FOUND" };
+    }
+
+    team.lastAnswer = answer;
+    if (isFinal) {
+      team.isExplicitlySubmitted = true;
     }
 
     // Store in Repository as partial submission (isCorrect: null, scoreAwarded: 0)
@@ -361,6 +369,7 @@ export class GameManager {
     const explicitlySubmittedCount = session.teams.filter(
       (t) => t.isExplicitlySubmitted,
     ).length;
+    let questionEnded = false;
     if (
       explicitlySubmittedCount >= session.teams.length &&
       session.teams.length > 0
@@ -369,7 +378,10 @@ export class GameManager {
         `All teams explicitly submitted for ${questionId}. Ending question.`,
       );
       await this.endQuestion(competitionId);
+      questionEnded = true;
     }
+
+    return { accepted: true, questionEnded };
   }
 
   public async handleJokerReveal(

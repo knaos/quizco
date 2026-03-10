@@ -485,6 +485,109 @@ describe("GameManager Integration", () => {
       expect(gameManager.getState(testCompId).teams.find((t) => t.id === teamA.id)?.isExplicitlySubmitted).toBe(true);
       expect(gameManager.getState(testCompId).teams.find((t) => t.id === teamB.id)?.isExplicitlySubmitted).toBe(true);
     });
+
+    it("does not account untouched team answers but preserves touched team answer", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Touched vs Untouched", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "True or False",
+          type: "TRUE_FALSE",
+          points: 5,
+          timeLimitSeconds: 30,
+          content: { isTrue: true },
+          grading: "AUTO",
+        },
+      });
+
+      const touchedTeam = await gameManager.addTeam(testCompId, "Touched", "#123");
+      const untouchedTeam = await gameManager.addTeam(testCompId, "Untouched", "#456");
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+
+      await gameManager.submitAnswer(testCompId, touchedTeam.id, question.id, true, false);
+      await gameManager.next(testCompId, () => {});
+
+      const touched = gameManager.getState(testCompId).teams.find((t) => t.id === touchedTeam.id);
+      const untouched = gameManager.getState(testCompId).teams.find((t) => t.id === untouchedTeam.id);
+
+      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
+      expect(touched?.lastAnswer).toBe(true);
+      expect(touched?.lastAnswerCorrect).toBe(true);
+      expect(touched?.score).toBe(5);
+
+      expect(untouched?.lastAnswer).toBeNull();
+      expect(untouched?.lastAnswerCorrect).toBeNull();
+      expect(untouched?.score).toBe(0);
+
+      const touchedDbAnswer = await prisma.answer.findFirst({
+        where: { teamId: touchedTeam.id, questionId: question.id },
+      });
+      const untouchedDbAnswer = await prisma.answer.findFirst({
+        where: { teamId: untouchedTeam.id, questionId: question.id },
+      });
+      expect(touchedDbAnswer).not.toBeNull();
+      expect(untouchedDbAnswer).toBeNull();
+    });
+
+    it("rejects submissions from unknown teams", async () => {
+      const competition = await prisma.competition.create({
+        data: { title: "Reject Unknown Team", host_pin: "1" },
+      });
+      const testCompId = competition.id;
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: testCompId,
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Pick B",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [1] },
+          grading: "AUTO",
+        },
+      });
+
+      await gameManager.startQuestion(testCompId, question.id);
+      await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
+
+      const result = await gameManager.submitAnswer(
+        testCompId,
+        "00000000-0000-0000-0000-000000000000",
+        question.id,
+        [1],
+        true,
+      );
+
+      expect(result).toEqual({ accepted: false, reason: "TEAM_NOT_FOUND" });
+      expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
+
+      const dbAnswers = await prisma.answer.findMany({
+        where: { questionId: question.id },
+      });
+      expect(dbAnswers).toHaveLength(0);
+    });
   });
 
   describe("lastAnswerCorrect tracking", () => {
