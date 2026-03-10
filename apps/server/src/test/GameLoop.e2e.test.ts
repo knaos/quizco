@@ -162,12 +162,24 @@ describe("Game Loop E2E (Decoupled)", () => {
       });
     });
 
-    // 7. Verify scores
+    // 7. Host reveals answer - scores are updated at this point
+    hostSocket.emit("HOST_REVEAL_ANSWER", { competitionId });
+
+    // Wait for REVEAL_ANSWER phase
+    await new Promise<void>((resolve) => {
+      hostSocket.on("GAME_STATE_SYNC", (syncState) => {
+        if (syncState.phase === "REVEAL_ANSWER") {
+          resolve();
+        }
+      });
+    });
+
+    // 8. Verify scores - now they should be updated
     const finalState = gameManager.getState(competitionId);
     const team1 = finalState.teams.find((t) => t.id === team1Id);
     const team2 = finalState.teams.find((t) => t.id === team2Id);
 
-    expect(team1?.score).toBe(10);
+    expect(team1?.score).toBe(1); // 1 point per correct answer
     expect(team2?.score).toBe(0);
     expect(team1?.lastAnswerCorrect).toBe(true);
     expect(team2?.lastAnswerCorrect).toBe(false);

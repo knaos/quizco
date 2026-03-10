@@ -81,6 +81,7 @@
 - **Tests:** ✅ Core tests complete
 - [x] Support `CHRONOLOGY` question type with Drag-and-Drop.
 - [x] Implement Chronology scoring (+1 per correct index, +3 for perfect match).
+- [x] Implement Chronology completion bonus (+4 points if all chronology questions answered perfectly).
 
 ### Iteration 3: Round 3 ("True or False?")
 

@@ -10,6 +10,19 @@ When adding new question types:
 - Update shared types, Prisma schema, and seeding data accordingly
 - Write tests to validate the new functionality
 
+## Latest Changes (2026-04-03)
+
+### Chronology Completion Bonus
+
+- Added +4 points bonus when a player answers ALL chronology questions in the competition perfectly
+- Implementation in `GameManager.ts`: `checkChronologyCompletionBonus()` method
+- Tracks perfect answers per team in session metadata (`chronologyPerfectAnswers` array)
+- Prevents duplicate bonus with `chronologyBonusAwarded` flag
+- Resets tracking if team gets any chronology question wrong
+- Uses arrays instead of Sets for JSON serialization compatibility
+- Preserves tracking when moving between questions (only clears question-specific metadata)
+- Clears all tracking when competition is reset from LEADERBOARD
+
 ## Completed Iterations
 
 ### Iteration 5: Unified Partial Submissions & Final Grading
