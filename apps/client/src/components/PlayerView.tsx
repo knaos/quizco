@@ -19,6 +19,7 @@ import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
+import { hasMeaningfulPartialAnswer } from "../utils/answerGuards";
 import Button from "./ui/Button";
 import { Card } from "./ui/Card";
 import Input from "./ui/Input";
@@ -217,18 +218,19 @@ export const PlayerView: React.FC = () => {
   // Partial sync for other question types
   React.useEffect(() => {
     if (!joined || hasSubmitted || state.phase !== "QUESTION_ACTIVE") return;
+    if (!state.currentQuestion) return;
 
     // Use a small timeout for partial sync to avoid spamming for things like OPEN_WORD
     const timer = setTimeout(() => {
-      if (state.currentQuestion?.type === "MULTIPLE_CHOICE") {
+      if (state.currentQuestion.type === "MULTIPLE_CHOICE") {
         // Handled in toggleIndex
-      } else if (answer !== "" && answer !== null && answer !== undefined) {
+      } else if (hasMeaningfulPartialAnswer(state.currentQuestion, answer)) {
         submitAnswer(answer, false);
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [answer, joined, hasSubmitted, state.phase, state.currentQuestion?.type, submitAnswer]);
+  }, [answer, joined, hasSubmitted, state.phase, state.currentQuestion, submitAnswer]);
 
   // Sync Watchdog: Monitor if joined team is still in server state
   React.useEffect(() => {
@@ -664,7 +666,10 @@ export const PlayerView: React.FC = () => {
                       <CorrectTheErrorPlayer
                         content={state.currentQuestion.content}
                         value={(answer as CorrectTheErrorAnswer) || { selectedPhraseIndex: -1, correction: "" }}
-                        onChange={(val) => setAnswer(val)}
+                        onChange={(val) => {
+                          setAnswer(val);
+                          submitAnswer(val, false);
+                        }}
                         disabled={hasSubmitted}
                       />
                       {!hasSubmitted && (
