@@ -18,6 +18,7 @@ import { CrosswordReveal } from "./player/CrosswordReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
+import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
 import Button from "./ui/Button";
 import { Card } from "./ui/Card";
 import Input from "./ui/Input";
@@ -110,28 +111,15 @@ export const PlayerView: React.FC = () => {
     if (state.currentQuestion && state.currentQuestion.id !== lastQuestionIdRef.current) {
       lastQuestionIdRef.current = state.currentQuestion.id;
       lastPartialSubmissionKeyRef.current = null;
-
-      if (state.currentQuestion.type === "FILL_IN_THE_BLANKS") {
-        setAnswer([]);
-      } else if (state.currentQuestion.type === "MATCHING") {
-        setAnswer({});
-      } else if (state.currentQuestion.type === "CHRONOLOGY") {
-        // Initialize with IDs from current shuffled items
-        setAnswer((state.currentQuestion.content as ChronologyContent).items.map(i => i.id));
-      } else if (state.currentQuestion.type === "TRUE_FALSE") {
-        setAnswer(null as unknown as boolean); // Use null to indicate no selection yet
-      } else if (state.currentQuestion.type === "CORRECT_THE_ERROR") {
-        setAnswer({ selectedPhraseIndex: -1, correction: "" });
-      } else if (state.currentQuestion.type === "CROSSWORD") {
-        const grid = (state.currentQuestion.content as CrosswordContent).grid;
-        setAnswer(grid.map(row => row.map(() => "")));
-      } else {
-        setAnswer("");
-      }
-      setSelectedIndices([]);
+      const hydrated = getHydratedPlayerAnswerState(
+        state.currentQuestion,
+        currentTeam?.lastAnswer,
+      );
+      setSelectedIndices(hydrated.selectedIndices);
+      setAnswer(hydrated.answer as AnswerContent);
       setSubmissionStatus("idle");
     }
-  }, [state.currentQuestion]);
+  }, [state.currentQuestion, currentTeam?.lastAnswer]);
 
   const handleSelectCompetition = (id: string) => {
     setSelectedCompId(id);
