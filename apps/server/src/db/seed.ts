@@ -278,45 +278,6 @@ async function seed() {
             },
             grading: "AUTO",
           },
-          {
-            roundId: round_2.id,
-            questionText:
-              "Order these events in the life of Joseph chronologically:",
-            type: "CHRONOLOGY",
-            points: 10,
-            timeLimitSeconds: 45,
-            content: {
-              items: [
-                {
-                  id: "j1",
-                  text: "Мойсей издига медна змия в пустинята",
-                  order: 9,
-                },
-                { id: "j2", text: "Мойсей разделя Червено море", order: 0 },
-                {
-                  id: "j3",
-                  text: "Мойсей праща съгледвачи в Ханаанската земя",
-                  order: 8,
-                },
-                { id: "j4", text: "Мойсей чупи плочите на завета", order: 5 },
-                {
-                  id: "j5",
-                  text: "Мойсей удря два пъти скалата Мерива при Кадис",
-                  order: 6,
-                },
-                {
-                  id: "j6",
-                  text: "Мириам води народа в песен и танц",
-                  order: 1,
-                },
-                { id: "j7", text: "Аарон прави златно теле", order: 4 },
-                { id: "j8", text: "Мойсей се изкачва на планината", order: 3 },
-                { id: "j9", text: "Мириам е прокажена", order: 7 },
-                { id: "j10", text: "Бог дава манна на народа", order: 2 },
-              ],
-            },
-            grading: "AUTO",
-          },
         ],
       });
 
