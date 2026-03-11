@@ -11,7 +11,12 @@
       "delete": "Изтрий",
       "edit": "Редактирай",
       "create": "Създай",
-      "remove": "Премахни"
+      "remove": "Премахни",
+      "yes": "Да",
+      "no": "Не",
+      "ok": "ОК",
+      "confirm": "Потвърди",
+      "are_you_sure": "Сигурен ли си?"
     },
     "host": {
       "dashboard": "Табло на Водещия",
@@ -37,7 +42,37 @@
       "points": "Точки",
       "no_submissions": "Все още няма изпратени отговори",
       "view_answers": "Виж Отговорите",
-      "close": "Затвори"
+      "close": "Затвори",
+      "select_quiz": "Избери Викторина",
+      "open_dashboard": "Отвори таблото",
+      "solution": "Решение",
+      "clues": "Подсказки",
+      "across": "Хоризонтално",
+      "down": "Вертикално",
+      "no_question_active": "Няма активен въпрос. Изберете отдолу, за да започнете.",
+      "manual_grading_queue": "Ръчно Оценяване",
+      "correct": "Вярно",
+      "incorrect": "Грешно",
+      "connected": "Свързан",
+      "disconnected": "Прекъснат",
+      "round_title": "Рунд: {{title}}",
+      "questions_count": "{{count}} Въпроса",
+      "actions": {
+        "start_competition": "Започни Състезание",
+        "start_first_round": "Започни Първи Рунд",
+        "show_first_question": "Покажи Първи Въпрос",
+        "start_timer_action": "Старт Таймер",
+        "end_question_early": "Приключи Въпроса Рано",
+        "reveal_correct_answer": "Покажи Верния Отговор",
+        "next_question": "Следващ Въпрос / Край на Рунда",
+        "next_round": "Следващ Рунд / Покажи Класиране",
+        "show_leaderboard": "Покажи Класиране",
+        "competition_finished": "Състезанието Приключи",
+        "skip_to_timer": "Прескочи към Таймер",
+        "reveal_answer_action": "Покажи Отговор",
+        "correct_action": "Вярно",
+        "incorrect_action": "Грешно"
+      }
     },
     "player": {
       "join_title": "Включи се в Куиза!",
@@ -71,6 +106,20 @@
       "wrong_position": "Грешна Позиция",
       "no_answer_submitted": "Няма изпратен отговор",
       "should_be": "Трябва да бъде",
+      "turn": "Ред",
+      "new_round": "Нов Рунд",
+      "round_start": "Начало на Рууда",
+      "get_ready_exclaim": "Подгответе се!",
+      "prepare_minds": "Подгответе сърцата и умовете си!",
+      "round_finished": "Рундът Приключи!",
+      "great_job": "Браво на всички!",
+      "waiting_next_round": "Очакване на следващия рунд...",
+      "question": "Въпрос",
+      "type_answer": "Въведете отговора си...",
+      "grading_waiting": "Рундът приключи. Очаквайте водещия да покаже отговора...",
+      "no_active_quizzes": "Няма активни викторини.",
+      "change_quit": "Промени Викторина",
+      "leave_confirm": "Сигурен ли сте, че искате да напуснете играта? Точките ви ще бъдат запазени, ако влезете отново със същото име.",
       "questions": {
         "correctTheError": {
           "instruction": "Посочете грешната фраза в изречението.",
@@ -88,6 +137,83 @@
     "admin": {
       "correct_answer": "Правилен Отговор",
       "true_false_hint": "Изберете дали твърдението по-горе е Истина или Лъжа.",
+      "competitions": "Състезания",
+      "new_quiz": "Нова Викторина",
+      "pin": "ПИН",
+      "edit_settings": "Редактирай Настройки",
+      "delete_competition": "Изтрий Състезание",
+      "no_competitions": "Няма намерени състезания. Създайте първото!",
+      "rounds": "Рундове",
+      "add_round": "Добави Рунд",
+      "no_questions": "Няма въпроси все още.",
+      "add_question": "Добави Въпрос",
+      "no_rounds": "Няма рундове в това състезание.",
+      "question_editor": {
+        "edit_question": "Редактирай Въпрос",
+        "new_question": "Нов Въпрос",
+        "question_type": "Тип Въпрос",
+        "grading_mode": "Режим на Оценяване",
+        "question_text": "Текст на Въпроса",
+        "section": "Секция (само Рунд 1)",
+        "section_placeholder": "напр. Играч 1",
+        "points": "Точки",
+        "time_limit": "Време (сек)",
+        "content_settings": "Настройки на Съдържанието",
+        "cancel": "Отказ",
+        "save_question": "Запази Въпроса"
+      },
+      "question_types": {
+        "multiple_choice": "Избор от Множество",
+        "closed": "Затворен (Един Отговор)",
+        "open_word": "Отворена Дума",
+        "crossword": "Кръстословица",
+        "fill_blanks": "Попълни Празнините",
+        "matching": "Сдвояване",
+        "chronology": "Хронология",
+        "true_false": "Вярно / Грешно",
+        "correct_error": "Коригирай Грешката"
+      },
+      "grading_modes": {
+        "auto": "Автоматично",
+        "manual": "Ръчно (Оценява се от Водещ)"
+      },
+      "editors": {
+        "multiple_choice": {
+          "option": "Опция {{number}}",
+          "add_option": "Добави Опция"
+        },
+        "crossword": {
+          "live_preview": "Преглед на Живо",
+          "add_clues": "Добавете подсказки за преглед"
+        },
+        "matching": {
+          "left_side": "Лява Страна",
+          "right_side": "Дясна Страна (Верен Отговор)",
+          "left_placeholder": "Ляв елемент",
+          "right_placeholder": "Десен елемент",
+          "add_pair": "Добави Двойка"
+        },
+        "fill_blanks": {
+          "text_placeholder": "Текст с празнини (напр. \"{0} е {1}.\")",
+          "prefill": "Попълни празнините с първата опция",
+          "blanks_config": "Конфигурация на Празнините",
+          "options_for_blank": "Опции за тази празнина",
+          "add_option": "Добави Опция",
+          "hint": "Добавете празнини като {0} в текста отгоре, за да конфигурирате опции."
+        },
+        "chronology": {
+          "instruction": "Подредете елементите в ПРАВИЛНАТА хронологична последователност.",
+          "add_item": "Добави Елемент",
+          "placeholder": "Въведете събитие или елемент...",
+          "no_items": "Няма добавени елементи. Кликнете \"Добави Елемент\", за да започнете."
+        }
+      },
+      "confirm_delete_round": "Изтрийте този рунд и всичките му въпроси?",
+      "confirm_delete_question": "Изтрийте този въпрос?",
+      "round": {
+        "pts": "т.",
+        "seconds": "сек"
+      },
       "questions": {
         "correctTheError": {
           "fullText": "Пълен текст на изречението",

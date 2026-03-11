@@ -205,7 +205,7 @@ export const HostDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
         <header className="w-full max-w-4xl mb-12 flex justify-between items-center">
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Select a Quiz</h1>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">{t('host.select_quiz')}</h1>
           <LanguageSwitcher />
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
@@ -226,7 +226,7 @@ export const HostDashboard: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">{comp.title}</h3>
               <p className="text-gray-500 font-medium flex items-center">
-                Open dashboard <ChevronRight className="ml-1 w-4 h-4" />
+                {t('host.open_dashboard')} <ChevronRight className="ml-1 w-4 h-4" />
               </p>
             </Card>
           ))}

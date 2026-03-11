@@ -273,7 +273,7 @@ export const PlayerView: React.FC = () => {
   };
 
   const handleLeave = () => {
-    if (confirm("Are you sure you want to leave the game? Your score will be preserved if you rejoin with the same name.")) {
+    if (confirm(t('player.leave_confirm'))) {
       localStorage.removeItem(TEAM_ID_KEY);
       localStorage.removeItem(TEAM_NAME_KEY);
       localStorage.removeItem(TEAM_COLOR_KEY);
@@ -452,10 +452,10 @@ export const PlayerView: React.FC = () => {
           <LanguageSwitcher />
         </div>
         <Card className="p-8 shadow-2xl w-full max-w-md border-none">
-          <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">Pick a Quiz</h1>
+          <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">{t('player.no_active_quizzes')}</h1>
           <div className="space-y-4">
             {competitions.length === 0 ? (
-              <p className="text-center text-gray-500 font-medium">No active quizzes found.</p>
+              <p className="text-center text-gray-500 font-medium">{t('player.no_active_quizzes')}</p>
             ) : (
               competitions.map(comp => (
                 <button
@@ -629,7 +629,7 @@ export const PlayerView: React.FC = () => {
           <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
             {state.currentQuestion.section && (
               <Badge variant="yellow" className="p-4 rounded-2xl border-2 border-yellow-400 animate-bounce text-2xl">
-                Turn: {state.currentQuestion.section}
+                {t('player.turn')}: {state.currentQuestion.section}
               </Badge>
             )}
             <Card variant="elevated" className="p-10 rounded-[2.5rem] border-b-8 border-yellow-500">
