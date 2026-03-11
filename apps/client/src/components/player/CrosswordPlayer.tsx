@@ -44,6 +44,22 @@ const calculateCellNumbers = (clues: CrosswordContent['clues']): Map<string, num
   return cellToNumber;
 };
 
+/**
+ * Get all cell coordinates that belong to a clue.
+ * Returns an array of "row-col" strings for highlighting.
+ */
+const getCellsForClue = (clue: CrosswordClue): string[] => {
+  const cells: string[] = [];
+  
+  for (let i = 0; i < clue.answer.length; i++) {
+    const row = clue.direction === "across" ? clue.y : clue.y + i;
+    const col = clue.direction === "across" ? clue.x + i : clue.x;
+    cells.push(`${row}-${col}`);
+  }
+  
+  return cells;
+};
+
 export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   data,
   value,
@@ -175,9 +191,27 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     }
   };
 
+  // State for highlighted cells when clicking on clues
+  const [highlightedCells, setHighlightedCells] = useState<string[]>([]);
+  const [selectedClueIndex, setSelectedClueIndex] = useState<number | null>(null);
+
   const handleSubmit = () => {
     if (onSubmit) {
       onSubmit(userGrid);
+    }
+  };
+
+  // Handle click on a clue to highlight corresponding cells
+  const handleClueClick = (clue: CrosswordClue, index: number) => {
+    const cells = getCellsForClue(clue);
+    
+    // Toggle: if same clue clicked again, clear highlight
+    if (selectedClueIndex === index) {
+      setHighlightedCells([]);
+      setSelectedClueIndex(null);
+    } else {
+      setHighlightedCells(cells);
+      setSelectedClueIndex(index);
     }
   };
 
@@ -204,10 +238,14 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
           {userGrid.map((row, r) =>
             row.map((cell, c) => {
               const cellNumber = cellNumbers.get(`${r}-${c}`);
+              const cellKey = `${r}-${c}`;
+              const isHighlighted = highlightedCells.includes(cellKey);
               return (
                 <div
                   key={`${r}-${c}`}
-                  className="w-12 h-12 bg-white flex items-center justify-center rounded-sm relative"
+                  className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${
+                    isHighlighted ? "!bg-blue-200" : "bg-white"
+                  }`}
                 >
                   {data.grid[r][c].trim() === "" ? (
                     <div className="w-full h-full bg-gray-800 rounded-sm" />
@@ -229,7 +267,9 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                             inputRefs.current.delete(`${r}-${c}`);
                           }
                         }}
-                        className="w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm"
+                        className={`w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm ${
+                          isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                        }`}
                       />
                     </>
                   )}
@@ -244,7 +284,13 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.across?.map((clue, i) => (
-                <li key={i}>
+                <li 
+                  key={i}
+                  onClick={() => handleClueClick(clue, i)}
+                  className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${
+                    selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
+                  }`}
+                >
                   <span className="font-bold">{clue.number}.</span> {clue.clue}
                 </li>
               ))}
@@ -254,7 +300,13 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.down?.map((clue, i) => (
-                <li key={i}>
+                <li 
+                  key={i}
+                  onClick={() => handleClueClick(clue, i + (data.clues?.across?.length || 0))}
+                  className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${
+                    selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
+                  }`}
+                >
                   <span className="font-bold">{clue.number}.</span> {clue.clue}
                 </li>
               ))}
