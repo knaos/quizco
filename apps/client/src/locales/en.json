@@ -11,7 +11,12 @@
       "delete": "Delete",
       "edit": "Edit",
       "create": "Create",
-      "remove": "Remove"
+      "remove": "Remove",
+      "yes": "Yes",
+      "no": "No",
+      "ok": "OK",
+      "confirm": "Confirm",
+      "are_you_sure": "Are you sure?"
     },
     "host": {
       "dashboard": "Host Dashboard",
@@ -37,7 +42,37 @@
       "points": "Points",
       "no_submissions": "No submissions yet",
       "view_answers": "View Answers",
-      "close": "Close"
+      "close": "Close",
+      "select_quiz": "Select a Quiz",
+      "open_dashboard": "Open dashboard",
+      "solution": "Solution",
+      "clues": "Clues",
+      "across": "Across",
+      "down": "Down",
+      "no_question_active": "No question currently active. Select one below to start.",
+      "manual_grading_queue": "Manual Grading Queue",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "round_title": "Round: {{title}}",
+      "questions_count": "{{count}} Questions",
+      "actions": {
+        "start_competition": "Start Competition",
+        "start_first_round": "Start First Round",
+        "show_first_question": "Show First Question",
+        "start_timer_action": "Start Timer",
+        "end_question_early": "End Question Early",
+        "reveal_correct_answer": "Reveal Correct Answer",
+        "next_question": "Next Question / End Round",
+        "next_round": "Next Round / Show Leaderboard",
+        "show_leaderboard": "Show Leaderboard",
+        "competition_finished": "Competition Finished",
+        "skip_to_timer": "Skip to Timer",
+        "reveal_answer_action": "Reveal Answer",
+        "correct_action": "Correct",
+        "incorrect_action": "Incorrect"
+      }
     },
     "player": {
       "join_title": "Join the Quiz!",
@@ -71,6 +106,20 @@
       "wrong_position": "Wrong Position",
       "no_answer_submitted": "No answer submitted",
       "should_be": "Should be",
+      "turn": "Turn",
+      "new_round": "New Round",
+      "round_start": "Round Start",
+      "get_ready_exclaim": "Get Ready!",
+      "prepare_minds": "Prepare your hearts and minds!",
+      "round_finished": "Round Finished!",
+      "great_job": "Great job, everyone!",
+      "waiting_next_round": "Waiting for the next round...",
+      "question": "Question",
+      "type_answer": "Type your answer...",
+      "grading_waiting": "The round has ended. Waiting for the host to reveal the answer...",
+      "no_active_quizzes": "No active quizzes found.",
+      "change_quit": "Change Quiz",
+      "leave_confirm": "Are you sure you want to leave the game? Your score will be preserved if you rejoin with the same name.",
       "questions": {
         "correctTheError": {
           "instruction": "Identify the incorrect phrase in the sentence.",
@@ -88,6 +137,83 @@
     "admin": {
       "correct_answer": "Correct Answer",
       "true_false_hint": "Select whether the statement above is True or False.",
+      "competitions": "Competitions",
+      "new_quiz": "New Quiz",
+      "pin": "PIN",
+      "edit_settings": "Edit Settings",
+      "delete_competition": "Delete Competition",
+      "no_competitions": "No competitions found. Create your first one!",
+      "rounds": "Rounds",
+      "add_round": "Add Round",
+      "no_questions": "No questions yet.",
+      "add_question": "Add Question",
+      "no_rounds": "No rounds in this competition.",
+      "question_editor": {
+        "edit_question": "Edit Question",
+        "new_question": "New Question",
+        "question_type": "Question Type",
+        "grading_mode": "Grading Mode",
+        "question_text": "Question Text",
+        "section": "Section (Round 1 only)",
+        "section_placeholder": "e.g., Player 1",
+        "points": "Points",
+        "time_limit": "Time Limit (s)",
+        "content_settings": "Content Settings",
+        "cancel": "Cancel",
+        "save_question": "Save Question"
+      },
+      "question_types": {
+        "multiple_choice": "Multiple Choice",
+        "closed": "Closed (One Answer)",
+        "open_word": "Open Word",
+        "crossword": "Crossword",
+        "fill_blanks": "Fill in the Blanks",
+        "matching": "Matching",
+        "chronology": "Chronology",
+        "true_false": "True / False",
+        "correct_error": "Correct The Error"
+      },
+      "grading_modes": {
+        "auto": "Automatic",
+        "manual": "Manual (Host Graded)"
+      },
+      "editors": {
+        "multiple_choice": {
+          "option": "Option {{number}}",
+          "add_option": "Add Option"
+        },
+        "crossword": {
+          "live_preview": "Live Preview",
+          "add_clues": "Add clues to see preview"
+        },
+        "matching": {
+          "left_side": "Left Side",
+          "right_side": "Right Side (Correct Match)",
+          "left_placeholder": "Left item",
+          "right_placeholder": "Right item",
+          "add_pair": "Add Pair"
+        },
+        "fill_blanks": {
+          "text_placeholder": "Text with placeholders (e.g., \"The {0} is {1}.\")",
+          "prefill": "Prefill blanks with first option",
+          "blanks_config": "Blanks Configuration",
+          "options_for_blank": "Options for this blank",
+          "add_option": "Add Option",
+          "hint": "Add placeholders like {0} in the text above to configure options."
+        },
+        "chronology": {
+          "instruction": "Arrange items in the CORRECT chronological order.",
+          "add_item": "Add Item",
+          "placeholder": "Enter event or item...",
+          "no_items": "No items added yet. Click \"Add Item\" to begin."
+        }
+      },
+      "confirm_delete_round": "Delete this round and all its questions?",
+      "confirm_delete_question": "Delete this question?",
+      "round": {
+        "pts": "pts",
+        "seconds": "s"
+      },
       "questions": {
         "correctTheError": {
           "fullText": "Full Sentence Text",

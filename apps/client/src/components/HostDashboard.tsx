@@ -205,7 +205,7 @@ export const HostDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
         <header className="w-full max-w-4xl mb-12 flex justify-between items-center">
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Select a Quiz</h1>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">{t('host.select_quiz')}</h1>
           <LanguageSwitcher />
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
@@ -226,7 +226,7 @@ export const HostDashboard: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">{comp.title}</h3>
               <p className="text-gray-500 font-medium flex items-center">
-                Open dashboard <ChevronRight className="ml-1 w-4 h-4" />
+                {t('host.open_dashboard')} <ChevronRight className="ml-1 w-4 h-4" />
               </p>
             </Card>
           ))}
@@ -423,7 +423,7 @@ export const HostDashboard: React.FC = () => {
                   </div>
                 ) : state.phase === "REVEAL_ANSWER" && (
                   <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
-                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-1">
+                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-4">
                       {t("player.correct_answer")}
                     </p>
                     <p className="text-xl font-black text-green-900 whitespace-pre-wrap">
@@ -462,7 +462,36 @@ export const HostDashboard: React.FC = () => {
                         }
                         if (q.type === "CORRECT_THE_ERROR") {
                           const content = q.content as CorrectTheErrorContent;
-                          return `Error: "${content.phrases[content.errorPhraseIndex]}" → Correction: "${content.correctReplacement}"`;
+                          // Display the phrases similar to player UI
+                          return (
+                            <div className="space-y-4">
+                              <div className="flex flex-wrap justify-center gap-3">
+                                {content.phrases.map((phrase, idx) => {
+                                  const isErrorPhrase = idx === content.errorPhraseIndex;
+                                  return (
+                                    <div key={idx} className="relative">
+                                      <span className={`px-4 py-2 rounded-lg font-bold text-lg ${isErrorPhrase
+                                        ? 'bg-green-500 text-white border-2 border-green-600'
+                                        : 'bg-gray-100 text-gray-500 border-2 border-gray-200'
+                                        }`}>
+                                        {phrase.text}
+                                      </span>
+                                      {isErrorPhrase && (
+                                        <CheckCircle className="absolute -top-2 -right-2 text-green-600 w-5 h-5 bg-white rounded-full" />
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              {content.errorPhraseIndex >= 0 && (
+                                <div className="mt-8 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                                  <p className="text-xl font-black text-green-900 text-center">
+                                    {content.correctReplacement}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          );
                         }
                         return "See Grid";
                       })()}
@@ -563,8 +592,8 @@ export const HostDashboard: React.FC = () => {
                               {ans.isCorrect === true && <CheckCircle className="w-4 h-4 text-green-500" />}
                               {ans.isCorrect === false && <XCircle className="w-4 h-4 text-red-500" />}
                               <span className={`font-medium ${ans.isCorrect === true ? "text-green-700" :
-                                  ans.isCorrect === false ? "text-red-700" :
-                                    "text-gray-600"
+                                ans.isCorrect === false ? "text-red-700" :
+                                  "text-gray-600"
                                 }`}>
                                 {typeof ans.submittedContent === 'string' ? ans.submittedContent : JSON.stringify(ans.submittedContent)}
                               </span>
@@ -590,8 +619,8 @@ export const HostDashboard: React.FC = () => {
             </h2>
             <div className="space-y-8">
               <Button
-                variant={state.phase === "QUESTION_ACTIVE" ? "danger" : 
-                         state.phase === "QUESTION_PREVIEW" ? "success" : "primary"}
+                variant={state.phase === "QUESTION_ACTIVE" ? "danger" :
+                  state.phase === "QUESTION_PREVIEW" ? "success" : "primary"}
                 onClick={handleNext}
                 disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
                 className="w-full py-6 rounded-2xl text-3xl shadow-xl"
@@ -656,8 +685,8 @@ export const HostDashboard: React.FC = () => {
                               key={q.id}
                               onClick={() => startQuestion(q.id)}
                               className={`${state.currentQuestion?.id === q.id
-                                  ? "bg-blue-600 text-white ring-4 ring-blue-100"
-                                  : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
+                                ? "bg-blue-600 text-white ring-4 ring-blue-100"
+                                : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
                                 } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative`}
                             >
                               <div className="flex-1">
@@ -684,15 +713,15 @@ export const HostDashboard: React.FC = () => {
                                   {q.answers.length > 0 && (
                                     <div className="flex items-center space-x-2">
                                       <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${state.currentQuestion?.id === q.id
-                                          ? "text-green-300 bg-green-900/30"
-                                          : "text-green-600 bg-green-50"
+                                        ? "text-green-300 bg-green-900/30"
+                                        : "text-green-600 bg-green-50"
                                         }`}>
                                         <CheckCircle className="w-3 h-3 mr-1" />
                                         {q.answers.filter(a => a.isCorrect === true).length}
                                       </div>
                                       <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ${state.currentQuestion?.id === q.id
-                                          ? "text-red-300 bg-red-900/30"
-                                          : "text-red-600 bg-red-50"
+                                        ? "text-red-300 bg-red-900/30"
+                                        : "text-red-600 bg-red-50"
                                         }`}>
                                         <XCircle className="w-3 h-3 mr-1" />
                                         {q.answers.filter(a => a.isCorrect === false).length}
@@ -817,8 +846,8 @@ export const HostDashboard: React.FC = () => {
                             {ans.isCorrect === true && <CheckCircle className="w-4 h-4 text-green-500" />}
                             {ans.isCorrect === false && <XCircle className="w-4 h-4 text-red-500" />}
                             <span className={`font-medium ${ans.isCorrect === true ? "text-green-700" :
-                                ans.isCorrect === false ? "text-red-700" :
-                                  "text-gray-600"
+                              ans.isCorrect === false ? "text-red-700" :
+                                "text-gray-600"
                               }`}>
                               {typeof ans.submittedContent === 'string' ? ans.submittedContent : JSON.stringify(ans.submittedContent)}
                             </span>
