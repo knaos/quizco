@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../socket";
 import { useTranslation } from "react-i18next";
-import { Send } from "lucide-react";
+import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
 import { useGame } from "../../contexts/GameContext";
 
 interface CrosswordPlayerProps {
@@ -214,7 +214,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                   ) : (
                     <>
                       {cellNumber && (
-                        <span className="absolute top-0.5 left-1 text-[8px] md:text-[10px] font-bold text-blue-600 leading-none">
+                        <span className="absolute top-0.5 left-1 text-[12px] md:text-[12px] font-bold text-blue-600 leading-none">
                           {cellNumber}
                         </span>
                       )}
@@ -241,7 +241,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
 
         <div className="flex-1 space-y-4 text-left">
           <div>
-            <h3 className="font-bold text-lg border-b mb-2">Across</h3>
+            <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.across?.map((clue, i) => (
                 <li key={i}>
@@ -251,7 +251,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg border-b mb-2">Down</h3>
+            <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.down?.map((clue, i) => (
                 <li key={i}>
@@ -270,7 +270,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
         >
           <Send className="w-8 h-8" />
-             
+
           <span>{t("player.submit_crossword", "Submit Crossword")}</span>
         </button>
       </div>
