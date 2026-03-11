@@ -1,25 +1,18 @@
-import React, { useMemo, useState, useEffect } from "react";
-import type { CrosswordClue } from "@quizco/shared";
+import React, { useMemo } from "react";
+import type { CrosswordClue, CrosswordContent } from "@quizco/shared";
 import { CrosswordPlayer } from "../../player/CrosswordPlayer";
 import { CrosswordClueEditor } from "./CrosswordClueEditor";
 import { Card } from "../../ui/Card";
 
 interface CrosswordEditorProps {
-  content: {
-    clues: {
-      across: CrosswordClue[];
-      down: CrosswordClue[];
-    };
-  };
-  onChange: (content: any) => void;
+  content: CrosswordContent;
+  onChange: (content: CrosswordContent) => void;
 }
 
 export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
   content,
   onChange,
 }) => {
-  const [previewKey, setPreviewKey] = useState(0);
-
   // Helper to generate grid from clues
   const crosswordData = useMemo(() => {
     if (!content.clues) return null;
@@ -65,10 +58,6 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
     return { grid, clues: content.clues };
   }, [content.clues]);
 
-  useEffect(() => {
-    setPreviewKey(k => k + 1);
-  }, [crosswordData]);
-
   const addClue = (direction: "across" | "down") => {
     const newClues = { ...content.clues };
     const newClue: CrosswordClue = {
@@ -83,7 +72,12 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
     onChange({ ...content, clues: newClues });
   };
 
-  const updateClue = (direction: "across" | "down", index: number, field: keyof CrosswordClue, value: any) => {
+  const updateClue = (
+    direction: "across" | "down",
+    index: number,
+    field: keyof CrosswordClue,
+    value: CrosswordClue[keyof CrosswordClue]
+  ) => {
     const newClues = { ...content.clues };
     const directionClues = [...newClues[direction]];
     directionClues[index] = { ...directionClues[index], [field]: value };
@@ -119,7 +113,7 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
         <span className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Live Preview</span>
         <div className="w-full h-full max-h-[400px] overflow-auto">
           {crosswordData && crosswordData.grid.length > 0 && crosswordData.grid[0].length > 0 ? (
-            <CrosswordPlayer key={previewKey} data={crosswordData} />
+            <CrosswordPlayer key={JSON.stringify(crosswordData.grid)} data={crosswordData} />
           ) : (
             <p className="text-gray-400 italic text-sm">Add clues to see preview</p>
           )}

@@ -25,7 +25,7 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
       errorPhraseIndex,
       correctReplacement,
     });
-  }, [text, phrases, errorPhraseIndex, correctReplacement]);
+  }, [text, phrases, errorPhraseIndex, correctReplacement, onChange]);
 
   const updatePhraseText = (index: number, value: string) => {
     const newPhrases = [...phrases];

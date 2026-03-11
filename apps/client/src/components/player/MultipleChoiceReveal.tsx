@@ -1,12 +1,11 @@
 import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { MultipleChoiceQuestion, MultipleChoiceContent } from "@quizco/shared";
+import type { MultipleChoiceQuestion } from "@quizco/shared";
 
 interface MultipleChoiceRevealProps {
   question: MultipleChoiceQuestion;
   lastAnswer: number[] | null;
-  teamName: string;
 }
 
 /**
@@ -19,7 +18,6 @@ interface MultipleChoiceRevealProps {
 export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
   question,
   lastAnswer,
-  teamName,
 }) => {
   const { t } = useTranslation();
 

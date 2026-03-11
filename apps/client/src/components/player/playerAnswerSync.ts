@@ -5,10 +5,10 @@ import type {
   Question,
 } from "@quizco/shared";
 import {
+  isChronologyAnswer,
   isCorrectTheErrorAnswer,
   isNumberArray,
   isRecordOfStringValues,
-  isStringArray,
   isStringGrid,
 } from "../../utils/answerGuards";
 
@@ -31,7 +31,11 @@ export const getHydratedPlayerAnswerState = (
 
     case "FILL_IN_THE_BLANKS":
       return {
-        answer: isStringArray(persistedAnswer) ? persistedAnswer : [],
+        answer:
+          Array.isArray(persistedAnswer) &&
+          persistedAnswer.every((item) => typeof item === "string")
+            ? persistedAnswer
+            : [],
         selectedIndices: [],
       };
 
@@ -42,12 +46,17 @@ export const getHydratedPlayerAnswerState = (
       };
 
     case "CHRONOLOGY":
-      if (isStringArray(persistedAnswer)) {
+      if (isChronologyAnswer(persistedAnswer)) {
         return { answer: persistedAnswer, selectedIndices: [] };
       }
-      // Fallback mirrors current shuffled order from server-authoritative question payload.
+      // Fallback keeps all items in left column before any drag/drop interaction.
       return {
-        answer: (question.content as ChronologyContent).items.map((item) => item.id),
+        answer: {
+          slotIds: (question.content as ChronologyContent).items.map(() => null),
+          poolIds: (question.content as ChronologyContent).items.map(
+            (item) => item.id,
+          ),
+        },
         selectedIndices: [],
       };
 

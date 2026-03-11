@@ -1,0 +1,21 @@
+import { createContext, useContext } from "react";
+import type { Dispatch } from "react";
+import type { GameState, Team } from "@quizco/shared";
+
+export type GameAction =
+  | { type: "SYNC_STATE"; payload: GameState }
+  | { type: "UPDATE_TIMER"; payload: number }
+  | { type: "UPDATE_SCORES"; payload: Team[] };
+
+export const GameContext = createContext<{
+  state: GameState;
+  dispatch: Dispatch<GameAction>;
+} | null>(null);
+
+export const useGame = () => {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error("useGame must be used within GameProvider");
+  }
+  return context;
+};

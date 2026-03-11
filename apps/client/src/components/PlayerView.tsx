@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { useGame } from "../contexts/GameContext";
+import { useGame } from "../contexts/game-context";
 import { socket, API_URL } from "../socket";
 import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight } from "lucide-react";
 import { CrosswordPlayer } from "./player/CrosswordPlayer";
@@ -18,8 +18,9 @@ import { CrosswordReveal } from "./player/CrosswordReveal";
 import { DefaultReveal } from "./player/DefaultReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyAnswer, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
+import { isChronologyAnswer } from "../utils/answerGuards";
 import Button from "./ui/Button";
 import { Card } from "./ui/Card";
 import Input from "./ui/Input";
@@ -29,14 +30,6 @@ const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
 const TEAM_COLOR_KEY = "quizco_team_color";
 const SELECTED_COMP_ID_KEY = "quizco_selected_competition_id";
-
-interface CardPosition {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-  centerY: number;
-}
 
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
@@ -54,15 +47,6 @@ export const PlayerView: React.FC = () => {
   const [isReconnecting, setIsReconnecting] = useState(true);
   const lastQuestionIdRef = useRef<string | null>(null);
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
-
-  // State and Refs for the revealing phase of question type "MATCHING"
-  const [matchingRevealPositions, setMatchingRevealPositions] = useState<{
-    left: Record<string, CardPosition>;
-    right: Record<string, CardPosition>;
-  }>({ left: {}, right: {} });
-  const matchingRevealContainerRef = useRef<HTMLDivElement>(null);
-  const matchingRevealLeftRefs = useRef<Record<string, HTMLDivElement>>({});
-  const matchingRevealRightRefs = useRef<Record<string, HTMLDivElement>>({});
 
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   const currentTeam = state.teams.find(t => t.id === teamId);
@@ -243,65 +227,6 @@ export const PlayerView: React.FC = () => {
     }
   }, [state.teams, joined, isReconnecting, getTeamId, teamName]);
 
-  // Update card positions for the reveal phase of question type "MATCHING"
-  const updateMatchingRevealPositions = useCallback(() => {
-    if (!matchingRevealContainerRef.current || !state.currentQuestion || state.currentQuestion.type !== "MATCHING") return;
-
-    const containerRect = matchingRevealContainerRef.current.getBoundingClientRect();
-    const newPositions = { left: {} as Record<string, CardPosition>, right: {} as Record<string, CardPosition> };
-
-    // Get left items and right items from current question
-    const matchingContent = state.currentQuestion.content as MatchingContent;
-    const leftItems = matchingContent.pairs.map((p) => ({ id: p.id, text: p.left }));
-    const rightItems = matchingContent.pairs.map((p) => p.right);
-
-    leftItems.forEach((item) => {
-      const el = matchingRevealLeftRefs.current[item.id];
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        newPositions.left[item.id] = {
-          left: rect.left - containerRect.left,
-          right: rect.right - containerRect.left,
-          top: rect.top - containerRect.top,
-          bottom: rect.bottom - containerRect.top,
-          centerY: (rect.top + rect.bottom) / 2 - containerRect.top,
-        };
-      }
-    });
-
-    rightItems.forEach((text) => {
-      const el = matchingRevealRightRefs.current[text];
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        newPositions.right[text] = {
-          left: rect.left - containerRect.left,
-          right: rect.right - containerRect.left,
-          top: rect.top - containerRect.top,
-          bottom: rect.bottom - containerRect.top,
-          centerY: (rect.top + rect.bottom) / 2 - containerRect.top,
-        };
-      }
-    });
-
-    setMatchingRevealPositions(newPositions);
-  }, [state.currentQuestion]);
-
-  // Update positions when phase is REVEAL_ANSWER for MATCHING
-  React.useEffect(() => {
-    if (state.phase === "REVEAL_ANSWER" && state.currentQuestion?.type === "MATCHING") {
-      // Small delay to ensure DOM is rendered
-      const timer = setTimeout(updateMatchingRevealPositions, 100);
-
-      const handleResize = () => updateMatchingRevealPositions();
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener("resize", handleResize);
-      };
-    }
-  }, [state.phase, state.currentQuestion, updateMatchingRevealPositions]);
-
   if (isReconnecting) {
     return (
       <div className="min-h-screen bg-blue-600 flex items-center justify-center">
@@ -432,11 +357,6 @@ export const PlayerView: React.FC = () => {
       return `${errorText} → ${cteContent.correctReplacement}`;
     }
     return "Unknown";
-  };
-
-  const isCorrect = () => {
-    const team = state.teams.find(t => t.name === teamName);
-    return team?.lastAnswerCorrect === true;
   };
 
   const getGradingStatus = () => {
@@ -629,6 +549,10 @@ export const PlayerView: React.FC = () => {
                       <ChronologyPlayer
                         key={state.currentQuestion.id}
                         content={state.currentQuestion.content}
+                        value={isChronologyAnswer(answer) ? answer : {
+                          slotIds: (state.currentQuestion.content as ChronologyContent).items.map(() => null),
+                          poolIds: (state.currentQuestion.content as ChronologyContent).items.map((item) => item.id),
+                        }}
                         onChange={(val) => setAnswer(val)}
                       />
                       <Button
@@ -784,12 +708,11 @@ export const PlayerView: React.FC = () => {
                   <MultipleChoiceReveal
                     question={state.currentQuestion as MultipleChoiceQuestion}
                     lastAnswer={currentTeam?.lastAnswer as number[] | null}
-                    teamName={teamName}
                   />
                 ) : state.currentQuestion.type === "CHRONOLOGY" ? (
                   <ChronologyReveal
                     content={state.currentQuestion.content as ChronologyContent}
-                    lastAnswer={currentTeam?.lastAnswer as string[] | null}
+                    lastAnswer={currentTeam?.lastAnswer as ChronologyAnswer | null}
                   />
                 ) : state.currentQuestion.type === "MATCHING" ? (
                   <MatchingReveal
@@ -819,10 +742,10 @@ export const PlayerView: React.FC = () => {
                   />
                 ) : (
                   <DefaultReveal
-                    question={state.currentQuestion}
-                    lastAnswer={currentTeam?.lastAnswer}
+                    correctAnswer={getCorrectAnswer()}
+                    userAnswer={currentTeam?.lastAnswer ?? ""}
+                    isCorrect={getGradingStatus() ?? null}
                     gradingStatus={getGradingStatus()}
-                    getCorrectAnswer={getCorrectAnswer}
                   />
                 )}
               </div>

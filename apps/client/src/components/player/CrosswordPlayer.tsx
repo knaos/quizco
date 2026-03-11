@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../socket";
 import { useTranslation } from "react-i18next";
-import { useGame } from "../../contexts/GameContext";
+import { useGame } from "../../contexts/game-context";
 
 interface CrosswordPlayerProps {
   data: CrosswordContent;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { MatchingContent } from "@quizco/shared";
 
 interface MatchingPlayerProps {
@@ -23,8 +23,6 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   disabled,
 }) => {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
-  const [leftItems, setLeftItems] = useState<{ id: string; text: string }[]>([]);
-  const [rightItems, setRightItems] = useState<string[]>([]);
   const [cardPositions, setCardPositions] = useState<{
     left: Record<string, CardPosition>;
     right: Record<string, CardPosition>;
@@ -33,6 +31,24 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRefs = useRef<Record<string, HTMLButtonElement>>({});
   const rightRefs = useRef<Record<string, HTMLButtonElement>>({});
+
+  const { leftItems, rightItems } = useMemo(() => {
+    const left = content.pairs.map((p) => ({ id: p.id, text: p.left }));
+    const right = content.pairs.map((p) => p.right);
+
+    const hash = (value: string): number => {
+      let result = 0;
+      for (let i = 0; i < value.length; i += 1) {
+        result = (result * 31 + value.charCodeAt(i)) >>> 0;
+      }
+      return result;
+    };
+
+    return {
+      leftItems: [...left].sort((a, b) => hash(a.id) - hash(b.id)),
+      rightItems: [...right].sort((a, b) => hash(a) - hash(b)),
+    };
+  }, [content]);
 
   const updatePositions = useCallback(() => {
     if (!containerRef.current) return;
@@ -70,24 +86,6 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
 
     setCardPositions(newPositions);
   }, [leftItems, rightItems]);
-
-  useEffect(() => {
-    const left = content.pairs.map((p) => ({ id: p.id, text: p.left }));
-    const right = content.pairs.map((p) => p.right);
-
-    // Use Fisher-Yates shuffle for stable shuffling
-    const shuffle = <T,>(array: T[]): T[] => {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    };
-
-    setLeftItems(shuffle(left));
-    setRightItems(shuffle(right));
-  }, [content]);
 
   // Update positions when items change or on resize
   useEffect(() => {

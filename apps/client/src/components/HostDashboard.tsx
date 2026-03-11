@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useGame } from "../contexts/GameContext";
+import { useGame } from "../contexts/game-context";
 import { socket, API_URL } from "../socket";
 import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown, Pause } from "lucide-react";
-import type { Question, Competition, Round, CrosswordContent, CrosswordClue, ChronologyContent, FillInTheBlanksContent, MatchingContent, TrueFalseContent, CorrectTheErrorContent } from "@quizco/shared";
+import type { AnswerContent, Question, Competition, Round, CrosswordContent, CrosswordClue, ChronologyContent, FillInTheBlanksContent, MatchingContent, TrueFalseContent, CorrectTheErrorContent } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
@@ -21,7 +21,7 @@ interface PendingAnswer {
 interface CollectedAnswer {
   teamName: string;
   color: string;
-  submittedContent: any;
+  submittedContent: AnswerContent;
   isCorrect: boolean | null;
   points: number;
 }
@@ -96,12 +96,12 @@ export const HostDashboard: React.FC = () => {
       });
   }, [selectCompetition]);
 
-  const fetchPendingAnswers = () => {
+  const fetchPendingAnswers = useCallback(() => {
     if (!selectedComp) return;
     fetch(`${API_URL}/api/admin/pending-answers?competitionId=${selectedComp.id}`)
       .then((res) => res.json())
       .then((data) => setPendingAnswers(data));
-  };
+  }, [selectedComp]);
 
   const fetchCurrentQuestionAnswers = useCallback(() => {
     if (!selectedComp || !state.currentQuestion) return;
@@ -116,10 +116,8 @@ export const HostDashboard: React.FC = () => {
     }
     if (state.phase === "GRADING" || state.phase === "REVEAL_ANSWER" || state.phase === "QUESTION_ACTIVE") {
       fetchCurrentQuestionAnswers();
-    } else {
-      setCollectedAnswers([]);
     }
-  }, [state.phase, fetchCurrentQuestionAnswers]);
+  }, [state.phase, fetchPendingAnswers, fetchCurrentQuestionAnswers]);
 
   // Sync on GAME_STATE_SYNC (e.g. when someone submits)
   useEffect(() => {

@@ -11,6 +11,7 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
+    "lint": "npm run lint -w apps/client",
     "db:reset": "npm run db:reset -w @quizco/server"
   },
   "devDependencies": {
