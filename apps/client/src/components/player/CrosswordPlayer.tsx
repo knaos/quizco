@@ -104,6 +104,62 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   const [activeClue, setActiveClue] = useState<CrosswordClue | null>(null);
   const [activeClueCells, setActiveClueCells] = useState<string[]>([]);
 
+  /**
+   * Find the next cell within a clue's cells in the given direction.
+   * Returns the next cell in the clue's sequence, skipping cells that already have letters.
+   * If all cells after the current position are filled, wraps to find the first empty cell.
+   * If all cells are filled, returns the first cell of the clue.
+   */
+  const findNextCellInClue = useCallback((
+    currentR: number, 
+    currentC: number, 
+    clueCells: string[],
+    grid: string[][]
+  ): { r: number; c: number } | null => {
+    // Find the index of the current cell in the clue cells array
+    const currentKey = `${currentR}-${currentC}`;
+    const currentIndex = clueCells.indexOf(currentKey);
+    
+    if (currentIndex === -1) {
+      // Not in clue cells, return first cell
+      const firstKey = clueCells[0];
+      const [firstR, firstC] = firstKey.split('-').map(Number);
+      return { r: firstR, c: firstC };
+    }
+    
+    // Start searching from the next cell after current
+    let searchIndex = currentIndex + 1;
+    
+    // First, try to find an empty cell after the current position
+    while (searchIndex < clueCells.length) {
+      const nextKey = clueCells[searchIndex];
+      const [nextR, nextC] = nextKey.split('-').map(Number);
+      
+      // Check if this cell is empty
+      if (!grid[nextR]?.[nextC] || grid[nextR][nextC] === "") {
+        return { r: nextR, c: nextC };
+      }
+      searchIndex++;
+    }
+    
+    // All cells after current are filled, wrap around to find first empty cell
+    // Search from the beginning up to current position
+    for (let i = 0; i <= currentIndex; i++) {
+      const key = clueCells[i];
+      const [r, c] = key.split('-').map(Number);
+      
+      // Check if this cell is empty
+      if (!grid[r]?.[c] || grid[r][c] === "") {
+        return { r, c };
+      }
+    }
+    
+    // All cells are filled, wrap to first cell
+    const firstCellKey = clueCells[0];
+    const [firstR, firstC] = firstCellKey.split('-').map(Number);
+    return { r: firstR, c: firstC };
+  }, []);
+
   const handleChange = (r: number, c: number, val: string) => {
     const newGrid = [...userGrid.map((row) => [...row])];
     const upperVal = val.toUpperCase();
@@ -123,7 +179,8 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     // Auto-focus next cell only when a clue is selected
     // When no clue is selected, typing does not auto-advance
     if (upperVal.length > 0 && activeClue && activeClueCells.length > 0) {
-      const nextCell = findNextCellInClue(r, c, activeClueCells);
+      // Pass newGrid to findNextCellInClue so it checks the updated grid state
+      const nextCell = findNextCellInClue(r, c, activeClueCells, newGrid);
       
       if (nextCell) {
         const nextKey = `${nextCell.r}-${nextCell.c}`;
@@ -181,31 +238,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   };
 
   /**
-   * Find the next cell within a clue's cells in the given direction.
-   * Returns the next cell in the clue's sequence, or null if at the last cell.
-   */
-  const findNextCellInClue = useCallback((
-    currentR: number, 
-    currentC: number, 
-    clueCells: string[]
-  ): { r: number; c: number } | null => {
-    // Find the index of the current cell in the clue cells array
-    const currentKey = `${currentR}-${currentC}`;
-    const currentIndex = clueCells.indexOf(currentKey);
-    
-    if (currentIndex === -1 || currentIndex >= clueCells.length - 1) {
-      // Not in clue cells or at the last cell
-      return null;
-    }
-    
-    // Get the next cell in the clue
-    const nextKey = clueCells[currentIndex + 1];
-    const [nextR, nextC] = nextKey.split('-').map(Number);
-    
-    return { r: nextR, c: nextC };
-  }, []);
-
-  /**
    * Handle focus being placed on a cell manually (via click or tab).
    * If the cell is not in the active clue, clear the active clue state.
    * Uses ref to track if a clue switch is in progress to avoid clearing during transitions.
@@ -250,9 +282,18 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       setActiveClue(clue);
       setActiveClueCells(cells);
       
-      // Focus on the first cell of the clue
-      const firstCellKey = cells[0];
-      const firstInput = inputRefs.current.get(firstCellKey);
+      // Find the first empty cell in the clue to focus on
+      // If all cells are filled, use the first cell
+      let focusCellKey = cells[0];
+      for (const cellKey of cells) {
+        const [r, c] = cellKey.split('-').map(Number);
+        if (!userGrid[r]?.[c] || userGrid[r][c] === "") {
+          focusCellKey = cellKey;
+          break;
+        }
+      }
+      
+      const firstInput = inputRefs.current.get(focusCellKey);
       if (firstInput) {
         firstInput.focus();
       }
