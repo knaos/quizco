@@ -12,6 +12,14 @@ const repository = new PostgresGameRepository();
 const timerService = new TimerService();
 const gameManager = new GameManager(repository, timerService, logger);
 
+process.on("uncaughtException", (error: Error) => {
+  logger.error("Uncaught exception", error);
+});
+
+process.on("unhandledRejection", (reason: unknown) => {
+  logger.error("Unhandled promise rejection", reason);
+});
+
 const { httpServer } = createQuizServer(gameManager, repository);
 
 const PORT = Number(process.env.PORT) || 4000;
@@ -20,12 +28,12 @@ gameManager
   .initialize()
   .then(() => {
     httpServer.listen(PORT, "0.0.0.0", () => {
-      console.log(
+      logger.info(
         `Server running on port ${PORT} (accessible on local network)`,
       );
     });
   })
   .catch((err) => {
-    console.error("Failed to initialize game manager:", err);
+    logger.error("Failed to initialize game manager", err);
     process.exit(1);
   });
