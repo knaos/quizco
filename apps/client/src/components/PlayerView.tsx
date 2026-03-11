@@ -38,6 +38,138 @@ interface CardPosition {
   centerY: number;
 }
 
+/**
+ * Calculates the partial score for FILL_IN_THE_BLANKS questions.
+ * Returns the number of correctly answered blanks.
+ */
+function calculateFillInTheBlanksScore(
+  content: FillInTheBlanksContent,
+  answer: string[] | null
+): number {
+  if (!answer || !Array.isArray(answer)) {
+    return 0;
+  }
+
+  let correctCount = 0;
+  const placeholderCount = content.blanks.length;
+
+  for (let i = 0; i < placeholderCount; i++) {
+    const blank = content.blanks[i];
+    if (!blank) continue;
+
+    const correctOption = blank.options.find((opt) => opt.isCorrect);
+    if (!correctOption) continue;
+
+    const correctVal = correctOption.value.toLowerCase().trim();
+    const submittedVal = (answer[i] || "").toLowerCase().trim();
+
+    if (submittedVal === correctVal) {
+      correctCount++;
+    }
+  }
+
+  return correctCount;
+}
+
+/**
+ * Calculates the partial score for MATCHING questions.
+ * Returns the number of correctly matched pairs.
+ */
+function calculateMatchingScore(
+  content: MatchingContent,
+  answer: Record<string, string> | null
+): number {
+  if (!answer || typeof answer !== "object") {
+    return 0;
+  }
+
+  let correctCount = 0;
+
+  for (const pair of content.pairs) {
+    if (answer[pair.id] === pair.right) {
+      correctCount++;
+    }
+  }
+
+  return correctCount;
+}
+
+/**
+ * Calculates the partial score for CROSSWORD questions.
+ * Returns the number of correctly guessed words.
+ */
+function calculateCrosswordScore(
+  content: CrosswordContent,
+  answer: string[][] | null
+): number {
+  if (!answer || !Array.isArray(answer)) {
+    return 0;
+  }
+
+  // Get all clues (across + down)
+  const allClues = [
+    ...(content.clues?.across || []),
+    ...(content.clues?.down || []),
+  ];
+
+  // If there are no clues, fall back to cell-by-cell counting
+  if (allClues.length === 0) {
+    return 0;
+  }
+
+  let correctWordCount = 0;
+
+  for (const clue of allClues) {
+    // Extract the word from the player's answer grid
+    const word = extractWordFromGrid(
+      answer,
+      clue.x,
+      clue.y,
+      clue.direction,
+      clue.answer.length
+    );
+
+    // Compare (case-insensitive)
+    if (word.toUpperCase() === clue.answer.toUpperCase()) {
+      correctWordCount++;
+    }
+  }
+
+  return correctWordCount;
+}
+
+/**
+ * Extracts a word from the grid at the specified position and direction
+ */
+function extractWordFromGrid(
+  grid: string[][],
+  startX: number,
+  startY: number,
+  direction: "across" | "down",
+  length: number
+): string {
+  let word = "";
+
+  for (let i = 0; i < length; i++) {
+    const x = direction === "across" ? startX + i : startX;
+    const y = direction === "down" ? startY + i : startY;
+
+    // Check bounds
+    if (y >= grid.length || x >= grid[0].length) {
+      break;
+    }
+
+    const cell = grid[y][x];
+    if (cell === undefined || cell === null || cell === "") {
+      break;
+    }
+
+    word += cell;
+  }
+
+  return word;
+}
+
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
@@ -780,6 +912,101 @@ export const PlayerView: React.FC = () => {
                       return (
                         <Badge variant="red">
                           <XCircle className="w-4 h-4 mr-2" /> 0/2
+                        </Badge>
+                      );
+                    }
+                  })()
+                ) : state.currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
+                  // Special handling for FILL_IN_THE_BLANKS to show partial score
+                  (() => {
+                    const fbContent = state.currentQuestion!.content as FillInTheBlanksContent;
+                    const teamAnswer = currentTeam?.lastAnswer as string[] | null;
+                    const partialScore = calculateFillInTheBlanksScore(fbContent, teamAnswer);
+                    const totalBlanks = fbContent.blanks.length;
+                    
+                    if (partialScore === totalBlanks) {
+                      return (
+                        <Badge variant="green">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalBlanks}
+                        </Badge>
+                      );
+                    } else if (partialScore > 0) {
+                      return (
+                        <Badge variant="yellow">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalBlanks}
+                        </Badge>
+                      );
+                    } else {
+                      return (
+                        <Badge variant="red">
+                          <XCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalBlanks}
+                        </Badge>
+                      );
+                    }
+                  })()
+                ) : state.currentQuestion.type === "MATCHING" ? (
+                  // Special handling for MATCHING to show partial score
+                  (() => {
+                    const matchingContent = state.currentQuestion!.content as MatchingContent;
+                    const teamAnswer = currentTeam?.lastAnswer as Record<string, string> | null;
+                    const partialScore = calculateMatchingScore(matchingContent, teamAnswer);
+                    const totalPairs = matchingContent.pairs.length;
+                    
+                    if (partialScore === totalPairs) {
+                      return (
+                        <Badge variant="green">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalPairs}
+                        </Badge>
+                      );
+                    } else if (partialScore > 0) {
+                      return (
+                        <Badge variant="yellow">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalPairs}
+                        </Badge>
+                      );
+                    } else {
+                      return (
+                        <Badge variant="red">
+                          <XCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalPairs}
+                        </Badge>
+                      );
+                    }
+                  })()
+                ) : state.currentQuestion.type === "CROSSWORD" ? (
+                  // Special handling for CROSSWORD to show partial score
+                  (() => {
+                    const crosswordContent = state.currentQuestion!.content as CrosswordContent;
+                    const teamAnswer = currentTeam?.lastAnswer as string[][] | null;
+                    const partialScore = calculateCrosswordScore(crosswordContent, teamAnswer);
+                    const totalWords = (crosswordContent.clues?.across?.length || 0) + (crosswordContent.clues?.down?.length || 0);
+                    
+                    if (partialScore === totalWords && totalWords > 0) {
+                      return (
+                        <Badge variant="green">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalWords}
+                        </Badge>
+                      );
+                    } else if (partialScore > 0 && totalWords > 0) {
+                      return (
+                        <Badge variant="yellow">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalWords}
+                        </Badge>
+                      );
+                    } else if (totalWords === 0) {
+                      // Fallback when no clues are defined
+                      return getGradingStatus() === true ? (
+                        <Badge variant="green">
+                          <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="red">
+                          <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
+                        </Badge>
+                      );
+                    } else {
+                      return (
+                        <Badge variant="red">
+                          <XCircle className="w-4 h-4 mr-2" /> {partialScore}/{totalWords}
                         </Badge>
                       );
                     }
