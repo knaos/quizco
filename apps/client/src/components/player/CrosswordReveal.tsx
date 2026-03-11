@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
+import { ArrowBigDown, ArrowBigRight } from "lucide-react";
 
 interface CrosswordRevealProps {
   content: CrosswordContent;
@@ -137,7 +138,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
                     {correctCell !== "" && (
                       <>
                         {cellNumber && (
-                          <span className="absolute top-0.5 left-1 text-[8px] md:text-[10px] font-bold text-blue-600 leading-none">
+                          <span className="absolute top-0.5 left-1 text-12px] md:text-[12px] font-bold text-blue-600 leading-none">
                             {cellNumber}
                           </span>
                         )}
@@ -161,16 +162,15 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
 
           {acrossWords.length > 0 && (
             <div className="mb-4">
-              <h4 className="font-bold text-gray-700 border-b mb-2">Across</h4>
+              <h3 className="font-bold bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
               <div className="flex flex-col gap-2">
                 {acrossWords.map((clue, i) => (
                   <span
                     key={`across-${i}`}
-                    className={`px-3 py-2 rounded-lg text-sm font-bold ${
-                      clue.isCorrect
-                        ? "bg-green-100 text-green-800 border-2 border-green-500"
-                        : "bg-red-100 text-red-800 border-2 border-red-500"
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-bold ${clue.isCorrect
+                      ? "bg-green-100 text-green-800 border-2 border-green-500"
+                      : "bg-red-100 text-red-800 border-2 border-red-500"
+                      }`}
                   >
                     {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
                   </span>
@@ -181,16 +181,15 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
 
           {downWords.length > 0 && (
             <div>
-              <h4 className="font-bold text-gray-700 border-b mb-2">Down</h4>
+              <h3 className="font-bold bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
               <div className="flex flex-col gap-2">
                 {downWords.map((clue, i) => (
                   <span
                     key={`down-${i}`}
-                    className={`px-3 py-2 rounded-lg text-sm font-bold ${
-                      clue.isCorrect
-                        ? "bg-green-100 text-green-800 border-2 border-green-500"
-                        : "bg-red-100 text-red-800 border-2 border-red-500"
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-bold ${clue.isCorrect
+                      ? "bg-green-100 text-green-800 border-2 border-green-500"
+                      : "bg-red-100 text-red-800 border-2 border-red-500"
+                      }`}
                   >
                     {clue.number}. {clue.answer} {clue.isCorrect ? "✓" : "✗"}
                   </span>
