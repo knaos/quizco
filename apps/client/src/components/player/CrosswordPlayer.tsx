@@ -96,33 +96,13 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   const userGrid =
     value ?? (hasValidInternalGridShape ? internalGrid : initializeGrid());
 
-  /**
-   * Find the next valid cell position (left-to-right, top-to-bottom).
-   * Skips blocked cells (where data.grid[r][c].trim() === "").
-   */
-  const findNextCell = useCallback((currentR: number, currentC: number): { r: number; c: number } | null => {
-    const numRows = data.grid.length;
-    const numCols = data.grid[0]?.length || 0;
-
-    // First try moving right within the same row
-    for (let c = currentC + 1; c < numCols; c++) {
-      if (data.grid[currentR][c]?.trim() !== "") {
-        return { r: currentR, c };
-      }
-    }
-
-    // Then try starting from the beginning of the next row
-    for (let r = currentR + 1; r < numRows; r++) {
-      for (let c = 0; c < numCols; c++) {
-        if (data.grid[r][c]?.trim() !== "") {
-          return { r, c };
-        }
-      }
-    }
-
-    // No next cell found
-    return null;
-  }, [data.grid]);
+  // State for highlighted cells when clicking on clues
+  const [highlightedCells, setHighlightedCells] = useState<string[]>([]);
+  const [selectedClueIndex, setSelectedClueIndex] = useState<number | null>(null);
+  
+  // State for active clue (used for direction-aware auto-advance)
+  const [activeClue, setActiveClue] = useState<CrosswordClue | null>(null);
+  const [activeClueCells, setActiveClueCells] = useState<string[]>([]);
 
   const handleChange = (r: number, c: number, val: string) => {
     const newGrid = [...userGrid.map((row) => [...row])];
@@ -140,9 +120,11 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       onProgress(newGrid);
     }
 
-    // Auto-focus next cell if a letter was typed (not backspace/delete)
-    if (upperVal.length > 0) {
-      const nextCell = findNextCell(r, c);
+    // Auto-focus next cell only when a clue is selected
+    // When no clue is selected, typing does not auto-advance
+    if (upperVal.length > 0 && activeClue && activeClueCells.length > 0) {
+      const nextCell = findNextCellInClue(r, c, activeClueCells);
+      
       if (nextCell) {
         const nextKey = `${nextCell.r}-${nextCell.c}`;
         const nextInput = inputRefs.current.get(nextKey);
@@ -150,6 +132,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
           nextInput.focus();
         }
       }
+      // If nextCell is null, we're at the end of the active clue - focus stays on current cell
     }
   };
 
@@ -191,27 +174,93 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     }
   };
 
-  // State for highlighted cells when clicking on clues
-  const [highlightedCells, setHighlightedCells] = useState<string[]>([]);
-  const [selectedClueIndex, setSelectedClueIndex] = useState<number | null>(null);
-
   const handleSubmit = () => {
     if (onSubmit) {
       onSubmit(userGrid);
     }
   };
 
-  // Handle click on a clue to highlight corresponding cells
+  /**
+   * Find the next cell within a clue's cells in the given direction.
+   * Returns the next cell in the clue's sequence, or null if at the last cell.
+   */
+  const findNextCellInClue = useCallback((
+    currentR: number, 
+    currentC: number, 
+    clueCells: string[]
+  ): { r: number; c: number } | null => {
+    // Find the index of the current cell in the clue cells array
+    const currentKey = `${currentR}-${currentC}`;
+    const currentIndex = clueCells.indexOf(currentKey);
+    
+    if (currentIndex === -1 || currentIndex >= clueCells.length - 1) {
+      // Not in clue cells or at the last cell
+      return null;
+    }
+    
+    // Get the next cell in the clue
+    const nextKey = clueCells[currentIndex + 1];
+    const [nextR, nextC] = nextKey.split('-').map(Number);
+    
+    return { r: nextR, c: nextC };
+  }, []);
+
+  /**
+   * Handle focus being placed on a cell manually (via click or tab).
+   * If the cell is not in the active clue, clear the active clue state.
+   * Uses ref to track if a clue switch is in progress to avoid clearing during transitions.
+   */
+  const clueSwitchInProgress = useRef(false);
+  
+  const handleCellFocus = useCallback((r: number, c: number) => {
+    // Skip clearing if we're in the middle of switching clues
+    if (clueSwitchInProgress.current) {
+      return;
+    }
+    
+    const cellKey = `${r}-${c}`;
+    
+    // If there's an active clue and the focused cell is not in it, clear the active clue
+    if (activeClue && activeClueCells.length > 0) {
+      if (!activeClueCells.includes(cellKey)) {
+        setActiveClue(null);
+        setActiveClueCells([]);
+      }
+    }
+  }, [activeClue, activeClueCells]);
+
+  // Handle click on a clue to highlight corresponding cells and set focus
   const handleClueClick = (clue: CrosswordClue, index: number) => {
     const cells = getCellsForClue(clue);
     
-    // Toggle: if same clue clicked again, clear highlight
+    // Toggle: if same clue clicked again, clear highlight and active clue
     if (selectedClueIndex === index) {
       setHighlightedCells([]);
       setSelectedClueIndex(null);
+      setActiveClue(null);
+      setActiveClueCells([]);
     } else {
+      // Mark that we're switching clues to prevent handleCellFocus from clearing
+      clueSwitchInProgress.current = true;
+      
       setHighlightedCells(cells);
       setSelectedClueIndex(index);
+      
+      // Set the active clue for direction-aware navigation
+      setActiveClue(clue);
+      setActiveClueCells(cells);
+      
+      // Focus on the first cell of the clue
+      const firstCellKey = cells[0];
+      const firstInput = inputRefs.current.get(firstCellKey);
+      if (firstInput) {
+        firstInput.focus();
+      }
+      
+      // Reset the flag after a short delay to allow focus event to complete
+      setTimeout(() => {
+        clueSwitchInProgress.current = false;
+      }, 0);
     }
   };
 
@@ -260,6 +309,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                         type="text"
                         value={cell}
                         onChange={(e) => handleChange(r, c, e.target.value)}
+                        onFocus={() => handleCellFocus(r, c)}
                         ref={(el) => {
                           if (el) {
                             inputRefs.current.set(`${r}-${c}`, el);
