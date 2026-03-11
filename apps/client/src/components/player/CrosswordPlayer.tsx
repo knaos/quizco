@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../socket";
 import { useTranslation } from "react-i18next";
@@ -54,6 +54,9 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   const { t } = useTranslation();
   const { state } = useGame();
 
+  // Ref to store input elements for auto-focus
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
   // Calculate cell numbers from clue starting positions
   const cellNumbers = useMemo(() => calculateCellNumbers(data.clues), [data.clues]);
 
@@ -77,9 +80,38 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   const userGrid =
     value ?? (hasValidInternalGridShape ? internalGrid : initializeGrid());
 
+  /**
+   * Find the next valid cell position (left-to-right, top-to-bottom).
+   * Skips blocked cells (where data.grid[r][c].trim() === "").
+   */
+  const findNextCell = useCallback((currentR: number, currentC: number): { r: number; c: number } | null => {
+    const numRows = data.grid.length;
+    const numCols = data.grid[0]?.length || 0;
+
+    // First try moving right within the same row
+    for (let c = currentC + 1; c < numCols; c++) {
+      if (data.grid[currentR][c]?.trim() !== "") {
+        return { r: currentR, c };
+      }
+    }
+
+    // Then try starting from the beginning of the next row
+    for (let r = currentR + 1; r < numRows; r++) {
+      for (let c = 0; c < numCols; c++) {
+        if (data.grid[r][c]?.trim() !== "") {
+          return { r, c };
+        }
+      }
+    }
+
+    // No next cell found
+    return null;
+  }, [data.grid]);
+
   const handleChange = (r: number, c: number, val: string) => {
     const newGrid = [...userGrid.map((row) => [...row])];
-    newGrid[r][c] = val.toUpperCase().substring(0, 1);
+    const upperVal = val.toUpperCase();
+    newGrid[r][c] = upperVal.substring(0, 1);
 
     // If external onChange is provided, use it; otherwise update internal state
     if (onChange) {
@@ -90,6 +122,18 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
 
     if (onProgress) {
       onProgress(newGrid);
+    }
+
+    // Auto-focus next cell if a letter was typed (not backspace/delete)
+    if (upperVal.length > 0) {
+      const nextCell = findNextCell(r, c);
+      if (nextCell) {
+        const nextKey = `${nextCell.r}-${nextCell.c}`;
+        const nextInput = inputRefs.current.get(nextKey);
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
     }
   };
 
@@ -178,6 +222,13 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                         type="text"
                         value={cell}
                         onChange={(e) => handleChange(r, c, e.target.value)}
+                        ref={(el) => {
+                          if (el) {
+                            inputRefs.current.set(`${r}-${c}`, el);
+                          } else {
+                            inputRefs.current.delete(`${r}-${c}`);
+                          }
+                        }}
                         className="w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm"
                       />
                     </>
