@@ -567,7 +567,7 @@ export const PlayerView: React.FC = () => {
                         })}
                       </div>
                       <Button
-                        variant={selectedIndices.length > 0 ? "success" : "secondary"}
+                        variant="primary"
                         onClick={() => submitAnswer(selectedIndices, true)}
                         disabled={selectedIndices.length === 0}
                         size="xl"

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../socket";
 import { useTranslation } from "react-i18next";
+import { Send } from "lucide-react";
 import { useGame } from "../../contexts/GameContext";
 
 interface CrosswordPlayerProps {
@@ -215,11 +216,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       <div className="mt-6">
         <button
           onClick={handleSubmit}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
+          <Send className="w-8 h-8" />
+             
           <span>{t("player.submit_crossword", "Submit Crossword")}</span>
         </button>
       </div>
