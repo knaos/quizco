@@ -381,7 +381,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
       const isReleasedOverPool =
         draggedCenterX !== null &&
         draggedCenterY !== null &&
-        Boolean(poolRect) &&
+        poolRect != null &&
         draggedCenterX >= poolRect.left &&
         draggedCenterX <= poolRect.right &&
         draggedCenterY >= poolRect.top &&
