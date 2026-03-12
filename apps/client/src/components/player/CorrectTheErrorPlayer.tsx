@@ -48,6 +48,7 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
               key={index}
               disabled={disabled}
               onClick={() => handlePhraseSelect(index)}
+              data-testid={`cte-phrase-${index}`}
               className={`px-6 py-4 rounded-xl text-xl font-medium transition-all duration-200 border-2 ${
                 value.selectedPhraseIndex === index
                   ? 'bg-red-500 text-white border-red-600 shadow-lg transform scale-105'
@@ -70,6 +71,7 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
                   key={aIdx}
                   disabled={disabled}
                   onClick={() => handleCorrectionSelect(alt)}
+                  data-testid={`cte-alternative-${aIdx}`}
                   className={`py-4 px-6 rounded-xl text-lg font-bold transition-all ${
                     value.correction === alt
                       ? 'bg-indigo-600 text-white shadow-md'

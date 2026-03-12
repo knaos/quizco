@@ -1,44 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle } from 'lucide-react';
-import type { CorrectTheErrorContent } from '@quizco/shared';
+import type { CorrectTheErrorAnswer, CorrectTheErrorContent } from '@quizco/shared';
 
 interface CorrectTheErrorRevealProps {
   content: CorrectTheErrorContent;
-  lastAnswer: { selectedPhraseIndex: number; correction: string } | null;
+  lastAnswer: CorrectTheErrorAnswer | null;
 }
-
-/**
- * Calculates the partial score for CORRECT_THE_ERROR question.
- * Returns 0, 1, or 2 based on:
- * - 1 point: correct phrase identified
- * - 1 point: correct correction selected
- * 
- * This logic mirrors the server-side grading in GradingService.ts
- */
-export const calculatePartialScore = (
-  content: CorrectTheErrorContent,
-  lastAnswer: { selectedPhraseIndex: number; correction: string } | null
-): number => {
-  if (!lastAnswer) return 0;
-
-  let score = 0;
-
-  // 1. Correct phrase selection (1pt)
-  if (lastAnswer.selectedPhraseIndex === content.errorPhraseIndex) {
-    score += 1;
-  }
-
-  // 2. Correct text replacement (1pt)
-  const normalizedCorrection = (lastAnswer.correction || "").trim().toLowerCase();
-  const normalizedTarget = content.correctReplacement.trim().toLowerCase();
-
-  if (normalizedCorrection === normalizedTarget) {
-    score += 1;
-  }
-
-  return score;
-};
 
 /**
  * Reveal component for CORRECT_THE_ERROR questions.

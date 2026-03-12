@@ -88,7 +88,7 @@ const SortableItem = React.memo<SortableItemProps>(({ id, text, onRemove, onText
 SortableItem.displayName = "SortableItem";
 
 export const ChronologyEditor: React.FC<ChronologyEditorProps> = ({ content, onChange }) => {
-  const items = content.items || [];
+  const items = useMemo(() => content.items ?? [], [content.items]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

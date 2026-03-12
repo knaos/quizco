@@ -1,11 +1,7 @@
-import React, { createContext, useContext, useEffect, useReducer } from "react";
+import React, { useEffect, useReducer } from "react";
 import type { GameState, Team } from "@quizco/shared";
 import { socket } from "../socket";
-
-type Action =
-  | { type: "SYNC_STATE"; payload: GameState }
-  | { type: "UPDATE_TIMER"; payload: number }
-  | { type: "UPDATE_SCORES"; payload: Team[] };
+import { GameContext, type GameAction } from "./game-context";
 
 const initialState: GameState = {
   phase: "WAITING",
@@ -16,7 +12,7 @@ const initialState: GameState = {
   timerPaused: false,
 };
 
-function gameReducer(state: GameState, action: Action): GameState {
+function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "SYNC_STATE":
       return { ...state, ...action.payload };
@@ -28,11 +24,6 @@ function gameReducer(state: GameState, action: Action): GameState {
       return state;
   }
 }
-
-const GameContext = createContext<{
-  state: GameState;
-  dispatch: React.Dispatch<Action>;
-} | null>(null);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
@@ -62,10 +53,4 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </GameContext.Provider>
   );
-};
-
-export const useGame = () => {
-  const context = useContext(GameContext);
-  if (!context) throw new Error("useGame must be used within GameProvider");
-  return context;
 };

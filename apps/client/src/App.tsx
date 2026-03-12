@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { GameProvider } from "./contexts/GameContext";
+import { useAuth } from "./contexts/useAuth";
 import { HostDashboard } from "./components/HostDashboard";
 import { PlayerView } from "./components/PlayerView";
 import { AdminPanel } from "./components/AdminPanel";

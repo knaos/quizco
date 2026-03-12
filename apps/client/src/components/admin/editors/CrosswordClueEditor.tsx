@@ -9,7 +9,11 @@ interface CrosswordClueEditorProps {
   clues: CrosswordClue[];
   direction: "across" | "down";
   onAdd: () => void;
-  onUpdate: (index: number, field: keyof CrosswordClue, value: any) => void;
+  onUpdate: (
+    index: number,
+    field: keyof CrosswordClue,
+    value: CrosswordClue[keyof CrosswordClue]
+  ) => void;
   onRemove: (index: number) => void;
 }
 

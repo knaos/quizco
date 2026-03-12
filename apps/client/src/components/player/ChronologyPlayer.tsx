@@ -56,6 +56,7 @@ const SortableItem = React.memo<SortableItemProps>(({ id, text }) => {
       style={style}
       {...attributes}
       {...listeners}
+      data-testid={`chronology-item-${id}`}
       // FIX 3: Removed scale-[1.05] to prevent layout jitter since we aren't using DragOverlay
       // If you want the scale effect, you must implement <DragOverlay />
       className={`flex items-center space-x-4 p-5 bg-white border-2 rounded-2xl transition-colors cursor-grab active:cursor-grabbing ${isDragging

@@ -3,7 +3,7 @@ import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../socket";
 import { useTranslation } from "react-i18next";
 import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
-import { useGame } from "../../contexts/GameContext";
+import { useGame } from "../../contexts/useGame";
 
 interface CrosswordPlayerProps {
   data: CrosswordContent;
@@ -351,6 +351,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                         value={cell}
                         onChange={(e) => handleChange(r, c, e.target.value)}
                         onFocus={() => handleCellFocus(r, c)}
+                        data-testid={`crossword-cell-${r}-${c}`}
                         ref={(el) => {
                           if (el) {
                             inputRefs.current.set(`${r}-${c}`, el);
@@ -410,6 +411,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       <div className="mt-6">
         <button
           onClick={handleSubmit}
+          data-testid="crossword-submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
         >
           <Send className="w-8 h-8" />

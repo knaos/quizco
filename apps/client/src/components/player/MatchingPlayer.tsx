@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { MatchingContent } from "@quizco/shared";
 
 interface MatchingPlayerProps {
@@ -16,6 +16,23 @@ interface CardPosition {
   centerY: number;
 }
 
+const hashString = (input: string): number => {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) - hash) + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const deterministicShuffle = <T,>(items: T[], getKey: (item: T) => string, seed: string): T[] => {
+  return [...items].sort((a, b) => {
+    const aHash = hashString(`${seed}:${getKey(a)}`);
+    const bHash = hashString(`${seed}:${getKey(b)}`);
+    return aHash - bHash;
+  });
+};
+
 export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   content,
   value,
@@ -23,8 +40,6 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   disabled,
 }) => {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
-  const [leftItems, setLeftItems] = useState<{ id: string; text: string }[]>([]);
-  const [rightItems, setRightItems] = useState<string[]>([]);
   const [cardPositions, setCardPositions] = useState<{
     left: Record<string, CardPosition>;
     right: Record<string, CardPosition>;
@@ -33,6 +48,17 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRefs = useRef<Record<string, HTMLButtonElement>>({});
   const rightRefs = useRef<Record<string, HTMLButtonElement>>({});
+
+  const { leftItems, rightItems } = useMemo(() => {
+    const left = content.pairs.map((p) => ({ id: p.id, text: p.left }));
+    const right = content.pairs.map((p) => p.right);
+    const seed = content.pairs.map((p) => `${p.id}:${p.left}:${p.right}`).join("|");
+
+    return {
+      leftItems: deterministicShuffle(left, (item) => item.id, `${seed}:left`),
+      rightItems: deterministicShuffle(right, (item) => item, `${seed}:right`),
+    };
+  }, [content.pairs]);
 
   const updatePositions = useCallback(() => {
     if (!containerRef.current) return;
@@ -70,24 +96,6 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
 
     setCardPositions(newPositions);
   }, [leftItems, rightItems]);
-
-  useEffect(() => {
-    const left = content.pairs.map((p) => ({ id: p.id, text: p.left }));
-    const right = content.pairs.map((p) => p.right);
-
-    // Use Fisher-Yates shuffle for stable shuffling
-    const shuffle = <T,>(array: T[]): T[] => {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    };
-
-    setLeftItems(shuffle(left));
-    setRightItems(shuffle(right));
-  }, [content]);
 
   // Update positions when items change or on resize
   useEffect(() => {
@@ -204,6 +212,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
               ref={(el) => { if (el) leftRefs.current[item.id] = el; }}
               onClick={() => handleLeftClick(item.id)}
               disabled={disabled}
+              data-testid={`matching-left-${item.id}`}
               className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all flex items-center justify-between ${selectedLeft === item.id
                 ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
                 : value[item.id]
@@ -228,7 +237,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
         </div>
 
         <div className="space-y-4">
-          {rightItems.map((text) => {
+          {rightItems.map((text, rightIndex) => {
             const matchedLeftId = Object.keys(value).find(
               (key) => value[key] === text
             );
@@ -240,6 +249,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
                 ref={(el) => { if (el) rightRefs.current[text] = el; }}
                 onClick={() => handleRightClick(text)}
                 disabled={disabled || !selectedLeft}
+                data-testid={`matching-right-${rightIndex}`}
                 className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all text-left ${isMatched
                   ? "bg-blue-50 border-blue-200 text-blue-800"
                   : selectedLeft

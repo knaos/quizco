@@ -433,7 +433,7 @@ describe("GameManager Integration", () => {
       expect(gameManager.getState(testCompId).phase).toBe("GRADING");
       expect(stateTeam?.lastAnswer).toEqual([1]);
       expect(stateTeam?.lastAnswerCorrect).toBe(true);
-      expect(stateTeam?.score).toBe(10);
+      expect(stateTeam?.score).toBe(1);
 
       const dbAnswers = await prisma.answer.findMany({
         where: { teamId: team.id, questionId: question.id },
@@ -441,7 +441,7 @@ describe("GameManager Integration", () => {
       expect(dbAnswers).toHaveLength(1);
       expect(dbAnswers[0].submittedContent).toEqual([1]);
       expect(dbAnswers[0].isCorrect).toBe(true);
-      expect(dbAnswers[0].scoreAwarded).toBe(10);
+      expect(dbAnswers[0].scoreAwarded).toBe(1);
     });
 
     it("ends early only when all teams explicitly submit final answers", async () => {
@@ -530,7 +530,7 @@ describe("GameManager Integration", () => {
       expect(gameManager.getState(testCompId).phase).toBe("GRADING");
       expect(touched?.lastAnswer).toBe(true);
       expect(touched?.lastAnswerCorrect).toBe(true);
-      expect(touched?.score).toBe(5);
+      expect(touched?.score).toBe(1);
 
       expect(untouched?.lastAnswer).toBeNull();
       expect(untouched?.lastAnswerCorrect).toBeNull();

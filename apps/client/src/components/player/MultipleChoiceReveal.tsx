@@ -6,7 +6,6 @@ import type { MultipleChoiceQuestion } from "@quizco/shared";
 interface MultipleChoiceRevealProps {
   question: MultipleChoiceQuestion;
   lastAnswer: number[] | null;
-  teamName?: string;
 }
 
 /**
@@ -19,7 +18,6 @@ interface MultipleChoiceRevealProps {
 export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
   question,
   lastAnswer,
-  teamName: _teamName,
 }) => {
   const { t } = useTranslation();
 

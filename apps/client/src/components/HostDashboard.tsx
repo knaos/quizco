@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useGame } from "../contexts/GameContext";
+import { useGame } from "../contexts/useGame";
 import { socket, API_URL } from "../socket";
 import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown, Pause } from "lucide-react";
-import type { Question, Competition, Round, CrosswordContent, CrosswordClue, ChronologyContent, FillInTheBlanksContent, MatchingContent, TrueFalseContent, CorrectTheErrorContent } from "@quizco/shared";
+import type { Question, Competition, Round, CrosswordContent, CrosswordClue, ChronologyContent, FillInTheBlanksContent, MatchingContent, TrueFalseContent, CorrectTheErrorContent, AnswerContent } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
@@ -21,9 +21,23 @@ interface PendingAnswer {
 interface CollectedAnswer {
   teamName: string;
   color: string;
-  submittedContent: any;
+  submittedContent: AnswerContent | string;
   isCorrect: boolean | null;
   points: number;
+}
+
+interface PendingAnswerApiRecord {
+  id: string;
+  teamId?: string;
+  team_id?: string;
+  teamName?: string;
+  team_name?: string;
+  questionId?: string;
+  question_id?: string;
+  questionText?: string;
+  question_text?: string;
+  submittedContent?: string;
+  submitted_content?: string;
 }
 
 interface CompetitionData {
@@ -96,18 +110,28 @@ export const HostDashboard: React.FC = () => {
       });
   }, [selectCompetition]);
 
-  const fetchPendingAnswers = () => {
+  const fetchPendingAnswers = useCallback(() => {
     if (!selectedComp) return;
     fetch(`${API_URL}/api/admin/pending-answers?competitionId=${selectedComp.id}`)
       .then((res) => res.json())
-      .then((data) => setPendingAnswers(data));
-  };
+      .then((data) => {
+        const normalized: PendingAnswer[] = (Array.isArray(data) ? data : []).map((item: PendingAnswerApiRecord) => ({
+          id: item.id,
+          teamId: item.teamId ?? item.team_id ?? "",
+          teamName: item.teamName ?? item.team_name ?? "Unknown Team",
+          questionId: item.questionId ?? item.question_id ?? "",
+          questionText: item.questionText ?? item.question_text ?? "",
+          submittedContent: item.submittedContent ?? item.submitted_content ?? "\"\"",
+        }));
+        setPendingAnswers(normalized);
+      });
+  }, [selectedComp]);
 
   const fetchCurrentQuestionAnswers = useCallback(() => {
     if (!selectedComp || !state.currentQuestion) return;
     fetch(`${API_URL}/api/competitions/${selectedComp.id}/questions/${state.currentQuestion.id}/answers`)
       .then((res) => res.json())
-      .then((data) => setCollectedAnswers(data));
+      .then((data: CollectedAnswer[]) => setCollectedAnswers(Array.isArray(data) ? data : []));
   }, [selectedComp, state.currentQuestion]);
 
   useEffect(() => {
@@ -116,10 +140,13 @@ export const HostDashboard: React.FC = () => {
     }
     if (state.phase === "GRADING" || state.phase === "REVEAL_ANSWER" || state.phase === "QUESTION_ACTIVE") {
       fetchCurrentQuestionAnswers();
-    } else {
-      setCollectedAnswers([]);
     }
-  }, [state.phase, fetchCurrentQuestionAnswers]);
+  }, [state.phase, fetchCurrentQuestionAnswers, fetchPendingAnswers]);
+
+  const visibleCollectedAnswers =
+    state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER"
+      ? collectedAnswers
+      : [];
 
   // Sync on GAME_STATE_SYNC (e.g. when someone submits)
   useEffect(() => {
@@ -214,6 +241,7 @@ export const HostDashboard: React.FC = () => {
               key={comp.id}
               variant="default"
               onClick={() => selectCompetition(comp)}
+              data-testid={`host-competition-option-${comp.id}`}
               className="p-8 cursor-pointer hover:border-blue-500 group"
             >
               <div className="flex justify-between items-start mb-4">
@@ -305,7 +333,7 @@ export const HostDashboard: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-8">
             <h2 className="text-xl font-black mb-6 flex items-center text-gray-800 uppercase tracking-wider">
-              <Play className="mr-3 text-green-500" /> {t('host.current_status')}: <span className="text-blue-600 ml-2">{state.phase}</span>
+              <Play className="mr-3 text-green-500" /> {t('host.current_status')}: <span className="text-blue-600 ml-2" data-testid="host-current-phase">{state.phase}</span>
             </h2>
 
             {state.currentQuestion ? (
@@ -509,7 +537,7 @@ export const HostDashboard: React.FC = () => {
                   </Badge>
                   <Badge variant="orange">
                     <Users className="w-4 h-4 mr-2" />
-                    {t('host.submissions')}: {t('host.submissions_count', { count: collectedAnswers.length, total: state.teams.length })}
+                    {t('host.submissions')}: {t('host.submissions_count', { count: visibleCollectedAnswers.length, total: state.teams.length })}
                   </Badge>
                 </div>
               </div>
@@ -527,7 +555,7 @@ export const HostDashboard: React.FC = () => {
               </h2>
               <div className="space-y-4">
                 {pendingAnswers.map((answer) => (
-                  <div key={answer.id} className="p-5 bg-yellow-50 rounded-2xl border border-yellow-200 flex items-center justify-between">
+                  <div key={answer.id} data-testid={`pending-answer-${answer.id}`} className="p-5 bg-yellow-50 rounded-2xl border border-yellow-200 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-black text-yellow-600 uppercase tracking-widest mb-1">
                         {answer.teamName}
@@ -538,6 +566,7 @@ export const HostDashboard: React.FC = () => {
                     <div className="flex space-x-3">
                       <button
                         onClick={() => gradeAnswer(answer.id, true)}
+                        data-testid={`pending-answer-correct-${answer.id}`}
                         className="p-3 bg-green-500 text-white rounded-2xl hover:bg-green-600 transition shadow-lg shadow-green-200"
                         title="Correct"
                       >
@@ -545,6 +574,7 @@ export const HostDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => gradeAnswer(answer.id, false)}
+                        data-testid={`pending-answer-incorrect-${answer.id}`}
                         className="p-3 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition shadow-lg shadow-red-200"
                         title="Incorrect"
                       >
@@ -572,14 +602,14 @@ export const HostDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {collectedAnswers.length === 0 ? (
+                    {visibleCollectedAnswers.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="py-8 text-center text-gray-400 font-medium italic">
                           {t('host.no_submissions')}
                         </td>
                       </tr>
                     ) : (
-                      collectedAnswers.map((ans, idx) => (
+                      visibleCollectedAnswers.map((ans, idx) => (
                         <tr key={idx} className="group">
                           <td className="py-4 px-2">
                             <div className="flex items-center space-x-3">
@@ -623,6 +653,7 @@ export const HostDashboard: React.FC = () => {
                   state.phase === "QUESTION_PREVIEW" ? "success" : "primary"}
                 onClick={handleNext}
                 disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
+                data-testid="host-next-action"
                 className="w-full py-6 rounded-2xl text-3xl shadow-xl"
               >
                 <SkipForward className="mr-4 w-10 h-10" />
@@ -684,6 +715,7 @@ export const HostDashboard: React.FC = () => {
                             <button
                               key={q.id}
                               onClick={() => startQuestion(q.id)}
+                              data-testid={`host-question-option-${q.id}`}
                               className={`${state.currentQuestion?.id === q.id
                                 ? "bg-blue-600 text-white ring-4 ring-blue-100"
                                 : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
