@@ -197,8 +197,8 @@ async function seed() {
               text: "Пророк Илия избива 450 от пророците на Ваал при потока Кисон.",
               phrases: [
                 {
-                  text: "Пророк Илия",
-                  alternatives: ["Пророк Елисей", "Цар Давид", "Пророк Йона"],
+                  text: "Пророк Елисей",
+                  alternatives: ["Пророк Илия", "Цар Давид", "Пророк Йона"],
                 },
                 {
                   text: "избива 450",
@@ -222,7 +222,7 @@ async function seed() {
                 },
               ],
               errorPhraseIndex: 0,
-              correctReplacement: "Пророк Елисей",
+              correctReplacement: "Пророк Илия",
             },
           },
         ],
