@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { Dispatch } from "react";
 import type { GameState, Team } from "@quizco/shared";
 
 export type GameAction =
@@ -8,5 +9,5 @@ export type GameAction =
 
 export const GameContext = createContext<{
   state: GameState;
-  dispatch: React.Dispatch<GameAction>;
+  dispatch: Dispatch<GameAction>;
 } | null>(null);

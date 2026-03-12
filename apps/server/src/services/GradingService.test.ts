@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GradingService } from "./GradingService";
-import { Question } from "@quizco/shared";
+import { AnswerContent, Question } from "@quizco/shared";
 
 describe("GradingService", () => {
   const service = new GradingService();
@@ -262,28 +262,118 @@ describe("GradingService", () => {
     };
 
     // Perfect match: 3 correct + 3 bonus = 6
-    expect(service.gradeAnswer(question, ["a", "b", "c"])).toEqual({
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "b", "c"],
+        poolIds: [],
+      }),
+    ).toEqual({
       isCorrect: true,
       score: 6,
     });
 
     // Partial match: 1 correct (at index 0) = 1
-    expect(service.gradeAnswer(question, ["a", "c", "b"])).toEqual({
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "c", "b"],
+        poolIds: [],
+      }),
+    ).toEqual({
       isCorrect: false,
       score: 1,
     });
 
     // Zero correct: 0
-    expect(service.gradeAnswer(question, ["b", "c", "a"])).toEqual({
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["b", "c", "a"],
+        poolIds: [],
+      }),
+    ).toEqual({
       isCorrect: false,
       score: 0,
     });
 
     // All correct but shuffled IDs (this shouldn't happen if IDs are correct)
     // Testing the logic of index matching
-    expect(service.gradeAnswer(question, ["a", "b", "x"])).toEqual({
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "b", "x"],
+        poolIds: [],
+      }),
+    ).toEqual({
       isCorrect: false,
       score: 2,
+    });
+  });
+
+  it("grades CHRONOLOGY with mixed slot/pool payloads and deduplicates IDs", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CHRONOLOGY",
+      content: {
+        items: [
+          { id: "a", text: "First", order: 0 },
+          { id: "b", text: "Second", order: 1 },
+          { id: "c", text: "Third", order: 2 },
+          { id: "d", text: "Fourth", order: 3 },
+        ],
+      },
+    };
+
+    // Mixed state: two placed, two still in pool -> final order [a, b, c, d]
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "b", null, null],
+        poolIds: ["c", "d"],
+      }),
+    ).toEqual({
+      isCorrect: true,
+      score: 7,
+    });
+
+    // Duplicates and unknown IDs are ignored in reconstruction.
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "a", "z", null],
+        poolIds: ["b", "b", "c", "d", "a"],
+      }),
+    ).toEqual({
+      isCorrect: true,
+      score: 7,
+    });
+  });
+
+  it("returns zero for malformed CHRONOLOGY payload shapes", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CHRONOLOGY",
+      content: {
+        items: [
+          { id: "a", text: "First", order: 0 },
+          { id: "b", text: "Second", order: 1 },
+        ],
+      },
+    };
+
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", null],
+        poolIds: "b",
+      } as unknown as AnswerContent),
+    ).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: "a",
+        poolIds: ["b"],
+      } as unknown as AnswerContent),
+    ).toEqual({
+      isCorrect: false,
+      score: 0,
     });
   });
 

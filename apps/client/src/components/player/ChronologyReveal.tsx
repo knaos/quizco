@@ -1,11 +1,12 @@
 import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ChronologyContent, ChronologyItem } from "@quizco/shared";
+import type { ChronologyAnswer, ChronologyContent, ChronologyItem } from "@quizco/shared";
+import { buildChronologyOrderForGrading } from "./chronologyBoard";
 
 interface ChronologyRevealProps {
   content: ChronologyContent;
-  lastAnswer: string[] | null;
+  lastAnswer: ChronologyAnswer | null;
 }
 
 /**
@@ -19,7 +20,7 @@ export const ChronologyReveal: React.FC<ChronologyRevealProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  if (!lastAnswer || !Array.isArray(lastAnswer)) {
+  if (!lastAnswer) {
     return (
       <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
         <p className="text-gray-500 text-center font-medium">
@@ -30,7 +31,7 @@ export const ChronologyReveal: React.FC<ChronologyRevealProps> = ({
   }
 
   // Map submitted answer to items with their correctness
-  const submittedItems = lastAnswer
+  const submittedItems = buildChronologyOrderForGrading(lastAnswer)
     .map((id) => content.items.find((item) => item.id === id))
     .filter(Boolean) as ChronologyItem[];
 

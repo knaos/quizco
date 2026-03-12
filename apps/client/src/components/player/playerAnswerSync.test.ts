@@ -35,7 +35,7 @@ describe("getHydratedPlayerAnswerState", () => {
     expect(getHydratedPlayerAnswerState(question, true).answer).toBe(true);
   });
 
-  it("returns default chronology order when untouched", () => {
+  it("returns default chronology board answer when untouched", () => {
     const question: Question = {
       ...baseQuestion,
       type: "CHRONOLOGY",
@@ -49,7 +49,33 @@ describe("getHydratedPlayerAnswerState", () => {
     };
 
     const state = getHydratedPlayerAnswerState(question, null);
-    expect(state.answer).toEqual(["c", "a", "b"]);
+    expect(state.answer).toEqual({
+      slotIds: [null, null, null],
+      poolIds: ["c", "a", "b"],
+    });
+  });
+
+  it("restores persisted chronology board answer", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CHRONOLOGY",
+      content: {
+        items: [
+          { id: "c", text: "C", order: 2 },
+          { id: "a", text: "A", order: 0 },
+          { id: "b", text: "B", order: 1 },
+        ],
+      },
+    };
+
+    const state = getHydratedPlayerAnswerState(question, {
+      slotIds: ["a", null, null],
+      poolIds: ["c", "b"],
+    });
+    expect(state.answer).toEqual({
+      slotIds: ["a", null, null],
+      poolIds: ["c", "b"],
+    });
   });
 
   it("restores crossword grid and builds empty grid when untouched", () => {

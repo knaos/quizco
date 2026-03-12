@@ -318,25 +318,54 @@ export class GradingService {
     return { isCorrect, score: correctCount };
   }
 
+  /**
+   * Chronology scoring:
+   *  - +1 per correct index
+   *  - +3 perfect-order bonus
+   * Uses slot-first order followed by remaining pool items.
+   */
   private gradeChronology(
     content: ChronologyContent,
     answer: ChronologyAnswer,
     _points: number
   ) {
-    if (!Array.isArray(answer)) {
+    if (
+      !answer ||
+      typeof answer !== "object" ||
+      !Array.isArray(answer.slotIds) ||
+      !Array.isArray(answer.poolIds)
+    ) {
       return { isCorrect: false, score: 0 };
     }
 
     // Reconstruction of correct order based on 'order' property
     const items = [...content.items].sort((a, b) => a.order - b.order);
     const correctOrderIds = items.map((i) => i.id);
+    const knownIds = new Set(correctOrderIds);
+
+    const uniqueSlotIds = answer.slotIds.filter(
+      (id, index): id is string =>
+        typeof id === "string" &&
+        knownIds.has(id) &&
+        answer.slotIds.indexOf(id) === index,
+    );
+    const uniquePoolIds = answer.poolIds.filter(
+      (id, index) =>
+        knownIds.has(id) &&
+        answer.poolIds.indexOf(id) === index &&
+        !uniqueSlotIds.includes(id),
+    );
+    const submittedOrderIds = [
+      ...uniqueSlotIds,
+      ...uniquePoolIds,
+    ];
 
     let correctCount = 0;
     const n = correctOrderIds.length;
 
     // Compare submitted IDs against correct IDs at each index
     for (let i = 0; i < n; i++) {
-      if (answer[i] === correctOrderIds[i]) {
+      if (submittedOrderIds[i] === correctOrderIds[i]) {
         correctCount++;
       }
     }

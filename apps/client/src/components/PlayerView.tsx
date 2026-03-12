@@ -19,8 +19,9 @@ import { DefaultReveal } from "./player/DefaultReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
 import { useCorrectTheErrorPartialScore } from "./player/useCorrectTheErrorPartialScore";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
-import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
+import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyAnswer, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
+import { isChronologyAnswer } from "../utils/answerGuards";
 import Button from "./ui/Button";
 import { Card } from "./ui/Card";
 import Input from "./ui/Input";
@@ -179,7 +180,6 @@ export const PlayerView: React.FC = () => {
   const [isReconnecting, setIsReconnecting] = useState(true);
   const lastQuestionIdRef = useRef<string | null>(null);
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
-
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   const currentTeam = state.teams.find(t => t.id === teamId);
   const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
@@ -700,6 +700,10 @@ export const PlayerView: React.FC = () => {
                       <ChronologyPlayer
                         key={state.currentQuestion.id}
                         content={state.currentQuestion.content}
+                        value={isChronologyAnswer(answer) ? answer : {
+                          slotIds: (state.currentQuestion.content as ChronologyContent).items.map(() => null),
+                          poolIds: (state.currentQuestion.content as ChronologyContent).items.map((item) => item.id),
+                        }}
                         onChange={(val) => setAnswer(val)}
                       />
                       <Button
@@ -984,7 +988,7 @@ export const PlayerView: React.FC = () => {
                 ) : state.currentQuestion.type === "CHRONOLOGY" ? (
                   <ChronologyReveal
                     content={state.currentQuestion.content as ChronologyContent}
-                    lastAnswer={currentTeam?.lastAnswer as string[] | null}
+                    lastAnswer={currentTeam?.lastAnswer as ChronologyAnswer | null}
                   />
                 ) : state.currentQuestion.type === "MATCHING" ? (
                   <MatchingReveal

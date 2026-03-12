@@ -57,7 +57,6 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
 
     return { grid, clues: content.clues };
   }, [content.clues]);
-  const previewKey = useMemo(() => JSON.stringify(crosswordData?.clues ?? {}), [crosswordData]);
 
   const addClue = (direction: "across" | "down") => {
     const newClues = { ...content.clues };
@@ -114,7 +113,7 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
         <span className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Live Preview</span>
         <div className="w-full h-full max-h-[400px] overflow-auto">
           {crosswordData && crosswordData.grid.length > 0 && crosswordData.grid[0].length > 0 ? (
-            <CrosswordPlayer key={previewKey} data={crosswordData} />
+            <CrosswordPlayer key={JSON.stringify(crosswordData.grid)} data={crosswordData} />
           ) : (
             <p className="text-gray-400 italic text-sm">Add clues to see preview</p>
           )}

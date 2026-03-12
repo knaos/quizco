@@ -6,11 +6,14 @@ import adminRouter from "./routes/admin";
 import { GameManager } from "./GameManager";
 import { IGameRepository } from "./repositories/IGameRepository";
 import prisma from "./db/prisma";
+import { Logger } from "./utils/Logger";
+import { withErrorLogging } from "./utils/safeHandler";
 
 export function createQuizServer(
   gameManager: GameManager,
   repository: IGameRepository,
 ) {
+  const logger = new Logger("QuizServer");
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -62,12 +65,17 @@ export function createQuizServer(
 
   app.get("/api/questions", async (req, res) => {
     const competitionId = req.query.competitionId as string;
-    if (competitionId) {
-      const rows = await gameManager.getQuestionsForCompetition(competitionId);
-      return res.json(rows);
+    try {
+      if (competitionId) {
+        const rows = await gameManager.getQuestionsForCompetition(competitionId);
+        return res.json(rows);
+      }
+      const rows = await gameManager.getAllQuestions();
+      res.json(rows);
+    } catch (err) {
+      logger.error("Failed to fetch questions", err);
+      res.status(500).json({ error: (err as Error).message });
     }
-    const rows = await gameManager.getAllQuestions();
-    res.json(rows);
   });
 
   app.get("/api/admin/pending-answers", async (req, res) => {
@@ -110,34 +118,44 @@ export function createQuizServer(
 
   // Monitoring loop: check connections every second
   setInterval(() => {
-    for (const [teamId, socketId] of teamToSocket.entries()) {
-      const socket = io.sockets.sockets.get(socketId);
-      const info = socketToTeam.get(socketId);
+    try {
+      for (const [teamId, socketId] of teamToSocket.entries()) {
+        const socket = io.sockets.sockets.get(socketId);
+        const info = socketToTeam.get(socketId);
 
-      if (!socket || !socket.connected) {
-        if (info) {
-          const changed = gameManager.updateTeamConnection(
-            info.competitionId,
-            info.teamId,
-            false,
-          );
-          if (changed) {
-            const room = `competition_${info.competitionId}`;
-            io.to(room).emit(
-              "SCORE_UPDATE",
-              gameManager.getState(info.competitionId).teams,
+        if (!socket || !socket.connected) {
+          if (info) {
+            const changed = gameManager.updateTeamConnection(
+              info.competitionId,
+              info.teamId,
+              false,
             );
+            if (changed) {
+              const room = `competition_${info.competitionId}`;
+              io.to(room).emit(
+                "SCORE_UPDATE",
+                gameManager.getState(info.competitionId).teams,
+              );
+            }
           }
+          teamToSocket.delete(teamId);
         }
-        teamToSocket.delete(teamId);
       }
+    } catch (error) {
+      logger.error("Connection monitoring loop failed", error);
     }
   }, 1000);
 
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
+    const onSafe = <TArgs extends unknown[]>(
+      eventName: string,
+      handler: (...args: TArgs) => void | Promise<void>,
+    ) => {
+      socket.on(eventName, withErrorLogging(logger, `socket:${eventName}`, handler));
+    };
 
-    socket.on("HOST_JOIN_ROOM", ({ competitionId }) => {
+    onSafe("HOST_JOIN_ROOM", ({ competitionId }) => {
       if (!competitionId) return;
 
       // Leave any other competition rooms
@@ -153,9 +171,16 @@ export function createQuizServer(
       console.log(`Host joined room: ${room}`);
     });
 
-    socket.on(
+    onSafe(
       "JOIN_ROOM",
-      async ({ competitionId, teamName, color }, callback) => {
+      async (
+        { competitionId, teamName, color },
+        callback?: (response: {
+          success: boolean;
+          error?: string;
+          team?: { id: string; name: string; color: string; score: number };
+        }) => void,
+      ) => {
         if (!competitionId)
           return callback?.({ success: false, error: "Missing competitionId" });
 
@@ -173,7 +198,15 @@ export function createQuizServer(
       },
     );
 
-    socket.on("RECONNECT_TEAM", async ({ competitionId, teamId }, callback) => {
+    onSafe(
+      "RECONNECT_TEAM",
+      async (
+        { competitionId, teamId },
+        callback?: (response: {
+          success: boolean;
+          team?: { id: string; name: string; color: string; score: number };
+        }) => void,
+      ) => {
       if (!competitionId || !teamId) return callback?.({ success: false });
 
       const team = await gameManager.reconnectTeam(competitionId, teamId);
@@ -191,13 +224,18 @@ export function createQuizServer(
       } else {
         if (callback) callback({ success: false });
       }
-    });
+      },
+    );
 
-    socket.on(
+    onSafe(
       "SUBMIT_ANSWER",
       async (
         { competitionId, teamId, questionId, answer, isFinal },
-        callback,
+        callback?: (response: {
+          success: boolean;
+          error?: string;
+          questionEnded?: boolean;
+        }) => void,
       ) => {
         if (!competitionId) {
           callback?.({ success: false, error: "Missing competitionId" });
@@ -233,7 +271,7 @@ export function createQuizServer(
       },
     );
 
-    socket.on(
+    onSafe(
       "REQUEST_JOKER",
       async ({ competitionId, teamId, questionId }) => {
         if (!competitionId) return;
@@ -251,7 +289,7 @@ export function createQuizServer(
       },
     );
 
-    socket.on("HOST_START_QUESTION", async ({ competitionId, questionId }) => {
+    onSafe("HOST_START_QUESTION", async ({ competitionId, questionId }) => {
       if (!competitionId) return;
       await gameManager.startQuestion(competitionId, questionId);
       io.to(`competition_${competitionId}`).emit(
@@ -260,22 +298,26 @@ export function createQuizServer(
       );
     });
 
-    socket.on("HOST_START_TIMER", ({ competitionId }) => {
+    onSafe("HOST_START_TIMER", ({ competitionId }) => {
       if (!competitionId) return;
       const room = `competition_${competitionId}`;
       const state = gameManager.getState(competitionId);
       const duration = state.currentQuestion?.timeLimitSeconds ?? 30;
 
       gameManager.startTimer(competitionId, duration, (state) => {
-        io.to(room).emit("TIMER_SYNC", state.timeRemaining);
-        if (state.timeRemaining === 0) {
-          io.to(room).emit("GAME_STATE_SYNC", state);
+        try {
+          io.to(room).emit("TIMER_SYNC", state.timeRemaining);
+          if (state.timeRemaining === 0) {
+            io.to(room).emit("GAME_STATE_SYNC", state);
+          }
+        } catch (error) {
+          logger.error("Failed while broadcasting timer sync", error);
         }
       });
       io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
-    socket.on("HOST_REVEAL_ANSWER", ({ competitionId }) => {
+    onSafe("HOST_REVEAL_ANSWER", ({ competitionId }) => {
       if (!competitionId) return;
       gameManager.revealAnswer(competitionId);
       const state = gameManager.getState(competitionId);
@@ -287,19 +329,23 @@ export function createQuizServer(
       io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", state.teams);
     });
 
-    socket.on("HOST_NEXT", async ({ competitionId }) => {
+    onSafe("HOST_NEXT", async ({ competitionId }) => {
       if (!competitionId) return;
       const room = `competition_${competitionId}`;
       await gameManager.next(competitionId, (state) => {
-        io.to(room).emit("TIMER_SYNC", state.timeRemaining);
-        if (state.timeRemaining === 0) {
-          io.to(room).emit("GAME_STATE_SYNC", state);
+        try {
+          io.to(room).emit("TIMER_SYNC", state.timeRemaining);
+          if (state.timeRemaining === 0) {
+            io.to(room).emit("GAME_STATE_SYNC", state);
+          }
+        } catch (error) {
+          logger.error("Failed while broadcasting next-state timer sync", error);
         }
       });
       io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
-    socket.on("HOST_SET_PHASE", async ({ competitionId, phase }) => {
+    onSafe("HOST_SET_PHASE", async ({ competitionId, phase }) => {
       if (!competitionId) return;
       await gameManager.setPhase(competitionId, phase);
       io.to(`competition_${competitionId}`).emit(
@@ -308,7 +354,7 @@ export function createQuizServer(
       );
     });
 
-    socket.on(
+    onSafe(
       "HOST_GRADE_DECISION",
       async ({ competitionId, answerId, correct }) => {
         if (!competitionId) return;
@@ -320,7 +366,7 @@ export function createQuizServer(
       },
     );
 
-    socket.on("HOST_PAUSE_TIMER", async ({ competitionId }) => {
+    onSafe("HOST_PAUSE_TIMER", async ({ competitionId }) => {
       if (!competitionId) return;
       await gameManager.pauseTimer(competitionId);
       io.to(`competition_${competitionId}`).emit(
@@ -329,7 +375,7 @@ export function createQuizServer(
       );
     });
 
-    socket.on("HOST_RESUME_TIMER", async ({ competitionId }) => {
+    onSafe("HOST_RESUME_TIMER", async ({ competitionId }) => {
       if (!competitionId) return;
       await gameManager.resumeTimer(competitionId);
       io.to(`competition_${competitionId}`).emit(
@@ -338,7 +384,7 @@ export function createQuizServer(
       );
     });
 
-    socket.on("disconnect", () => {
+    onSafe("disconnect", () => {
       console.log("Client disconnected:", socket.id);
       const info = socketToTeam.get(socket.id);
       if (info) {

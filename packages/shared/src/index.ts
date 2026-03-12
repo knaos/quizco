@@ -26,7 +26,10 @@ export type ClosedAnswer = string;
 export type CrosswordAnswer = string[][];
 export type FillInTheBlanksAnswer = string[]; // Values for blanks in order
 export type MatchingAnswer = Record<string, string>; // leftSideId -> rightSideId
-export type ChronologyAnswer = string[]; // IDs in submitted order
+export type ChronologyAnswer = {
+  slotIds: Array<string | null>; // IDs placed into right-column slots
+  poolIds: string[]; // Remaining IDs in left-column pool order
+};
 export type TrueFalseAnswer = boolean;
 export type CorrectTheErrorAnswer = {
   selectedPhraseIndex: number;

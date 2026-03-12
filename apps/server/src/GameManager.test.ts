@@ -433,6 +433,7 @@ describe("GameManager Integration", () => {
       expect(gameManager.getState(testCompId).phase).toBe("GRADING");
       expect(stateTeam?.lastAnswer).toEqual([1]);
       expect(stateTeam?.lastAnswerCorrect).toBe(true);
+      // MULTIPLE_CHOICE uses per-correct-index scoring (1 point here).
       expect(stateTeam?.score).toBe(1);
 
       const dbAnswers = await prisma.answer.findMany({
@@ -530,6 +531,7 @@ describe("GameManager Integration", () => {
       expect(gameManager.getState(testCompId).phase).toBe("GRADING");
       expect(touched?.lastAnswer).toBe(true);
       expect(touched?.lastAnswerCorrect).toBe(true);
+      // TRUE_FALSE awards 1 point for a correct answer.
       expect(touched?.score).toBe(1);
 
       expect(untouched?.lastAnswer).toBeNull();

@@ -22,7 +22,7 @@ export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
       const prefilled = content.blanks.map((blank) => blank.options[0]?.value || "");
       onChange(prefilled);
     }
-  }, [content.prefill, content.blanks, onChange, value.length]);
+  }, [content.prefill, content.blanks, value.length, onChange]);
 
   const updateBlank = (index: number, val: string) => {
     const newValue = [...value];
