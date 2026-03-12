@@ -1,6 +1,8 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import type { ChronologyAnswer, ChronologyContent } from "@quizco/shared";
 import {
+  closestCorners,
+  type CollisionDetection,
   DndContext,
   DragOverlay,
   type DragEndEvent,
@@ -91,7 +93,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
     useDraggable({ id });
 
   const style = {
-    transform: isDragging ? undefined : CSS.Translate.toString(transform),
+    transform: CSS.Translate.toString(transform),
     touchAction: "pan-y" as const,
   };
   const handleProps: React.HTMLAttributes<HTMLButtonElement> = {
@@ -107,7 +109,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
         handleLabel={handleLabel}
         className={
           isDragging
-            ? "border-blue-500 bg-blue-50/70 opacity-0"
+            ? "pointer-events-none border-blue-500 bg-blue-50/70 opacity-0"
             : "border-blue-100 bg-white hover:border-blue-300"
         }
         handleProps={handleProps}
@@ -119,9 +121,10 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
 interface PoolDropzoneProps {
   children: React.ReactNode;
   isOver: boolean;
+  dropRef: (element: HTMLElement | null) => void;
 }
 
-const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver }) => {
+const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, dropRef }) => {
   const { t } = useTranslation();
 
   return (
@@ -130,6 +133,8 @@ const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver }) => {
         {t("player.chronology_items_column")}
       </h3>
       <div
+        ref={dropRef}
+        data-testid="chronology-pool-dropzone"
         className={`min-h-48 rounded-2xl border-2 p-3 transition-colors ${
           isOver
             ? "border-blue-500 bg-blue-50"
@@ -304,10 +309,18 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const poolDropElementRef = useRef<HTMLElement | null>(null);
 
   const { setNodeRef: setPoolNodeRef, isOver: isOverPool } = useDroppable({
     id: POOL_DROPPABLE_ID,
   });
+  const setPoolDropRef = useCallback(
+    (element: HTMLElement | null) => {
+      poolDropElementRef.current = element;
+      setPoolNodeRef(element);
+    },
+    [setPoolNodeRef],
+  );
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -338,21 +351,55 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
     setOverId(null);
   }, []);
 
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    const pointerHits = pointerWithin(args);
+    if (pointerHits.length > 0) {
+      return pointerHits;
+    }
+
+    // Fallback keeps drag/drop usable if pointerWithin reports no target
+    // (for example, around empty container edges during fast pointer moves).
+    return closestCorners(args);
+  }, []);
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
+      const sourceSlotIndex = boardState.slotIds.findIndex(
+        (slotId) => slotId === String(active.id),
+      );
       // dnd-kit can report over=null on pointer up; keep the last hover id as fallback.
       const resolvedOverId = over ? String(over.id) : overId;
-      if (!resolvedOverId) {
+      const translatedRect = active.rect.current.translated;
+      const poolRect = poolDropElementRef.current?.getBoundingClientRect();
+      const draggedCenterX = translatedRect
+        ? translatedRect.left + translatedRect.width / 2
+        : null;
+      const draggedCenterY = translatedRect
+        ? translatedRect.top + translatedRect.height / 2
+        : null;
+      const isReleasedOverPool =
+        draggedCenterX !== null &&
+        draggedCenterY !== null &&
+        Boolean(poolRect) &&
+        draggedCenterX >= poolRect.left &&
+        draggedCenterX <= poolRect.right &&
+        draggedCenterY >= poolRect.top &&
+        draggedCenterY <= poolRect.bottom;
+
+      if (!resolvedOverId && !(boardState.poolIds.length === 0 && sourceSlotIndex !== -1 && isReleasedOverPool)) {
         resetDragState();
         return;
       }
 
-      const stableTarget = resolveDropTarget(
-        resolvedOverId,
-        boardState.slotIds,
-        boardState.poolIds,
-      );
+      const stableTarget =
+        boardState.poolIds.length === 0 && sourceSlotIndex !== -1 && isReleasedOverPool
+          ? ({ type: "pool" } as const)
+          : resolveDropTarget(
+              resolvedOverId!,
+              boardState.slotIds,
+              boardState.poolIds,
+            );
       if (!stableTarget) {
         resetDragState();
         return;
@@ -383,27 +430,28 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
 
       <DndContext
         sensors={sensors}
-        collisionDetection={pointerWithin}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={resetDragState}
       >
         <div className="grid grid-cols-2 gap-4">
-          <div ref={setPoolNodeRef} data-testid="chronology-pool-dropzone">
-            <PoolDropzone isOver={isOverPool || overId === POOL_DROPPABLE_ID}>
-              <div className="space-y-2">
-                {boardState.poolIds.map((id) => (
-                  <PoolItemDropTarget
-                    key={id}
-                    id={id}
-                    text={itemMap[id]?.text ?? ""}
-                    handleLabel={handleLabels[id] ?? "?"}
-                  />
-                ))}
-              </div>
-            </PoolDropzone>
-          </div>
+          <PoolDropzone
+            isOver={isOverPool || overId === POOL_DROPPABLE_ID}
+            dropRef={setPoolDropRef}
+          >
+            <div className="space-y-2">
+              {boardState.poolIds.map((id) => (
+                <PoolItemDropTarget
+                  key={id}
+                  id={id}
+                  text={itemMap[id]?.text ?? ""}
+                  handleLabel={handleLabels[id] ?? "?"}
+                />
+              ))}
+            </div>
+          </PoolDropzone>
 
           <div className="space-y-3">
             <h3 className="text-sm font-black uppercase tracking-[0.14em] text-blue-700">
