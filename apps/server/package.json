@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
+    "lint": "tsc --noEmit",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:e2e": "vitest run src/test/GameLoop.e2e.test.ts",

@@ -1,6 +1,19 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { X, Save } from "lucide-react";
-import type { Question, QuestionType, GradingMode } from "@quizco/shared";
+import type {
+  Question,
+  QuestionType,
+  GradingMode,
+  QuestionContent,
+  MultipleChoiceContent,
+  OpenWordContent,
+  CrosswordContent,
+  FillInTheBlanksContent,
+  MatchingContent,
+  ChronologyContent,
+  TrueFalseContent,
+  CorrectTheErrorContent,
+} from "@quizco/shared";
 import { MultipleChoiceEditor } from "./editors/MultipleChoiceEditor";
 import { OpenWordEditor } from "./editors/OpenWordEditor";
 import { CrosswordEditor } from "./editors/CrosswordEditor";
@@ -19,43 +32,65 @@ interface QuestionEditorProps {
   onCancel: () => void;
 }
 
+type QuestionFormData = Omit<Partial<Question>, "type" | "grading" | "content"> & {
+  questionText: string;
+  type: QuestionType;
+  points: number;
+  timeLimitSeconds: number;
+  grading: GradingMode;
+  content: QuestionContent;
+  section: string;
+};
+
 export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCancel }) => {
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<QuestionFormData>({
     questionText: "",
     type: "MULTIPLE_CHOICE",
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
-    content: { options: ["", ""], correctIndex: 0 },
+    content: { options: ["", ""], correctIndices: [] },
     section: "",
     ...question,
-  });
+  } as QuestionFormData);
 
   const handleTypeChange = (type: QuestionType) => {
-    let content: any = {};
-    if (type === "MULTIPLE_CHOICE" || type === "CLOSED") {
-      content = { options: ["", ""], correctIndices: [] };
-    } else if (type === "OPEN_WORD") {
-      content = { answer: "" };
-    } else if (type === "CROSSWORD") {
-      content = { grid: [], clues: { across: [], down: [] } };
-    } else if (type === "FILL_IN_THE_BLANKS") {
-      content = { text: "", blanks: [] };
-    } else if (type === "MATCHING") {
-      content = { pairs: [] };
-    } else if (type === "CHRONOLOGY") {
-      content = { items: [] };
-    } else if (type === "TRUE_FALSE") {
-      content = { isTrue: true };
-    } else if (type === "CORRECT_THE_ERROR") {
-      content = { text: "", phrases: [], errorPhraseIndex: -1, correctReplacement: "" };
+    let content: QuestionContent;
+    switch (type) {
+      case "MULTIPLE_CHOICE":
+      case "CLOSED":
+        content = { options: ["", ""], correctIndices: [] };
+        break;
+      case "OPEN_WORD":
+        content = { answer: "" };
+        break;
+      case "CROSSWORD":
+        content = { grid: [], clues: { across: [], down: [] } };
+        break;
+      case "FILL_IN_THE_BLANKS":
+        content = { text: "", blanks: [] };
+        break;
+      case "MATCHING":
+        content = { pairs: [] };
+        break;
+      case "CHRONOLOGY":
+        content = { items: [] };
+        break;
+      case "TRUE_FALSE":
+        content = { isTrue: true };
+        break;
+      case "CORRECT_THE_ERROR":
+        content = { text: "", phrases: [], errorPhraseIndex: -1, correctReplacement: "" };
+        break;
+      default:
+        content = { options: ["", ""], correctIndices: [] };
     }
     setFormData({ ...formData, type, content });
   };
 
-  const handleContentChange = (content: any) => {
-    setFormData({ ...formData, content });
-  };
+  const handleContentChange = useCallback((content: QuestionContent) => {
+    setFormData((prev) => ({ ...prev, content }));
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-auto">
@@ -138,35 +173,35 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             <h3 className="text-lg font-bold text-gray-800 mb-4">Content Settings</h3>
 
             {(formData.type === "MULTIPLE_CHOICE" || formData.type === "CLOSED") && (
-              <MultipleChoiceEditor content={formData.content as any} onChange={handleContentChange} />
+              <MultipleChoiceEditor content={formData.content as MultipleChoiceContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "OPEN_WORD" && (
-              <OpenWordEditor content={formData.content as any} onChange={handleContentChange} />
+              <OpenWordEditor content={formData.content as OpenWordContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "CROSSWORD" && (
-              <CrosswordEditor content={formData.content as any} onChange={handleContentChange} />
+              <CrosswordEditor content={formData.content as CrosswordContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "FILL_IN_THE_BLANKS" && (
-              <FillInTheBlanksEditor content={formData.content as any} onChange={handleContentChange} />
+              <FillInTheBlanksEditor content={formData.content as FillInTheBlanksContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "MATCHING" && (
-              <MatchingEditor content={formData.content as any} onChange={handleContentChange} />
+              <MatchingEditor content={formData.content as MatchingContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "CHRONOLOGY" && (
-              <ChronologyEditor content={formData.content as any} onChange={handleContentChange} />
+              <ChronologyEditor content={formData.content as ChronologyContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "TRUE_FALSE" && (
-              <TrueFalseEditor content={formData.content as any} onChange={handleContentChange} />
+              <TrueFalseEditor content={formData.content as TrueFalseContent} onChange={handleContentChange} />
             )}
 
             {formData.type === "CORRECT_THE_ERROR" && (
-              <CorrectTheErrorEditor content={formData.content as any} onChange={handleContentChange} />
+              <CorrectTheErrorEditor content={formData.content as CorrectTheErrorContent} onChange={handleContentChange} />
             )}
           </div>
         </CardContent>
@@ -180,7 +215,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             Cancel
           </Button>
           <Button
-            onClick={() => onSave(formData)}
+            onClick={() => onSave(formData as Partial<Question>)}
             className="px-8"
           >
             <Save className="mr-2 w-5 h-5" /> Save Question

@@ -13,7 +13,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
 import { QuestionEditor } from "./admin/QuestionEditor";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import { API_URL } from "../socket";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
@@ -327,8 +327,8 @@ export const AdminPanel: React.FC = () => {
                 <Button 
                     variant="secondary"
                     onClick={() => {
-                        const newStatus = selectedComp?.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE';
-                        if (selectedComp) handleUpdateCompetition(selectedComp.id, { status: newStatus as any });
+                        const newStatus: Competition["status"] = selectedComp?.status === "ACTIVE" ? "DRAFT" : "ACTIVE";
+                        if (selectedComp) handleUpdateCompetition(selectedComp.id, { status: newStatus });
                     }}
                     className="px-6 py-3 text-sm shadow-xl shadow-gray-200"
                 >
