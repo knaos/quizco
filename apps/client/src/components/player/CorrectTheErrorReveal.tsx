@@ -1,11 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle } from 'lucide-react';
-import type { CorrectTheErrorContent } from '@quizco/shared';
+import type { CorrectTheErrorAnswer, CorrectTheErrorContent } from '@quizco/shared';
 
 interface CorrectTheErrorRevealProps {
   content: CorrectTheErrorContent;
-  lastAnswer: { selectedPhraseIndex: number; correction: string } | null;
+  lastAnswer: CorrectTheErrorAnswer | null;
 }
 
 /**

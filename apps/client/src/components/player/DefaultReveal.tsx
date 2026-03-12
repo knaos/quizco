@@ -1,9 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import type { AnswerContent, Question } from "@quizco/shared";
+import type { AnswerContent } from "@quizco/shared";
 
 interface DefaultRevealProps {
-  question?: Question;
   lastAnswer?: AnswerContent | null | undefined;
   gradingStatus?: boolean | null | undefined;
   getCorrectAnswer?: () => string;

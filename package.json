@@ -10,8 +10,10 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test",
     "lint": "npm run lint -w apps/client",
+    "lint": "npm run lint -w apps/client && npm run lint -w @quizco/server",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
     "db:reset": "npm run db:reset -w @quizco/server"
   },
   "devDependencies": {

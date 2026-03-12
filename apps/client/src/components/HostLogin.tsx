@@ -31,7 +31,7 @@ export const HostLogin: React.FC<HostLoginProps> = ({ onLogin }) => {
       <Card
         className="p-8 w-full max-w-md border-none shadow-2xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" data-testid="host-login-form">
           <div className="flex justify-center mb-6">
             <div className="bg-purple-100 p-4 rounded-full shadow-inner">
               <Lock className="text-purple-600 w-10 h-10" />
@@ -49,12 +49,14 @@ export const HostLogin: React.FC<HostLoginProps> = ({ onLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('host.password_placeholder')}
+              data-testid="host-password-input"
               autoFocus
             />
             <Button
               type="submit"
               variant="purple"
               className="w-full py-4 text-lg"
+              data-testid="host-login-submit"
             >
               <LogIn className="w-5 h-5 mr-2" />
               <span>{t('host.login_button')}</span>

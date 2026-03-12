@@ -48,6 +48,7 @@ export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
               value={value[index] || ""}
               onChange={(e) => updateBlank(index, e.target.value)}
               disabled={disabled}
+              data-testid={`fill-blank-${index}`}
               className="mx-2 px-3 py-1 border-b-4 border-blue-200 focus:border-blue-500 outline-none transition bg-blue-50/30 rounded-t-lg min-w-[120px] text-center font-bold text-blue-700 appearance-none cursor-pointer"
             >
               <option value="">...</option>

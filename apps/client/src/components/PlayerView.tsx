@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { useGame } from "../contexts/game-context";
+import { useGame } from "../contexts/useGame";
 import { socket, API_URL } from "../socket";
 import { Send, Clock, CheckCircle, XCircle, Info, LogOut, Trophy, ChevronRight } from "lucide-react";
 import { CrosswordPlayer } from "./player/CrosswordPlayer";
@@ -17,7 +17,7 @@ import { FillInTheBlanksReveal } from "./player/FillInTheBlanksReveal";
 import { CrosswordReveal } from "./player/CrosswordReveal";
 import { DefaultReveal } from "./player/DefaultReveal";
 import { CorrectTheErrorReveal } from "./player/CorrectTheErrorReveal";
-import { calculatePartialScore } from "./player/correctTheErrorScoring";
+import { useCorrectTheErrorPartialScore } from "./player/useCorrectTheErrorPartialScore";
 import { TrueFalseReveal } from "./player/TrueFalseReveal";
 import type { Competition, MultipleChoiceQuestion, MultipleChoiceContent, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyAnswer, ChronologyContent, CorrectTheErrorContent, CrosswordContent, TrueFalseContent, CorrectTheErrorAnswer } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
@@ -183,6 +183,14 @@ export const PlayerView: React.FC = () => {
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   const currentTeam = state.teams.find(t => t.id === teamId);
   const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
+  const correctTheErrorTeamAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer as CorrectTheErrorAnswer | null;
+  const correctTheErrorContent = state.currentQuestion?.type === "CORRECT_THE_ERROR"
+    ? (state.currentQuestion.content as CorrectTheErrorContent)
+    : null;
+  const correctTheErrorPartialScore = useCorrectTheErrorPartialScore(
+    correctTheErrorContent,
+    correctTheErrorTeamAnswer
+  );
 
   // Fetch active competitions if none selected
   React.useEffect(() => {
@@ -377,6 +385,7 @@ export const PlayerView: React.FC = () => {
           <LanguageSwitcher />
         </div>
         <Card className="p-8 shadow-2xl w-full max-w-md border-none">
+          <div data-testid="competition-selector">
           <h1 className="text-3xl font-black text-center mb-8 text-gray-800 tracking-tight">{t('player.no_active_quizzes')}</h1>
           <div className="space-y-4">
             {competitions.length === 0 ? (
@@ -386,6 +395,7 @@ export const PlayerView: React.FC = () => {
                 <button
                   key={comp.id}
                   onClick={() => handleSelectCompetition(comp.id)}
+                  data-testid={`competition-option-${comp.id}`}
                   className="w-full flex items-center justify-between p-5 bg-gray-50 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group"
                 >
                   <div className="flex items-center">
@@ -398,6 +408,7 @@ export const PlayerView: React.FC = () => {
                 </button>
               ))
             )}
+          </div>
           </div>
         </Card>
       </div>
@@ -422,13 +433,14 @@ export const PlayerView: React.FC = () => {
         </div>
         <Card className="p-8 shadow-xl w-full max-w-md border-none">
           <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">{t('player.join_title')}</h1>
-          <form onSubmit={handleJoin} className="space-y-4 text-left">
+          <form onSubmit={handleJoin} className="space-y-4 text-left" data-testid="join-team-form">
             <Input
               label={t('player.team_name')}
               type="text"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               placeholder={t('player.team_name')}
+              data-testid="team-name-input"
               required
             />
             <div>
@@ -437,6 +449,7 @@ export const PlayerView: React.FC = () => {
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
+                data-testid="team-color-input"
                 className="w-full h-12 rounded-xl cursor-pointer bg-gray-50 border-2 border-gray-100 p-1"
               />
             </div>
@@ -444,6 +457,7 @@ export const PlayerView: React.FC = () => {
               type="submit"
               size="xl"
               className="w-full"
+              data-testid="join-team-submit"
             >
               {t('player.lets_go')}
             </Button>
@@ -515,6 +529,7 @@ export const PlayerView: React.FC = () => {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <div data-testid="player-phase" className="sr-only">{state.phase}</div>
         {(state.phase === "WAITING" || state.phase === "WELCOME") && (
           <div className="space-y-8 animate-in fade-in zoom-in duration-700">
             <Card variant="elevated" className="p-12 rounded-[3rem] border-b-8 border-blue-600">
@@ -598,7 +613,7 @@ export const PlayerView: React.FC = () => {
               <div className="space-y-8 text-left">
                 <Card className="p-8 border-b-4 border-blue-500">
                   <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Question</span>
-                  <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800">
+                  <h2 className="text-2xl md:text-3xl font-bold mt-2 text-gray-800" data-testid="player-active-question-text">
                     {state.currentQuestion.questionText}
                   </h2>
                 </Card>
@@ -612,6 +627,7 @@ export const PlayerView: React.FC = () => {
                             <button
                               key={i}
                               onClick={() => toggleIndex(i)}
+                              data-testid={`player-choice-${i}`}
                               className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${isSelected
                                 ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
                                 : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
@@ -628,6 +644,7 @@ export const PlayerView: React.FC = () => {
                         onClick={() => submitAnswer(selectedIndices, true)}
                         disabled={selectedIndices.length === 0}
                         size="xl"
+                        data-testid="player-submit-answer"
                         className={`w-full ${selectedIndices.length > 0 ? "translate-y-[-4px]" : ""}`}
                       >
                         <Send className="w-8 h-8 mr-3" />
@@ -656,6 +673,7 @@ export const PlayerView: React.FC = () => {
                       />
                       <Button
                         onClick={() => submitAnswer(answer, true)}
+                        data-testid="player-submit-answer"
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
                         <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -671,6 +689,7 @@ export const PlayerView: React.FC = () => {
                       <Button
                         onClick={() => submitAnswer(answer, true)}
                         disabled={Object.keys(answer || {}).length < (state.currentQuestion.content as MatchingContent).pairs.length}
+                        data-testid="player-submit-answer"
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
                         <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -689,6 +708,7 @@ export const PlayerView: React.FC = () => {
                       />
                       <Button
                         onClick={() => submitAnswer(answer, true)}
+                        data-testid="player-submit-answer"
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
                         <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -706,6 +726,7 @@ export const PlayerView: React.FC = () => {
                       <Button
                         onClick={() => submitAnswer(answer, true)}
                         disabled={answer === null}
+                        data-testid="player-submit-answer"
                         className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                       >
                         <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -723,6 +744,7 @@ export const PlayerView: React.FC = () => {
                         <Button
                           onClick={() => submitAnswer(answer, true)}
                           disabled={(answer as CorrectTheErrorAnswer).selectedPhraseIndex === -1 || !(answer as CorrectTheErrorAnswer).correction}
+                          data-testid="player-submit-answer"
                           className="w-full py-6 rounded-3xl text-3xl shadow-xl"
                         >
                           <Send className="w-8 h-8 mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -738,10 +760,12 @@ export const PlayerView: React.FC = () => {
                         onKeyDown={(e) => e.key === "Enter" && submitAnswer(answer)}
                         className="text-2xl"
                         placeholder="Type your answer..."
+                        data-testid="player-open-answer-input"
                       />
                       <Button
                         onClick={() => submitAnswer(answer, true)}
                         size="lg"
+                        data-testid="player-submit-answer"
                         className="shadow-lg"
                       >
                         <Send className="mr-2" /> <span>{t("player.submit_answer")}</span>
@@ -756,7 +780,7 @@ export const PlayerView: React.FC = () => {
                 : (submissionStatus === "success" || currentTeam?.isExplicitlySubmitted)
                   ? "bg-green-100 border-green-500"
                   : "bg-blue-100 border-blue-500"
-                }`}>
+                }`} data-testid="player-submission-state">
                 {submissionStatus === "error" ? (
                   <>
                     <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -773,7 +797,7 @@ export const PlayerView: React.FC = () => {
             )}
 
 
-            <div className="text-4xl font-black text-gray-300">
+            <div className="text-4xl font-black text-gray-300" data-testid="player-time-remaining">
               {state.timeRemaining}s
             </div>
           </div>
@@ -788,14 +812,14 @@ export const PlayerView: React.FC = () => {
         )}
 
         {state.phase === "LEADERBOARD" && (
-          <div className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700">
+          <div className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700" data-testid="player-leaderboard">
             <Card variant="elevated" className="p-12 rounded-[3rem] border-b-8 border-blue-600">
               <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
               <h2 className="text-5xl font-black text-gray-900 mb-8">{t('host.leaderboard')}</h2>
 
               <div className="space-y-4">
                 {[...state.teams].sort((a, b) => b.score - a.score).map((team, idx) => (
-                  <div key={team.id} className={`flex items-center justify-between p-6 rounded-3xl ${idx === 0 ? "bg-yellow-50 border-4 border-yellow-200" : "bg-gray-50 border-4 border-transparent"
+                  <div key={team.id} data-testid={`leaderboard-team-${team.name}`} className={`flex items-center justify-between p-6 rounded-3xl ${idx === 0 ? "bg-yellow-50 border-4 border-yellow-200" : "bg-gray-50 border-4 border-transparent"
                     }`}>
                     <div className="flex items-center space-x-6">
                       <span className="text-3xl font-black text-gray-400 w-12">{idx + 1}</span>
@@ -821,9 +845,7 @@ export const PlayerView: React.FC = () => {
                 {state.currentQuestion.type === "CORRECT_THE_ERROR" ? (
                   // Special handling for CORRECT_THE_ERROR to show partial score
                   (() => {
-                    const cteContent = state.currentQuestion!.content as CorrectTheErrorContent;
-                    const teamAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer as { selectedPhraseIndex: number; correction: string } | null;
-                    const partialScore = calculatePartialScore(cteContent, teamAnswer);
+                    const partialScore = correctTheErrorPartialScore;
                     
                     if (partialScore === 2) {
                       return (
@@ -996,7 +1018,6 @@ export const PlayerView: React.FC = () => {
                   />
                 ) : (
                   <DefaultReveal
-                    question={state.currentQuestion}
                     lastAnswer={currentTeam?.lastAnswer}
                     gradingStatus={getGradingStatus()}
                     getCorrectAnswer={getCorrectAnswer}

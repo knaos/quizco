@@ -152,7 +152,9 @@ SCAFFOLD: Create necessary files and shared types.
 
 EXECUTE: Implement logic. **MANDATORY: Write unit tests for all new logic and state transitions.**
 
-VERIFY: Run and pass all tests. Generate a test (Playwright/Vitest) to prove the logic works (e.g., "Verify timer emits TIME_UP at exactly 0s"). Logic without accompanying tests is forbidden.
+E2E (MANDATORY): Invoke the `e2e-testing` skill for every new feature, refactor, and bug fix. Add or update Playwright coverage in `apps/e2e/tests` for affected user flows.
+
+VERIFY: Run and pass all required tests, including targeted e2e coverage from the `e2e-testing` skill. Generate a test (Playwright/Vitest) to prove the logic works (e.g., "Verify timer emits TIME_UP at exactly 0s"). Logic without accompanying tests is forbidden.
 
 7. Forbidden Patterns (Do Not Use)
    No Internet Dependencies: Do not use Auth0, Firebase, or CDNs. This must run on an isolated LAN.
