@@ -1,0 +1,4 @@
+interface:
+  display_name: "E2E Testing"
+  short_description: "Create and run Playwright regression coverage for code changes."
+  default_prompt: "For this feature, refactor, or bug fix, update Playwright e2e coverage and run the targeted suite."
