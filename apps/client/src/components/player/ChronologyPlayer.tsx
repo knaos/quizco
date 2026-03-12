@@ -91,7 +91,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
     useDraggable({ id });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    transform: isDragging ? undefined : CSS.Translate.toString(transform),
     touchAction: "pan-y" as const,
   };
   const handleProps: React.HTMLAttributes<HTMLButtonElement> = {
@@ -107,7 +107,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
         handleLabel={handleLabel}
         className={
           isDragging
-            ? "border-blue-500 bg-blue-50/70 opacity-60"
+            ? "border-blue-500 bg-blue-50/70 opacity-0"
             : "border-blue-100 bg-white hover:border-blue-300"
         }
         handleProps={handleProps}
