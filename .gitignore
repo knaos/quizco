@@ -7,3 +7,4 @@ build
 .DS_Store
 apps/e2e/test-results/
 apps/e2e/playwright-report/
+test-results/
