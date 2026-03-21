@@ -12,13 +12,13 @@ import { ChronologyPlayer } from "./ChronologyPlayer";
 import TrueFalsePlayer from "./TrueFalsePlayer";
 import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
 import { isChronologyAnswer } from "../../utils/answerGuards";
-import type { 
-  GameState, 
-  AnswerContent, 
-  MultipleChoiceContent, 
-  ChronologyContent, 
-  MatchingContent, 
-  CorrectTheErrorAnswer 
+import type {
+  GameState,
+  AnswerContent,
+  MultipleChoiceContent,
+  ChronologyContent,
+  MatchingContent,
+  CorrectTheErrorAnswer
 } from "@quizco/shared";
 
 interface QuestionActivePhaseProps {
@@ -61,9 +61,9 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
       )}
       {!hasSubmitted ? (
         <div className="space-y-8 text-left">
-          <Card className="p-8 border-b-4 border-blue-500">
+          <Card variant='elevated' className="p-8 !border-b-8 !border-blue-500 text-center">
             <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">
-              {t("common.question") || "Question"}
+              {"Раздел 1, Въпрос 1 TODO"}
             </span>
             <h2
               className="text-2xl md:text-3xl font-bold mt-2 text-gray-800"
@@ -84,11 +84,10 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                           key={i}
                           onClick={() => toggleIndex(i)}
                           data-testid={`player-choice-${i}`}
-                          className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${
-                            isSelected
-                              ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
-                              : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
-                          }`}
+                          className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${isSelected
+                            ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
+                            : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                            }`}
                         >
                           <span>{opt}</span>
                           {isSelected && (
@@ -105,9 +104,8 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                   disabled={selectedIndices.length === 0}
                   size="xl"
                   data-testid="player-submit-answer"
-                  className={`w-full ${
-                    selectedIndices.length > 0 ? "translate-y-[-4px]" : ""
-                  }`}
+                  className={`w-full ${selectedIndices.length > 0 ? "translate-y-[-4px]" : ""
+                    }`}
                 >
                   <Send className="w-8 h-8 mr-3" />
                   <span>{t("player.submit_answer")}</span>
@@ -171,13 +169,13 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                     isChronologyAnswer(answer)
                       ? answer
                       : {
-                          slotIds: (currentQuestion.content as ChronologyContent).items.map(
-                            () => null
-                          ),
-                          poolIds: (currentQuestion.content as ChronologyContent).items.map(
-                            (item) => item.id
-                          ),
-                        }
+                        slotIds: (currentQuestion.content as ChronologyContent).items.map(
+                          () => null
+                        ),
+                        poolIds: (currentQuestion.content as ChronologyContent).items.map(
+                          (item) => item.id
+                        ),
+                      }
                   }
                   onChange={(val) => setAnswer(val)}
                 />
@@ -227,7 +225,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                     onClick={() => submitAnswer(answer, true)}
                     disabled={
                       (answer as CorrectTheErrorAnswer).selectedPhraseIndex ===
-                        -1 || !(answer as CorrectTheErrorAnswer).correction
+                      -1 || !(answer as CorrectTheErrorAnswer).correction
                     }
                     data-testid="player-submit-answer"
                     className="w-full py-6 rounded-3xl text-3xl shadow-xl"
@@ -265,14 +263,13 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
         </div>
       ) : (
         <div
-          className={`p-8 rounded-2xl border-2 ${
-            submissionStatus === "error"
-              ? "bg-red-100 border-red-500"
-              : submissionStatus === "success" ||
-                currentTeam?.isExplicitlySubmitted
+          className={`p-8 rounded-2xl border-2 ${submissionStatus === "error"
+            ? "bg-red-100 border-red-500"
+            : submissionStatus === "success" ||
+              currentTeam?.isExplicitlySubmitted
               ? "bg-green-100 border-green-500"
               : "bg-blue-100 border-blue-500"
-          }`}
+            }`}
           data-testid="player-submission-state"
         >
           {submissionStatus === "error" ? (
@@ -285,32 +282,29 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
           ) : (
             <>
               <CheckCircle
-                className={`w-16 h-16 ${
-                  submissionStatus === "success" ||
+                className={`w-16 h-16 ${submissionStatus === "success" ||
                   currentTeam?.isExplicitlySubmitted
-                    ? "text-green-500"
-                    : "text-blue-500"
-                } mx-auto mb-4 ${
-                  submissionStatus === "idle" &&
-                  !currentTeam?.isExplicitlySubmitted
+                  ? "text-green-500"
+                  : "text-blue-500"
+                  } mx-auto mb-4 ${submissionStatus === "idle" &&
+                    !currentTeam?.isExplicitlySubmitted
                     ? "animate-pulse"
                     : ""
-                }`}
+                  }`}
               />
               <h2
-                className={`text-2xl font-bold ${
-                  submissionStatus === "success" ||
+                className={`text-2xl font-bold ${submissionStatus === "success" ||
                   currentTeam?.isExplicitlySubmitted
-                    ? "text-green-800"
-                    : "text-blue-800"
-                }`}
+                  ? "text-green-800"
+                  : "text-blue-800"
+                  }`}
               >
                 {t("player.answer_received")}
               </h2>
               <p
                 className={
                   submissionStatus === "success" ||
-                  currentTeam?.isExplicitlySubmitted
+                    currentTeam?.isExplicitlySubmitted
                     ? "text-green-700"
                     : "text-blue-700"
                 }
