@@ -1,13 +1,13 @@
 import React from "react";
 import { Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
-import Badge from "../ui/Badge";
-import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
-import { MatchingPlayer } from "./MatchingPlayer";
-import { ChronologyPlayer } from "./ChronologyPlayer";
-import { CrosswordPlayer } from "./CrosswordPlayer";
-import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
+import { Card } from "../../ui/Card";
+import Badge from "../../ui/Badge";
+import { FillInTheBlanksPlayer } from "../questions/fillInTheBlanks/FillInTheBlanksPlayer";
+import { MatchingPlayer } from "../questions/matching/MatchingPlayer";
+import { ChronologyPlayer } from "../questions/chronology/ChronologyPlayer";
+import { CrosswordPlayer } from "../questions/crossword/CrosswordPlayer";
+import CorrectTheErrorPlayer from "../questions/correctTheError/CorrectTheErrorPlayer";
 import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent, CrosswordContent, CorrectTheErrorContent } from "@quizco/shared";
 
 interface QuestionPreviewPhaseProps {

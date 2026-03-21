@@ -1,17 +1,17 @@
 import React from "react";
 import { Send, CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
-import Button from "../ui/Button";
-import Input from "../ui/Input";
-import Badge from "../ui/Badge";
-import { CrosswordPlayer } from "./CrosswordPlayer";
-import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
-import { MatchingPlayer } from "./MatchingPlayer";
-import { ChronologyPlayer } from "./ChronologyPlayer";
-import TrueFalsePlayer from "./TrueFalsePlayer";
-import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
-import { isChronologyAnswer } from "../../utils/answerGuards";
+import { Card } from "../../ui/Card";
+import Button from "../../ui/Button";
+import Input from "../../ui/Input";
+import Badge from "../../ui/Badge";
+import { CrosswordPlayer } from "../questions/crossword/CrosswordPlayer";
+import { FillInTheBlanksPlayer } from "../questions/fillInTheBlanks/FillInTheBlanksPlayer";
+import { MatchingPlayer } from "../questions/matching/MatchingPlayer";
+import { ChronologyPlayer } from "../questions/chronology/ChronologyPlayer";
+import TrueFalsePlayer from "../questions/trueFalse/TrueFalsePlayer";
+import CorrectTheErrorPlayer from "../questions/correctTheError/CorrectTheErrorPlayer";
+import { isChronologyAnswer } from "../../../utils/answerGuards";
 import type {
   GameState,
   AnswerContent,

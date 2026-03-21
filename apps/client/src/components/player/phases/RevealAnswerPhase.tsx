@@ -1,21 +1,21 @@
 import React from "react";
 import { Info, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
-import Badge from "../ui/Badge";
-import { MultipleChoiceReveal } from "./MultipleChoiceReveal";
-import { ChronologyReveal } from "./ChronologyReveal";
-import { MatchingReveal } from "./MatchingReveal";
-import { FillInTheBlanksReveal } from "./FillInTheBlanksReveal";
-import { CrosswordReveal } from "./CrosswordReveal";
-import { DefaultReveal } from "./DefaultReveal";
-import { CorrectTheErrorReveal } from "./CorrectTheErrorReveal";
-import { TrueFalseReveal } from "./TrueFalseReveal";
+import { Card } from "../../ui/Card";
+import Badge from "../../ui/Badge";
+import { MultipleChoiceReveal } from "../questions/MultipleChoiceReveal";
+import { ChronologyReveal } from "../questions/chronology/ChronologyReveal";
+import { MatchingReveal } from "../questions/matching/MatchingReveal";
+import { FillInTheBlanksReveal } from "../questions/fillInTheBlanks/FillInTheBlanksReveal";
+import { CrosswordReveal } from "../questions/crossword/CrosswordReveal";
+import { DefaultReveal } from "../questions/DefaultReveal";
+import { CorrectTheErrorReveal } from "../questions/correctTheError/CorrectTheErrorReveal";
+import { TrueFalseReveal } from "../questions/trueFalse/TrueFalseReveal";
 import { 
   calculateFillInTheBlanksScore, 
   calculateMatchingScore, 
   calculateCrosswordScore 
-} from "../../utils/scoreCalculations";
+} from "../../../utils/scoreCalculations";
 import type { 
   AnswerContent,
   GameState, 

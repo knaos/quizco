@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
-import { socket } from "../../socket";
+import { socket } from "../../../../socket";
 import { useTranslation } from "react-i18next";
 import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
-import { useGame } from "../../contexts/useGame";
+import { useGame } from "../../../../contexts/useGame";
 
 interface CrosswordPlayerProps {
   data: CrosswordContent;

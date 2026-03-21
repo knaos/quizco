@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import type { CrosswordClue, CrosswordContent } from "@quizco/shared";
-import { CrosswordPlayer } from "../../player/CrosswordPlayer";
+import { CrosswordPlayer } from "../../player/questions/crossword/CrosswordPlayer";
 import { CrosswordClueEditor } from "./CrosswordClueEditor";
 import { Card } from "../../ui/Card";
 

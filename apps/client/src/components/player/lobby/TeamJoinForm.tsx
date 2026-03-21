@@ -1,10 +1,10 @@
 import React from "react";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
-import Button from "../ui/Button";
-import Input from "../ui/Input";
-import { LanguageSwitcher } from "../LanguageSwitcher";
+import { Card } from "../../ui/Card";
+import Button from "../../ui/Button";
+import Input from "../../ui/Input";
+import { LanguageSwitcher } from "../../LanguageSwitcher";
 
 interface TeamJoinFormProps {
   teamName: string;
