@@ -52,7 +52,7 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
   if (!currentQuestion) return null;
 
   return (
-    <div className="w-full max-w-3xl space-y-8 animate-in fade-in zoom-in duration-500">
+    <div className="w-full max-w-4xl space-y-8 animate-in fade-in zoom-in duration-500">
       <Card className="p-8 border-t-8 border-blue-500 text-left">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2 text-blue-600">

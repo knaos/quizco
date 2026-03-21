@@ -50,7 +50,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
   if (!currentQuestion) return null;
 
   return (
-    <div className="w-full max-w-3xl space-y-8">
+    <div className="w-full max-w-4xl space-y-8">
       {currentQuestion.section && (
         <Badge
           variant="yellow"
