@@ -18,9 +18,7 @@ import {
   pointerWithin,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { buildChronologyHandleLabels } from "./chronologyOrdering";
 import {
   buildChronologyAnswer,
   createChronologyBoardStateFromAnswer,
@@ -44,35 +42,22 @@ type ChronologyItemMap = Record<string, ChronologyItemView>;
 interface ChronologyCardProps {
   id: string;
   text: string;
-  handleLabel: string;
   className?: string;
-  handleProps?: React.HTMLAttributes<HTMLButtonElement>;
+  dragProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
   id,
   text,
-  handleLabel,
   className = "",
-  handleProps,
+  dragProps,
 }) => {
-  const { t } = useTranslation();
-
   return (
     <div
       data-testid={`chronology-item-${id}`}
-      className={`flex h-16 items-center gap-3 rounded-2xl border-2 p-3 transition-colors ${className}`}
+      className={`flex h-16 cursor-grab items-center gap-3 rounded-2xl border-2 p-3 transition-colors active:cursor-grabbing ${className}`}
+      {...dragProps}
     >
-      <button
-        type="button"
-        className="flex h-12 min-w-12 items-center justify-center rounded-xl border-2 border-blue-200 bg-blue-50 text-blue-700 active:scale-95"
-        data-testid={`chronology-handle-${id}`}
-        aria-label={t("player.chronology_drag_handle", { label: handleLabel })}
-        {...handleProps}
-      >
-        <span className="text-lg font-black leading-none">{handleLabel}</span>
-        <GripVertical className="ml-1 h-4 w-4" />
-      </button>
       <span className="flex-1 text-lg font-bold text-gray-800">{text}</span>
     </div>
   );
@@ -81,13 +66,11 @@ const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
 interface DraggableChronologyCardProps {
   id: string;
   text: string;
-  handleLabel: string;
 }
 
 const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
   id,
   text,
-  handleLabel,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id });
@@ -96,7 +79,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
     transform: CSS.Translate.toString(transform),
     touchAction: "pan-y" as const,
   };
-  const handleProps: React.HTMLAttributes<HTMLButtonElement> = {
+  const dragProps: React.HTMLAttributes<HTMLDivElement> = {
     ...attributes,
     ...listeners,
   };
@@ -106,13 +89,12 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
       <ChronologyCardShell
         id={id}
         text={text}
-        handleLabel={handleLabel}
         className={
           isDragging
             ? "pointer-events-none border-blue-500 bg-blue-50/70 opacity-0"
             : "border-blue-100 bg-white hover:border-blue-300"
         }
-        handleProps={handleProps}
+        dragProps={dragProps}
       />
     </div>
   );
@@ -150,7 +132,6 @@ const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, dropRef }
 interface PoolItemDropTargetProps {
   id: string;
   text: string;
-  handleLabel: string;
 }
 
 const POOL_DROPPABLE_ID = "chronology-pool";
@@ -160,14 +141,13 @@ const SLOT_DROPPABLE_PREFIX = "chronology-slot-";
 const PoolItemDropTarget: React.FC<PoolItemDropTargetProps> = ({
   id,
   text,
-  handleLabel,
 }) => {
   const dropId = `${POOL_ITEM_DROPPABLE_PREFIX}${id}`;
   const { setNodeRef } = useDroppable({ id: dropId });
 
   return (
     <div ref={setNodeRef} data-testid={dropId}>
-      <DraggableChronologyCard id={id} text={text} handleLabel={handleLabel} />
+      <DraggableChronologyCard id={id} text={text} />
     </div>
   );
 };
@@ -201,7 +181,6 @@ interface TimelineSlotProps {
   index: number;
   slotId: string | null;
   itemMap: ChronologyItemMap;
-  handleLabels: Record<string, string>;
   overId: string | null;
 }
 
@@ -209,7 +188,6 @@ const TimelineSlot: React.FC<TimelineSlotProps> = ({
   index,
   slotId,
   itemMap,
-  handleLabels,
   overId,
 }) => {
   const { t } = useTranslation();
@@ -227,7 +205,6 @@ const TimelineSlot: React.FC<TimelineSlotProps> = ({
           <DraggableChronologyCard
             id={slotId}
             text={itemMap[slotId]?.text ?? ""}
-            handleLabel={handleLabels[slotId] ?? "?"}
           />
         ) : (
           <div className="flex min-h-14 items-center justify-center rounded-2xl border-2 border-dashed border-blue-100 bg-white/70 px-3 text-center text-sm font-bold text-slate-500">
@@ -298,10 +275,6 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   const { t } = useTranslation();
   const itemIds = useMemo(() => content.items.map((item) => item.id), [content.items]);
   const itemMap = useMemo(() => buildItemMap(content), [content]);
-  const handleLabels = useMemo(
-    () => buildChronologyHandleLabels(content.items),
-    [content.items],
-  );
 
   const boardState = useMemo(
     () => createChronologyBoardStateFromAnswer(itemIds, value),
@@ -447,7 +420,6 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                   key={id}
                   id={id}
                   text={itemMap[id]?.text ?? ""}
-                  handleLabel={handleLabels[id] ?? "?"}
                 />
               ))}
             </div>
@@ -464,7 +436,6 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                   index={index}
                   slotId={slotId}
                   itemMap={itemMap}
-                  handleLabels={handleLabels}
                   overId={overId}
                 />
               ))}
@@ -477,7 +448,6 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
             <ChronologyCardShell
               id={activeItem.id}
               text={activeItem.text}
-              handleLabel={handleLabels[activeItem.id] ?? "?"}
               className="border-blue-500 bg-white shadow-2xl"
             />
           ) : null}

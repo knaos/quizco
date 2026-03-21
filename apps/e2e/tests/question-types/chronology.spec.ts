@@ -13,26 +13,26 @@ test("Question type flow: CHRONOLOGY", async ({ browser }) => {
   await runQuestionTypeScenario(browser, QUESTION_TYPE_SCENARIOS.CHRONOLOGY);
 });
 
-const dragByHandle = async (
+const dragByItem = async (
   page: Page,
-  handleTestId: string,
+  itemTestId: string,
   targetTestId: string,
 ): Promise<void> => {
-  const handle = page.getByTestId(handleTestId);
+  const item = page.getByTestId(itemTestId);
   const target = page.getByTestId(targetTestId).first();
 
-  await expect(handle).toBeVisible();
+  await expect(item).toBeVisible();
   await expect(target).toBeVisible();
 
-  const handleBox = await handle.boundingBox();
+  const itemBox = await item.boundingBox();
   const targetBox = await target.boundingBox();
 
-  if (!handleBox || !targetBox) {
+  if (!itemBox || !targetBox) {
     throw new Error("Unable to compute drag coordinates for chronology drag test.");
   }
 
-  const startX = handleBox.x + handleBox.width / 2;
-  const startY = handleBox.y + handleBox.height / 2;
+  const startX = itemBox.x + itemBox.width / 2;
+  const startY = itemBox.y + itemBox.height / 2;
   const targetX = targetBox.x + targetBox.width / 2;
   const targetY = targetBox.y + targetBox.height / 2;
 
@@ -81,10 +81,10 @@ test("Chronology allows moving an item back to left pool after pool is empty", a
       timeout: 20_000,
     });
 
-    await dragByHandle(session.playerOnePage, "chronology-handle-c1", "chronology-slot-0");
+    await dragByItem(session.playerOnePage, "chronology-item-c1", "chronology-slot-0");
     await expect(session.playerOnePage.getByTestId("chronology-slot-0")).toContainText("First");
 
-    await dragByHandle(session.playerOnePage, "chronology-handle-c2", "chronology-slot-1");
+    await dragByItem(session.playerOnePage, "chronology-item-c2", "chronology-slot-1");
     await expect(session.playerOnePage.getByTestId("chronology-slot-1")).toContainText("Second");
 
     await expect(
@@ -93,7 +93,7 @@ test("Chronology allows moving an item back to left pool after pool is empty", a
         .getByTestId(/chronology-item-/),
     ).toHaveCount(0);
 
-    await dragByHandle(session.playerOnePage, "chronology-handle-c1", "chronology-pool-dropzone");
+    await dragByItem(session.playerOnePage, "chronology-item-c1", "chronology-pool-dropzone");
 
     await expect(
       session.playerOnePage
@@ -153,16 +153,16 @@ test("Chronology selector supports slot swap and pool item insertion targets", a
       timeout: 20_000,
     });
 
-    await dragByHandle(session.playerOnePage, "chronology-handle-c1", "chronology-slot-0");
-    await dragByHandle(session.playerOnePage, "chronology-handle-c2", "chronology-slot-1");
+    await dragByItem(session.playerOnePage, "chronology-item-c1", "chronology-slot-0");
+    await dragByItem(session.playerOnePage, "chronology-item-c2", "chronology-slot-1");
     await expect(session.playerOnePage.getByTestId("chronology-slot-0")).toContainText("One");
     await expect(session.playerOnePage.getByTestId("chronology-slot-1")).toContainText("Two");
 
-    await dragByHandle(session.playerOnePage, "chronology-handle-c1", "chronology-item-c2");
+    await dragByItem(session.playerOnePage, "chronology-item-c1", "chronology-item-c2");
     await expect(session.playerOnePage.getByTestId("chronology-slot-0")).toContainText("Two");
     await expect(session.playerOnePage.getByTestId("chronology-slot-1")).toContainText("One");
 
-    await dragByHandle(session.playerOnePage, "chronology-handle-c2", "chronology-pool-item-c3");
+    await dragByItem(session.playerOnePage, "chronology-item-c2", "chronology-pool-item-c3");
     await expect(
       session.playerOnePage.getByTestId("chronology-slot-0").getByTestId("chronology-item-c2"),
     ).toHaveCount(0);
