@@ -11,20 +11,20 @@ import { CrosswordReveal } from "../questions/crossword/CrosswordReveal";
 import { DefaultReveal } from "../questions/DefaultReveal";
 import { CorrectTheErrorReveal } from "../questions/correctTheError/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "../questions/trueFalse/TrueFalseReveal";
-import { 
-  calculateFillInTheBlanksScore, 
-  calculateMatchingScore, 
-  calculateCrosswordScore 
+import {
+  calculateFillInTheBlanksScore,
+  calculateMatchingScore,
+  calculateCrosswordScore
 } from "../../../utils/scoreCalculations";
-import type { 
+import type {
   AnswerContent,
-  GameState, 
-  MultipleChoiceQuestion, 
-  ChronologyContent, 
-  MatchingContent, 
-  FillInTheBlanksContent, 
-  CrosswordContent, 
-  CorrectTheErrorContent, 
+  GameState,
+  MultipleChoiceQuestion,
+  ChronologyContent,
+  MatchingContent,
+  FillInTheBlanksContent,
+  CrosswordContent,
+  CorrectTheErrorContent,
   TrueFalseContent,
   ChronologyAnswer
 } from "@quizco/shared";
@@ -57,7 +57,7 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2 text-blue-600">
             <Info className="w-6 h-6" />
-            <span className="font-bold uppercase tracking-widest text-sm">
+            <span className="font-bold uppercase tracking-widest text-md">
               {t("player.reveal_phase")}
             </span>
           </div>
