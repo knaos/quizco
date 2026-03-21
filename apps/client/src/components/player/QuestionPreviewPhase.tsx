@@ -7,7 +7,8 @@ import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./MatchingPlayer";
 import { ChronologyPlayer } from "./ChronologyPlayer";
 import { CrosswordPlayer } from "./CrosswordPlayer";
-import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent, CrosswordContent } from "@quizco/shared";
+import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
+import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent, CrosswordContent, CorrectTheErrorContent } from "@quizco/shared";
 
 interface QuestionPreviewPhaseProps {
   state: GameState;
@@ -101,6 +102,18 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
         <div className="mt-8">
           <CrosswordPlayer
             data={currentQuestion.content as CrosswordContent}
+            previewMode={true}
+          />
+        </div>
+      )}
+
+      {/* CORRECT_THE_ERROR: Show phrase buttons but disable them and hide alternatives */}
+      {currentQuestion.type === "CORRECT_THE_ERROR" && (
+        <div className="mt-8">
+          <CorrectTheErrorPlayer
+            content={currentQuestion.content as CorrectTheErrorContent}
+            value={{ selectedPhraseIndex: -1, correction: "" }}
+            onChange={() => { }}
             previewMode={true}
           />
         </div>
