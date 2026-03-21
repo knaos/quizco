@@ -60,13 +60,13 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
         </Badge>
       )}
       {!hasSubmitted ? (
-        <div className="space-y-8 text-left">
+        <div className="w-full max-w-4xl space-y-8 text-left">
           <Card variant='elevated' className="p-8 !border-b-8 !border-blue-500 text-center">
-            <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">
+            <span className="text-blue-600 font-black uppercase tracking-widest text-lg mb-4 block">
               {"Раздел 1, Въпрос 1 TODO"}
             </span>
             <h2
-              className="text-2xl md:text-3xl font-bold mt-2 text-gray-800"
+              className="text-3xl md:text-4xl font-black text-gray-900 leading-tight"
               data-testid="player-active-question-text"
             >
               {currentQuestion.questionText}

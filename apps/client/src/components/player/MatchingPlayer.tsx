@@ -6,6 +6,8 @@ interface MatchingPlayerProps {
   value: Record<string, string>;
   onChange: (value: Record<string, string>) => void;
   disabled?: boolean;
+  /** When true, shows the same UI but disables all interactions */
+  previewMode?: boolean;
 }
 
 interface CardPosition {
@@ -38,6 +40,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   value,
   onChange,
   disabled,
+  previewMode = false,
 }) => {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [cardPositions, setCardPositions] = useState<{
@@ -118,12 +121,12 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   }, [value, updatePositions]);
 
   const handleLeftClick = (id: string) => {
-    if (disabled) return;
+    if (disabled || previewMode) return;
     setSelectedLeft(id === selectedLeft ? null : id);
   };
 
   const handleRightClick = (rightText: string) => {
-    if (disabled || !selectedLeft) return;
+    if (disabled || previewMode || !selectedLeft) return;
 
     const newValue = { ...value };
     // Remove any existing match for this right item
@@ -139,7 +142,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   };
 
   const clearMatch = (leftId: string) => {
-    if (disabled) return;
+    if (disabled || previewMode) return;
     const newValue = { ...value };
     delete newValue[leftId];
     onChange(newValue);

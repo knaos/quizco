@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Card } from "../ui/Card";
 import Badge from "../ui/Badge";
 import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
-import type { GameState, FillInTheBlanksContent } from "@quizco/shared";
+import { MatchingPlayer } from "./MatchingPlayer";
+import type { GameState, FillInTheBlanksContent, MatchingContent } from "@quizco/shared";
 
 interface QuestionPreviewPhaseProps {
   state: GameState;
@@ -63,6 +64,18 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
           <FillInTheBlanksPlayer
             content={currentQuestion.content as FillInTheBlanksContent}
             value={[]}
+            onChange={() => { }}
+            previewMode={true}
+          />
+        </div>
+      )}
+
+      {/* MATCHING: Show matching UI without interactions */}
+      {currentQuestion.type === "MATCHING" && (
+        <div className="mt-8">
+          <MatchingPlayer
+            content={currentQuestion.content as MatchingContent}
+            value={{}}
             onChange={() => { }}
             previewMode={true}
           />
