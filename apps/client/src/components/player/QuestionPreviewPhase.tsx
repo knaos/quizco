@@ -6,7 +6,8 @@ import Badge from "../ui/Badge";
 import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./MatchingPlayer";
 import { ChronologyPlayer } from "./ChronologyPlayer";
-import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent } from "@quizco/shared";
+import { CrosswordPlayer } from "./CrosswordPlayer";
+import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent, CrosswordContent } from "@quizco/shared";
 
 interface QuestionPreviewPhaseProps {
   state: GameState;
@@ -90,6 +91,16 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
             content={currentQuestion.content as ChronologyContent}
             value={{ slotIds: [], poolIds: (currentQuestion.content as ChronologyContent).items.map(i => i.id) }}
             onChange={() => { }}
+            previewMode={true}
+          />
+        </div>
+      )}
+
+      {/* CROSSWORD: Show crossword grid without input for host to read */}
+      {currentQuestion.type === "CROSSWORD" && (
+        <div className="mt-8">
+          <CrosswordPlayer
+            data={currentQuestion.content as CrosswordContent}
             previewMode={true}
           />
         </div>
