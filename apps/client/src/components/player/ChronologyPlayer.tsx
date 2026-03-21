@@ -30,6 +30,8 @@ interface ChronologyPlayerProps {
   content: ChronologyContent;
   value: ChronologyAnswer;
   onChange: (value: ChronologyAnswer) => void;
+  /** When true, shows items in pool without interaction - used in QUESTION_PREVIEW */
+  previewMode?: boolean;
 }
 
 interface ChronologyItemView {
@@ -61,8 +63,8 @@ const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
       data-testid={`chronology-item-${id}`}
       onClick={onClick}
       className={`flex h-16 cursor-grab items-center gap-3 rounded-2xl border-2 p-3 transition-all active:cursor-grabbing ${className} ${isSelected
-          ? "border-blue-500 bg-blue-100 ring-4 ring-blue-300"
-          : "border-blue-100 bg-white hover:border-blue-300"
+        ? "border-blue-500 bg-blue-100 ring-4 ring-blue-300"
+        : "border-blue-100 bg-white hover:border-blue-300"
         }`}
       {...dragProps}
     >
@@ -135,10 +137,10 @@ const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, isSelecte
         onClick={onClick}
         data-testid="chronology-pool-dropzone"
         className={`min-h-48 rounded-2xl border-2 p-3 transition-colors cursor-pointer ${isSelectedTarget
-            ? "border-green-500 bg-green-50 ring-4 ring-green-300"
-            : isOver
-              ? "border-blue-500 bg-blue-50"
-              : "border-blue-200 bg-slate-50 hover:border-blue-300"
+          ? "border-green-500 bg-green-50 ring-4 ring-green-300"
+          : isOver
+            ? "border-blue-500 bg-blue-50"
+            : "border-blue-200 bg-slate-50 hover:border-blue-300"
           }`}
       >
         {children}
@@ -194,10 +196,10 @@ const SlotDropzone: React.FC<SlotDropzoneProps> = ({ index, isOver, isSelectedTa
     <div
       onClick={onClick}
       className={`rounded-2xl border-2 border-dashed p-2 transition-colors cursor-pointer ${isSelectedTarget
-          ? "border-green-500 bg-green-50 ring-4 ring-green-300"
-          : isOver
-            ? "border-blue-500 bg-blue-50"
-            : "border-blue-200 bg-blue-50/40 hover:border-blue-300"
+        ? "border-green-500 bg-green-50 ring-4 ring-green-300"
+        : isOver
+          ? "border-blue-500 bg-blue-50"
+          : "border-blue-200 bg-blue-50/40 hover:border-blue-300"
         } min-h-28`}
     >
       <div className="px-2 pb-2 text-xs font-black uppercase tracking-[0.14em] text-blue-700">
@@ -313,6 +315,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   content,
   value,
   onChange,
+  previewMode = false,
 }) => {
   const { t } = useTranslation();
   const itemIds = useMemo(() => content.items.map((item) => item.id), [content.items]);
@@ -476,12 +479,58 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   // Check if pool is a valid target - only when card is in a slot (can move back to pool)
   const isPoolSelectedTarget = selectedId !== null && boardState.slotIds.includes(selectedId);
 
-  return (
-    <div className="w-full space-y-3">
-      <p className="text-sm font-bold uppercase tracking-wide text-blue-700">
-        {t("player.chronology_instruction")}
-      </p>
+  // Preview mode: show all items in pool with no interactions
+  if (previewMode) {
+    return (
+      <div className="w-full space-y-3">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Pool column - show all items here in preview */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-black uppercase tracking-[0.14em] text-yellow-700">
+              {t("player.chronology_items_column")}
+            </h3>
+            <div className="min-h-48 rounded-2xl border-2 border-yellow-500 bg-slate-50 p-3">
+              <div className="space-y-2">
+                {content.items.map((item) => (
+                  <div
+                    key={item.id}
+                    data-testid={`chronology-item-${item.id}`}
+                    className="flex h-16 items-center gap-3 rounded-2xl border-2 border-blue-100 bg-white p-3"
+                  >
+                    <span className="flex-1 text-lg font-bold text-gray-800">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
+          {/* Timeline column - show empty slots */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-black uppercase tracking-[0.14em] text-yellow-700">
+              {t("player.chronology_timeline_column")}
+            </h3>
+            <div className="space-y-2">
+              {content.items.map((_, index) => (
+                <div
+                  key={index}
+                  data-testid={`chronology-slot-${index}`}
+                  className="rounded-2xl border-2 border-dashed border-yellow-500 bg-blue-50/40 p-2 min-h-28"
+                >
+                  <div className="px-2 pb-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-700">
+                    {t("player.chronology_slot", { position: index + 1 })}
+                  </div>
+                  <div className="h-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-3 text-center">
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetection}

@@ -5,7 +5,8 @@ import { Card } from "../ui/Card";
 import Badge from "../ui/Badge";
 import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
 import { MatchingPlayer } from "./MatchingPlayer";
-import type { GameState, FillInTheBlanksContent, MatchingContent } from "@quizco/shared";
+import { ChronologyPlayer } from "./ChronologyPlayer";
+import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent } from "@quizco/shared";
 
 interface QuestionPreviewPhaseProps {
   state: GameState;
@@ -76,6 +77,18 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
           <MatchingPlayer
             content={currentQuestion.content as MatchingContent}
             value={{}}
+            onChange={() => { }}
+            previewMode={true}
+          />
+        </div>
+      )}
+
+      {/* CHRONOLOGY: Show all items in pool for host to read */}
+      {currentQuestion.type === "CHRONOLOGY" && (
+        <div className="mt-8">
+          <ChronologyPlayer
+            content={currentQuestion.content as ChronologyContent}
+            value={{ slotIds: [], poolIds: (currentQuestion.content as ChronologyContent).items.map(i => i.id) }}
             onChange={() => { }}
             previewMode={true}
           />
