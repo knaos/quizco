@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
+  clickHostNextAndExpectPhase,
   createAdminApi,
   createCompetitionWithQuestions,
   createHostAndPlayers,
@@ -179,6 +180,96 @@ test("Chronology selector supports slot swap and pool item insertion targets", a
     await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("GRADING", {
       timeout: 20_000,
     });
+  } finally {
+    if (competitionId) {
+      await deleteCompetition(adminApi, competitionId);
+    }
+    if (session) {
+      await session.close();
+    }
+    await adminApi.dispose();
+  }
+});
+
+test("Chronology reveal phase shows correct/incorrect badge with score count", async ({ browser }) => {
+  const adminApi = await createAdminApi();
+  let competitionId = "";
+  let session: Awaited<ReturnType<typeof createHostAndPlayers>> | null = null;
+
+  try {
+    const fixture = await createCompetitionWithQuestions(
+      adminApi,
+      "E2E Chronology Reveal Badge",
+      [
+        {
+          questionText: "Chronology reveal badge test question",
+          type: "CHRONOLOGY",
+          content: {
+            items: [
+              { id: "e1", text: "First Event", order: 0 },
+              { id: "e2", text: "Second Event", order: 1 },
+              { id: "e3", text: "Third Event", order: 2 },
+            ],
+          },
+        },
+      ],
+    );
+    competitionId = fixture.competitionId;
+
+    session = await createHostAndPlayers(
+      browser,
+      competitionId,
+      "Chronology Badge Team One",
+      "Chronology Badge Team Two",
+    );
+
+    await moveToQuestionPreview(session.hostPage);
+    await movePreviewToActive(session.hostPage, "CHRONOLOGY");
+
+    await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE", {
+      timeout: 20_000,
+    });
+
+    // Player 1 places items in CORRECT order (e1->0, e2->1, e3->2)
+    await dragByItem(session.playerOnePage, "chronology-item-e1", "chronology-slot-0");
+    await dragByItem(session.playerOnePage, "chronology-item-e2", "chronology-slot-1");
+    await dragByItem(session.playerOnePage, "chronology-item-e3", "chronology-slot-2");
+
+    // Player 2 places items in WRONG order (e3->0, e1->1, e2->2)
+    await dragByItem(session.playerTwoPage, "chronology-item-e3", "chronology-slot-0");
+    await dragByItem(session.playerTwoPage, "chronology-item-e1", "chronology-slot-1");
+    await dragByItem(session.playerTwoPage, "chronology-item-e2", "chronology-slot-2");
+
+    // Both submit
+    await session.playerOnePage.getByTestId("player-submit-answer").click();
+    await session.playerTwoPage.getByTestId("player-submit-answer").click();
+
+    // Wait for grading
+    await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("GRADING", {
+      timeout: 20_000,
+    });
+
+    // Host reveals answer
+    await clickHostNextAndExpectPhase(session.hostPage, "REVEAL_ANSWER");
+
+    // Wait for reveal phase on player side
+    await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("REVEAL_ANSWER", {
+      timeout: 20_000,
+    });
+    await expect(session.playerTwoPage.getByTestId("player-phase")).toHaveText("REVEAL_ANSWER", {
+      timeout: 20_000,
+    });
+
+    // Player 1 should have correct score badge (3/3 - green)
+    const playerOneBadge = session.playerOnePage.locator("[class*='bg-green']").first();
+    await expect(playerOneBadge).toBeVisible();
+    await expect(playerOneBadge).toContainText("3/3");
+
+    // Player 2 should have incorrect score badge (0/3 - red) 
+    // Note: Player 2 has 0 correct positions (e3 should be 0 but is 2, e1 should be 1 but is 0, e2 should be 2 but is 1)
+    const playerTwoBadge = session.playerTwoPage.locator("[class*='bg-red']").first();
+    await expect(playerTwoBadge).toBeVisible();
+    await expect(playerTwoBadge).toContainText("0/3");
   } finally {
     if (competitionId) {
       await deleteCompetition(adminApi, competitionId);

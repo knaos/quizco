@@ -14,8 +14,9 @@ import { TrueFalseReveal } from "../questions/trueFalse/TrueFalseReveal";
 import {
   calculateFillInTheBlanksScore,
   calculateMatchingScore,
-  calculateCrosswordScore
+  calculateCrosswordScore,
 } from "../../../utils/scoreCalculations";
+import { calculateChronologyScore } from "../questions/chronology/chronologyScore";
 import type {
   AnswerContent,
   GameState,
@@ -26,7 +27,7 @@ import type {
   CrosswordContent,
   CorrectTheErrorContent,
   TrueFalseContent,
-  ChronologyAnswer
+  ChronologyAnswer,
 } from "@quizco/shared";
 
 interface RevealAnswerPhaseProps {
@@ -194,6 +195,49 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
                   <Badge variant="red">
                     <XCircle className="w-4 h-4 mr-2" /> {partialScore}/
                     {totalWords}
+                  </Badge>
+                );
+              }
+            })()
+          ) : currentQuestion.type === "CHRONOLOGY" ? (
+            (() => {
+              const chronologyContent = currentQuestion.content as ChronologyContent;
+              const teamAnswer = currentTeam?.lastAnswer as ChronologyAnswer | null;
+              const partialScore = calculateChronologyScore(
+                chronologyContent,
+                teamAnswer
+              );
+              const totalItems = chronologyContent.items.length;
+
+              if (partialScore === totalItems && totalItems > 0) {
+                return (
+                  <Badge variant="green">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/
+                    {totalItems}
+                  </Badge>
+                );
+              } else if (partialScore > 0 && totalItems > 0) {
+                return (
+                  <Badge variant="yellow">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/
+                    {totalItems}
+                  </Badge>
+                );
+              } else if (totalItems === 0) {
+                return getGradingStatus() === true ? (
+                  <Badge variant="green">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
+                  </Badge>
+                ) : (
+                  <Badge variant="red">
+                    <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
+                  </Badge>
+                );
+              } else {
+                return (
+                  <Badge variant="red">
+                    <XCircle className="w-4 h-4 mr-2" /> {partialScore}/
+                    {totalItems}
                   </Badge>
                 );
               }
