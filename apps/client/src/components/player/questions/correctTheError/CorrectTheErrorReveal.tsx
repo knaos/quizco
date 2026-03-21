@@ -21,9 +21,9 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const selectedPhrase = lastAnswer?.selectedPhraseIndex !== undefined && lastAnswer?.selectedPhraseIndex !== -1
-    ? content.phrases[lastAnswer.selectedPhraseIndex]
-    : null;
+  // Always show alternatives for the correct phrase (the one with the error)
+  // This way, if player chose wrong phrase, they see what alternatives were available for the correct phrase
+  const selectedPhrase = content.phrases[content.errorPhraseIndex];
 
   return (
     <div className="space-y-6">
