@@ -11,6 +11,7 @@ import { MatchingPlayer } from "../questions/matching/MatchingPlayer";
 import { ChronologyPlayer } from "../questions/chronology/ChronologyPlayer";
 import TrueFalsePlayer from "../questions/trueFalse/TrueFalsePlayer";
 import CorrectTheErrorPlayer from "../questions/correctTheError/CorrectTheErrorPlayer";
+import { MultipleChoicePlayer } from "../questions/multipleChoice/MultipleChoicePlayer";
 import { isChronologyAnswer } from "../../../utils/answerGuards";
 import type {
   GameState,
@@ -74,43 +75,13 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
           </Card>
           <div className="space-y-6 w-full">
             {currentQuestion.type === "MULTIPLE_CHOICE" ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(currentQuestion.content as MultipleChoiceContent)?.options?.map(
-                    (opt: string, i: number) => {
-                      const isSelected = selectedIndices.includes(i);
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => toggleIndex(i)}
-                          data-testid={`player-choice-${i}`}
-                          className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform active:scale-95 text-left flex items-center justify-between ${isSelected
-                            ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
-                            : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
-                            }`}
-                        >
-                          <span>{opt}</span>
-                          {isSelected && (
-                            <CheckCircle className="w-6 h-6 text-white" />
-                          )}
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
-                <Button
-                  variant="primary"
-                  onClick={() => submitAnswer(selectedIndices, true)}
-                  disabled={selectedIndices.length === 0}
-                  size="xl"
-                  data-testid="player-submit-answer"
-                  className={`w-full ${selectedIndices.length > 0 ? "translate-y-[-4px]" : ""
-                    }`}
-                >
-                  <Send className="w-8 h-8 mr-3" />
-                  <span>{t("player.submit_answer")}</span>
-                </Button>
-              </div>
+              <MultipleChoicePlayer
+                options={(currentQuestion.content as MultipleChoiceContent)?.options || []}
+                selectedIndices={selectedIndices}
+                onToggleIndex={toggleIndex}
+                onSubmit={() => submitAnswer(selectedIndices, true)}
+                disabled={hasSubmitted}
+              />
             ) : currentQuestion.type === "CROSSWORD" ? (
               <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
                 <CrosswordPlayer
