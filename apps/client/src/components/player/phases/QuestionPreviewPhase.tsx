@@ -9,6 +9,7 @@ import { ChronologyPlayer } from "../questions/chronology/ChronologyPlayer";
 import { CrosswordPlayer } from "../questions/crossword/CrosswordPlayer";
 import { MultipleChoicePlayer } from "../questions/multipleChoice/MultipleChoicePlayer";
 import CorrectTheErrorPlayer from "../questions/correctTheError/CorrectTheErrorPlayer";
+import TrueFalsePlayer from "../questions/trueFalse/TrueFalsePlayer";
 import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent, CrosswordContent, CorrectTheErrorContent } from "@quizco/shared";
 
 interface QuestionPreviewPhaseProps {
@@ -53,7 +54,7 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
                 <MultipleChoicePlayer
                   options={currentQuestion.content.options}
                   selectedIndices={[]}
-                  onToggleIndex={() => {}}
+                  onToggleIndex={() => { }}
                   disabled={true}
                   previewMode={true}
                   revealStep={state.revealStep}
@@ -99,6 +100,14 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
                   content={currentQuestion.content as CorrectTheErrorContent}
                   value={{ selectedPhraseIndex: -1, correction: "" }}
                   onChange={() => { }}
+                  previewMode={true}
+                />
+              );
+            case "TRUE_FALSE":
+              return (
+                <TrueFalsePlayer
+                  selectedAnswer={null}
+                  onAnswer={() => { }}
                   previewMode={true}
                 />
               );

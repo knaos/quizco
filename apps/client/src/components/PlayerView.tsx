@@ -183,6 +183,7 @@ export const PlayerView: React.FC = () => {
     }
 
     setSelectedIndices(newIndices);
+    setAnswer(newIndices);
     submitAnswer(newIndices, false);
   };
 
