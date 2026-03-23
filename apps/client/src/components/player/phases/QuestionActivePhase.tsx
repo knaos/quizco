@@ -18,7 +18,6 @@ import type {
   AnswerContent,
   MultipleChoiceContent,
   ChronologyContent,
-  MatchingContent,
   CorrectTheErrorAnswer
 } from "@quizco/shared";
 
@@ -33,6 +32,36 @@ interface QuestionActivePhaseProps {
   submissionStatus: "idle" | "success" | "error";
   currentTeam?: { isExplicitlySubmitted?: boolean };
 }
+
+/**
+ * Determines if the submit button should be disabled based on question type and answer state.
+ */
+const isSubmitDisabled = (
+  hasSubmitted: boolean,
+  questionType: string,
+  selectedIndices: number[],
+  answer: AnswerContent,
+  currentQuestion: GameState["currentQuestion"]
+): boolean => {
+  if (hasSubmitted) return true;
+
+  switch (questionType) {
+    case "MULTIPLE_CHOICE":
+      return selectedIndices.length === 0;
+    case "MATCHING":
+      return Object.keys(answer || {}).length <
+        (currentQuestion?.content as { pairs: unknown[] })?.pairs?.length;
+    case "TRUE_FALSE":
+      return answer === null;
+    case "CORRECT_THE_ERROR":
+      return (
+        (answer as CorrectTheErrorAnswer)?.selectedPhraseIndex === -1 ||
+        !(answer as CorrectTheErrorAnswer)?.correction
+      );
+    default:
+      return false;
+  }
+};
 
 export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
   state,
@@ -49,6 +78,15 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
   const { currentQuestion } = state;
 
   if (!currentQuestion) return null;
+
+  // Calculate submit button disabled state
+  const submitDisabled = isSubmitDisabled(
+    hasSubmitted,
+    currentQuestion.type,
+    selectedIndices,
+    answer,
+    currentQuestion
+  );
 
   return (
     <div className="w-full max-w-4xl space-y-8">
@@ -73,13 +111,12 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
               {currentQuestion.questionText}
             </h2>
           </Card>
-          <div className="space-y-6 w-full">
+          <div className="space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
             {currentQuestion.type === "MULTIPLE_CHOICE" ? (
               <MultipleChoicePlayer
                 options={(currentQuestion.content as MultipleChoiceContent)?.options || []}
                 selectedIndices={selectedIndices}
                 onToggleIndex={toggleIndex}
-                onSubmit={() => submitAnswer(selectedIndices, true)}
                 disabled={hasSubmitted}
               />
             ) : currentQuestion.type === "CROSSWORD" ? (
@@ -90,122 +127,58 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                   onChange={(grid) => {
                     setAnswer(grid);
                   }}
-                  onSubmit={(grid) => {
-                    submitAnswer(grid, true);
-                  }}
                 />
               </div>
             ) : currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
-              <div className="space-y-6">
-                <FillInTheBlanksPlayer
-                  content={currentQuestion.content}
-                  value={(answer as string[]) || []}
-                  onChange={(val) => setAnswer(val)}
-                />
-                <Button
-                  onClick={() => submitAnswer(answer, true)}
-                  data-testid="player-submit-answer"
-                  className="w-full py-6 rounded-3xl text-3xl shadow-xl"
-                >
-                  <Send className="w-8 h-8 mr-2" />{" "}
-                  <span>{t("player.submit_answer")}</span>
-                </Button>
-              </div>
+              <FillInTheBlanksPlayer
+                content={currentQuestion.content}
+                value={(answer as string[]) || []}
+                onChange={(val) => setAnswer(val)}
+              />
             ) : currentQuestion.type === "MATCHING" ? (
-              <div className="space-y-6">
-                <MatchingPlayer
-                  content={currentQuestion.content}
-                  value={(answer as Record<string, string>) || {}}
-                  onChange={(val) => setAnswer(val)}
-                />
-                <Button
-                  onClick={() => submitAnswer(answer, true)}
-                  disabled={
-                    Object.keys(answer || {}).length <
-                    (currentQuestion.content as MatchingContent).pairs.length
-                  }
-                  data-testid="player-submit-answer"
-                  className="w-full py-6 rounded-3xl text-3xl shadow-xl"
-                >
-                  <Send className="w-8 h-8 mr-2" />{" "}
-                  <span>{t("player.submit_answer")}</span>
-                </Button>
-              </div>
+              <MatchingPlayer
+                content={currentQuestion.content}
+                value={(answer as Record<string, string>) || {}}
+                onChange={(val) => setAnswer(val)}
+              />
             ) : currentQuestion.type === "CHRONOLOGY" ? (
-              <div className="space-y-6">
-                <ChronologyPlayer
-                  key={currentQuestion.id}
-                  content={currentQuestion.content}
-                  value={
-                    isChronologyAnswer(answer)
-                      ? answer
-                      : {
-                        slotIds: (currentQuestion.content as ChronologyContent).items.map(
-                          () => null
-                        ),
-                        poolIds: (currentQuestion.content as ChronologyContent).items.map(
-                          (item) => item.id
-                        ),
-                      }
-                  }
-                  onChange={(val) => setAnswer(val)}
-                />
-                <Button
-                  onClick={() => submitAnswer(answer, true)}
-                  data-testid="player-submit-answer"
-                  className="w-full py-6 rounded-3xl text-3xl shadow-xl"
-                >
-                  <Send className="w-8 h-8 mr-2" />{" "}
-                  <span>{t("player.submit_answer")}</span>
-                </Button>
-              </div>
+              <ChronologyPlayer
+                key={currentQuestion.id}
+                content={currentQuestion.content}
+                value={
+                  isChronologyAnswer(answer)
+                    ? answer
+                    : {
+                      slotIds: (currentQuestion.content as ChronologyContent).items.map(
+                        () => null
+                      ),
+                      poolIds: (currentQuestion.content as ChronologyContent).items.map(
+                        (item) => item.id
+                      ),
+                    }
+                }
+                onChange={(val) => setAnswer(val)}
+              />
             ) : currentQuestion.type === "TRUE_FALSE" ? (
-              <div className="space-y-6">
-                <TrueFalsePlayer
-                  selectedAnswer={answer as boolean | null}
-                  disabled={hasSubmitted}
-                  onAnswer={(val) => {
-                    setAnswer(val);
-                  }}
-                />
-                <Button
-                  onClick={() => submitAnswer(answer, true)}
-                  disabled={answer === null}
-                  data-testid="player-submit-answer"
-                  className="w-full py-6 rounded-3xl text-3xl shadow-xl"
-                >
-                  <Send className="w-8 h-8 mr-2" />{" "}
-                  <span>{t("player.submit_answer")}</span>
-                </Button>
-              </div>
+              <TrueFalsePlayer
+                selectedAnswer={answer as boolean | null}
+                disabled={hasSubmitted}
+                onAnswer={(val) => {
+                  setAnswer(val);
+                }}
+              />
             ) : currentQuestion.type === "CORRECT_THE_ERROR" ? (
-              <div className="space-y-6">
-                <CorrectTheErrorPlayer
-                  content={currentQuestion.content}
-                  value={
-                    (answer as CorrectTheErrorAnswer) || {
-                      selectedPhraseIndex: -1,
-                      correction: "",
-                    }
+              <CorrectTheErrorPlayer
+                content={currentQuestion.content}
+                value={
+                  (answer as CorrectTheErrorAnswer) || {
+                    selectedPhraseIndex: -1,
+                    correction: "",
                   }
-                  onChange={(val) => setAnswer(val)}
-                  disabled={hasSubmitted}
-                />
-                {!hasSubmitted && (
-                  <Button
-                    onClick={() => submitAnswer(answer, true)}
-                    disabled={
-                      (answer as CorrectTheErrorAnswer).selectedPhraseIndex ===
-                      -1 || !(answer as CorrectTheErrorAnswer).correction
-                    }
-                    data-testid="player-submit-answer"
-                    className="w-full py-6 rounded-3xl text-3xl shadow-xl"
-                  >
-                    <Send className="w-8 h-8 mr-2" />{" "}
-                    <span>{t("player.submit_answer")}</span>
-                  </Button>
-                )}
-              </div>
+                }
+                onChange={(val) => setAnswer(val)}
+                disabled={hasSubmitted}
+              />
             ) : (
               <div className="flex flex-col space-y-4">
                 <Input
@@ -219,17 +192,19 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                   placeholder="Type your answer..."
                   data-testid="player-open-answer-input"
                 />
-                <Button
-                  onClick={() => submitAnswer(answer, true)}
-                  size="lg"
-                  data-testid="player-submit-answer"
-                  className="shadow-lg"
-                >
-                  <Send className="mr-2" />{" "}
-                  <span>{t("player.submit_answer")}</span>
-                </Button>
               </div>
             )}
+          </div>
+          <div className="flex justify-center">
+            <Button
+              onClick={() => submitAnswer(answer, true)}
+              disabled={submitDisabled}
+              data-testid="player-submit-answer"
+              className="px-12 py-6 rounded-3xl text-3xl shadow-xl"
+            >
+              <Send className="w-8 h-8 mr-2" />
+              <span>{t("player.submit_answer")}</span>
+            </Button>
           </div>
         </div>
       ) : (

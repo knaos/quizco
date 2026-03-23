@@ -3,7 +3,7 @@ import { Info, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card } from "../../ui/Card";
 import Badge from "../../ui/Badge";
-import { MultipleChoiceReveal } from "../questions/MultipleChoiceReveal";
+import { MultipleChoiceReveal } from "../questions/multipleChoice/MultipleChoiceReveal";
 import { ChronologyReveal } from "../questions/chronology/ChronologyReveal";
 import { MatchingReveal } from "../questions/matching/MatchingReveal";
 import { FillInTheBlanksReveal } from "../questions/fillInTheBlanks/FillInTheBlanksReveal";

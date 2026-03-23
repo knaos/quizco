@@ -2,14 +2,13 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../../../socket";
 import { useTranslation } from "react-i18next";
-import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
+import { ArrowBigRight, ArrowBigDown } from "lucide-react";
 import { useGame } from "../../../../contexts/useGame";
 
 interface CrosswordPlayerProps {
   data: CrosswordContent;
   value?: string[][];
   onChange?: (grid: string[][]) => void;
-  onSubmit?: (grid: string[][]) => void;
   onProgress?: (grid: string[][]) => void;
   /** When true, shows the crossword grid without input - used in QUESTION_PREVIEW */
   previewMode?: boolean;
@@ -66,7 +65,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   data,
   value,
   onChange,
-  onSubmit,
   onProgress,
   previewMode = false,
 }) => {
@@ -231,12 +229,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         teamId,
         questionId: state.currentQuestion.id,
       });
-    }
-  };
-
-  const handleSubmit = () => {
-    if (onSubmit) {
-      onSubmit(userGrid);
     }
   };
 
@@ -497,18 +489,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="mt-6">
-        <button
-          onClick={handleSubmit}
-          data-testid="crossword-submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
-        >
-          <Send className="w-8 h-8" />
-
-          <span>{t("player.submit_crossword", "Submit Crossword")}</span>
-        </button>
-      </div>
     </div>
   );
 };
