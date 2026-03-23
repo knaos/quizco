@@ -7,6 +7,7 @@ import { FillInTheBlanksPlayer } from "../questions/fillInTheBlanks/FillInTheBla
 import { MatchingPlayer } from "../questions/matching/MatchingPlayer";
 import { ChronologyPlayer } from "../questions/chronology/ChronologyPlayer";
 import { CrosswordPlayer } from "../questions/crossword/CrosswordPlayer";
+import { MultipleChoicePlayer } from "../questions/multipleChoice/MultipleChoicePlayer";
 import CorrectTheErrorPlayer from "../questions/correctTheError/CorrectTheErrorPlayer";
 import type { GameState, FillInTheBlanksContent, MatchingContent, ChronologyContent, CrosswordContent, CorrectTheErrorContent } from "@quizco/shared";
 
@@ -48,21 +49,15 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
         {(() => {
           switch (currentQuestion.type) {
             case "MULTIPLE_CHOICE":
-              if (state.revealStep <= 0) return null;
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
-                  {currentQuestion.content.options.map((opt: string, i: number) => (
-                    <div
-                      key={i}
-                      className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${i < state.revealStep
-                        ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
-                        : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
-                        }`}
-                    >
-                      <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
-                    </div>
-                  ))}
-                </div>
+                <MultipleChoicePlayer
+                  options={currentQuestion.content.options}
+                  selectedIndices={[]}
+                  onToggleIndex={() => {}}
+                  disabled={true}
+                  previewMode={true}
+                  revealStep={state.revealStep}
+                />
               );
             case "FILL_IN_THE_BLANKS":
               return (
