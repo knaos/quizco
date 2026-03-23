@@ -44,81 +44,73 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
         </h2>
       </Card>
 
-      <div className="space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 border-yellow-500 text-left leading-loose text-2xl font-medium text-gray-800">
-        {/* MULTIPLE_CHOICE: Show revealed options with animation */}
-        {currentQuestion.type === "MULTIPLE_CHOICE" && state.revealStep > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
-            {currentQuestion.content.options.map((opt: string, i: number) => (
-              <div
-                key={i}
-                className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${i < state.revealStep
-                  ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
-                  : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
-                  }`}
-              >
-                <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* FILL_IN_THE_BLANKS: Show placeholder dots for blanks */}
-        {currentQuestion.type === "FILL_IN_THE_BLANKS" && (
-          <div className="mt-8">
-            <FillInTheBlanksPlayer
-              content={currentQuestion.content as FillInTheBlanksContent}
-              value={[]}
-              onChange={() => { }}
-              previewMode={true}
-            />
-          </div>
-        )}
-
-        {/* MATCHING: Show matching UI without interactions */}
-        {currentQuestion.type === "MATCHING" && (
-          <div className="mt-8">
-            <MatchingPlayer
-              content={currentQuestion.content as MatchingContent}
-              value={{}}
-              onChange={() => { }}
-              previewMode={true}
-            />
-          </div>
-        )}
-
-        {/* CHRONOLOGY: Show all items in pool for host to read */}
-        {currentQuestion.type === "CHRONOLOGY" && (
-          <div className="mt-8">
-            <ChronologyPlayer
-              content={currentQuestion.content as ChronologyContent}
-              value={{ slotIds: [], poolIds: (currentQuestion.content as ChronologyContent).items.map(i => i.id) }}
-              onChange={() => { }}
-              previewMode={true}
-            />
-          </div>
-        )}
-
-        {/* CROSSWORD: Show crossword grid without input for host to read */}
-        {currentQuestion.type === "CROSSWORD" && (
-          <div className="mt-8">
-            <CrosswordPlayer
-              data={currentQuestion.content as CrosswordContent}
-              previewMode={true}
-            />
-          </div>
-        )}
-
-        {/* CORRECT_THE_ERROR: Show phrase buttons but disable them and hide alternatives */}
-        {currentQuestion.type === "CORRECT_THE_ERROR" && (
-          <div className="mt-8">
-            <CorrectTheErrorPlayer
-              content={currentQuestion.content as CorrectTheErrorContent}
-              value={{ selectedPhraseIndex: -1, correction: "" }}
-              onChange={() => { }}
-              previewMode={true}
-            />
-          </div>
-        )}
+      <div className="space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 border-yellow-500">
+        {(() => {
+          switch (currentQuestion.type) {
+            case "MULTIPLE_CHOICE":
+              if (state.revealStep <= 0) return null;
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
+                  {currentQuestion.content.options.map((opt: string, i: number) => (
+                    <div
+                      key={i}
+                      className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${i < state.revealStep
+                        ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
+                        : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
+                        }`}
+                    >
+                      <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            case "FILL_IN_THE_BLANKS":
+              return (
+                <FillInTheBlanksPlayer
+                  content={currentQuestion.content as FillInTheBlanksContent}
+                  value={[]}
+                  onChange={() => { }}
+                  previewMode={true}
+                />
+              );
+            case "MATCHING":
+              return (
+                <MatchingPlayer
+                  content={currentQuestion.content as MatchingContent}
+                  value={{}}
+                  onChange={() => { }}
+                  previewMode={true}
+                />
+              );
+            case "CHRONOLOGY":
+              return (
+                <ChronologyPlayer
+                  content={currentQuestion.content as ChronologyContent}
+                  value={{ slotIds: [], poolIds: (currentQuestion.content as ChronologyContent).items.map(i => i.id) }}
+                  onChange={() => { }}
+                  previewMode={true}
+                />
+              );
+            case "CROSSWORD":
+              return (
+                <CrosswordPlayer
+                  data={currentQuestion.content as CrosswordContent}
+                  previewMode={true}
+                />
+              );
+            case "CORRECT_THE_ERROR":
+              return (
+                <CorrectTheErrorPlayer
+                  content={currentQuestion.content as CorrectTheErrorContent}
+                  value={{ selectedPhraseIndex: -1, correction: "" }}
+                  onChange={() => { }}
+                  previewMode={true}
+                />
+              );
+            default:
+              return null;
+          }
+        })()}
       </div>
 
       {/* Waiting message while host reads the question */}

@@ -111,89 +111,106 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
               {currentQuestion.questionText}
             </h2>
           </Card>
-          <div className="space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
-            {currentQuestion.type === "MULTIPLE_CHOICE" ? (
-              <MultipleChoicePlayer
-                options={(currentQuestion.content as MultipleChoiceContent)?.options || []}
-                selectedIndices={selectedIndices}
-                onToggleIndex={toggleIndex}
-                disabled={hasSubmitted}
-              />
-            ) : currentQuestion.type === "CROSSWORD" ? (
-              <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
-                <CrosswordPlayer
-                  data={currentQuestion.content}
-                  value={answer as string[][]}
-                  onChange={(grid) => {
-                    setAnswer(grid);
-                  }}
-                />
-              </div>
-            ) : currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
-              <FillInTheBlanksPlayer
-                content={currentQuestion.content}
-                value={(answer as string[]) || []}
-                onChange={(val) => setAnswer(val)}
-              />
-            ) : currentQuestion.type === "MATCHING" ? (
-              <MatchingPlayer
-                content={currentQuestion.content}
-                value={(answer as Record<string, string>) || {}}
-                onChange={(val) => setAnswer(val)}
-              />
-            ) : currentQuestion.type === "CHRONOLOGY" ? (
-              <ChronologyPlayer
-                key={currentQuestion.id}
-                content={currentQuestion.content}
-                value={
-                  isChronologyAnswer(answer)
-                    ? answer
-                    : {
-                      slotIds: (currentQuestion.content as ChronologyContent).items.map(
-                        () => null
-                      ),
-                      poolIds: (currentQuestion.content as ChronologyContent).items.map(
-                        (item) => item.id
-                      ),
-                    }
-                }
-                onChange={(val) => setAnswer(val)}
-              />
-            ) : currentQuestion.type === "TRUE_FALSE" ? (
-              <TrueFalsePlayer
-                selectedAnswer={answer as boolean | null}
-                disabled={hasSubmitted}
-                onAnswer={(val) => {
-                  setAnswer(val);
-                }}
-              />
-            ) : currentQuestion.type === "CORRECT_THE_ERROR" ? (
-              <CorrectTheErrorPlayer
-                content={currentQuestion.content}
-                value={
-                  (answer as CorrectTheErrorAnswer) || {
-                    selectedPhraseIndex: -1,
-                    correction: "",
-                  }
-                }
-                onChange={(val) => setAnswer(val)}
-                disabled={hasSubmitted}
-              />
-            ) : (
-              <div className="flex flex-col space-y-4">
-                <Input
-                  type="text"
-                  value={String(answer)}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && submitAnswer(answer, true)
-                  }
-                  className="text-2xl"
-                  placeholder="Type your answer..."
-                  data-testid="player-open-answer-input"
-                />
-              </div>
-            )}
+          <div className="space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500">
+            {(() => {
+              switch (currentQuestion.type) {
+                case "MULTIPLE_CHOICE":
+                  return (
+                    <MultipleChoicePlayer
+                      options={(currentQuestion.content as MultipleChoiceContent)?.options || []}
+                      selectedIndices={selectedIndices}
+                      onToggleIndex={toggleIndex}
+                      disabled={hasSubmitted}
+                    />
+                  );
+                case "CROSSWORD":
+                  return (
+                    <CrosswordPlayer
+                      data={currentQuestion.content}
+                      value={answer as string[][]}
+                      onChange={(grid) => {
+                        setAnswer(grid);
+                      }}
+                    />
+                  );
+                case "FILL_IN_THE_BLANKS":
+                  return (
+                    <FillInTheBlanksPlayer
+                      content={currentQuestion.content}
+                      value={(answer as string[]) || []}
+                      onChange={(val) => setAnswer(val)}
+                    />
+                  );
+                case "MATCHING":
+                  return (
+                    <MatchingPlayer
+                      content={currentQuestion.content}
+                      value={(answer as Record<string, string>) || {}}
+                      onChange={(val) => setAnswer(val)}
+                    />
+                  );
+                case "CHRONOLOGY":
+                  return (
+                    <ChronologyPlayer
+                      key={currentQuestion.id}
+                      content={currentQuestion.content}
+                      value={
+                        isChronologyAnswer(answer)
+                          ? answer
+                          : {
+                            slotIds: (currentQuestion.content as ChronologyContent).items.map(
+                              () => null
+                            ),
+                            poolIds: (currentQuestion.content as ChronologyContent).items.map(
+                              (item) => item.id
+                            ),
+                          }
+                      }
+                      onChange={(val) => setAnswer(val)}
+                    />
+                  );
+                case "TRUE_FALSE":
+                  return (
+                    <TrueFalsePlayer
+                      selectedAnswer={answer as boolean | null}
+                      disabled={hasSubmitted}
+                      onAnswer={(val) => {
+                        setAnswer(val);
+                      }}
+                    />
+                  );
+                case "CORRECT_THE_ERROR":
+                  return (
+                    <CorrectTheErrorPlayer
+                      content={currentQuestion.content}
+                      value={
+                        (answer as CorrectTheErrorAnswer) || {
+                          selectedPhraseIndex: -1,
+                          correction: "",
+                        }
+                      }
+                      onChange={(val) => setAnswer(val)}
+                      disabled={hasSubmitted}
+                    />
+                  );
+                default:
+                  return (
+                    <div className="flex flex-col space-y-4">
+                      <Input
+                        type="text"
+                        value={String(answer)}
+                        onChange={(e) => setAnswer(e.target.value)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && submitAnswer(answer, true)
+                        }
+                        className="text-2xl"
+                        placeholder="Type your answer..."
+                        data-testid="player-open-answer-input"
+                      />
+                    </div>
+                  );
+              }
+            })()}
           </div>
           <div className="flex justify-center">
             <Button

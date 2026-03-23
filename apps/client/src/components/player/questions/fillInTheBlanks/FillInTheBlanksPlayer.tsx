@@ -39,7 +39,7 @@ export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
   // In preview mode, show placeholder dots for blanks
   if (previewMode) {
     return (
-      <div className="space-y-6 w-full p-8 text-left leading-loose text-2xl font-medium text-gray-800">
+      <div className="space-y-6 w-full text-left leading-loose text-2xl font-medium text-gray-800">
         {parts.map((part, i) => {
           const match = part.match(/\{?(\d+)\}?/);
           if (match) {
