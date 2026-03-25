@@ -135,6 +135,11 @@
         }
       }
     },
+    "audience": {
+      "title": "Изглед за Публиката",
+      "answer_summary": "Обобщение на Отговорите",
+      "correct_count": "{{correct}}/{{total}} отбора с верен отговор ({{percentage}}%)"
+    },
     "game": {
       "true": "Истина",
       "false": "Лъжа",

@@ -135,6 +135,11 @@
         }
       }
     },
+    "audience": {
+      "title": "Audience View",
+      "answer_summary": "Answer Summary",
+      "correct_count": "{{correct}}/{{total}} teams correct ({{percentage}}%)"
+    },
     "game": {
       "true": "True",
       "false": "False",

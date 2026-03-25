@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const shouldManageWebServers = process.env.PW_SKIP_WEBSERVER !== "1";
+
 export default defineConfig({
   testDir: "./tests",
   outputDir: "./test-results/artifacts",
@@ -20,22 +22,24 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   globalSetup: "./global-setup.ts",
-  webServer: [
-    {
-      command: "npm run dev -w @quizco/server",
-      cwd: "../..",
-      url: "http://127.0.0.1:4000/api/competitions",
-      timeout: 120_000,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: "npm run dev -w client -- --host 127.0.0.1 --port 4173",
-      cwd: "../..",
-      url: "http://127.0.0.1:4173",
-      timeout: 120_000,
-      reuseExistingServer: !process.env.CI,
-    },
-  ],
+  webServer: shouldManageWebServers
+    ? [
+        {
+          command: "npm run dev -w @quizco/server",
+          cwd: "../..",
+          url: "http://127.0.0.1:4000/api/competitions",
+          timeout: 120_000,
+          reuseExistingServer: !process.env.CI,
+        },
+        {
+          command: "npm run dev -w client -- --host 127.0.0.1 --port 4173",
+          cwd: "../..",
+          url: "http://127.0.0.1:4173",
+          timeout: 120_000,
+          reuseExistingServer: !process.env.CI,
+        },
+      ]
+    : undefined,
   projects: [
     {
       name: "chromium",
