@@ -15,12 +15,12 @@ import Button from "../ui/Button";
 import Input from "../ui/Input";
 import Badge from "../ui/Badge";
 import { Card } from "../ui/Card";
-import { CrosswordPlayer } from "./CrosswordPlayer";
-import { FillInTheBlanksPlayer } from "./FillInTheBlanksPlayer";
-import { MatchingPlayer } from "./MatchingPlayer";
-import { ChronologyPlayer } from "./ChronologyPlayer";
-import TrueFalsePlayer from "./TrueFalsePlayer";
-import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
+import { CrosswordPlayer } from "./questions/crossword/CrosswordPlayer";
+import { FillInTheBlanksPlayer } from "./questions/fillInTheBlanks/FillInTheBlanksPlayer";
+import { MatchingPlayer } from "./questions/matching/MatchingPlayer";
+import { ChronologyPlayer } from "./questions/chronology/ChronologyPlayer";
+import TrueFalsePlayer from "./questions/trueFalse/TrueFalsePlayer";
+import CorrectTheErrorPlayer from "./questions/correctTheError/CorrectTheErrorPlayer";
 import { CrosswordAudienceView } from "./CrosswordAudienceView";
 import { isChronologyAnswer, isStringGrid } from "../../utils/answerGuards";
 

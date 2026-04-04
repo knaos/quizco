@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
-import { socket } from "../../socket";
+import { socket } from "../../../../socket";
 import { useTranslation } from "react-i18next";
 import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
-import { useGame } from "../../contexts/useGame";
-import { isStringGrid } from "../../utils/answerGuards";
+import { useGame } from "../../../../contexts/useGame";
+import { isStringGrid } from "../../../../utils/answerGuards";
 
 interface CrosswordPlayerProps {
   data: CrosswordContent;
   value?: string[][];
   onChange?: (grid: string[][]) => void;
-  onSubmit?: (grid: string[][]) => void;
   onProgress?: (grid: string[][]) => void;
+  /** When true, shows the crossword grid without input - used in QUESTION_PREVIEW */
+  previewMode?: boolean;
+  onSubmit?: (grid: string[][]) => void;
   readOnly?: boolean;
   testIdPrefix?: string;
 }
@@ -67,8 +69,9 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   data,
   value,
   onChange,
-  onSubmit,
   onProgress,
+  previewMode = false,
+  onSubmit,
   readOnly = false,
   testIdPrefix = "crossword",
 }) => {
@@ -252,7 +255,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       onSubmit(userGrid);
     }
   };
-
   /**
    * Handle focus being placed on a cell manually (via click or tab).
    * If the cell is not in the active clue, clear the active clue state.
@@ -321,6 +323,92 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     }
   };
 
+  // In preview mode, hide joker and submit buttons
+  if (previewMode) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          <div
+            className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg"
+            style={{
+              gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0}, 48px)`,
+            }}
+          >
+            {data.grid.map((row, r) =>
+              row.map((_, c) => {
+                const cellNumber = cellNumbers.get(`${r}-${c}`);
+                const cellKey = `${r}-${c}`;
+                const isHighlighted = highlightedCells.includes(cellKey);
+                const isEmpty = data.grid[r][c].trim() === "";
+                return (
+                  <div
+                    key={`${r}-${c}`}
+                    className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${
+                      isHighlighted ? "!bg-blue-200" : "bg-white"
+                    }`}
+                  >
+                    {isEmpty ? (
+                      <div className="w-full h-full bg-gray-800 rounded-sm" />
+                    ) : (
+                      <>
+                        {cellNumber && (
+                          <span className="absolute top-0.5 left-1 text-[12px] md:text-[12px] font-bold text-blue-600 leading-none">
+                            {cellNumber}
+                          </span>
+                        )}
+                        <div
+                          data-testid={`crossword-cell-${r}-${c}`}
+                          className={`w-full h-full flex items-center justify-center text-xl font-bold uppercase rounded-sm ${
+                            isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                          }`}
+                        >
+                          {userGrid[r]?.[c] || ""}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="flex-1 space-y-4 text-left">
+            <div>
+              <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
+              <ul className="space-y-1">
+                {data.clues?.across?.map((clue, i) => (
+                  <li 
+                    key={i}
+                    className={`px-2 py-1 rounded ${
+                      selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
+                    }`}
+                  >
+                    <span className="font-bold">{clue.number}.</span> {clue.clue}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
+              <ul className="space-y-1">
+                {data.clues?.down?.map((clue, i) => (
+                  <li 
+                    key={i}
+                    className={`px-2 py-1 rounded ${
+                      selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
+                    }`}
+                  >
+                    <span className="font-bold">{clue.number}.</span> {clue.clue}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4" data-testid={`${testIdPrefix}-crossword`}>
       {!readOnly && (
@@ -343,11 +431,12 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             gridTemplateColumns: `repeat(${data.grid?.[0]?.length || 0}, 48px)`,
           }}
         >
-          {userGrid.map((row, r) =>
-            row.map((cell, c) => {
+          {data.grid.map((row, r) =>
+            row.map((_, c) => {
               const cellNumber = cellNumbers.get(`${r}-${c}`);
               const cellKey = `${r}-${c}`;
               const isHighlighted = highlightedCells.includes(cellKey);
+              const isEmpty = data.grid[r][c].trim() === "";
               return (
                 <div
                   key={`${r}-${c}`}
@@ -355,7 +444,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                     isHighlighted ? "!bg-blue-200" : "bg-white"
                   }`}
                 >
-                  {data.grid[r][c].trim() === "" ? (
+                  {isEmpty ? (
                     <div className="w-full h-full bg-gray-800 rounded-sm" />
                   ) : (
                     <>
@@ -371,12 +460,12 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                             isHighlighted ? "!bg-blue-200" : "bg-transparent"
                           }`}
                         >
-                          {cell}
+                          {userGrid[r]?.[c] || ""}
                         </span>
                       ) : (
                         <input
                           type="text"
-                          value={cell}
+                          value={userGrid[r][c]}
                           onChange={(e) => handleChange(r, c, e.target.value)}
                           onFocus={() => handleCellFocus(r, c)}
                           data-testid={`crossword-cell-${r}-${c}`}

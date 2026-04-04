@@ -4,15 +4,15 @@ import { socket, API_URL } from "../socket";
 import { Clock, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { useCorrectTheErrorPartialScore } from "./player/useCorrectTheErrorPartialScore";
+import { useCorrectTheErrorPartialScore } from "./player/questions/correctTheError/useCorrectTheErrorPartialScore";
 import type { Competition, AnswerContent, CorrectTheErrorContent, CorrectTheErrorAnswer, MultipleChoiceContent, Team } from "@quizco/shared";
-import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
-import { CompetitionSelector } from "./player/CompetitionSelector";
-import { TeamJoinForm } from "./player/TeamJoinForm";
-import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "./player/SimplePhases";
-import { QuestionActivePhase } from "./player/QuestionActivePhase";
-import { RevealAnswerPhase } from "./player/RevealAnswerPhase";
-import { PublicQuestionPreview } from "./player/PublicQuestionPreview";
+import { getHydratedPlayerAnswerState } from "./player/utils/playerAnswerSync";
+import { CompetitionSelector } from "./player/lobby/CompetitionSelector";
+import { TeamJoinForm } from "./player/lobby/TeamJoinForm";
+import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "./player/phases/SimplePhases";
+import { QuestionActivePhase } from "./player/phases/QuestionActivePhase";
+import { QuestionPreviewPhase } from "./player/phases/QuestionPreviewPhase";
+import { RevealAnswerPhase } from "./player/phases/RevealAnswerPhase";
 import { getQuestionCorrectAnswer } from "./player/questionText";
 
 const TEAM_ID_KEY = "quizco_team_id";
@@ -184,6 +184,7 @@ export const PlayerView: React.FC = () => {
     }
 
     setSelectedIndices(newIndices);
+    setAnswer(newIndices);
     submitAnswer(newIndices, false);
   };
 
@@ -273,9 +274,8 @@ export const PlayerView: React.FC = () => {
           <RoundTransitionPhase phase={state.phase} currentQuestion={state.currentQuestion} />
         )}
 
-        {state.phase === "QUESTION_PREVIEW" && state.currentQuestion && (
-          <PublicQuestionPreview state={state} />
-        )}
+        {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
+        {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
 
         {state.phase === "QUESTION_ACTIVE" && (
           <QuestionActivePhase

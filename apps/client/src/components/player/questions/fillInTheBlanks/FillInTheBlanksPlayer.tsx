@@ -6,6 +6,8 @@ interface FillInTheBlanksPlayerProps {
   value: string[];
   onChange: (value: string[]) => void;
   disabled?: boolean;
+  /** When true, shows placeholder dots instead of dropdowns - used in QUESTION_PREVIEW phase */
+  previewMode?: boolean;
 }
 
 export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
@@ -13,16 +15,17 @@ export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
   value,
   onChange,
   disabled,
+  previewMode = false,
 }) => {
   const parts = content.text.split(/(\{?\d+\}?)/g);
 
-  // Initialize with prefill if enabled and no value exists
+  // Initialize with prefill if enabled and no value exists (only in active mode)
   React.useEffect(() => {
-    if (content.prefill && value.length === 0 && content.blanks.length > 0) {
+    if (!previewMode && content.prefill && value.length === 0 && content.blanks.length > 0) {
       const prefilled = content.blanks.map((blank) => blank.options[0]?.value || "");
       onChange(prefilled);
     }
-  }, [content.prefill, content.blanks, value.length, onChange]);
+  }, [previewMode, content.prefill, content.blanks, value.length, onChange]);
 
   const updateBlank = (index: number, val: string) => {
     const newValue = [...value];
@@ -33,8 +36,37 @@ export const FillInTheBlanksPlayer: React.FC<FillInTheBlanksPlayerProps> = ({
     onChange(newValue);
   };
 
+  // In preview mode, show placeholder dots for blanks
+  if (previewMode) {
+    return (
+      <div className="space-y-6 w-full text-left leading-loose text-2xl font-medium text-gray-800">
+        {parts.map((part, i) => {
+          const match = part.match(/\{?(\d+)\}?/);
+          if (match) {
+            const index = parseInt(match[1]);
+            const blankConfig = content.blanks[index];
+            if (!blankConfig) return <span key={i} className="text-red-500">[{part}]</span>;
+
+            // Show placeholder dots - same visual style as when no option is selected
+            return (
+              <span
+                key={i}
+                data-testid={`fill-blank-preview-${index}`}
+                className="mx-2 px-3 py-1 border-b-4 border-gray-200 bg-gray-50/50 rounded-t-lg min-w-[120px] text-center font-bold text-gray-400 inline-block"
+              >
+                ...
+              </span>
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </div>
+    );
+  }
+
+  // Normal active mode with dropdowns
   return (
-    <div className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
+    <div className="space-y-6 w-full text-left leading-loose text-2xl font-medium text-gray-800">
       {parts.map((part, i) => {
         const match = part.match(/\{?(\d+)\}?/);
         if (match) {

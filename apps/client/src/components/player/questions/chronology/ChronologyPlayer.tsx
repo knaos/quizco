@@ -18,9 +18,7 @@ import {
   pointerWithin,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { buildChronologyHandleLabels } from "./chronologyOrdering";
 import {
   buildChronologyAnswer,
   createChronologyBoardStateFromAnswer,
@@ -32,6 +30,8 @@ interface ChronologyPlayerProps {
   content: ChronologyContent;
   value: ChronologyAnswer;
   onChange: (value: ChronologyAnswer) => void;
+  /** When true, shows items in pool without interaction - used in QUESTION_PREVIEW */
+  previewMode?: boolean;
   disabled?: boolean;
 }
 
@@ -45,35 +45,30 @@ type ChronologyItemMap = Record<string, ChronologyItemView>;
 interface ChronologyCardProps {
   id: string;
   text: string;
-  handleLabel: string;
+  isSelected: boolean;
   className?: string;
-  handleProps?: React.HTMLAttributes<HTMLButtonElement>;
+  dragProps?: React.HTMLAttributes<HTMLDivElement>;
+  onClick?: () => void;
 }
 
 const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
   id,
   text,
-  handleLabel,
+  isSelected,
   className = "",
-  handleProps,
+  dragProps,
+  onClick,
 }) => {
-  const { t } = useTranslation();
-
   return (
     <div
       data-testid={`chronology-item-${id}`}
-      className={`flex h-16 items-center gap-3 rounded-2xl border-2 p-3 transition-colors ${className}`}
+      onClick={onClick}
+      className={`flex h-16 cursor-grab items-center gap-3 rounded-2xl border-2 p-3 transition-all active:cursor-grabbing ${className} ${isSelected
+        ? "border-blue-500 bg-blue-100 ring-4 ring-blue-300"
+        : "border-blue-100 bg-white hover:border-blue-300"
+        }`}
+      {...dragProps}
     >
-      <button
-        type="button"
-        className="flex h-12 min-w-12 items-center justify-center rounded-xl border-2 border-blue-200 bg-blue-50 text-blue-700 active:scale-95"
-        data-testid={`chronology-handle-${id}`}
-        aria-label={t("player.chronology_drag_handle", { label: handleLabel })}
-        {...handleProps}
-      >
-        <span className="text-lg font-black leading-none">{handleLabel}</span>
-        <GripVertical className="ml-1 h-4 w-4" />
-      </button>
       <span className="flex-1 text-lg font-bold text-gray-800">{text}</span>
     </div>
   );
@@ -82,13 +77,15 @@ const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
 interface DraggableChronologyCardProps {
   id: string;
   text: string;
-  handleLabel: string;
+  isSelected: boolean;
+  onSelect: () => void;
 }
 
 const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
   id,
   text,
-  handleLabel,
+  isSelected,
+  onSelect,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id });
@@ -97,7 +94,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
     transform: CSS.Translate.toString(transform),
     touchAction: "pan-y" as const,
   };
-  const handleProps: React.HTMLAttributes<HTMLButtonElement> = {
+  const dragProps: React.HTMLAttributes<HTMLDivElement> = {
     ...attributes,
     ...listeners,
   };
@@ -107,13 +104,14 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
       <ChronologyCardShell
         id={id}
         text={text}
-        handleLabel={handleLabel}
+        isSelected={isSelected}
         className={
           isDragging
             ? "pointer-events-none border-blue-500 bg-blue-50/70 opacity-0"
-            : "border-blue-100 bg-white hover:border-blue-300"
+            : ""
         }
-        handleProps={handleProps}
+        dragProps={dragProps}
+        onClick={onSelect}
       />
     </div>
   );
@@ -122,10 +120,12 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
 interface PoolDropzoneProps {
   children: React.ReactNode;
   isOver: boolean;
+  isSelectedTarget: boolean;
   dropRef: (element: HTMLElement | null) => void;
+  onClick: () => void;
 }
 
-const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, dropRef }) => {
+const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, isSelectedTarget, dropRef, onClick }) => {
   const { t } = useTranslation();
 
   return (
@@ -135,12 +135,14 @@ const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, dropRef }
       </h3>
       <div
         ref={dropRef}
+        onClick={onClick}
         data-testid="chronology-pool-dropzone"
-        className={`min-h-48 rounded-2xl border-2 p-3 transition-colors ${
-          isOver
+        className={`min-h-48 rounded-2xl border-2 p-3 transition-colors cursor-pointer ${isSelectedTarget
+          ? "border-green-500 bg-green-50 ring-4 ring-green-300"
+          : isOver
             ? "border-blue-500 bg-blue-50"
-            : "border-blue-200 bg-slate-50"
-        }`}
+            : "border-blue-200 bg-slate-50 hover:border-blue-300"
+          }`}
       >
         {children}
       </div>
@@ -151,7 +153,8 @@ const PoolDropzone: React.FC<PoolDropzoneProps> = ({ children, isOver, dropRef }
 interface PoolItemDropTargetProps {
   id: string;
   text: string;
-  handleLabel: string;
+  isSelected: boolean;
+  onSelect: () => void;
 }
 
 const POOL_DROPPABLE_ID = "chronology-pool";
@@ -161,14 +164,20 @@ const SLOT_DROPPABLE_PREFIX = "chronology-slot-";
 const PoolItemDropTarget: React.FC<PoolItemDropTargetProps> = ({
   id,
   text,
-  handleLabel,
+  isSelected,
+  onSelect,
 }) => {
   const dropId = `${POOL_ITEM_DROPPABLE_PREFIX}${id}`;
   const { setNodeRef } = useDroppable({ id: dropId });
 
   return (
     <div ref={setNodeRef} data-testid={dropId}>
-      <DraggableChronologyCard id={id} text={text} handleLabel={handleLabel} />
+      <DraggableChronologyCard
+        id={id}
+        text={text}
+        isSelected={isSelected}
+        onSelect={onSelect}
+      />
     </div>
   );
 };
@@ -176,19 +185,23 @@ const PoolItemDropTarget: React.FC<PoolItemDropTargetProps> = ({
 interface SlotDropzoneProps {
   index: number;
   isOver: boolean;
+  isSelectedTarget: boolean;
   children: React.ReactNode;
+  onClick: () => void;
 }
 
-const SlotDropzone: React.FC<SlotDropzoneProps> = ({ index, isOver, children }) => {
+const SlotDropzone: React.FC<SlotDropzoneProps> = ({ index, isOver, isSelectedTarget, children, onClick }) => {
   const { t } = useTranslation();
 
   return (
     <div
-      className={`rounded-2xl border-2 border-dashed p-2 transition-colors ${
-        isOver
+      onClick={onClick}
+      className={`rounded-2xl border-2 border-dashed p-2 transition-colors cursor-pointer ${isSelectedTarget
+        ? "border-green-500 bg-green-50 ring-4 ring-green-300"
+        : isOver
           ? "border-blue-500 bg-blue-50"
-          : "border-blue-200 bg-blue-50/40"
-      } min-h-28`}
+          : "border-blue-200 bg-blue-50/40 hover:border-blue-300"
+        } min-h-28`}
     >
       <div className="px-2 pb-2 text-xs font-black uppercase tracking-[0.14em] text-blue-700">
         {t("player.chronology_slot", { position: index + 1 })}
@@ -202,33 +215,41 @@ interface TimelineSlotProps {
   index: number;
   slotId: string | null;
   itemMap: ChronologyItemMap;
-  handleLabels: Record<string, string>;
   overId: string | null;
+  selectedId: string | null;
+  onCardSelect: (id: string) => void;
+  onSlotClick: () => void;
 }
 
 const TimelineSlot: React.FC<TimelineSlotProps> = ({
   index,
   slotId,
   itemMap,
-  handleLabels,
   overId,
+  selectedId,
+  onCardSelect,
+  onSlotClick,
 }) => {
   const { t } = useTranslation();
   const slotDroppableId = `${SLOT_DROPPABLE_PREFIX}${index}`;
   const { setNodeRef, isOver } = useDroppable({ id: slotDroppableId });
   const isOverSlot = isOver || overId === slotDroppableId;
 
+  // Check if the slot is a valid target (empty or has a card that can be replaced)
+  const isSelectedTarget = selectedId !== null && (slotId === null || slotId !== selectedId);
+
   return (
     <div
       ref={setNodeRef}
       data-testid={slotDroppableId}
     >
-      <SlotDropzone index={index} isOver={isOverSlot}>
+      <SlotDropzone index={index} isOver={isOverSlot} isSelectedTarget={isSelectedTarget} onClick={onSlotClick}>
         {slotId ? (
           <DraggableChronologyCard
             id={slotId}
             text={itemMap[slotId]?.text ?? ""}
-            handleLabel={handleLabels[slotId] ?? "?"}
+            isSelected={selectedId === slotId}
+            onSelect={() => onCardSelect(slotId)}
           />
         ) : (
           <div className="flex min-h-14 items-center justify-center rounded-2xl border-2 border-dashed border-blue-100 bg-white/70 px-3 text-center text-sm font-bold text-slate-500">
@@ -295,15 +316,12 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   content,
   value,
   onChange,
+  previewMode = false,
   disabled = false,
 }) => {
   const { t } = useTranslation();
   const itemIds = useMemo(() => content.items.map((item) => item.id), [content.items]);
   const itemMap = useMemo(() => buildItemMap(content), [content]);
-  const handleLabels = useMemo(
-    () => buildChronologyHandleLabels(content.items),
-    [content.items],
-  );
 
   const boardState = useMemo(
     () => createChronologyBoardStateFromAnswer(itemIds, value),
@@ -311,6 +329,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const poolDropElementRef = useRef<HTMLElement | null>(null);
 
   const { setNodeRef: setPoolNodeRef, isOver: isOverPool } = useDroppable({
@@ -358,6 +377,50 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
     setActiveId(null);
     setOverId(null);
   }, []);
+
+  // Move a card to a target (used by both drag and click)
+  const moveCard = useCallback(
+    (cardId: string, target: ChronologyDropTarget) => {
+      const nextState = moveChronologyItem(boardState, cardId, target);
+      if (nextState !== boardState) {
+        onChange(buildChronologyAnswer(nextState));
+      }
+    },
+    [boardState, onChange],
+  );
+
+  // Handle card selection (click to select/deselect)
+  const handleCardSelect = useCallback(
+    (cardId: string) => {
+      if (selectedId === cardId) {
+        // Deselect if clicking the same card
+        setSelectedId(null);
+      } else {
+        // Select the new card
+        setSelectedId(cardId);
+      }
+    },
+    [selectedId],
+  );
+
+  // Handle pool click (place selected card in pool)
+  const handlePoolClick = useCallback(() => {
+    if (selectedId !== null) {
+      moveCard(selectedId, { type: "pool" });
+      setSelectedId(null);
+    }
+  }, [selectedId, moveCard]);
+
+  // Handle slot click (place selected card in slot)
+  const handleSlotClick = useCallback(
+    (index: number) => {
+      if (selectedId !== null) {
+        moveCard(selectedId, { type: "slot", index });
+        setSelectedId(null);
+      }
+    },
+    [selectedId, moveCard],
+  );
 
   const collisionDetection: CollisionDetection = useCallback((args) => {
     const pointerHits = pointerWithin(args);
@@ -409,38 +472,78 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
         boardState.poolIds.length === 0 && sourceSlotIndex !== -1 && isReleasedOverPool
           ? ({ type: "pool" } as const)
           : resolveDropTarget(
-              resolvedOverId!,
-              boardState.slotIds,
-              boardState.poolIds,
-            );
+            resolvedOverId!,
+            boardState.slotIds,
+            boardState.poolIds,
+          );
       if (!stableTarget) {
         resetDragState();
         return;
       }
 
-      const nextState = moveChronologyItem(
-        boardState,
-        String(active.id),
-        stableTarget,
-      );
-
-      if (nextState !== boardState) {
-        onChange(buildChronologyAnswer(nextState));
-      }
-
+      moveCard(String(active.id), stableTarget);
       resetDragState();
     },
-    [boardState, disabled, onChange, overId, resetDragState],
+    [boardState, disabled, moveCard, overId, resetDragState],
   );
 
   const activeItem = activeId ? itemMap[activeId] : null;
 
-  return (
-    <div className="w-full space-y-3">
-      <p className="text-sm font-bold uppercase tracking-wide text-blue-700">
-        {t("player.chronology_instruction")}
-      </p>
+  // Check if pool is a valid target - only when card is in a slot (can move back to pool)
+  const isPoolSelectedTarget = selectedId !== null && boardState.slotIds.includes(selectedId);
 
+  // Preview mode: show all items in pool with no interactions
+  if (previewMode) {
+    return (
+      <div className="w-full space-y-3">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Pool column - show all items here in preview */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-black uppercase tracking-[0.14em] text-yellow-700">
+              {t("player.chronology_items_column")}
+            </h3>
+            <div className="min-h-48 rounded-2xl border-2 border-yellow-500 bg-slate-50 p-3">
+              <div className="space-y-2">
+                {content.items.map((item) => (
+                  <div
+                    key={item.id}
+                    data-testid={`chronology-item-${item.id}`}
+                    className="flex h-16 items-center gap-3 rounded-2xl border-2 border-blue-100 bg-white p-3"
+                  >
+                    <span className="flex-1 text-lg font-bold text-gray-800">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Timeline column - show empty slots */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-black uppercase tracking-[0.14em] text-yellow-700">
+              {t("player.chronology_timeline_column")}
+            </h3>
+            <div className="space-y-2">
+              {content.items.map((_, index) => (
+                <div
+                  key={index}
+                  data-testid={`chronology-slot-${index}`}
+                  className="rounded-2xl border-2 border-dashed border-yellow-500 bg-blue-50/40 p-2 min-h-28"
+                >
+                  <div className="px-2 pb-2 text-xs font-black uppercase tracking-[0.14em] text-yellow-700">
+                    {t("player.chronology_slot", { position: index + 1 })}
+                  </div>
+                  <div className="h-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-3 text-center">
       <DndContext
         sensors={disabled ? [] : sensors}
         collisionDetection={collisionDetection}
@@ -452,7 +555,9 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <PoolDropzone
             isOver={isOverPool || overId === POOL_DROPPABLE_ID}
+            isSelectedTarget={isPoolSelectedTarget}
             dropRef={setPoolDropRef}
+            onClick={handlePoolClick}
           >
             <div className="space-y-2">
               {boardState.poolIds.map((id) => (
@@ -460,7 +565,8 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                   key={id}
                   id={id}
                   text={itemMap[id]?.text ?? ""}
-                  handleLabel={handleLabels[id] ?? "?"}
+                  isSelected={selectedId === id}
+                  onSelect={() => handleCardSelect(id)}
                 />
               ))}
             </div>
@@ -477,8 +583,10 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                   index={index}
                   slotId={slotId}
                   itemMap={itemMap}
-                  handleLabels={handleLabels}
                   overId={overId}
+                  selectedId={selectedId}
+                  onCardSelect={handleCardSelect}
+                  onSlotClick={() => handleSlotClick(index)}
                 />
               ))}
             </div>
@@ -490,7 +598,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
             <ChronologyCardShell
               id={activeItem.id}
               text={activeItem.text}
-              handleLabel={handleLabels[activeItem.id] ?? "?"}
+              isSelected={false}
               className="border-blue-500 bg-white shadow-2xl"
             />
           ) : null}

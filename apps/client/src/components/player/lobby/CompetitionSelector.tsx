@@ -1,8 +1,8 @@
 import React from "react";
 import { Trophy, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
-import { LanguageSwitcher } from "../LanguageSwitcher";
+import { Card } from "../../ui/Card";
+import { LanguageSwitcher } from "../../LanguageSwitcher";
 import type { Competition } from "@quizco/shared";
 
 interface CompetitionSelectorProps {

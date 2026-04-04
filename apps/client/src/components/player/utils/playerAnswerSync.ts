@@ -10,7 +10,7 @@ import {
   isNumberArray,
   isRecordOfStringValues,
   isStringGrid,
-} from "../../utils/answerGuards";
+} from "../../../utils/answerGuards";
 
 export interface HydratedPlayerAnswerState {
   answer: AnswerContent | null;

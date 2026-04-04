@@ -4,14 +4,14 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'orange' | 'gray';
 }
 
-const Badge: React.FC<BadgeProps> = ({ 
-  children, 
-  variant = 'blue', 
-  className = '', 
-  ...props 
+const Badge: React.FC<BadgeProps> = ({
+  children,
+  variant = 'blue',
+  className = '',
+  ...props
 }) => {
-  const baseStyles = 'px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex items-center inline-flex';
-  
+  const baseStyles = 'px-3 py-1 rounded-full text-md font-black uppercase tracking-widest flex items-center inline-flex';
+
   const variants = {
     blue: 'bg-blue-50 text-blue-600',
     green: 'bg-green-100 text-green-700',
@@ -23,8 +23,8 @@ const Badge: React.FC<BadgeProps> = ({
   };
 
   return (
-    <span 
-      className={`${baseStyles} ${variants[variant]} ${className}`} 
+    <span
+      className={`${baseStyles} ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

@@ -18,12 +18,6 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
-        <span className="text-green-600 text-xs font-bold uppercase">{t('player.correct_answer')}</span>
-        <p className="text-2xl font-black text-green-900 mt-1">
-          {content.isTrue ? t("game.true") : t("game.false")}
-        </p>
-      </div>
       <div className={`${isAnswerCorrect ? "bg-green-50 border-green-200" : lastAnswer !== null ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"} p-6 rounded-2xl border-2`}>
         <span className={`${isAnswerCorrect ? "text-green-600" : lastAnswer !== null ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
         <div className={`text-2xl font-black ${isAnswerCorrect ? "text-green-900" : lastAnswer !== null ? "text-red-900" : "text-gray-900"} mt-1 flex items-center justify-between`}>
@@ -36,6 +30,12 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
             <XCircle className="text-red-600 w-8 h-8 ml-2" />
           ) : null}
         </div>
+      </div>
+      <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
+        <span className="text-green-600 text-xs font-bold uppercase">{t('player.correct_answer')}</span>
+        <p className="text-2xl font-black text-green-900 mt-1">
+          {content.isTrue ? t("game.true") : t("game.false")}
+        </p>
       </div>
     </div>
   );

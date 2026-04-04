@@ -35,7 +35,6 @@ async function seed() {
         },
       });
 
-      // Round 1
       const round_1 = await prisma.round.create({
         data: {
           competitionId: competition.id,
@@ -117,13 +116,12 @@ async function seed() {
         ],
       });
 
-      // Round 2 (Moved from 5)
       const round_2 = await prisma.round.create({
         data: {
           competitionId: competition.id,
           orderIndex: 2,
           type: "STANDARD",
-          title: "Round 2: Поправи грешката",
+          title: "Round 2: Bible chronology",
         },
       });
 
@@ -131,132 +129,6 @@ async function seed() {
         data: [
           {
             roundId: round_2.id,
-            questionText: "Поправи грешката в изречението",
-            type: "CORRECT_THE_ERROR" as QuestionType,
-            points: 2,
-            content: {
-              text: "Пророк Илия избива 450 от пророците на Ваал при потока Кисон.",
-              phrases: [
-                {
-                  text: "Пророк Илия",
-                  alternatives: ["Пророк Елисей", "Цар Давид", "Пророк Йона"],
-                },
-                {
-                  text: "избива 450",
-                  alternatives: ["помазва 450", "изцелява 450", "избива 400"],
-                },
-                {
-                  text: "от пророците на Ваал",
-                  alternatives: [
-                    "от жреците на Ашера",
-                    "от синовете на Израел",
-                    "от войниците на Ахав",
-                  ],
-                },
-                {
-                  text: "при потока Кисон.",
-                  alternatives: [
-                    "на планината Кармил.",
-                    "в град Самария.",
-                    "при река Йордан.",
-                  ],
-                },
-              ],
-              errorPhraseIndex: 0,
-              correctReplacement: "Пророк Елисей",
-            },
-          },
-          {
-            roundId: round_2.id,
-            questionText: "Поправи грешката в изречението",
-            type: "CORRECT_THE_ERROR" as QuestionType,
-            points: 2,
-            content: {
-              text: "Мойсей изведе израилтяните от Египет през Мъртво море.",
-              phrases: [
-                {
-                  text: "Мойсей",
-                  alternatives: ["Аарон", "Исус Навин", "Йосиф"],
-                },
-                {
-                  text: "изведе израилтяните",
-                  alternatives: [
-                    "вкара египтяните",
-                    "изпрати левитите",
-                    "изведе филистимците",
-                  ],
-                },
-                {
-                  text: "от Египет",
-                  alternatives: ["от Ханаан", "от Вавилон", "от Пустинята"],
-                },
-                {
-                  text: "през Мъртво море.",
-                  alternatives: [
-                    "през Червено море",
-                    "през река Йордан",
-                    "през Галилейското езеро",
-                  ],
-                },
-              ],
-              errorPhraseIndex: 3,
-              correctReplacement: "през Червено море",
-            },
-          },
-          {
-            roundId: round_2.id,
-            questionText: "Поправи грешката в изречението",
-            type: "CORRECT_THE_ERROR" as QuestionType,
-            points: 2,
-            content: {
-              text: "Давид победи великана Голиат с помощта на меч и щит.",
-              phrases: [
-                {
-                  text: "Давид",
-                  alternatives: ["Саул", "Йонатан", "Самсон"],
-                },
-                {
-                  text: "победи великана",
-                  alternatives: [
-                    "избяга от великана",
-                    "помогна на великана",
-                    "уби звяра",
-                  ],
-                },
-                {
-                  text: "Голиат",
-                  alternatives: ["Ахав", "Навуходоносор", "Ирод"],
-                },
-                {
-                  text: "с помощта на меч и щит.",
-                  alternatives: [
-                    "с помощта на прашка и камък",
-                    "с помощта на лък и стрели",
-                    "с помощта на копие и брадва",
-                  ],
-                },
-              ],
-              errorPhraseIndex: 3,
-              correctReplacement: "с помощта на прашка и камък",
-            },
-          },
-        ],
-      });
-
-      // Round 3 (Moved from 2)
-      const round_3 = await prisma.round.create({
-        data: {
-          competitionId: competition.id,
-          orderIndex: 3,
-          type: "STANDARD",
-          title: "Round 3: Bible chronology",
-        },
-      });
-
-      await prisma.question.createMany({
-        data: [
-          {
-            roundId: round_3.id,
             questionText:
               "Order these events in the life of Moses chronologically:",
             type: "CHRONOLOGY",
@@ -282,19 +154,19 @@ async function seed() {
       });
 
       // Round 4 (Moved from 3)
-      const round_4 = await prisma.round.create({
+      const round_3 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 4,
+          orderIndex: 3,
           type: "STANDARD",
-          title: "Round 4: True or False",
+          title: "Round 3: True or False",
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: round_4.id,
+            roundId: round_3.id,
             questionText:
               "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
@@ -303,7 +175,7 @@ async function seed() {
             content: { isTrue: false },
           },
           {
-            roundId: round_4.id,
+            roundId: round_3.id,
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
             timeLimitSeconds: 15,
@@ -317,89 +189,58 @@ async function seed() {
             },
           },
           {
-            roundId: round_4.id,
-            questionText: "Попълнете празните места",
-            type: "FILL_IN_THE_BLANKS",
-            points: 15,
+            roundId: round_3.id,
+            questionText: "Поправи грешката в изречението",
+            type: "CORRECT_THE_ERROR" as QuestionType,
+            points: 2,
             content: {
-              prefill: true,
-              text: "{0} {1} {2} {3} {4} {5}",
-              blanks: [
+              text: "Пророк Илия избива 450 от пророците на Ваал при потока Кисон.",
+              phrases: [
                 {
-                  options: [
-                    { value: "Пророк", isCorrect: true },
-                    { value: "Цар", isCorrect: true },
-                    { value: "Свещеник", isCorrect: false },
-                    { value: "Левит", isCorrect: false },
-                    { value: "Съдия", isCorrect: false },
+                  text: "Пророк Елисей",
+                  alternatives: ["Пророк Илия", "Цар Давид", "Пророк Йона"],
+                },
+                {
+                  text: "избива 450",
+                  alternatives: ["помазва 450", "изцелява 450", "избива 400"],
+                },
+                {
+                  text: "от пророците на Ваал",
+                  alternatives: [
+                    "от жреците на Ашера",
+                    "от синовете на Израел",
+                    "от войниците на Ахав",
                   ],
                 },
                 {
-                  options: [
-                    { value: "Елисей", isCorrect: true },
-                    { value: "Илия", isCorrect: false },
-                    { value: "Данаил", isCorrect: false },
-                    { value: "Исая", isCorrect: true },
-                    { value: "Йона", isCorrect: false },
-                  ],
-                },
-                {
-                  options: [
-                    { value: "избива", isCorrect: true },
-                    { value: "помазва", isCorrect: false },
-                    { value: "уморява", isCorrect: false },
-                    { value: "обучава", isCorrect: true },
-                    { value: "изцелява", isCorrect: false },
-                  ],
-                },
-                {
-                  options: [
-                    { value: "450", isCorrect: true },
-                    { value: "400", isCorrect: false },
-                    { value: "4000", isCorrect: false },
-                    { value: "250", isCorrect: false },
-                    { value: "1500", isCorrect: true },
-                  ],
-                },
-                {
-                  options: [
-                    { value: "от пророците на Ваал", isCorrect: true },
-                    { value: "от царете на Моав", isCorrect: false },
-                    { value: "от пророците на Зевс", isCorrect: false },
-                    { value: "от жреците на ашера", isCorrect: false },
-                    { value: "от синовете на Каин", isCorrect: true },
-                  ],
-                },
-                {
-                  options: [
-                    { value: "при потока Кисон.", isCorrect: true },
-                    { value: "на планината Кармил.", isCorrect: true },
-                    { value: "на планината Хорив.", isCorrect: false },
-                    { value: "при потока Кисон.", isCorrect: false },
-                    { value: "при стената Хорив.", isCorrect: false },
+                  text: "при потока Кисон.",
+                  alternatives: [
+                    "на планината Кармил.",
+                    "в град Самария.",
+                    "при река Йордан.",
                   ],
                 },
               ],
+              errorPhraseIndex: 0,
+              correctReplacement: "Пророк Илия",
             },
-            section: "Player 1",
           },
         ],
       });
 
-      // Round 5 (Moved from 4)
-      const round_5 = await prisma.round.create({
+      const round_4 = await prisma.round.create({
         data: {
           competitionId: competition.id,
-          orderIndex: 5,
+          orderIndex: 4,
           type: "CROSSWORD",
-          title: "Round 5: Bible Crossword",
+          title: "Round 4: Bible Crossword",
         },
       });
 
       await prisma.question.createMany({
         data: [
           {
-            roundId: round_5.id,
+            roundId: round_4.id,
             questionText: "Попълнете кръстословицата",
             type: "CROSSWORD",
             points: 30,

@@ -1,7 +1,7 @@
 import React from "react";
 import { Trophy, CheckCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
+import { Card } from "../../ui/Card";
 import type { GameState } from "@quizco/shared";
 
 export const WaitingPhase: React.FC = () => {

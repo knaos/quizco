@@ -12,13 +12,13 @@ import type {
   MultipleChoiceQuestion,
 } from "@quizco/shared";
 import { Card } from "../ui/Card";
-import { MultipleChoiceReveal } from "../player/MultipleChoiceReveal";
-import { ChronologyReveal } from "../player/ChronologyReveal";
-import { MatchingReveal } from "../player/MatchingReveal";
-import { FillInTheBlanksReveal } from "../player/FillInTheBlanksReveal";
-import { CrosswordReveal } from "../player/CrosswordReveal";
-import { CorrectTheErrorReveal } from "../player/CorrectTheErrorReveal";
-import { TrueFalseReveal } from "../player/TrueFalseReveal";
+import { MultipleChoiceReveal } from "../player/questions/multipleChoice/MultipleChoiceReveal";
+import { ChronologyReveal } from "../player/questions/chronology/ChronologyReveal";
+import { MatchingReveal } from "../player/questions/matching/MatchingReveal";
+import { FillInTheBlanksReveal } from "../player/questions/fillInTheBlanks/FillInTheBlanksReveal";
+import { CrosswordReveal } from "../player/questions/crossword/CrosswordReveal";
+import { CorrectTheErrorReveal } from "../player/questions/correctTheError/CorrectTheErrorReveal";
+import { TrueFalseReveal } from "../player/questions/trueFalse/TrueFalseReveal";
 import type { AudienceAnswerStats } from "./audienceStats";
 import { getQuestionCorrectAnswer } from "../player/questionText";
 

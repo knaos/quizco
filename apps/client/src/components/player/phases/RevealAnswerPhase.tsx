@@ -1,32 +1,33 @@
 import React from "react";
 import { Info, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card } from "../ui/Card";
-import Badge from "../ui/Badge";
-import { MultipleChoiceReveal } from "./MultipleChoiceReveal";
-import { ChronologyReveal } from "./ChronologyReveal";
-import { MatchingReveal } from "./MatchingReveal";
-import { FillInTheBlanksReveal } from "./FillInTheBlanksReveal";
-import { CrosswordReveal } from "./CrosswordReveal";
-import { DefaultReveal } from "./DefaultReveal";
-import { CorrectTheErrorReveal } from "./CorrectTheErrorReveal";
-import { TrueFalseReveal } from "./TrueFalseReveal";
-import { 
-  calculateFillInTheBlanksScore, 
-  calculateMatchingScore, 
-  calculateCrosswordScore 
-} from "../../utils/scoreCalculations";
-import type { 
+import { Card } from "../../ui/Card";
+import Badge from "../../ui/Badge";
+import { MultipleChoiceReveal } from "../questions/multipleChoice/MultipleChoiceReveal";
+import { ChronologyReveal } from "../questions/chronology/ChronologyReveal";
+import { MatchingReveal } from "../questions/matching/MatchingReveal";
+import { FillInTheBlanksReveal } from "../questions/fillInTheBlanks/FillInTheBlanksReveal";
+import { CrosswordReveal } from "../questions/crossword/CrosswordReveal";
+import { DefaultReveal } from "../questions/DefaultReveal";
+import { CorrectTheErrorReveal } from "../questions/correctTheError/CorrectTheErrorReveal";
+import { TrueFalseReveal } from "../questions/trueFalse/TrueFalseReveal";
+import {
+  calculateFillInTheBlanksScore,
+  calculateMatchingScore,
+  calculateCrosswordScore,
+} from "../../../utils/scoreCalculations";
+import { calculateChronologyScore } from "../questions/chronology/chronologyScore";
+import type {
   AnswerContent,
-  GameState, 
-  MultipleChoiceQuestion, 
-  ChronologyContent, 
-  MatchingContent, 
-  FillInTheBlanksContent, 
-  CrosswordContent, 
-  CorrectTheErrorContent, 
+  GameState,
+  MultipleChoiceQuestion,
+  ChronologyContent,
+  MatchingContent,
+  FillInTheBlanksContent,
+  CrosswordContent,
+  CorrectTheErrorContent,
   TrueFalseContent,
-  ChronologyAnswer
+  ChronologyAnswer,
 } from "@quizco/shared";
 
 interface RevealAnswerPhaseProps {
@@ -52,12 +53,12 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
   if (!currentQuestion) return null;
 
   return (
-    <div className="w-full max-w-3xl space-y-8 animate-in fade-in zoom-in duration-500">
+    <div className="w-full max-w-4xl space-y-8 animate-in fade-in zoom-in duration-500">
       <Card className="p-8 border-t-8 border-blue-500 text-left">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2 text-blue-600">
             <Info className="w-6 h-6" />
-            <span className="font-bold uppercase tracking-widest text-sm">
+            <span className="font-bold uppercase tracking-widest text-md">
               {t("player.reveal_phase")}
             </span>
           </div>
@@ -194,6 +195,49 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
                   <Badge variant="red">
                     <XCircle className="w-4 h-4 mr-2" /> {partialScore}/
                     {totalWords}
+                  </Badge>
+                );
+              }
+            })()
+          ) : currentQuestion.type === "CHRONOLOGY" ? (
+            (() => {
+              const chronologyContent = currentQuestion.content as ChronologyContent;
+              const teamAnswer = currentTeam?.lastAnswer as ChronologyAnswer | null;
+              const partialScore = calculateChronologyScore(
+                chronologyContent,
+                teamAnswer
+              );
+              const totalItems = chronologyContent.items.length;
+
+              if (partialScore === totalItems && totalItems > 0) {
+                return (
+                  <Badge variant="green">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/
+                    {totalItems}
+                  </Badge>
+                );
+              } else if (partialScore > 0 && totalItems > 0) {
+                return (
+                  <Badge variant="yellow">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {partialScore}/
+                    {totalItems}
+                  </Badge>
+                );
+              } else if (totalItems === 0) {
+                return getGradingStatus() === true ? (
+                  <Badge variant="green">
+                    <CheckCircle className="w-4 h-4 mr-2" /> {t("player.correct")}
+                  </Badge>
+                ) : (
+                  <Badge variant="red">
+                    <XCircle className="w-4 h-4 mr-2" /> {t("player.incorrect")}
+                  </Badge>
+                );
+              } else {
+                return (
+                  <Badge variant="red">
+                    <XCircle className="w-4 h-4 mr-2" /> {partialScore}/
+                    {totalItems}
                   </Badge>
                 );
               }

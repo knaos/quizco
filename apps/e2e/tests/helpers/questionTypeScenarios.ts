@@ -136,11 +136,11 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
     ],
     submitPlayerOne: async (page, questionIndex) => {
       await page.getByTestId("crossword-cell-0-0").fill(questionIndex === 0 ? "A" : "B");
-      await page.getByTestId("crossword-submit").click();
+      await page.getByTestId("player-submit-answer").click();
     },
     submitPlayerTwo: async (page) => {
       await page.getByTestId("crossword-cell-0-0").fill("Z");
-      await page.getByTestId("crossword-submit").click();
+      await page.getByTestId("player-submit-answer").click();
     },
     expectTeamOneLeads: true,
   },
