@@ -1,6 +1,5 @@
 import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import type { MultipleChoiceQuestion } from "@quizco/shared";
 
 interface MultipleChoiceRevealProps {
@@ -19,8 +18,6 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
   question,
   lastAnswer,
 }) => {
-  const { t } = useTranslation();
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {question.content.options.map((opt: string, i: number) => {

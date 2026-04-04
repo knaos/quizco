@@ -3,6 +3,7 @@ import { Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card } from "../../ui/Card";
 import Badge from "../../ui/Badge";
+import Input from "../../ui/Input";
 import { FillInTheBlanksPlayer } from "../questions/fillInTheBlanks/FillInTheBlanksPlayer";
 import { MatchingPlayer } from "../questions/matching/MatchingPlayer";
 import { ChronologyPlayer } from "../questions/chronology/ChronologyPlayer";
@@ -109,6 +110,19 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
                   selectedAnswer={null}
                   onAnswer={() => { }}
                   previewMode={true}
+                />
+              );
+            case "CLOSED":
+            case "OPEN_WORD":
+              return (
+                <Input
+                  type="text"
+                  value=""
+                  readOnly
+                  disabled
+                  placeholder={t("player.type_answer")}
+                  data-testid="player-preview-answer-input"
+                  className="text-2xl"
                 />
               );
             default:

@@ -102,7 +102,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
         <div className="w-full max-w-4xl space-y-8 text-left">
           <Card variant='elevated' className="p-8 !border-b-8 !border-blue-500 text-center">
             <span className="text-blue-600 font-black uppercase tracking-widest text-lg mb-4 block">
-              {"Раздел 1, Въпрос 1 TODO"}
+              {t("player.question")}
             </span>
             <h2
               className="text-3xl md:text-4xl font-black text-gray-900 leading-tight"
