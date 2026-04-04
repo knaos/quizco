@@ -1,10 +1,12 @@
 import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { MultipleChoiceQuestion } from "@quizco/shared";
 
 interface MultipleChoiceRevealProps {
   question: MultipleChoiceQuestion;
   lastAnswer: number[] | null;
+  showSelectionLabels?: boolean;
 }
 
 /**
@@ -17,7 +19,10 @@ interface MultipleChoiceRevealProps {
 export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
   question,
   lastAnswer,
+  showSelectionLabels = true,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {question.content.options.map((opt: string, i: number) => {
@@ -48,8 +53,19 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
               {opt}
             </span>
             <div className="flex items-center space-x-3">
+              {showSelectionLabels && isSelected && (
+                <span
+                  className={`text-xs font-black uppercase px-2 py-1 rounded ${
+                    isOptionCorrect
+                      ? "bg-green-200 text-green-800"
+                      : "bg-red-200 text-red-800"
+                  }`}
+                >
+                  {t("player.your_choice")}
+                </span>
+              )}
               {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
-              {isSelected && !isOptionCorrect && (
+              {showSelectionLabels && isSelected && !isOptionCorrect && (
                 <XCircle className="text-red-600 w-8 h-8" />
               )}
             </div>

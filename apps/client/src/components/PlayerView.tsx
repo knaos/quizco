@@ -5,7 +5,7 @@ import { Clock, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useCorrectTheErrorPartialScore } from "./player/questions/correctTheError/useCorrectTheErrorPartialScore";
-import type { Competition, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, TrueFalseContent, CorrectTheErrorAnswer, MultipleChoiceContent } from "@quizco/shared";
+import type { Competition, AnswerContent, CorrectTheErrorContent, CorrectTheErrorAnswer, MultipleChoiceContent, Team } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/utils/playerAnswerSync";
 import { CompetitionSelector } from "./player/lobby/CompetitionSelector";
 import { TeamJoinForm } from "./player/lobby/TeamJoinForm";
@@ -13,6 +13,7 @@ import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "./player/p
 import { QuestionActivePhase } from "./player/phases/QuestionActivePhase";
 import { QuestionPreviewPhase } from "./player/phases/QuestionPreviewPhase";
 import { RevealAnswerPhase } from "./player/phases/RevealAnswerPhase";
+import { getQuestionCorrectAnswer } from "./player/questionText";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -38,7 +39,7 @@ export const PlayerView: React.FC = () => {
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
   
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
-  const currentTeam = state.teams.find(t => t.id === teamId);
+  const currentTeam = state.teams.find((t) => t.id === teamId) as Team | undefined;
   const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
   
   const correctTheErrorTeamAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer as CorrectTheErrorAnswer | null;
@@ -213,22 +214,7 @@ export const PlayerView: React.FC = () => {
 
   const getCorrectAnswer = () => {
     if (!state.currentQuestion) return "";
-    const { type, content } = state.currentQuestion;
-    if (type === "MULTIPLE_CHOICE") return content.correctIndices.map((idx: number) => content.options[idx]).join(", ") || "Unknown";
-    if (type === "CLOSED") return content.options[0] || "Unknown";
-    if (type === "OPEN_WORD") return content.answer;
-    if (type === "CROSSWORD") return t("player.see_grid");
-    if (type === "FILL_IN_THE_BLANKS") return (content as FillInTheBlanksContent).blanks.map(b => b.options.find(o => o.isCorrect)?.value || "??").join(", ");
-    if (type === "MATCHING") return (content as MatchingContent).pairs.map(p => `${p.left} → ${p.right}`).join(" | ");
-    if (type === "CHRONOLOGY") return [...(content as ChronologyContent).items].sort((a, b) => a.order - b.order).map(i => i.text).join(" → ");
-    if (type === "TRUE_FALSE") return (content as TrueFalseContent).isTrue ? t("game.true") : t("game.false");
-    if (type === "CORRECT_THE_ERROR") {
-      const cteContent = content as CorrectTheErrorContent;
-      const errorPhrase = cteContent.phrases[cteContent.errorPhraseIndex];
-      const errorText = typeof errorPhrase === 'object' ? errorPhrase.text : errorPhrase;
-      return `${errorText} → ${cteContent.correctReplacement}`;
-    }
-    return "Unknown";
+    return getQuestionCorrectAnswer(state.currentQuestion, t);
   };
 
   const getGradingStatus = (): boolean | undefined => {
@@ -288,6 +274,7 @@ export const PlayerView: React.FC = () => {
           <RoundTransitionPhase phase={state.phase} currentQuestion={state.currentQuestion} />
         )}
 
+        {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
         {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
 
         {state.phase === "QUESTION_ACTIVE" && (

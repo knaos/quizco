@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { socket } from "../../../../socket";
 import { useTranslation } from "react-i18next";
-import { ArrowBigRight, ArrowBigDown } from "lucide-react";
+import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
 import { useGame } from "../../../../contexts/useGame";
+import { isStringGrid } from "../../../../utils/answerGuards";
 
 interface CrosswordPlayerProps {
   data: CrosswordContent;
@@ -12,6 +13,9 @@ interface CrosswordPlayerProps {
   onProgress?: (grid: string[][]) => void;
   /** When true, shows the crossword grid without input - used in QUESTION_PREVIEW */
   previewMode?: boolean;
+  onSubmit?: (grid: string[][]) => void;
+  readOnly?: boolean;
+  testIdPrefix?: string;
 }
 
 /**
@@ -67,6 +71,9 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   onChange,
   onProgress,
   previewMode = false,
+  onSubmit,
+  readOnly = false,
+  testIdPrefix = "crossword",
 }) => {
   const { t } = useTranslation();
   const { state } = useGame();
@@ -83,6 +90,9 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     return data.grid.map((row) => row.map(() => ""));
   }, [data.grid]);
 
+  const fallbackGrid = useMemo(() => initializeGrid(), [initializeGrid]);
+  const controlledGrid = isStringGrid(value) ? value : undefined;
+
   // Use external value if provided, otherwise use internal state
   const [internalGrid, setInternalGrid] = useState<string[][]>(() => initializeGrid());
 
@@ -95,7 +105,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   // Use provided value or internal state. If the grid shape changed in uncontrolled mode,
   // fallback to a fresh grid without setting state inside an effect.
   const userGrid =
-    value ?? (hasValidInternalGridShape ? internalGrid : initializeGrid());
+    controlledGrid ?? (hasValidInternalGridShape ? internalGrid : fallbackGrid);
 
   // State for highlighted cells when clicking on clues
   const [highlightedCells, setHighlightedCells] = useState<string[]>([]);
@@ -195,6 +205,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   };
 
   useEffect(() => {
+    if (readOnly) {
+      return undefined;
+    }
+
     const handleJoker = (payload: {
       x: number;
       y: number;
@@ -218,9 +232,13 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     return () => {
       socket.off("JOKER_REVEAL", handleJoker);
     };
-  }, [userGrid, onChange]);
+  }, [readOnly, userGrid, onChange]);
 
   const handleRequestJoker = () => {
+    if (readOnly) {
+      return;
+    }
+
     const teamId = localStorage.getItem("quizco_team_id");
     const competitionId = localStorage.getItem("quizco_selected_competition_id");
     if (teamId && competitionId && state.currentQuestion) {
@@ -232,6 +250,11 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     }
   };
 
+  const handleSubmit = () => {
+    if (!readOnly && onSubmit) {
+      onSubmit(userGrid);
+    }
+  };
   /**
    * Handle focus being placed on a cell manually (via click or tab).
    * If the cell is not in the active clue, clear the active clue state.
@@ -387,18 +410,20 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          onClick={handleRequestJoker}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2"
-        >
-          <span className="text-xl">🃏</span>
-          <span>
-            {t("game.request_joker", "Request Joker")} (-2pts)
-          </span>
-        </button>
-      </div>
+    <div className="space-y-4" data-testid={`${testIdPrefix}-crossword`}>
+      {!readOnly && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleRequestJoker}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2"
+          >
+            <span className="text-xl">🃏</span>
+            <span>
+              {t("game.request_joker", "Request Joker")} (-2pts)
+            </span>
+          </button>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div
           className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg"
@@ -428,23 +453,34 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                           {cellNumber}
                         </span>
                       )}
-                      <input
-                        type="text"
-                        value={userGrid[r][c]}
-                        onChange={(e) => handleChange(r, c, e.target.value)}
-                        onFocus={() => handleCellFocus(r, c)}
-                        data-testid={`crossword-cell-${r}-${c}`}
-                        ref={(el) => {
-                          if (el) {
-                            inputRefs.current.set(`${r}-${c}`, el);
-                          } else {
-                            inputRefs.current.delete(`${r}-${c}`);
-                          }
-                        }}
-                        className={`w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm ${
-                          isHighlighted ? "!bg-blue-200" : "bg-transparent"
-                        }`}
-                      />
+                      {readOnly ? (
+                        <span
+                          data-testid={`${testIdPrefix}-crossword-cell-${r}-${c}`}
+                          className={`w-full h-full flex items-center justify-center text-center text-xl font-bold uppercase rounded-sm ${
+                            isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                          }`}
+                        >
+                          {userGrid[r]?.[c] || ""}
+                        </span>
+                      ) : (
+                        <input
+                          type="text"
+                          value={userGrid[r][c]}
+                          onChange={(e) => handleChange(r, c, e.target.value)}
+                          onFocus={() => handleCellFocus(r, c)}
+                          data-testid={`crossword-cell-${r}-${c}`}
+                          ref={(el) => {
+                            if (el) {
+                              inputRefs.current.set(`${r}-${c}`, el);
+                            } else {
+                              inputRefs.current.delete(`${r}-${c}`);
+                            }
+                          }}
+                          className={`w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm ${
+                            isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                          }`}
+                        />
+                      )}
                     </>
                   )}
                 </div>
@@ -461,6 +497,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                 <li 
                   key={i}
                   onClick={() => handleClueClick(clue, i)}
+                  data-testid={`${testIdPrefix}-crossword-across-${i}`}
                   className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${
                     selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
                   }`}
@@ -477,6 +514,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                 <li 
                   key={i}
                   onClick={() => handleClueClick(clue, i + (data.clues?.across?.length || 0))}
+                  data-testid={`${testIdPrefix}-crossword-down-${i}`}
                   className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${
                     selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
                   }`}
@@ -489,6 +527,19 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         </div>
       </div>
 
+      {!readOnly && (
+        <div className="mt-6">
+          <button
+            onClick={handleSubmit}
+            data-testid="crossword-submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
+          >
+            <Send className="w-8 h-8" />
+
+            <span>{t("player.submit_crossword", "Submit Crossword")}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

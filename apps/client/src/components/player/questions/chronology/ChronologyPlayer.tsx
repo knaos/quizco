@@ -32,6 +32,7 @@ interface ChronologyPlayerProps {
   onChange: (value: ChronologyAnswer) => void;
   /** When true, shows items in pool without interaction - used in QUESTION_PREVIEW */
   previewMode?: boolean;
+  disabled?: boolean;
 }
 
 interface ChronologyItemView {
@@ -316,6 +317,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   value,
   onChange,
   previewMode = false,
+  disabled = false,
 }) => {
   const { t } = useTranslation();
   const itemIds = useMemo(() => content.items.map((item) => item.id), [content.items]);
@@ -358,12 +360,18 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (disabled) {
+      return;
+    }
     setActiveId(String(event.active.id));
-  }, []);
+  }, [disabled]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
+    if (disabled) {
+      return;
+    }
     setOverId(event.over ? String(event.over.id) : null);
-  }, []);
+  }, [disabled]);
 
   const resetDragState = useCallback(() => {
     setActiveId(null);
@@ -427,6 +435,11 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      if (disabled) {
+        resetDragState();
+        return;
+      }
+
       const { active, over } = event;
       const sourceSlotIndex = boardState.slotIds.findIndex(
         (slotId) => slotId === String(active.id),
@@ -471,7 +484,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
       moveCard(String(active.id), stableTarget);
       resetDragState();
     },
-    [boardState, moveCard, overId, resetDragState],
+    [boardState, disabled, moveCard, overId, resetDragState],
   );
 
   const activeItem = activeId ? itemMap[activeId] : null;
@@ -532,7 +545,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   return (
     <div className="w-full space-y-3 text-center">
       <DndContext
-        sensors={sensors}
+        sensors={disabled ? [] : sensors}
         collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
