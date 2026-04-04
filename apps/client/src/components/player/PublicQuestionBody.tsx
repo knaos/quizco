@@ -21,6 +21,7 @@ import { MatchingPlayer } from "./MatchingPlayer";
 import { ChronologyPlayer } from "./ChronologyPlayer";
 import TrueFalsePlayer from "./TrueFalsePlayer";
 import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
+import { CrosswordAudienceView } from "./CrosswordAudienceView";
 import { isChronologyAnswer, isStringGrid } from "../../utils/answerGuards";
 
 interface PublicQuestionBodyProps {
@@ -126,28 +127,35 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = ({
           </div>
         ) : currentQuestion.type === "CROSSWORD" ? (
           <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
-            <CrosswordPlayer
-              data={currentQuestion.content}
-              value={
-                isStringGrid(answer)
-                  ? answer
-                  : (currentQuestion.content as CrosswordContent).grid.map((row) =>
-                      row.map(() => "")
-                    )
-              }
-              onChange={(grid) => {
-                if (!isReadOnly) {
-                  setAnswer(grid);
+            {isReadOnly ? (
+              <CrosswordAudienceView
+                content={currentQuestion.content as CrosswordContent}
+                testIdPrefix={testIdPrefix}
+              />
+            ) : (
+              <CrosswordPlayer
+                data={currentQuestion.content as CrosswordContent}
+                value={
+                  isStringGrid(answer)
+                    ? answer
+                    : (currentQuestion.content as CrosswordContent).grid.map((row) =>
+                        row.map(() => "")
+                      )
                 }
-              }}
-              onSubmit={(grid) => {
-                if (!isReadOnly) {
-                  submitAnswer(grid, true);
-                }
-              }}
-              readOnly={isReadOnly}
-              testIdPrefix={testIdPrefix}
-            />
+                onChange={(grid) => {
+                  if (!isReadOnly) {
+                    setAnswer(grid);
+                  }
+                }}
+                onSubmit={(grid) => {
+                  if (!isReadOnly) {
+                    submitAnswer(grid, true);
+                  }
+                }}
+                readOnly={false}
+                testIdPrefix={testIdPrefix}
+              />
+            )}
           </div>
         ) : currentQuestion.type === "FILL_IN_THE_BLANKS" ? (
           <div className="space-y-6">
@@ -275,7 +283,16 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = ({
               </Button>
             )}
           </div>
-        ) : isReadOnly ? null : (
+        ) : isReadOnly ? (
+          <div
+            className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800"
+            data-testid={`${testIdPrefix}-passive-answer-placeholder`}
+          >
+            {currentQuestion.type === "CLOSED"
+              ? currentQuestion.content.options.join(", ")
+              : t("audience.open_answer_hidden")}
+          </div>
+        ) : (
           <div className="flex flex-col space-y-4">
             <Input
               type="text"

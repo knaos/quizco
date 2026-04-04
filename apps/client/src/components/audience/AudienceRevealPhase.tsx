@@ -18,6 +18,7 @@ import { MatchingReveal } from "../player/MatchingReveal";
 import { FillInTheBlanksReveal } from "../player/FillInTheBlanksReveal";
 import { CrosswordReveal } from "../player/CrosswordReveal";
 import { CorrectTheErrorReveal } from "../player/CorrectTheErrorReveal";
+import { TrueFalseReveal } from "../player/TrueFalseReveal";
 import type { AudienceAnswerStats } from "./audienceStats";
 import { getQuestionCorrectAnswer } from "../player/questionText";
 
@@ -106,6 +107,11 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
                 selectedPhraseIndex: (currentQuestion.content as CorrectTheErrorContent).errorPhraseIndex,
                 correction: (currentQuestion.content as CorrectTheErrorContent).correctReplacement,
               }}
+            />
+          ) : currentQuestion.type === "TRUE_FALSE" ? (
+            <TrueFalseReveal
+              content={currentQuestion.content}
+              lastAnswer={currentQuestion.content.isTrue}
             />
           ) : (
             <div

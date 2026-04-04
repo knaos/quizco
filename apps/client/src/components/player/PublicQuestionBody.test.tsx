@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import type {
+  ClosedQuestion,
   CrosswordQuestion,
   GameState,
   MultipleChoiceQuestion,
+  OpenWordQuestion,
 } from "@quizco/shared";
 import { click, render } from "../../test/render";
-import { GameContext } from "../../contexts/game-context";
 import { PublicQuestionBody } from "./PublicQuestionBody";
 
 const question: MultipleChoiceQuestion = {
@@ -63,6 +64,32 @@ const crosswordQuestion: CrosswordQuestion = {
         },
       ],
     },
+  },
+};
+
+const closedQuestion: ClosedQuestion = {
+  id: "question-3",
+  roundId: "round-1",
+  questionText: "Name the builder",
+  type: "CLOSED",
+  points: 10,
+  timeLimitSeconds: 30,
+  grading: "AUTO",
+  content: {
+    options: ["Noah"],
+  },
+};
+
+const openWordQuestion: OpenWordQuestion = {
+  id: "question-4",
+  roundId: "round-1",
+  questionText: "Type the answer",
+  type: "OPEN_WORD",
+  points: 10,
+  timeLimitSeconds: 30,
+  grading: "AUTO",
+  content: {
+    answer: "Noah",
   },
 };
 
@@ -167,20 +194,18 @@ describe("PublicQuestionBody", () => {
     };
 
     const view = render(
-      <GameContext.Provider value={{ state: crosswordState, dispatch: vi.fn() }}>
-        <PublicQuestionBody
-          mode="readOnly"
-          state={crosswordState}
-          answer=""
-          selectedIndices={[]}
-          setAnswer={vi.fn()}
-          toggleIndex={vi.fn()}
-          submitAnswer={vi.fn()}
-          hasSubmitted={false}
-          submissionStatus="idle"
-          testIdPrefix="audience"
-        />
-      </GameContext.Provider>,
+      <PublicQuestionBody
+        mode="readOnly"
+        state={crosswordState}
+        answer=""
+        selectedIndices={[]}
+        setAnswer={vi.fn()}
+        toggleIndex={vi.fn()}
+        submitAnswer={vi.fn()}
+        hasSubmitted={false}
+        submissionStatus="idle"
+        testIdPrefix="audience"
+      />,
     );
 
     expect(view.container.textContent).toContain("Fill the crossword");
@@ -193,6 +218,12 @@ describe("PublicQuestionBody", () => {
       view.container.querySelector('[data-testid="audience-crossword-cell-0-0"]'),
     ).not.toBeNull();
     expect(
+      view.container.querySelector('[data-testid="audience-crossword-across-0"]'),
+    ).not.toBeNull();
+    expect(
+      view.container.querySelector('[data-testid="audience-crossword-down-0"]'),
+    ).not.toBeNull();
+    expect(
       view.container.querySelector('[data-testid="crossword-submit"]'),
     ).toBeNull();
     expect(
@@ -200,6 +231,50 @@ describe("PublicQuestionBody", () => {
     ).toBeNull();
     expect(view.container.textContent).not.toContain("Request Joker");
 
+    view.unmount();
+  });
+
+  it("renders closed questions in read-only mode", () => {
+    const view = render(
+      <PublicQuestionBody
+        mode="readOnly"
+        state={{ ...state, currentQuestion: closedQuestion }}
+        answer=""
+        selectedIndices={[]}
+        setAnswer={vi.fn()}
+        toggleIndex={vi.fn()}
+        submitAnswer={vi.fn()}
+        hasSubmitted={false}
+        submissionStatus="idle"
+        testIdPrefix="audience"
+      />,
+    );
+
+    expect(view.container.textContent).toContain("Name the builder");
+    expect(view.container.textContent).toContain("Noah");
+    view.unmount();
+  });
+
+  it("renders open-word questions in read-only mode", () => {
+    const view = render(
+      <PublicQuestionBody
+        mode="readOnly"
+        state={{ ...state, currentQuestion: openWordQuestion }}
+        answer=""
+        selectedIndices={[]}
+        setAnswer={vi.fn()}
+        toggleIndex={vi.fn()}
+        submitAnswer={vi.fn()}
+        hasSubmitted={false}
+        submissionStatus="idle"
+        testIdPrefix="audience"
+      />,
+    );
+
+    expect(view.container.textContent).toContain("Type the answer");
+    expect(view.container.textContent).toContain(
+      "Audience will see the correct answer after reveal",
+    );
     view.unmount();
   });
 });

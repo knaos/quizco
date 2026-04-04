@@ -245,6 +245,15 @@ describe("AudienceView", () => {
       view.container.querySelector('[data-testid="audience-crossword"]'),
     ).not.toBeNull();
     expect(
+      view.container.querySelector('[data-testid="audience-crossword-cell-0-0"]'),
+    ).not.toBeNull();
+    expect(
+      view.container.querySelector('[data-testid="audience-crossword-across-0"]'),
+    ).not.toBeNull();
+    expect(
+      view.container.querySelector('[data-testid="audience-crossword-down-0"]'),
+    ).not.toBeNull();
+    expect(
       view.container.querySelector('[data-testid="crossword-submit"]'),
     ).toBeNull();
     expect(

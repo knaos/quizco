@@ -138,7 +138,8 @@
     "audience": {
       "title": "Изглед за Публиката",
       "answer_summary": "Обобщение на Отговорите",
-      "correct_count": "{{correct}}/{{total}} отбора с верен отговор ({{percentage}}%)"
+      "correct_count": "{{correct}}/{{total}} отбора с верен отговор ({{percentage}}%)",
+      "open_answer_hidden": "Публиката ще види правилния отговор след разкриването"
     },
     "game": {
       "true": "Истина",
