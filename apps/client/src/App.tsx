@@ -7,6 +7,7 @@ import { HostDashboard } from "./components/HostDashboard";
 import { PlayerView } from "./components/PlayerView";
 import { AdminPanel } from "./components/AdminPanel";
 import { HostLogin } from "./components/HostLogin";
+import { AudienceView } from "./components/audience/AudienceView";
 
 function HostRoute({ children }: { children: React.ReactNode }) {
   const { isHostAuthenticated, loginHost } = useAuth();
@@ -41,6 +42,7 @@ function App() {
               }
             />
             <Route path="/play" element={<PlayerView />} />
+            <Route path="/audience" element={<AudienceView />} />
             <Route path="/" element={<Navigate to="/play" replace />} />
           </Routes>
         </GameProvider>

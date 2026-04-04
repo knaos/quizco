@@ -32,6 +32,7 @@ interface ChronologyPlayerProps {
   content: ChronologyContent;
   value: ChronologyAnswer;
   onChange: (value: ChronologyAnswer) => void;
+  disabled?: boolean;
 }
 
 interface ChronologyItemView {
@@ -294,6 +295,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   content,
   value,
   onChange,
+  disabled = false,
 }) => {
   const { t } = useTranslation();
   const itemIds = useMemo(() => content.items.map((item) => item.id), [content.items]);
@@ -339,12 +341,18 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (disabled) {
+      return;
+    }
     setActiveId(String(event.active.id));
-  }, []);
+  }, [disabled]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
+    if (disabled) {
+      return;
+    }
     setOverId(event.over ? String(event.over.id) : null);
-  }, []);
+  }, [disabled]);
 
   const resetDragState = useCallback(() => {
     setActiveId(null);
@@ -364,6 +372,11 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      if (disabled) {
+        resetDragState();
+        return;
+      }
+
       const { active, over } = event;
       const sourceSlotIndex = boardState.slotIds.findIndex(
         (slotId) => slotId === String(active.id),
@@ -417,7 +430,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
 
       resetDragState();
     },
-    [boardState, onChange, overId, resetDragState],
+    [boardState, disabled, onChange, overId, resetDragState],
   );
 
   const activeItem = activeId ? itemMap[activeId] : null;
@@ -429,7 +442,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
       </p>
 
       <DndContext
-        sensors={sensors}
+        sensors={disabled ? [] : sensors}
         collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}

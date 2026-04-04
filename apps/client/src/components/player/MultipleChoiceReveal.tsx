@@ -6,6 +6,7 @@ import type { MultipleChoiceQuestion } from "@quizco/shared";
 interface MultipleChoiceRevealProps {
   question: MultipleChoiceQuestion;
   lastAnswer: number[] | null;
+  showSelectionLabels?: boolean;
 }
 
 /**
@@ -18,6 +19,7 @@ interface MultipleChoiceRevealProps {
 export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
   question,
   lastAnswer,
+  showSelectionLabels = true,
 }) => {
   const { t } = useTranslation();
 
@@ -50,7 +52,7 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
               {opt}
             </span>
             <div className="flex items-center space-x-3">
-              {isSelected && (
+              {showSelectionLabels && isSelected && (
                 <span
                   className={`text-xs font-black uppercase px-2 py-1 rounded ${
                     isOptionCorrect
@@ -62,7 +64,7 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
                 </span>
               )}
               {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
-              {isSelected && !isOptionCorrect && (
+              {showSelectionLabels && isSelected && !isOptionCorrect && (
                 <XCircle className="text-red-600 w-8 h-8" />
               )}
             </div>

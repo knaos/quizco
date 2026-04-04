@@ -5,15 +5,15 @@ import { Clock, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useCorrectTheErrorPartialScore } from "./player/useCorrectTheErrorPartialScore";
-import type { Competition, FillInTheBlanksContent, MatchingContent, AnswerContent, ChronologyContent, CorrectTheErrorContent, TrueFalseContent, CorrectTheErrorAnswer, MultipleChoiceContent } from "@quizco/shared";
+import type { Competition, AnswerContent, CorrectTheErrorContent, CorrectTheErrorAnswer, MultipleChoiceContent, Team } from "@quizco/shared";
 import { getHydratedPlayerAnswerState } from "./player/playerAnswerSync";
-import { Card } from "./ui/Card";
-import Badge from "./ui/Badge";
 import { CompetitionSelector } from "./player/CompetitionSelector";
 import { TeamJoinForm } from "./player/TeamJoinForm";
 import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "./player/SimplePhases";
 import { QuestionActivePhase } from "./player/QuestionActivePhase";
 import { RevealAnswerPhase } from "./player/RevealAnswerPhase";
+import { PublicQuestionPreview } from "./player/PublicQuestionPreview";
+import { getQuestionCorrectAnswer } from "./player/questionText";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -39,7 +39,7 @@ export const PlayerView: React.FC = () => {
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
   
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
-  const currentTeam = state.teams.find(t => t.id === teamId);
+  const currentTeam = state.teams.find((t) => t.id === teamId) as Team | undefined;
   const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
   
   const correctTheErrorTeamAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer as CorrectTheErrorAnswer | null;
@@ -213,22 +213,7 @@ export const PlayerView: React.FC = () => {
 
   const getCorrectAnswer = () => {
     if (!state.currentQuestion) return "";
-    const { type, content } = state.currentQuestion;
-    if (type === "MULTIPLE_CHOICE") return content.correctIndices.map((idx: number) => content.options[idx]).join(", ") || "Unknown";
-    if (type === "CLOSED") return content.options[0] || "Unknown";
-    if (type === "OPEN_WORD") return content.answer;
-    if (type === "CROSSWORD") return t("player.see_grid");
-    if (type === "FILL_IN_THE_BLANKS") return (content as FillInTheBlanksContent).blanks.map(b => b.options.find(o => o.isCorrect)?.value || "??").join(", ");
-    if (type === "MATCHING") return (content as MatchingContent).pairs.map(p => `${p.left} → ${p.right}`).join(" | ");
-    if (type === "CHRONOLOGY") return [...(content as ChronologyContent).items].sort((a, b) => a.order - b.order).map(i => i.text).join(" → ");
-    if (type === "TRUE_FALSE") return (content as TrueFalseContent).isTrue ? t("game.true") : t("game.false");
-    if (type === "CORRECT_THE_ERROR") {
-      const cteContent = content as CorrectTheErrorContent;
-      const errorPhrase = cteContent.phrases[cteContent.errorPhraseIndex];
-      const errorText = typeof errorPhrase === 'object' ? errorPhrase.text : errorPhrase;
-      return `${errorText} → ${cteContent.correctReplacement}`;
-    }
-    return "Unknown";
+    return getQuestionCorrectAnswer(state.currentQuestion, t);
   };
 
   const getGradingStatus = (): boolean | undefined => {
@@ -289,40 +274,7 @@ export const PlayerView: React.FC = () => {
         )}
 
         {state.phase === "QUESTION_PREVIEW" && state.currentQuestion && (
-          <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
-            {state.currentQuestion.section && (
-              <Badge variant="yellow" className="p-4 rounded-2xl border-2 border-yellow-400 animate-bounce text-2xl">
-                {t('player.turn')}: {state.currentQuestion.section}
-              </Badge>
-            )}
-            <Card variant="elevated" className="p-10 rounded-[2.5rem] border-b-8 border-yellow-500">
-              <span className="text-yellow-600 font-black uppercase tracking-widest text-lg mb-4 block">{t('player.upcoming_question')}</span>
-              <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">
-                {state.currentQuestion.questionText}
-              </h2>
-            </Card>
-
-            {state.currentQuestion.type === "MULTIPLE_CHOICE" && state.revealStep > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
-                {state.currentQuestion.content.options.map((opt: string, i: number) => (
-                  <div
-                    key={i}
-                    className={`p-8 rounded-3xl border-4 transition-all duration-500 transform ${i < state.revealStep
-                      ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
-                      : "bg-gray-100 border-transparent opacity-0 translate-y-4 scale-95"
-                      }`}
-                  >
-                    <span className="text-3xl font-black text-gray-800 text-left">{opt}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <Clock className="w-16 h-16 text-yellow-500 animate-spin-slow mx-auto" />
-              <p className="text-2xl font-black text-gray-500 uppercase tracking-widest">{t('player.host_reading')}</p>
-            </div>
-          </div>
+          <PublicQuestionPreview state={state} />
         )}
 
         {state.phase === "QUESTION_ACTIVE" && (

@@ -135,6 +135,12 @@
         }
       }
     },
+    "audience": {
+      "title": "Audience View",
+      "answer_summary": "Answer Summary",
+      "correct_count": "{{correct}}/{{total}} teams correct ({{percentage}}%)",
+      "open_answer_hidden": "Audience will see the correct answer after reveal"
+    },
     "game": {
       "true": "True",
       "false": "False",
