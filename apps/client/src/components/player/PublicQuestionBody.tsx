@@ -6,6 +6,7 @@ import type {
   ChronologyContent,
   CorrectTheErrorAnswer,
   CorrectTheErrorContent,
+  CrosswordContent,
   GameState,
   MatchingContent,
   MultipleChoiceContent,
@@ -20,7 +21,7 @@ import { MatchingPlayer } from "./MatchingPlayer";
 import { ChronologyPlayer } from "./ChronologyPlayer";
 import TrueFalsePlayer from "./TrueFalsePlayer";
 import CorrectTheErrorPlayer from "./CorrectTheErrorPlayer";
-import { isChronologyAnswer } from "../../utils/answerGuards";
+import { isChronologyAnswer, isStringGrid } from "../../utils/answerGuards";
 
 interface PublicQuestionBodyProps {
   mode: "interactive" | "readOnly";
@@ -127,7 +128,13 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = ({
           <div className="bg-white p-4 rounded-xl shadow-inner max-h-[60vh] overflow-auto">
             <CrosswordPlayer
               data={currentQuestion.content}
-              value={answer as string[][]}
+              value={
+                isStringGrid(answer)
+                  ? answer
+                  : (currentQuestion.content as CrosswordContent).grid.map((row) =>
+                      row.map(() => "")
+                    )
+              }
               onChange={(grid) => {
                 if (!isReadOnly) {
                   setAnswer(grid);
@@ -138,6 +145,8 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = ({
                   submitAnswer(grid, true);
                 }
               }}
+              readOnly={isReadOnly}
+              testIdPrefix={testIdPrefix}
             />
           </div>
         ) : currentQuestion.type === "FILL_IN_THE_BLANKS" ? (

@@ -21,6 +21,35 @@ test.beforeAll(async () => {
         correctIndices: [1],
       },
     },
+    {
+      questionText: "Audience crossword question",
+      type: "CROSSWORD",
+      content: {
+        grid: [["A", "B"], ["", "C"]],
+        clues: {
+          across: [
+            {
+              number: 1,
+              x: 0,
+              y: 0,
+              direction: "across",
+              clue: "Audience across clue",
+              answer: "AB",
+            },
+          ],
+          down: [
+            {
+              number: 2,
+              x: 1,
+              y: 0,
+              direction: "down",
+              clue: "Audience down clue",
+              answer: "BC",
+            },
+          ],
+        },
+      },
+    },
   ]);
   competitionId = fixture.competitionId;
   await adminApi.dispose();
@@ -49,7 +78,14 @@ test("audience view mirrors public question flow and reveal stats", async ({ bro
 
   await audiencePage.goto("/audience");
   await audiencePage.getByTestId(`competition-option-${competitionId}`).click();
+  await expect(audiencePage).toHaveURL(new RegExp(`\\/audience\\?competitionId=${competitionId}$`));
   await expect(audiencePage.getByTestId("audience-phase")).toHaveText("WAITING");
+
+  const deepLinkedAudienceContext = await browser.newContext();
+  const deepLinkedAudiencePage = await deepLinkedAudienceContext.newPage();
+  await deepLinkedAudiencePage.goto(`/audience?competitionId=${competitionId}`);
+  await expect(deepLinkedAudiencePage.getByTestId("audience-phase")).toHaveText("WAITING");
+  await deepLinkedAudienceContext.close();
 
   await moveToQuestionPreview(sessions.hostPage);
 
@@ -90,6 +126,28 @@ test("audience view mirrors public question flow and reveal stats", async ({ bro
     "1/2 teams correct (50%)",
   );
   await expect(audiencePage.locator("text=Correct answer")).toBeVisible();
+
+  await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_PREVIEW");
+  await expect(audiencePage.getByTestId("audience-phase")).toHaveText("QUESTION_PREVIEW", {
+    timeout: 20_000,
+  });
+
+  await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_ACTIVE");
+
+  await expect(audiencePage.getByTestId("audience-phase")).toHaveText("QUESTION_ACTIVE", {
+    timeout: 20_000,
+  });
+  await expect(audiencePage.getByTestId("audience-active-question-text")).toHaveText(
+    "Audience crossword question",
+  );
+  await expect(audiencePage.getByTestId("audience-crossword")).toBeVisible();
+  await expect(audiencePage.getByTestId("audience-crossword-across-0")).toContainText(
+    "Audience across clue",
+  );
+  await expect(audiencePage.getByTestId("audience-crossword-down-0")).toContainText(
+    "Audience down clue",
+  );
+  await expect(audiencePage.getByTestId("crossword-submit")).toHaveCount(0);
 
   await audienceContext.close();
   await sessions.close();
