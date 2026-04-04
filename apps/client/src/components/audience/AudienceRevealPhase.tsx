@@ -70,6 +70,7 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
             <MultipleChoiceReveal
               question={currentQuestion as MultipleChoiceQuestion}
               lastAnswer={currentQuestion.content.correctIndices}
+              showSelectionLabels={false}
             />
           ) : currentQuestion.type === "CHRONOLOGY" ? (
             <ChronologyReveal

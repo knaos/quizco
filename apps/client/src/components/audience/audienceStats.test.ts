@@ -21,4 +21,19 @@ describe("buildAudienceAnswerStats", () => {
       correctPercentage: 80,
     });
   });
+
+  it("ignores ungraded answers when calculating audience totals", () => {
+    expect(
+      buildAudienceAnswerStats([
+        { isCorrect: true },
+        { isCorrect: null },
+        { isCorrect: false },
+        { isCorrect: null },
+      ]),
+    ).toEqual({
+      totalSubmitted: 2,
+      totalCorrect: 1,
+      correctPercentage: 50,
+    });
+  });
 });

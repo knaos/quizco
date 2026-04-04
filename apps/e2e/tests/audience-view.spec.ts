@@ -125,6 +125,7 @@ test("audience view mirrors public question flow and reveal stats", async ({ bro
   await expect(audiencePage.getByTestId("audience-answer-stats")).toContainText(
     "1/2 teams correct (50%)",
   );
+  await expect(audiencePage.getByText("Your Choice")).toHaveCount(0);
   await expect(audiencePage.locator("text=Correct answer")).toBeVisible();
 
   await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_PREVIEW");

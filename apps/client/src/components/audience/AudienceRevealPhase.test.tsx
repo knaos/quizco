@@ -78,4 +78,29 @@ describe("AudienceRevealPhase", () => {
 
     view.unmount();
   });
+
+  it("renders multiple-choice answers without pretending the audience submitted them", () => {
+    const state = buildRevealState({
+      id: "question-mc",
+      roundId: "round-1",
+      questionText: "Choose the right option",
+      type: "MULTIPLE_CHOICE",
+      points: 10,
+      timeLimitSeconds: 30,
+      grading: "AUTO",
+      content: {
+        options: ["Wrong", "Right"],
+        correctIndices: [1],
+      },
+    });
+
+    const view = render(<AudienceRevealPhase state={state} stats={null} />);
+
+    expect(view.container.textContent).toContain("Wrong");
+    expect(view.container.textContent).toContain("Right");
+    expect(view.container.textContent).not.toContain("Your Choice");
+    expect(view.container.textContent).not.toContain("No answer submitted");
+
+    view.unmount();
+  });
 });

@@ -11,12 +11,16 @@ export interface AudienceAnswerStats {
 export function buildAudienceAnswerStats(
   answers: AudienceAnswerRecord[],
 ): AudienceAnswerStats | null {
-  if (answers.length === 0) {
+  const gradedAnswers = answers.filter((answer) => answer.isCorrect !== null);
+
+  if (gradedAnswers.length === 0) {
     return null;
   }
 
-  const totalSubmitted = answers.length;
-  const totalCorrect = answers.filter((answer) => answer.isCorrect === true).length;
+  const totalSubmitted = gradedAnswers.length;
+  const totalCorrect = gradedAnswers.filter(
+    (answer) => answer.isCorrect === true,
+  ).length;
 
   return {
     totalSubmitted,
