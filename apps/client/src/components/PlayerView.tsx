@@ -34,14 +34,14 @@ export const PlayerView: React.FC = () => {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [submissionStatus, setSubmissionStatus] = useState<"idle" | "success" | "error">("idle");
   const [isReconnecting, setIsReconnecting] = useState(true);
-  
+
   const lastQuestionIdRef = useRef<string | null>(null);
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
-  
+
   const teamId = state.teams.find(t => t.name === teamName)?.id || localStorage.getItem(TEAM_ID_KEY);
   const currentTeam = state.teams.find((t) => t.id === teamId) as Team | undefined;
   const hasSubmitted = currentTeam?.isExplicitlySubmitted || false;
-  
+
   const correctTheErrorTeamAnswer = state.teams.find((t) => t.name === teamName)?.lastAnswer as CorrectTheErrorAnswer | null;
   const correctTheErrorContent = state.currentQuestion?.type === "CORRECT_THE_ERROR"
     ? (state.currentQuestion.content as CorrectTheErrorContent)
@@ -267,14 +267,13 @@ export const PlayerView: React.FC = () => {
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <div data-testid="player-phase" className="sr-only">{state.phase}</div>
-        
+
         {(state.phase === "WAITING" || state.phase === "WELCOME") && <WaitingPhase />}
 
         {(state.phase === "ROUND_START" || state.phase === "ROUND_END") && (
           <RoundTransitionPhase phase={state.phase} currentQuestion={state.currentQuestion} />
         )}
 
-        {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
         {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
 
         {state.phase === "QUESTION_ACTIVE" && (
