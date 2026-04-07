@@ -59,6 +59,7 @@ async function seed() {
       // Section 1
       round1Questions.push({
         roundId: round_1.id,
+        index: 1,
         questionText: "Разказ за Данаил и приятелите му",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -96,6 +97,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 2,
         questionText: "Разказ за сътворението",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -133,6 +135,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 3,
         questionText: "Разказ за Давид и Саул",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -171,6 +174,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 4,
         questionText: "Свържи героя към историята му",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -186,6 +190,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 5,
         questionText: "Свържи пророка към неговото пророчество",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -201,6 +206,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 6,
         questionText: "Свържи името към описанието",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -217,6 +223,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 7,
         questionText: "Какво прави пророк Йона, след като рибата го изплюва?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -234,6 +241,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 8,
         questionText: "Кое от тези животни не споменава Ное, когато взема в ковчега?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -251,6 +259,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 9,
         questionText: "Колко дни и нощи Исус прекара в пустинята преди да започне служението Си?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -270,6 +279,7 @@ async function seed() {
       // Section 2
       round1Questions.push({
         roundId: round_1.id,
+        index: 1,
         questionText: "Разказ за Мойсей",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -307,6 +317,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 2,
         questionText: "Разказ за ковчега на завета",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -344,6 +355,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 3,
         questionText: "Разказ за Йонтан и Давид",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -382,6 +394,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 4,
         questionText: "Свържи мястото към събитието",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -397,6 +410,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 5,
         questionText: "Свържи ученика към учителя му",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -412,6 +426,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 6,
         questionText: "Свържи книгата към автора ѝ",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -428,6 +443,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 7,
         questionText: "Кое е името на майката на Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -445,6 +461,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 8,
         questionText: "Кой построи първия ковчег според Библията?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -462,6 +479,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 9,
         questionText: "Кое от тези неща не е едно от Десетте Божи заповеди?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -481,6 +499,7 @@ async function seed() {
       // Section 3
       round1Questions.push({
         roundId: round_1.id,
+        index: 1,
         questionText: "Разказ за Неемил",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -518,6 +537,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 2,
         questionText: "Разказ за Даниил в рова",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -555,6 +575,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 3,
         questionText: "Разказ за тримата мъже в пещта",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -593,6 +614,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 4,
         questionText: "Свържи чудесата на Исус",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -608,6 +630,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 5,
         questionText: "Свържи жената към нейната история",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -623,6 +646,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 6,
         questionText: "Свържи събитието към значението му",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -639,6 +663,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 7,
         questionText: "Кое е най-голямото Божие заповед според Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -656,6 +681,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 8,
         questionText: "Колко ученика имаше Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -673,6 +699,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 9,
         questionText: "Коя жена помаза Исус с миро преди Неговото разпъване?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -692,6 +719,7 @@ async function seed() {
       // Section 4
       round1Questions.push({
         roundId: round_1.id,
+        index: 1,
         questionText: "Разказ за Естер",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -729,6 +757,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 2,
         questionText: "Разказ за апостол Павел",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -766,6 +795,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 3,
         questionText: "Разказ за пророк Илия",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
@@ -804,6 +834,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 4,
         questionText: "Свържи царя към неговото управление",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -819,6 +850,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 5,
         questionText: "Свържи архангела към ролята му",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -834,6 +866,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 6,
         questionText: "Свържи притчата към нейното значение",
         type: "MATCHING",
         timeLimitSeconds: 25,
@@ -850,6 +883,7 @@ async function seed() {
 
       round1Questions.push({
         roundId: round_1.id,
+        index: 7,
         questionText: "Как се казваше братят на Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -867,6 +901,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 8,
         questionText: "Кое от тези имена не е на един от тримата мъже в пещта?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -884,6 +919,7 @@ async function seed() {
       });
       round1Questions.push({
         roundId: round_1.id,
+        index: 9,
         questionText: "Колко книги има в Стария завет?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -919,6 +955,7 @@ async function seed() {
         data: [
           {
             roundId: round_2.id,
+            index: 1,
             questionText:
               "Order these events in the life of Moses chronologically:",
             type: "CHRONOLOGY",
@@ -959,6 +996,7 @@ async function seed() {
         data: [
           {
             roundId: round_3.id,
+            index: 1,
             questionText:
               "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
@@ -968,6 +1006,7 @@ async function seed() {
           },
           {
             roundId: round_3.id,
+            index: 2,
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
             timeLimitSeconds: 15,
@@ -982,6 +1021,7 @@ async function seed() {
           },
           {
             roundId: round_3.id,
+            index: 3,
             questionText: "Поправи грешката в изречението",
             type: "CORRECT_THE_ERROR" as QuestionType,
             points: 2,
@@ -1036,6 +1076,7 @@ async function seed() {
         data: [
           {
             roundId: round_4.id,
+            index: 1,
             questionText: "Попълнете кръстословицата",
             type: "CROSSWORD",
             points: 30,
@@ -1106,7 +1147,7 @@ async function seed() {
                     x: 3,
                     y: 2,
                     direction: "down",
-                    clue: "Герой от книгата Естир, чието име говори за това колко е неприятен",
+                    clue: "Героят от книгата Естир, чието име говори за това колко е неприятен",
                     answer: "вооз",
                   },
                 ],

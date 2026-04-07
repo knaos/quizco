@@ -90,19 +90,13 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
 
   return (
     <div className="w-full max-w-4xl space-y-8">
-      {currentQuestion.section && (
-        <Badge
-          variant="yellow"
-          className="p-4 rounded-2xl border-2 border-yellow-400 text-2xl"
-        >
-          {t("player.turn")}: {currentQuestion.section}
-        </Badge>
-      )}
       {!hasSubmitted ? (
         <div className="w-full max-w-4xl space-y-8 text-left">
           <Card variant='elevated' className="p-8 !border-b-8 !border-blue-500 text-center">
             <span className="text-blue-600 font-black uppercase tracking-widest text-lg mb-4 block">
-              {t("player.question")}
+              {currentQuestion.section
+                ? `${t("player.section")} ${currentQuestion.section}, ${t("player.question")} ${currentQuestion.index}`
+                : `${t("player.question")} ${currentQuestion.index}`}
             </span>
             <h2
               className="text-3xl md:text-4xl font-black text-gray-900 leading-tight"

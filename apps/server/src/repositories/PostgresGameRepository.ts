@@ -116,6 +116,8 @@ export class PostgresGameRepository implements IGameRepository {
       points: dbQuestion.points,
       timeLimitSeconds: dbQuestion.timeLimitSeconds,
       grading: dbQuestion.grading as GradingMode,
+      section: dbQuestion.section,
+      index: dbQuestion.index,
     };
 
     // Cast content based on the specific question type to satisfy discriminated union
@@ -128,7 +130,10 @@ export class PostgresGameRepository implements IGameRepository {
 
   async getAllQuestions(): Promise<any[]> {
     return prisma.question.findMany({
-      orderBy: { createdAt: "asc" },
+      orderBy: [
+        { section: "asc" },
+        { index: "asc" },
+      ],
     });
   }
 
@@ -146,7 +151,10 @@ export class PostgresGameRepository implements IGameRepository {
           },
         },
         {
-          createdAt: "asc",
+          section: "asc",
+        },
+        {
+          index: "asc",
         },
       ],
       include: {
@@ -163,6 +171,8 @@ export class PostgresGameRepository implements IGameRepository {
       timeLimitSeconds: q.timeLimitSeconds,
       content: q.content,
       grading: q.grading,
+      section: q.section,
+      index: q.index,
       round: q.round,
     }));
   }
@@ -233,10 +243,10 @@ export class PostgresGameRepository implements IGameRepository {
         isCorrect: null,
         ...(competitionId
           ? {
-              round: {
-                competitionId: competitionId,
-              },
-            }
+            round: {
+              competitionId: competitionId,
+            },
+          }
           : {}),
       },
       include: {

@@ -49,7 +49,10 @@ export function createQuizServer(
         orderBy: { orderIndex: "asc" },
         include: {
           questions: {
-            orderBy: { createdAt: "asc" },
+            orderBy: [
+              { section: "asc" },
+              { index: "asc" },
+            ],
             include: {
               answers: true,
             },

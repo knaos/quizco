@@ -65,7 +65,10 @@ router.get("/competitions/:id", async (req, res) => {
           orderBy: { orderIndex: "asc" },
           include: {
             questions: {
-              orderBy: { createdAt: "asc" },
+              orderBy: [
+                { section: "asc" },
+                { index: "asc" },
+              ],
             },
           },
         },
@@ -156,7 +159,10 @@ router.get("/rounds/:id/questions", async (req, res) => {
   try {
     const questions = await prisma.question.findMany({
       where: { roundId: id },
-      orderBy: { createdAt: "asc" },
+      orderBy: [
+        { section: "asc" },
+        { index: "asc" },
+      ],
     });
     res.json(questions);
   } catch (err) {
