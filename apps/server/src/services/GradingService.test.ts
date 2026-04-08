@@ -141,6 +141,23 @@ describe("GradingService", () => {
     expect(service.gradeAnswer(question, "some answer")).toBeNull();
   });
 
+  it("disables scoring for questions with points=0", () => {
+    const question: Question = {
+      ...baseQuestion,
+      points: 0,
+    };
+
+    // Any answer should return isCorrect: true, score: 0
+    expect(service.gradeAnswer(question, "any answer" as unknown as AnswerContent)).toEqual({
+      isCorrect: true,
+      score: 0,
+    });
+    expect(service.gradeAnswer(question, [0, 1] as unknown as AnswerContent)).toEqual({
+      isCorrect: true,
+      score: 0,
+    });
+  });
+
   it("grades FILL_IN_THE_BLANKS correctly with partial scoring", () => {
     const question: Question = {
       ...baseQuestion,

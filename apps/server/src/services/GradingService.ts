@@ -23,6 +23,11 @@ export class GradingService {
     answer: AnswerContent,
     options: { usedJokers?: boolean } = {}
   ): { isCorrect: boolean; score: number } | null {
+    // Questions with 0 points have scoring disabled - record answer but award no points
+    if (question.points === 0) {
+      return { isCorrect: true, score: 0 };
+    }
+
     if (question.grading === "MANUAL") {
       return null; // Needs manual grading
     }

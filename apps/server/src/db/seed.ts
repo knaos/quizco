@@ -59,11 +59,49 @@ async function seed() {
       // Section 1
       round1Questions.push({
         roundId: round_1.id,
+        index: 0,
+        questionText: "Примерен въпрос",
+        type: "FILL_IN_THE_BLANKS",
+        timeLimitSeconds: 20,
+        points: 0,
+        content: {
+          text: "Докато Данаил и приятелите му се обучават в(ъв) {0} империя, те отказват да ядат от изрядните ястия на царя и ядат само {1} и пият {2}.",
+          blanks: [
+            {
+              options: [
+                { value: "Вавилонската", isCorrect: true },
+                { value: "Персийската", isCorrect: false },
+                { value: "Римската", isCorrect: false },
+                { value: "Османската", isCorrect: false },
+              ],
+            },
+            {
+              options: [
+                { value: "зеленчуци", isCorrect: true },
+                { value: "агнешко", isCorrect: false },
+                { value: "жито", isCorrect: false },
+                { value: "мед", isCorrect: false },
+              ],
+            },
+            {
+              options: [
+                { value: "вода", isCorrect: true },
+                { value: "вино", isCorrect: false },
+                { value: "оцет", isCorrect: false },
+                { value: "миро", isCorrect: false },
+              ],
+            },
+          ],
+        },
+        section: "1",
+      });
+      round1Questions.push({
+        roundId: round_1.id,
         index: 1,
         questionText: "Разказ за Данаил и приятелите му",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Докато Данаил и приятелите му се обучават в(ъв) {0} империя, те отказват да ядат от изрядните ястия на царя и ядат само {1} и пият {2}.",
           blanks: [
@@ -101,7 +139,7 @@ async function seed() {
         questionText: "Разказ за сътворението",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "В началото Бог създаде {0} и {1}. После създаде растенията, след това {2} и накрая човека по Свой образ.",
           blanks: [
@@ -139,7 +177,7 @@ async function seed() {
         questionText: "Разказ за Давид и Саул",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Когато {0} пасеше овцете на баща си, Бог го изпрати при пророк {1}, който го помаза със {2}.",
           blanks: [
@@ -178,7 +216,7 @@ async function seed() {
         questionText: "Свържи героя към историята му",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m1_s1_q1", left: "Исус", right: "възкресява дъщерята на Яир, началника на синагогата." },
@@ -194,7 +232,7 @@ async function seed() {
         questionText: "Свържи пророка към неговото пророчество",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m2_s1_q1", left: "Исая", right: "Пророкува за Месията, Който ще се роди от девица." },
@@ -210,7 +248,7 @@ async function seed() {
         questionText: "Свържи името към описанието",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m3_s1_q1", left: "Авраам", right: "Отец на вярващите, баща на Исак и Исмаил." },
@@ -227,11 +265,11 @@ async function seed() {
         questionText: "Какво прави пророк Йона, след като рибата го изплюва?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Отива да пророкува в град Ниневия",
-            "Отива да пророкува в град Тир",
+            "Отива да пророкува в город Тир",
             "Бяга от Бога в пустинята",
             "Бяга от Бога, като се качва на лодка",
           ],
@@ -245,7 +283,7 @@ async function seed() {
         questionText: "Кое от тези животни не споменава Ное, когато взема в ковчега?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Слон",
@@ -263,7 +301,7 @@ async function seed() {
         questionText: "Колко дни и нощи Исус прекара в пустинята преди да започне служението Си?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Тридесет и девет дни",
@@ -283,7 +321,7 @@ async function seed() {
         questionText: "Разказ за Мойсей",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Мойсей пасеше овцете на тъста си {0} свещеника мадиамски. Един ден видя {1} горящ в {2}, но той не се consumeваше.",
           blanks: [
@@ -321,7 +359,7 @@ async function seed() {
         questionText: "Разказ за ковчега на завета",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Ковчегът на завета се пазеше в {0}, най-свещеното място в {1}. Само {2} можеше да влиза там веднъж годишно.",
           blanks: [
@@ -359,7 +397,7 @@ async function seed() {
         questionText: "Разказ за Йонтан и Давид",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "{0} син на цар Саул обикна Давид повече от {1}. Те направиха {2} един с друг и Йонатан даде на Давид оръжието си.",
           blanks: [
@@ -398,7 +436,7 @@ async function seed() {
         questionText: "Свържи мястото към събитието",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m1_s2_q1", left: "Планината Синай", right: "Мойсей получи десетте заповеди от Бога." },
@@ -414,7 +452,7 @@ async function seed() {
         questionText: "Свържи ученика към учителя му",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m2_s2_q1", left: "Петър", right: "Ученик на Исус, който вървеше по водата." },
@@ -430,7 +468,7 @@ async function seed() {
         questionText: "Свържи книгата към автора ѝ",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m3_s2_q1", left: "Псалтир", right: "Книга, написана основно от цар Давид." },
@@ -447,7 +485,7 @@ async function seed() {
         questionText: "Кое е името на майката на Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Мария",
@@ -465,7 +503,7 @@ async function seed() {
         questionText: "Кой построи първия ковчег според Библията?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Авраам",
@@ -483,7 +521,7 @@ async function seed() {
         questionText: "Кое от тези неща не е едно от Десетте Божи заповеди?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Не убивай",
@@ -503,7 +541,7 @@ async function seed() {
         questionText: "Разказ за Неемил",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Неемил беше {0} на цар Артаксеркс. Когато чу за разрушения {1}, той плака и пости {2} дни.",
           blanks: [
@@ -541,7 +579,7 @@ async function seed() {
         questionText: "Разказ за Даниил в рова",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Цар Дарий хвърли Данаил в {0} с {1}, но Бог затвори устата на {2} и Данаил не пострада.",
           blanks: [
@@ -579,7 +617,7 @@ async function seed() {
         questionText: "Разказ за тримата мъже в пещта",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Вавилонският цар хвърли Садpaк, Месак и Авинад в {0}на {1} огъня. Но {2} ходеше сред огъня с тях.",
           blanks: [
@@ -618,7 +656,7 @@ async function seed() {
         questionText: "Свържи чудесата на Исус",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m1_s3_q1", left: "Хлябовете и рибите", right: "Исус нахрани 5000 мъже с пет хляба и две риби." },
@@ -634,7 +672,7 @@ async function seed() {
         questionText: "Свържи жената към нейната история",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m2_s3_q1", left: "Мария", right: "Майка на Исус, която роди Спасителя във Витлеем." },
@@ -650,7 +688,7 @@ async function seed() {
         questionText: "Свържи събитието към значението му",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m3_s3_q1", left: "Преминаването през Червено море", right: "Бог спаси израилтяните от робията в Египет." },
@@ -667,7 +705,7 @@ async function seed() {
         questionText: "Кое е най-голямото Божие заповед според Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Да пазиш съботата",
@@ -685,7 +723,7 @@ async function seed() {
         questionText: "Колко ученика имаше Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Седем",
@@ -703,7 +741,7 @@ async function seed() {
         questionText: "Коя жена помаза Исус с миро преди Неговото разпъване?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Мария Магдалена",
@@ -723,7 +761,7 @@ async function seed() {
         questionText: "Разказ за Естер",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Естер стана {0} на персийскил цар {1}. Когато Аман поиска да унищожи евреите, Естер отиде при царя без {2}.",
           blanks: [
@@ -761,7 +799,7 @@ async function seed() {
         questionText: "Разказ за апостол Павел",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Павел, преди да е {0}, преследваше християните. На пътя за {1} Господ го {2} и го направи апостол.",
           blanks: [
@@ -799,7 +837,7 @@ async function seed() {
         questionText: "Разказ за пророк Илия",
         type: "FILL_IN_THE_BLANKS",
         timeLimitSeconds: 20,
-        points: 10,
+        points: 3,
         content: {
           text: "Пророк Илия се скри при {0} поток. Враните му носеха хляб и {1}. След това отиде при вдовицата в {2}.",
           blanks: [
@@ -838,7 +876,7 @@ async function seed() {
         questionText: "Свържи царя към неговото управление",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m1_s4_q1", left: "Соломон", right: "Цар, известен със своята мъдрост и построения храм." },
@@ -854,7 +892,7 @@ async function seed() {
         questionText: "Свържи архангела към ролята му",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m2_s4_q1", left: "Гавриил", right: "Архангел, който обяви раждането на Йоан Кръстител и Исус." },
@@ -870,7 +908,7 @@ async function seed() {
         questionText: "Свържи притчата към нейното значение",
         type: "MATCHING",
         timeLimitSeconds: 25,
-        points: 10,
+        points: 3,
         content: {
           pairs: [
             { id: "m3_s4_q1", left: "Добрият самарянин", right: "Показва как трябва да обичаме ближните си." },
@@ -887,7 +925,7 @@ async function seed() {
         questionText: "Как се казваше братят на Исус?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Петър and Йоан",
@@ -905,7 +943,7 @@ async function seed() {
         questionText: "Кое от тези имена не е на един от тримата мъже в пещта?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "Садрак",
@@ -923,7 +961,7 @@ async function seed() {
         questionText: "Колко книги има в Стария завет?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 10,
+        points: 1,
         content: {
           options: [
             "27",
@@ -959,7 +997,7 @@ async function seed() {
             questionText:
               "Order these events in the life of Moses chronologically:",
             type: "CHRONOLOGY",
-            points: 10,
+            points: 15,
             timeLimitSeconds: 45,
             content: {
               items: [
@@ -1000,7 +1038,7 @@ async function seed() {
             questionText:
               "Въпреки че Есей не му представи най-малкия си син, Самуил веднага помисли, че Давид е помазаникът, когото Господ е избрал.",
             type: "TRUE_FALSE" as QuestionType,
-            points: 10,
+            points: 1,
             timeLimitSeconds: 10,
             content: { isTrue: false },
           },
@@ -1010,7 +1048,7 @@ async function seed() {
             questionText: "Кое твърдение за Рут е вярно?",
             type: "MULTIPLE_CHOICE",
             timeLimitSeconds: 15,
-            points: 10,
+            points: 1,
             content: {
               options: [
                 "Тя беше от народа Моав",
@@ -1048,7 +1086,7 @@ async function seed() {
                   text: "при потока Кисон.",
                   alternatives: [
                     "на планината Кармил.",
-                    "в град Самария.",
+                    "в город Самария.",
                     "при река Йордан.",
                   ],
                 },
@@ -1079,7 +1117,7 @@ async function seed() {
             index: 1,
             questionText: "Попълнете кръстословицата",
             type: "CROSSWORD",
-            points: 30,
+            points: 43,
             timeLimitSeconds: 120,
             content: {
               grid: [
