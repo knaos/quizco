@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Edit2, ArrowUp, ArrowDown, ChevronDown, ChevronUp } from "lucide-react";
 import type { Round, Question } from "@quizco/shared";
+import { useTranslation } from "react-i18next";
 import Button from "../ui/Button";
 import { Card, CardHeader, CardContent } from "../ui/Card";
 import Badge from "../ui/Badge";
@@ -30,6 +31,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
   onDeleteQuestion,
   onReorderQuestion,
 }) => {
+  const { t } = useTranslation();
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
 
   const toggleRound = (id: string) => {
@@ -39,12 +41,9 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-black text-gray-800 tracking-tight">Rounds</h2>
-        <Button
-          onClick={onCreateRound}
-          variant="success"
-        >
-          <Plus className="mr-2 w-5 h-5" /> Add Round
+        <h2 className="text-2xl font-black text-gray-800 tracking-tight">{t("admin.rounds")}</h2>
+        <Button onClick={onCreateRound} variant="success">
+          <Plus className="mr-2 w-5 h-5" /> {t("admin.add_round")}
         </Button>
       </div>
 
@@ -101,9 +100,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    if (confirm("Delete this round and all its questions?")) {
-                      onDeleteRound(round.id);
-                    }
+                    onDeleteRound(round.id);
                   }}
                   className="p-1 text-gray-400 hover:text-red-600"
                 >
@@ -129,7 +126,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                           <div className="flex items-center space-x-2 mt-1">
                             <span className="text-[10px] font-bold text-blue-600 uppercase">{q.type}</span>
                             <span className="text-[10px] text-gray-400">
-                              • {q.points} pts • {q.timeLimitSeconds}s
+                              • {q.points} {t("admin.round.pts")} • {q.timeLimitSeconds}{t("admin.round.seconds")}
                             </span>
                           </div>
                         </div>
@@ -158,9 +155,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm("Delete this question?")) {
-                              onDeleteQuestion(q.id);
-                            }
+                            onDeleteQuestion(q.id);
                           }}
                           className="p-1 text-gray-400 hover:text-red-600"
                         >
@@ -171,7 +166,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                   ))}
                   {(!questionsByRound[round.id] || questionsByRound[round.id].length === 0) && (
                     <p className="text-center py-4 text-gray-400 text-sm italic">
-                      No questions yet.
+                      {t("admin.no_questions")}
                     </p>
                   )}
                 </div>
@@ -180,7 +175,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
                   onClick={() => onCreateQuestion(round.id)}
                   className="text-sm text-blue-600 p-0 hover:bg-transparent hover:underline"
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Add Question
+                  <Plus className="w-4 h-4 mr-1" /> {t("admin.add_question")}
                 </Button>
               </CardContent>
             )}
@@ -188,7 +183,7 @@ export const RoundManager: React.FC<RoundManagerProps> = ({
         ))}
         {rounds.length === 0 && (
           <div className="text-center py-12 text-gray-400 bg-white rounded-xl border-2 border-dashed">
-            No rounds in this competition.
+            {t("admin.no_rounds")}
           </div>
         )}
       </div>

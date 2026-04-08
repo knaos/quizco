@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Lock,
   Layout,
@@ -8,232 +8,180 @@ import {
   ChevronLeft,
   Monitor,
 } from "lucide-react";
-import type { Competition, Round, Question } from "@quizco/shared";
+import type { Competition, Question, Round } from "@quizco/shared";
+import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
 import { QuestionEditor } from "./admin/QuestionEditor";
 import { useAuth } from "../contexts/useAuth";
-import { API_URL } from "../socket";
+import { useAdminData } from "../hooks/useAdminData";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
 import { Card } from "./ui/Card";
 import Badge from "./ui/Badge";
+import { ConfirmDialog } from "./ui/ConfirmDialog";
+import { PromptDialog } from "./ui/PromptDialog";
 
-const API_BASE = `${API_URL}/api/admin`;
+type PromptState =
+  | { mode: "createCompetition"; value: string }
+  | { mode: "renameCompetition"; value: string; competition: Competition }
+  | { mode: "createRound"; value: string }
+  | { mode: "renameRound"; value: string; round: Round }
+  | null;
+
+type ConfirmState =
+  | { mode: "deleteCompetition"; competitionId: string }
+  | { mode: "deleteRound"; roundId: string }
+  | { mode: "deleteQuestion"; questionId: string; roundId: string }
+  | null;
 
 export const AdminPanel: React.FC = () => {
+  const { t } = useTranslation();
   const { adminPassword, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
   const [passwordInput, setPasswordInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<"COMPETITIONS" | "EDITOR">("COMPETITIONS");
-  
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
-  const [rounds, setRounds] = useState<Round[]>([]);
-  const [questionsByRound, setQuestionsByRound] = useState<Record<string, Question[]>>({});
-  
-  const [editingQuestion, setEditingQuestion] = useState<{roundId: string, question: Partial<Question>} | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<{
+    roundId: string;
+    question: Partial<Question>;
+  } | null>(null);
+  const [promptState, setPromptState] = useState<PromptState>(null);
+  const [confirmState, setConfirmState] = useState<ConfirmState>(null);
 
-  const fetchQuestions = useCallback(async (roundId: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/rounds/${roundId}/questions`, {
-        headers: { "x-admin-auth": adminPassword || "" },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setQuestionsByRound(prev => ({ ...prev, [roundId]: data }));
-      }
-    } catch (err) {
-      console.error("Fetch questions error:", err);
-    }
-  }, [adminPassword]);
-
-  const fetchRounds = useCallback(async (compId: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/competitions/${compId}/rounds`, {
-        headers: { "x-admin-auth": adminPassword || "" },
-      });
-      if (res.ok) {
-        const data: Round[] = await res.json();
-        setRounds(data);
-        data.forEach(r => fetchQuestions(r.id));
-      }
-    } catch (err) {
-      console.error("Fetch rounds error:", err);
-    }
-  }, [adminPassword, fetchQuestions]);
-
-  const fetchCompetitions = useCallback(async () => {
-    if (!adminPassword) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/competitions`, {
-        headers: { "x-admin-auth": adminPassword },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCompetitions(data);
-      } else if (res.status === 401) {
-        logoutAdmin();
-      }
-    } catch (err) {
-      console.error("Fetch competitions error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adminPassword, logoutAdmin]);
+  const adminData = useAdminData(adminPassword, logoutAdmin);
 
   useEffect(() => {
     document.title = "Admin panel";
+  }, []);
 
-    if (isAdminAuthenticated) {
-        fetchCompetitions();
+  const selectedComp = adminData.selectedComp;
+
+  const promptConfig = useMemo(() => {
+    if (!promptState) {
+      return null;
     }
-  }, [isAdminAuthenticated, fetchCompetitions]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    loginAdmin(passwordInput);
-  };
-
-  // --- Competition Actions ---
-  const handleCreateCompetition = async () => {
-    const title = prompt("Enter Quiz Title:");
-    if (!title) return;
-    const res = await fetch(`${API_BASE}/competitions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
-      body: JSON.stringify({ title, host_pin: "1234" }),
-    });
-    if (res.ok) fetchCompetitions();
-  };
-
-  const handleUpdateCompetition = async (id: string, data: Partial<Competition>) => {
-    const res = await fetch(`${API_BASE}/competitions/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-        fetchCompetitions();
-        if (selectedComp?.id === id) {
-            const updated = await res.json();
-            setSelectedComp(updated);
-        }
+    if (promptState.mode === "createCompetition") {
+      return {
+        title: t("admin.create_competition_title"),
+        label: t("admin.new_quiz"),
+        placeholder: t("admin.new_quiz_placeholder"),
+        submitLabel: t("common.create"),
+      };
     }
-  };
 
-  const handleDeleteCompetition = async (id: string) => {
-    const res = await fetch(`${API_BASE}/competitions/${id}`, {
-      method: "DELETE",
-      headers: { "x-admin-auth": adminPassword || "" },
-    });
-    if (res.ok) fetchCompetitions();
-  };
-
-  // --- Round Actions ---
-  const handleCreateRound = async () => {
-    if (!selectedComp) return;
-    const title = prompt("Enter Round Title:");
-    if (!title) return;
-    const res = await fetch(`${API_BASE}/rounds`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
-      body: JSON.stringify({
-        competitionId: selectedComp.id,
-        title,
-        type: "STANDARD",
-        orderIndex: rounds.length + 1,
-      }),
-    });
-    if (res.ok) fetchRounds(selectedComp.id);
-  };
-
-  const handleUpdateRound = async (id: string, data: Partial<Round>) => {
-    const res = await fetch(`${API_BASE}/rounds/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok && selectedComp) fetchRounds(selectedComp.id);
-  };
-
-  const handleDeleteRound = async (id: string) => {
-    const res = await fetch(`${API_BASE}/rounds/${id}`, {
-      method: "DELETE",
-      headers: { "x-admin-auth": adminPassword || "" },
-    });
-    if (res.ok && selectedComp) fetchRounds(selectedComp.id);
-  };
-
-  const handleReorderRound = async (id: string, direction: "up" | "down") => {
-    const index = rounds.findIndex((r) => r.id === id);
-    if (index === -1) return;
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= rounds.length) return;
-
-    const roundA = rounds[index];
-    const roundB = rounds[newIndex];
-
-    await handleUpdateRound(roundA.id, { ...roundA, orderIndex: roundB.orderIndex });
-    await handleUpdateRound(roundB.id, { ...roundB, orderIndex: roundA.orderIndex });
-  };
-
-  // --- Question Actions ---
-  const handleSaveQuestion = async (questionData: Partial<Question>) => {
-    if (!editingQuestion) return;
-    const isNew = !questionData.id;
-    const url = isNew ? `${API_BASE}/questions` : `${API_BASE}/questions/${questionData.id}`;
-    const method = isNew ? "POST" : "PUT";
-
-    const payload = isNew ? { ...questionData, roundId: editingQuestion.roundId } : questionData;
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json", "x-admin-auth": adminPassword || "" },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
-      fetchQuestions(editingQuestion.roundId);
-      setEditingQuestion(null);
+    if (promptState.mode === "renameCompetition") {
+      return {
+        title: t("admin.rename_competition_title"),
+        label: t("admin.new_quiz"),
+        placeholder: t("admin.new_quiz_placeholder"),
+        submitLabel: t("common.save"),
+      };
     }
+
+    if (promptState.mode === "createRound") {
+      return {
+        title: t("admin.create_round_title"),
+        label: t("admin.add_round"),
+        placeholder: t("admin.new_round_placeholder"),
+        submitLabel: t("common.create"),
+      };
+    }
+
+    return {
+      title: t("admin.rename_round_title"),
+      label: t("admin.add_round"),
+      placeholder: t("admin.new_round_placeholder"),
+      submitLabel: t("common.save"),
+    };
+  }, [promptState, t]);
+
+  const submitPrompt = async () => {
+    if (!promptState) {
+      return;
+    }
+
+    const value = promptState.value.trim();
+    if (!value) {
+      return;
+    }
+
+    if (promptState.mode === "createCompetition") {
+      await adminData.createCompetition(value);
+    } else if (promptState.mode === "renameCompetition") {
+      await adminData.updateCompetition(promptState.competition.id, { title: value });
+    } else if (promptState.mode === "createRound" && selectedComp) {
+      await adminData.createRound(selectedComp.id, value, adminData.rounds.length + 1);
+    } else if (promptState.mode === "renameRound") {
+      await adminData.updateRound(promptState.round.id, { title: value });
+    }
+
+    setPromptState(null);
   };
 
-  const handleDeleteQuestion = async (id: string, roundId: string) => {
-    const res = await fetch(`${API_BASE}/questions/${id}`, {
-      method: "DELETE",
-      headers: { "x-admin-auth": adminPassword || "" },
-    });
-    if (res.ok) fetchQuestions(roundId);
+  const confirmAction = async () => {
+    if (!confirmState) {
+      return;
+    }
+
+    if (confirmState.mode === "deleteCompetition") {
+      await adminData.deleteCompetition(confirmState.competitionId);
+    } else if (confirmState.mode === "deleteRound") {
+      await adminData.deleteRound(confirmState.roundId);
+    } else {
+      await adminData.deleteQuestion(confirmState.questionId, confirmState.roundId);
+    }
+
+    setConfirmState(null);
+  };
+
+  const handleSelectCompetition = async (competition: Competition) => {
+    adminData.setSelectedComp(competition);
+    setView("EDITOR");
+    await adminData.fetchRounds(competition.id);
+  };
+
+  const handleReorderRound = async (roundId: string, direction: "up" | "down") => {
+    const index = adminData.rounds.findIndex((round) => round.id === roundId);
+    if (index === -1) {
+      return;
+    }
+
+    const nextIndex = direction === "up" ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= adminData.rounds.length) {
+      return;
+    }
+
+    const roundA = adminData.rounds[index];
+    const roundB = adminData.rounds[nextIndex];
+    await adminData.updateRound(roundA.id, { ...roundA, orderIndex: roundB.orderIndex });
+    await adminData.updateRound(roundB.id, { ...roundB, orderIndex: roundA.orderIndex });
   };
 
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          loginAdmin(passwordInput);
+        }} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
           <div className="flex justify-center mb-6">
             <div className="bg-blue-100 p-4 rounded-full shadow-inner">
               <Lock className="text-blue-600 w-10 h-10" />
             </div>
           </div>
           <h1 className="text-3xl font-black text-center mb-2 text-gray-800 tracking-tight">Quizco Admin</h1>
-          <p className="text-center text-gray-400 mb-8 font-medium">Enter your credentials to continue</p>
+          <p className="text-center text-gray-400 mb-8 font-medium">{t("admin.login_hint")}</p>
           <div className="space-y-4">
             <Input
               type="password"
               value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="Admin Password"
+              onChange={(event) => setPasswordInput(event.target.value)}
+              placeholder={t("admin.password_placeholder")}
               autoFocus
             />
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="w-full py-4 rounded-2xl text-lg"
-            >
-              Login to Dashboard
+            <Button type="submit" isLoading={adminData.isLoading} className="w-full py-4 rounded-2xl text-lg">
+              {t("admin.login_button")}
             </Button>
           </div>
         </form>
@@ -242,134 +190,185 @@ export const AdminPanel: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside className="w-72 bg-gray-900 text-white flex flex-col shadow-2xl z-20">
-        <div className="p-8 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-2xl font-black flex items-center tracking-tighter">
-            <Layout className="mr-3 text-blue-500" /> QUIZCO<span className="text-blue-500">.</span>
-          </h2>
-          <LanguageSwitcher />
-        </div>
-        <nav className="flex-1 p-6 space-y-3">
-          <Button
-            variant={view === "COMPETITIONS" ? "primary" : "ghost"}
-            onClick={() => { setView("COMPETITIONS"); setSelectedComp(null); }}
-            className={`w-full justify-start px-5 py-4 rounded-2xl ${
-              view === "COMPETITIONS" ? "shadow-lg shadow-blue-900/50" : ""
-            }`}
-          >
-            <List className="mr-4 w-6 h-6" /> Competitions
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start px-5 py-4 rounded-2xl"
-          >
-            <Settings className="mr-4 w-6 h-6" /> Settings
-          </Button>
-          <a
-            href="/host"
-            target="_blank"
-            className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:text-white transition-all font-bold"
-          >
-            <Monitor className="mr-4 w-6 h-6" /> Host View
-          </a>
-        </nav>
-        <div className="p-6 border-t border-gray-800">
-          <Button
-            variant="ghost"
-            onClick={logoutAdmin}
-            className="w-full space-x-2 py-3 rounded-xl hover:bg-transparent"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-10 overflow-auto relative">
-        {view === "COMPETITIONS" ? (
-          <CompetitionList 
-            competitions={competitions}
-            onSelect={(comp) => { setSelectedComp(comp); setView("EDITOR"); fetchRounds(comp.id); }}
-            onCreate={handleCreateCompetition}
-            onEdit={(comp) => {
-                const newTitle = prompt("New Title:", comp.title);
-                if (newTitle) handleUpdateCompetition(comp.id, { title: newTitle });
-            }}
-            onDelete={handleDeleteCompetition}
-          />
-        ) : (
-          <div className="max-w-5xl mx-auto">
+    <>
+      <div className="min-h-screen bg-gray-50 flex">
+        <aside className="w-72 bg-gray-900 text-white flex flex-col shadow-2xl z-20">
+          <div className="p-8 border-b border-gray-800 flex items-center justify-between">
+            <h2 className="text-2xl font-black flex items-center tracking-tighter">
+              <Layout className="mr-3 text-blue-500" /> QUIZCO<span className="text-blue-500">.</span>
+            </h2>
+            <LanguageSwitcher />
+          </div>
+          <nav className="flex-1 p-6 space-y-3">
+            <Button
+              variant={view === "COMPETITIONS" ? "primary" : "ghost"}
+              onClick={() => {
+                setView("COMPETITIONS");
+                adminData.setSelectedComp(null);
+              }}
+              className={`w-full justify-start px-5 py-4 rounded-2xl ${view === "COMPETITIONS" ? "shadow-lg shadow-blue-900/50" : ""}`}
+            >
+              <List className="mr-4 w-6 h-6" /> {t("admin.competitions")}
+            </Button>
+            <Button variant="ghost" className="w-full justify-start px-5 py-4 rounded-2xl">
+              <Settings className="mr-4 w-6 h-6" /> {t("common.edit")}
+            </Button>
+            <a
+              href="/host"
+              target="_blank"
+              className="w-full flex items-center px-5 py-4 rounded-2xl text-gray-400 hover:bg-gray-800 hover:text-white transition-all font-bold"
+            >
+              <Monitor className="mr-4 w-6 h-6" /> {t("host.dashboard")}
+            </a>
+          </nav>
+          <div className="p-6 border-t border-gray-800">
             <Button
               variant="ghost"
-              onClick={() => { setView("COMPETITIONS"); setSelectedComp(null); setRounds([]); }}
-              className="group text-blue-600 hover:text-blue-800 mb-6 flex items-center p-0 hover:bg-transparent"
+              onClick={logoutAdmin}
+              className="w-full space-x-2 py-3 rounded-xl hover:bg-transparent"
             >
-              <ChevronLeft className="mr-1 group-hover:-translate-x-1 transition-transform" /> Back to Quizzes
+              <LogOut className="w-5 h-5" />
+              <span>{t("common.logout")}</span>
             </Button>
-            
-            <Card className="p-8 mb-10 flex justify-between items-center">
-                <div>
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                        {selectedComp?.title}
-                    </h1>
-                    <div className="flex items-center space-x-3 mt-2">
-                        <Badge variant="blue">
-                            ID: {selectedComp?.id.substring(0,8)}...
-                        </Badge>
-                        <Badge variant={selectedComp?.status === 'ACTIVE' ? 'green' : 'yellow'}>
-                            {selectedComp?.status}
-                        </Badge>
-                    </div>
-                </div>
-                <Button 
-                    variant="secondary"
-                    onClick={() => {
-                        const newStatus: Competition["status"] = selectedComp?.status === "ACTIVE" ? "DRAFT" : "ACTIVE";
-                        if (selectedComp) handleUpdateCompetition(selectedComp.id, { status: newStatus });
-                    }}
-                    className="px-6 py-3 text-sm shadow-xl shadow-gray-200"
-                >
-                    {selectedComp?.status === 'ACTIVE' ? 'Deactivate' : 'Publish Quiz'}
-                </Button>
-            </Card>
-
-            <RoundManager 
-              rounds={rounds}
-              questionsByRound={questionsByRound}
-              onCreateRound={handleCreateRound}
-              onEditRound={(round) => {
-                const newTitle = prompt("New Title:", round.title);
-                if (newTitle) handleUpdateRound(round.id, { title: newTitle });
-              }}
-              onDeleteRound={handleDeleteRound}
-              onReorderRound={handleReorderRound}
-              onCreateQuestion={(roundId) => setEditingQuestion({ roundId, question: {} })}
-              onEditQuestion={(q) => setEditingQuestion({ roundId: q.roundId, question: q })}
-              onDeleteQuestion={(id) => {
-                const roundId = rounds.find((r) => questionsByRound[r.id]?.find((q) => q.id === id))?.id;
-                if (roundId) handleDeleteQuestion(id, roundId);
-              }}
-              onReorderQuestion={(roundId, id, dir) => {
-                const qs = questionsByRound[roundId];
-                const index = qs.findIndex((q) => q.id === id);
-                console.log("Reorder question", id, dir, index);
-                alert("Question reordering requires 'orderIndex' in DB. Currently ordered by creation time.");
-              }}
-            />
           </div>
-        )}
+        </aside>
 
-        {editingQuestion && (
-            <QuestionEditor 
-                question={editingQuestion.question}
-                onSave={handleSaveQuestion}
-                onCancel={() => setEditingQuestion(null)}
+        <main className="flex-1 p-10 overflow-auto relative">
+          {view === "COMPETITIONS" ? (
+            <CompetitionList
+              competitions={adminData.competitions}
+              onSelect={handleSelectCompetition}
+              onCreate={() => setPromptState({ mode: "createCompetition", value: "" })}
+              onEdit={(competition) =>
+                setPromptState({
+                  mode: "renameCompetition",
+                  competition,
+                  value: competition.title,
+                })
+              }
+              onDelete={(competitionId) =>
+                setConfirmState({ mode: "deleteCompetition", competitionId })
+              }
             />
-        )}
-      </main>
-    </div>
+          ) : (
+            <div className="max-w-5xl mx-auto">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setView("COMPETITIONS");
+                  adminData.setSelectedComp(null);
+                }}
+                className="group text-blue-600 hover:text-blue-800 mb-6 flex items-center p-0 hover:bg-transparent"
+              >
+                <ChevronLeft className="mr-1 group-hover:-translate-x-1 transition-transform" /> {t("common.back")}
+              </Button>
+
+              <Card className="p-8 mb-10 flex justify-between items-center">
+                <div>
+                  <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+                    {selectedComp?.title}
+                  </h1>
+                  <div className="flex items-center space-x-3 mt-2">
+                    <Badge variant="blue">
+                      ID: {selectedComp?.id.substring(0, 8)}...
+                    </Badge>
+                    <Badge variant={selectedComp?.status === "ACTIVE" ? "green" : "yellow"}>
+                      {selectedComp?.status}
+                    </Badge>
+                  </div>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    if (!selectedComp) {
+                      return;
+                    }
+                    const nextStatus: Competition["status"] =
+                      selectedComp.status === "ACTIVE" ? "DRAFT" : "ACTIVE";
+                    void adminData.updateCompetition(selectedComp.id, { status: nextStatus });
+                  }}
+                  className="px-6 py-3 text-sm shadow-xl shadow-gray-200"
+                >
+                  {selectedComp?.status === "ACTIVE"
+                    ? t("admin.deactivate")
+                    : t("admin.publish_quiz")}
+                </Button>
+              </Card>
+
+              <RoundManager
+                rounds={adminData.rounds}
+                questionsByRound={adminData.questionsByRound}
+                onCreateRound={() => setPromptState({ mode: "createRound", value: "" })}
+                onEditRound={(round) =>
+                  setPromptState({ mode: "renameRound", round, value: round.title })
+                }
+                onDeleteRound={(roundId) => setConfirmState({ mode: "deleteRound", roundId })}
+                onReorderRound={handleReorderRound}
+                onCreateQuestion={(roundId) => setEditingQuestion({ roundId, question: {} })}
+                onEditQuestion={(question) =>
+                  setEditingQuestion({ roundId: question.roundId, question })
+                }
+                onDeleteQuestion={(questionId) => {
+                  const roundId = adminData.rounds.find((round) =>
+                    adminData.questionsByRound[round.id]?.find((question) => question.id === questionId),
+                  )?.id;
+                  if (roundId) {
+                    setConfirmState({ mode: "deleteQuestion", questionId, roundId });
+                  }
+                }}
+                onReorderQuestion={() => {
+                  return;
+                }}
+              />
+            </div>
+          )}
+
+          {editingQuestion ? (
+            <QuestionEditor
+              question={editingQuestion.question}
+              onSave={async (questionData) => {
+                await adminData.saveQuestion(editingQuestion.roundId, questionData);
+                setEditingQuestion(null);
+              }}
+              onCancel={() => setEditingQuestion(null)}
+            />
+          ) : null}
+        </main>
+      </div>
+
+      {promptState && promptConfig ? (
+        <PromptDialog
+          title={promptConfig.title}
+          label={promptConfig.label}
+          value={promptState.value}
+          onChange={(value) =>
+            setPromptState((previous) => (previous ? { ...previous, value } : previous))
+          }
+          onSubmit={() => {
+            void submitPrompt();
+          }}
+          onCancel={() => setPromptState(null)}
+          submitLabel={promptConfig.submitLabel}
+          placeholder={promptConfig.placeholder}
+        />
+      ) : null}
+
+      {confirmState ? (
+        <ConfirmDialog
+          title={t("common.are_you_sure")}
+          message={
+            confirmState.mode === "deleteCompetition"
+              ? t("admin.confirm_delete_competition")
+              : confirmState.mode === "deleteRound"
+                ? t("admin.confirm_delete_round")
+                : t("admin.confirm_delete_question")
+          }
+          onConfirm={() => {
+            void confirmAction();
+          }}
+          onCancel={() => setConfirmState(null)}
+        />
+      ) : null}
+    </>
   );
 };

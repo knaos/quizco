@@ -13,6 +13,7 @@ interface TeamJoinFormProps {
   setColor: (color: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
+  error?: string;
 }
 
 export const TeamJoinForm: React.FC<TeamJoinFormProps> = ({
@@ -22,6 +23,7 @@ export const TeamJoinForm: React.FC<TeamJoinFormProps> = ({
   setColor,
   onSubmit,
   onBack,
+  error,
 }) => {
   const { t } = useTranslation();
 
@@ -57,6 +59,7 @@ export const TeamJoinForm: React.FC<TeamJoinFormProps> = ({
             placeholder={t("player.team_name")}
             data-testid="team-name-input"
             required
+            error={error}
           />
           <div>
             <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1 mb-1.5">
