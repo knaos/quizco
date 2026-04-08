@@ -10,6 +10,7 @@ interface MultipleChoicePlayerProps {
   previewMode?: boolean;
   /** Number of options to reveal in preview mode (indices < revealStep show actual text, rest show "?") */
   revealStep?: number;
+  testIdPrefix?: string;
 }
 
 /**
@@ -24,6 +25,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
   disabled = false,
   previewMode = false,
   revealStep = 0,
+  testIdPrefix = "player",
 }) => {
   return (
     <div className="space-y-6">
@@ -40,7 +42,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
               key={i}
               onClick={() => onToggleIndex(i)}
               disabled={disabled || previewMode}
-              data-testid={`player-choice-${i}`}
+              data-testid={`${testIdPrefix}-choice-${i}`}
               className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ${
                 previewMode
                   ? isRevealed

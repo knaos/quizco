@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, ChevronRight, Trash2, Edit2 } from "lucide-react";
 import type { Competition } from "@quizco/shared";
+import { useTranslation } from "react-i18next";
 import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import Badge from "../ui/Badge";
@@ -20,14 +21,14 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black text-gray-800 tracking-tight">Competitions</h1>
-        <Button
-          onClick={onCreate}
-        >
-          <Plus className="mr-2 w-5 h-5" /> New Quiz
+        <h1 className="text-3xl font-black text-gray-800 tracking-tight">{t("admin.competitions")}</h1>
+        <Button onClick={onCreate}>
+          <Plus className="mr-2 w-5 h-5" /> {t("admin.new_quiz")}
         </Button>
       </div>
 
@@ -47,7 +48,7 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
                 }>
                   {comp.status}
                 </Badge>
-                <span className="text-gray-400 text-sm font-bold uppercase">PIN: {comp.host_pin}</span>
+                <span className="text-gray-400 text-sm font-bold uppercase">{t("admin.pin")}: {comp.host_pin}</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -58,7 +59,7 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
                   onEdit(comp);
                 }}
                 className="p-2"
-                title="Edit Settings"
+                title={t("admin.edit_settings")}
               >
                 <Edit2 className="w-5 h-5 text-gray-400 hover:text-blue-600" />
               </Button>
@@ -66,12 +67,10 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
                 variant="ghost"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm("Are you sure you want to delete this competition?")) {
-                    onDelete(comp.id);
-                  }
+                  onDelete(comp.id);
                 }}
                 className="p-2"
-                title="Delete Competition"
+                title={t("admin.delete_competition")}
               >
                 <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-600" />
               </Button>
@@ -81,7 +80,7 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
         ))}
         {competitions.length === 0 && (
           <div className="text-center py-12 text-gray-400">
-            No competitions found. Create your first one!
+            {t("admin.no_competitions")}
           </div>
         )}
       </div>

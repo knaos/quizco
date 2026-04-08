@@ -101,11 +101,6 @@ describe("PublicQuestionBody", () => {
         state={state}
         answer=""
         selectedIndices={[]}
-        setAnswer={vi.fn()}
-        toggleIndex={vi.fn()}
-        submitAnswer={vi.fn()}
-        hasSubmitted={false}
-        submissionStatus="idle"
         testIdPrefix="audience"
       />,
     );
@@ -136,7 +131,6 @@ describe("PublicQuestionBody", () => {
         toggleIndex={toggleIndex}
         submitAnswer={submitAnswer}
         hasSubmitted={false}
-        submissionStatus="idle"
       />,
     );
 
@@ -174,11 +168,6 @@ describe("PublicQuestionBody", () => {
         state={sectionState}
         answer=""
         selectedIndices={[]}
-        setAnswer={vi.fn()}
-        toggleIndex={vi.fn()}
-        submitAnswer={vi.fn()}
-        hasSubmitted={false}
-        submissionStatus="idle"
       />,
     );
 
@@ -197,13 +186,6 @@ describe("PublicQuestionBody", () => {
       <PublicQuestionBody
         mode="readOnly"
         state={crosswordState}
-        answer=""
-        selectedIndices={[]}
-        setAnswer={vi.fn()}
-        toggleIndex={vi.fn()}
-        submitAnswer={vi.fn()}
-        hasSubmitted={false}
-        submissionStatus="idle"
         testIdPrefix="audience"
       />,
     );
@@ -239,13 +221,6 @@ describe("PublicQuestionBody", () => {
       <PublicQuestionBody
         mode="readOnly"
         state={{ ...state, currentQuestion: closedQuestion }}
-        answer=""
-        selectedIndices={[]}
-        setAnswer={vi.fn()}
-        toggleIndex={vi.fn()}
-        submitAnswer={vi.fn()}
-        hasSubmitted={false}
-        submissionStatus="idle"
         testIdPrefix="audience"
       />,
     );
@@ -260,13 +235,6 @@ describe("PublicQuestionBody", () => {
       <PublicQuestionBody
         mode="readOnly"
         state={{ ...state, currentQuestion: openWordQuestion }}
-        answer=""
-        selectedIndices={[]}
-        setAnswer={vi.fn()}
-        toggleIndex={vi.fn()}
-        submitAnswer={vi.fn()}
-        hasSubmitted={false}
-        submissionStatus="idle"
         testIdPrefix="audience"
       />,
     );

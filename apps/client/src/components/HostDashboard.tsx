@@ -1,232 +1,50 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { useGame } from "../contexts/useGame";
-import { socket, API_URL } from "../socket";
 import { Users, Play, SkipForward, CheckCircle, Clock, Settings, XCircle, Trophy, ChevronRight, ChevronDown, Pause } from "lucide-react";
-import type { Question, Competition, Round, CrosswordContent, CrosswordClue, ChronologyContent, FillInTheBlanksContent, MatchingContent, TrueFalseContent, CorrectTheErrorContent, AnswerContent } from "@quizco/shared";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
 import { Card, CardHeader, CardTitle, CardFooter } from "./ui/Card";
 import Badge from "./ui/Badge";
-
-interface PendingAnswer {
-  id: string;
-  teamId: string;
-  teamName: string;
-  questionId: string;
-  questionText: string;
-  submittedContent: string;
-}
-
-interface CollectedAnswer {
-  teamName: string;
-  color: string;
-  submittedContent: AnswerContent | string;
-  isCorrect: boolean | null;
-  points: number;
-}
-
-interface PendingAnswerApiRecord {
-  id: string;
-  teamId?: string;
-  team_id?: string;
-  teamName?: string;
-  team_name?: string;
-  questionId?: string;
-  question_id?: string;
-  questionText?: string;
-  question_text?: string;
-  submittedContent?: string;
-  submitted_content?: string;
-}
-
-interface CompetitionData {
-  rounds: (Round & {
-    questions: (Question & {
-      answers: { isCorrect: boolean | null }[];
-    })[];
-  })[];
-}
+import { useHostDashboard } from "../hooks/useHostDashboard";
+import { getQuestionRevealRenderer } from "./player/questionRenderers";
 
 export const HostDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
-  const [compData, setCompData] = useState<CompetitionData | null>(null);
-  const [pendingAnswers, setPendingAnswers] = useState<PendingAnswer[]>([]);
-  const [collectedAnswers, setCollectedAnswers] = useState<CollectedAnswer[]>([]);
-  const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
-  const [modalQuestion, setModalQuestion] = useState<{ id: string, text: string } | null>(null);
-  const [modalAnswers, setModalAnswers] = useState<CollectedAnswer[]>([]);
-
-  const selectCompetition = useCallback((comp: Competition, updateUrl = true) => {
-    setSelectedComp(comp);
-    socket.emit("HOST_JOIN_ROOM", { competitionId: comp.id });
-
-    if (updateUrl) {
-      const params = new URLSearchParams(window.location.search);
-      params.set("competitionId", comp.id);
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      window.history.pushState({ path: newUrl }, "", newUrl);
-    }
-
-    fetch(`${API_URL}/api/competitions/${comp.id}/play-data`)
-      .then((res) => res.json())
-      .then((data) => {
-        setCompData(data);
-        // Auto-expand first round
-        if (data.rounds.length > 0) {
-          setExpandedRounds({ [data.rounds[0].id]: true });
-        }
-      });
-  }, []);
-
-  const handleBack = useCallback(() => {
-    setSelectedComp(null);
-    setCompData(null);
-    const params = new URLSearchParams(window.location.search);
-    params.delete("competitionId");
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({ path: newUrl }, "", newUrl);
-  }, []);
-
-  // Initial fetch of competitions
-  useEffect(() => {
-    fetch(`${API_URL}/api/competitions`)
-      .then((res) => res.json())
-      .then((data) => {
-        setCompetitions(data);
-
-        // Check URL for competitionId
-        const params = new URLSearchParams(window.location.search);
-        const compId = params.get("competitionId");
-        if (compId) {
-          const comp = data.find((c: Competition) => c.id === compId);
-          if (comp) {
-            selectCompetition(comp, false); // false = don't update URL again
-          }
-        }
-      });
-  }, [selectCompetition]);
-
-  const fetchPendingAnswers = useCallback(() => {
-    if (!selectedComp) return;
-    fetch(`${API_URL}/api/admin/pending-answers?competitionId=${selectedComp.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const normalized: PendingAnswer[] = (Array.isArray(data) ? data : []).map((item: PendingAnswerApiRecord) => ({
-          id: item.id,
-          teamId: item.teamId ?? item.team_id ?? "",
-          teamName: item.teamName ?? item.team_name ?? "Unknown Team",
-          questionId: item.questionId ?? item.question_id ?? "",
-          questionText: item.questionText ?? item.question_text ?? "",
-          submittedContent: item.submittedContent ?? item.submitted_content ?? "\"\"",
-        }));
-        setPendingAnswers(normalized);
-      });
-  }, [selectedComp]);
-
-  const fetchCurrentQuestionAnswers = useCallback(() => {
-    if (!selectedComp || !state.currentQuestion) return;
-    fetch(`${API_URL}/api/competitions/${selectedComp.id}/questions/${state.currentQuestion.id}/answers`)
-      .then((res) => res.json())
-      .then((data: CollectedAnswer[]) => setCollectedAnswers(Array.isArray(data) ? data : []));
-  }, [selectedComp, state.currentQuestion]);
-
-  useEffect(() => {
-    if (state.phase === "GRADING") {
-      fetchPendingAnswers();
-    }
-    if (state.phase === "GRADING" || state.phase === "REVEAL_ANSWER" || state.phase === "QUESTION_ACTIVE") {
-      fetchCurrentQuestionAnswers();
-    }
-  }, [state.phase, fetchCurrentQuestionAnswers, fetchPendingAnswers]);
+  const {
+    competitions,
+    selectedComp,
+    compData,
+    pendingAnswers,
+    collectedAnswers,
+    expandedRounds,
+    modalQuestion,
+    modalAnswers,
+    selectCompetition,
+    handleBack,
+    startQuestion,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    revealAnswer,
+    handleNext,
+    gradeAnswer,
+    toggleRound,
+    openAnswersModal,
+    closeAnswersModal,
+    showLeaderboard,
+  } = useHostDashboard(state);
 
   const visibleCollectedAnswers =
     state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER"
       ? collectedAnswers
       : [];
 
-  // Sync on GAME_STATE_SYNC (e.g. when someone submits)
-  useEffect(() => {
-    const onGameStateSync = () => {
-      if (state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER") {
-        fetchCurrentQuestionAnswers();
-      }
-    };
-    socket.on("GAME_STATE_SYNC", onGameStateSync);
-    return () => {
-      socket.off("GAME_STATE_SYNC", onGameStateSync);
-    };
-  }, [state.phase, fetchCurrentQuestionAnswers]);
-
-  // Handle socket reconnection
-  useEffect(() => {
-    const onConnect = () => {
-      if (selectedComp) {
-        socket.emit("HOST_JOIN_ROOM", { competitionId: selectedComp.id });
-      }
-    };
-
-    socket.on("connect", onConnect);
-    return () => {
-      socket.off("connect", onConnect);
-    };
-  }, [selectedComp]);
-
   // Set page title
   useEffect(() => {
     document.title = "Host dashboard"
   }, [])
-
-  const startQuestion = (id: string) => {
-    if (!selectedComp) return;
-    socket.emit("HOST_START_QUESTION", { competitionId: selectedComp.id, questionId: id });
-  };
-
-  const startTimer = () => {
-    if (!selectedComp) return;
-    socket.emit("HOST_START_TIMER", { competitionId: selectedComp.id });
-  };
-
-  const pauseTimer = () => {
-    if (!selectedComp) return;
-    socket.emit("HOST_PAUSE_TIMER", { competitionId: selectedComp.id });
-  };
-
-  const resumeTimer = () => {
-    if (!selectedComp) return;
-    socket.emit("HOST_RESUME_TIMER", { competitionId: selectedComp.id });
-  };
-
-  const revealAnswer = () => {
-    if (!selectedComp) return;
-    socket.emit("HOST_REVEAL_ANSWER", { competitionId: selectedComp.id });
-  };
-
-  const handleNext = () => {
-    if (!selectedComp) return;
-    socket.emit("HOST_NEXT", { competitionId: selectedComp.id });
-  };
-
-  const gradeAnswer = (answerId: string, correct: boolean) => {
-    if (!selectedComp) return;
-    socket.emit("HOST_GRADE_DECISION", { competitionId: selectedComp.id, answerId, correct });
-    setPendingAnswers(prev => prev.filter(a => a.id !== answerId));
-  };
-
-  const toggleRound = (roundId: string) => {
-    setExpandedRounds(prev => ({ ...prev, [roundId]: !prev[roundId] }));
-  };
-
-  const openAnswersModal = (qId: string, qText: string) => {
-    if (!selectedComp) return;
-    setModalQuestion({ id: qId, text: qText });
-    fetch(`${API_URL}/api/competitions/${selectedComp.id}/questions/${qId}/answers`)
-      .then((res) => res.json())
-      .then((data) => setModalAnswers(data));
-  };
 
   if (!selectedComp) {
     return (
@@ -345,185 +163,19 @@ export const HostDashboard: React.FC = () => {
                   <p className="text-2xl font-bold text-gray-900 leading-tight">{state.currentQuestion.questionText}</p>
                 </div>
 
-                {state.phase === "REVEAL_ANSWER" && state.currentQuestion?.type === "CROSSWORD" ? (
-                  <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
-                    <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-3">
-                      {t("player.correct_answer")}
-                    </p>
-                    {/* Side-by-side crossword display for host */}
-                    <div className="flex flex-col md:flex-row gap-6">
-                      {(() => {
-                        const crosswordContent = state.currentQuestion.content as CrosswordContent;
-                        const correctGrid = crosswordContent.grid;
-
-                        // Calculate cell numbers
-                        const cellToNumber = new Map<string, number>();
-                        const allClues = [...(crosswordContent.clues.across || []), ...(crosswordContent.clues.down || [])];
-                        const uniqueStarts = new Map<string, CrosswordClue[]>();
-                        allClues.forEach(clue => {
-                          const key = `${clue.y}-${clue.x}`;
-                          if (!uniqueStarts.has(key)) {
-                            uniqueStarts.set(key, []);
-                          }
-                          uniqueStarts.get(key)!.push(clue);
-                        });
-                        uniqueStarts.forEach((clues, key) => {
-                          cellToNumber.set(key, clues[0].number);
-                        });
-
-                        return (
-                          <>
-                            {/* Left: Correct grid */}
-                            <div className="bg-white p-4 rounded-xl shadow-inner flex-1">
-                              <h4 className="font-bold text-gray-700 mb-3 text-center">Solution</h4>
-                              <div
-                                className="grid gap-1 bg-gray-300 p-1 rounded shadow-lg mx-auto"
-                                style={{
-                                  gridTemplateColumns: `repeat(${correctGrid[0]?.length || 0}, 40px)`,
-                                }}
-                              >
-                                {correctGrid.map((row, r) =>
-                                  row.map((cell, c) => {
-                                    const cellNumber = cellToNumber.get(`${r}-${c}`);
-                                    const correctCell = cell?.trim() || "";
-                                    const isBlocked = correctCell === "";
-
-                                    let cellClass = "w-10 h-10 flex items-center justify-center rounded-sm relative ";
-                                    if (isBlocked) {
-                                      cellClass += "bg-gray-800";
-                                    } else {
-                                      cellClass += "bg-green-500 text-white";
-                                    }
-
-                                    return (
-                                      <div key={`${r}-${c}`} className={cellClass}>
-                                        {!isBlocked && (
-                                          <>
-                                            {cellNumber && (
-                                              <span className="absolute top-0.5 left-1 text-[8px] font-bold text-blue-900 leading-none">
-                                                {cellNumber}
-                                              </span>
-                                            )}
-                                            <span className="text-lg font-bold uppercase">{correctCell}</span>
-                                          </>
-                                        )}
-                                      </div>
-                                    );
-                                  })
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Right: Clues */}
-                            <div className="bg-white p-4 rounded-xl shadow-inner flex-1">
-                              <h4 className="font-bold text-gray-700 mb-3">Clues</h4>
-                              <div className="max-h-48 overflow-y-auto space-y-3">
-                                {crosswordContent.clues.across && crosswordContent.clues.across.length > 0 && (
-                                  <div>
-                                    <p className="font-bold text-sm text-gray-600 border-b mb-2">Across</p>
-                                    <div className="space-y-1">
-                                      {crosswordContent.clues.across.map((clue, i) => (
-                                        <p key={i} className="text-sm">
-                                          <span className="font-bold">{clue.number}.</span> {clue.clue} <span className="text-green-600 font-bold">({clue.answer})</span>
-                                        </p>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                                {crosswordContent.clues.down && crosswordContent.clues.down.length > 0 && (
-                                  <div>
-                                    <p className="font-bold text-sm text-gray-600 border-b mb-2">Down</p>
-                                    <div className="space-y-1">
-                                      {crosswordContent.clues.down.map((clue, i) => (
-                                        <p key={i} className="text-sm">
-                                          <span className="font-bold">{clue.number}.</span> {clue.clue} <span className="text-green-600 font-bold">({clue.answer})</span>
-                                        </p>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                ) : state.phase === "REVEAL_ANSWER" && (
+                {state.phase === "REVEAL_ANSWER" && (
                   <div className="bg-green-100 p-4 rounded-xl border-2 border-green-200">
                     <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-4">
                       {t("player.correct_answer")}
                     </p>
-                    <p className="text-xl font-black text-green-900 whitespace-pre-wrap">
-                      {(() => {
-                        const q = state.currentQuestion;
-                        if (q.type === "MULTIPLE_CHOICE") {
-                          return q.content.correctIndices.map((idx: number) => q.content.options[idx]).join(", ") || "Unknown";
-                        }
-                        if (q.type === "CLOSED") {
-                          return q.content.options[0] || "Unknown";
-                        }
-                        if (q.type === "OPEN_WORD") {
-                          return q.content.answer;
-                        }
-                        if (q.type === "CHRONOLOGY") {
-                          const content = q.content as ChronologyContent;
-                          const sortedItems = [...content.items].sort((a, b) => a.order - b.order);
-                          return sortedItems.map(item => `${item.order + 1}. ${item.text}`).join("\n");
-                        }
-                        if (q.type === "FILL_IN_THE_BLANKS") {
-                          const content = q.content as FillInTheBlanksContent;
-                          let text = content.text;
-                          content.blanks.forEach((blank, idx) => {
-                            const correctOption = blank.options.find(o => o.isCorrect);
-                            text = text.replace(`{${idx}}`, correctOption?.value ? `[${correctOption.value}]` : "[???]");
-                          });
-                          return text;
-                        }
-                        if (q.type === "MATCHING") {
-                          const content = q.content as MatchingContent;
-                          return content.pairs.map(pair => `${pair.left} ↔ ${pair.right}`).join("\n");
-                        }
-                        if (q.type === "TRUE_FALSE") {
-                          const content = q.content as TrueFalseContent;
-                          return content.isTrue ? "True" : "False";
-                        }
-                        if (q.type === "CORRECT_THE_ERROR") {
-                          const content = q.content as CorrectTheErrorContent;
-                          // Display the phrases similar to player UI
-                          return (
-                            <div className="space-y-4">
-                              <div className="flex flex-wrap justify-center gap-3">
-                                {content.phrases.map((phrase, idx) => {
-                                  const isErrorPhrase = idx === content.errorPhraseIndex;
-                                  return (
-                                    <div key={idx} className="relative">
-                                      <span className={`px-4 py-2 rounded-lg font-bold text-lg ${isErrorPhrase
-                                        ? 'bg-green-500 text-white border-2 border-green-600'
-                                        : 'bg-gray-100 text-gray-500 border-2 border-gray-200'
-                                        }`}>
-                                        {phrase.text}
-                                      </span>
-                                      {isErrorPhrase && (
-                                        <CheckCircle className="absolute -top-2 -right-2 text-green-600 w-5 h-5 bg-white rounded-full" />
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              {content.errorPhraseIndex >= 0 && (
-                                <div className="mt-8 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
-                                  <p className="text-xl font-black text-green-900 text-center">
-                                    {content.correctReplacement}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-                        return "See Grid";
-                      })()}
-                    </p>
+                    <div className="text-xl font-black text-green-900 whitespace-pre-wrap">
+                      {getQuestionRevealRenderer({
+                        question: state.currentQuestion,
+                        lastAnswer: null,
+                        t,
+                        variant: "host",
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -683,7 +335,7 @@ export const HostDashboard: React.FC = () => {
 
                 <Button
                   variant="outline"
-                  onClick={() => socket.emit("HOST_SET_PHASE", { competitionId: selectedComp.id, phase: "LEADERBOARD" })}
+                  onClick={showLeaderboard}
                   className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-purple-200"
                 >
                   <Trophy className="mr-2 w-5 h-5" /> Show Leaderboard
@@ -841,7 +493,7 @@ export const HostDashboard: React.FC = () => {
               </div>
               <Button
                 variant="ghost"
-                onClick={() => setModalQuestion(null)}
+                onClick={closeAnswersModal}
                 className="p-2 hover:bg-gray-100 rounded-xl"
               >
                 <XCircle className="w-6 h-6" />
@@ -900,7 +552,7 @@ export const HostDashboard: React.FC = () => {
             <CardFooter className="flex justify-end">
               <Button
                 variant="outline"
-                onClick={() => setModalQuestion(null)}
+                onClick={closeAnswersModal}
               >
                 {t('host.close')}
               </Button>
