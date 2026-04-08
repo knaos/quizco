@@ -20,7 +20,7 @@ export async function seedRound2(competitionId: string): Promise<void> {
       // Question 0: Test question
       {
         roundId: round.id,
-        index: 1,
+        index: 0,
         questionText: "Примерен въпрос",
         type: "CHRONOLOGY",
         points: 12,
