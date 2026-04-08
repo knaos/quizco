@@ -418,25 +418,21 @@ describe("GradingService", () => {
       ...baseQuestion,
       type: "CORRECT_THE_ERROR",
       content: {
-        text: "Jesus was born in Nazareth.",
-        phrases: [
-          { text: "Jesus", alternatives: ["Peter", "John", "Paul"] },
-          { text: "was born", alternatives: ["died", "lived", "preached"] },
-          {
-            text: "in Nazareth",
-            alternatives: ["in Bethlehem", "in Jerusalem", "in Egypt"],
-          },
+        text: "Jesus was born in Nazareth",
+        words: [
+          { wordIndex: 0, text: "Jesus", alternatives: ["Peter", "John", "Paul"] },
+          { wordIndex: 2, text: "Nazareth", alternatives: ["Bethlehem", "Jerusalem", "Egypt"] },
         ],
-        errorPhraseIndex: 2,
-        correctReplacement: "in Bethlehem",
+        errorWordIndex: 2,
+        correctReplacement: "Bethlehem",
       },
     };
 
     // 1. Fully correct: 1pt for index, 1pt for replacement = 2
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 2,
-        correction: "in Bethlehem",
+        selectedWordIndex: 2,
+        correction: "Bethlehem",
       }),
     ).toEqual({
       isCorrect: true,
@@ -446,8 +442,8 @@ describe("GradingService", () => {
     // 2. Correct index, incorrect replacement: 1pt
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 2,
-        correction: "in Jerusalem",
+        selectedWordIndex: 2,
+        correction: "Jerusalem",
       }),
     ).toEqual({
       isCorrect: false,
@@ -457,8 +453,8 @@ describe("GradingService", () => {
     // 3. Incorrect index, correct replacement: 1pt
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 0,
-        correction: "in Bethlehem",
+        selectedWordIndex: 0,
+        correction: "Bethlehem",
       }),
     ).toEqual({
       isCorrect: false,
@@ -468,7 +464,7 @@ describe("GradingService", () => {
     // 4. Incorrect index, incorrect replacement: 0pt
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 1,
+        selectedWordIndex: 1,
         correction: "wrong",
       }),
     ).toEqual({

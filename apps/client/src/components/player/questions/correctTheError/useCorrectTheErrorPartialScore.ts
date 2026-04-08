@@ -10,7 +10,7 @@ const getCorrectTheErrorPartialScore = (
   }
 
   let score = 0;
-  if (lastAnswer.selectedPhraseIndex === content.errorPhraseIndex) {
+  if (lastAnswer.selectedWordIndex === content.errorWordIndex) {
     score += 1;
   }
 

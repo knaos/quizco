@@ -261,7 +261,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = ({
               content={currentQuestion.content as CorrectTheErrorContent}
               value={
                 (answer as CorrectTheErrorAnswer) || {
-                  selectedPhraseIndex: -1,
+                  selectedWordIndex: -1,
                   correction: "",
                 }
               }
@@ -272,7 +272,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = ({
               <Button
                 onClick={() => submitAnswer(answer, true)}
                 disabled={
-                  (answer as CorrectTheErrorAnswer).selectedPhraseIndex === -1 ||
+                  (answer as CorrectTheErrorAnswer).selectedWordIndex === -1 ||
                   !(answer as CorrectTheErrorAnswer).correction
                 }
                 data-testid="player-submit-answer"

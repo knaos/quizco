@@ -397,14 +397,14 @@ export class GradingService {
     answer: CorrectTheErrorAnswer,
     _totalPoints: number
   ) {
-    if (!answer || typeof answer.selectedPhraseIndex === "undefined") {
+    if (!answer || typeof answer.selectedWordIndex === "undefined") {
       return { isCorrect: false, score: 0 };
     }
 
     let score = 0;
 
-    // 1. Correct phrase selection (1pt)
-    if (answer.selectedPhraseIndex === content.errorPhraseIndex) {
+    // 1. Correct word selection (1pt)
+    if (answer.selectedWordIndex === content.errorWordIndex) {
       score += 1;
     }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { CorrectTheErrorContent, CorrectTheErrorPhrase } from '@quizco/shared';
+import type { CorrectTheErrorContent, CorrectTheErrorWord } from '@quizco/shared';
 import { useTranslation } from 'react-i18next';
 import Button from '../../ui/Button';
 import Input, { TextArea } from '../../ui/Input';
@@ -14,52 +14,62 @@ interface CorrectTheErrorEditorProps {
 const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, onChange }) => {
   const { t } = useTranslation();
   const [text, setText] = useState(content.text || '');
-  const [phrases, setPhrases] = useState<CorrectTheErrorPhrase[]>(content.phrases || []);
-  const [errorPhraseIndex, setErrorPhraseIndex] = useState(content.errorPhraseIndex ?? -1);
+  const [words, setWords] = useState<CorrectTheErrorWord[]>(content.words || []);
+  const [errorWordIndex, setErrorWordIndex] = useState(content.errorWordIndex ?? -1);
   const [correctReplacement, setCorrectReplacement] = useState(content.correctReplacement || '');
 
   useEffect(() => {
     onChange({
       text,
-      phrases,
-      errorPhraseIndex,
+      words,
+      errorWordIndex,
       correctReplacement,
     });
-  }, [text, phrases, errorPhraseIndex, correctReplacement, onChange]);
+  }, [text, words, errorWordIndex, correctReplacement, onChange]);
 
-  const updatePhraseText = (index: number, value: string) => {
-    const newPhrases = [...phrases];
-    newPhrases[index] = { ...newPhrases[index], text: value };
-    setPhrases(newPhrases);
+  const updateWordText = (index: number, value: string) => {
+    const newWords = [...words];
+    newWords[index] = { ...newWords[index], text: value };
+    setWords(newWords);
   };
 
-  const updateAlternative = (phraseIndex: number, altIndex: number, value: string) => {
-    const newPhrases = [...phrases];
-    const newAlternatives = [...newPhrases[phraseIndex].alternatives];
+  const updateAlternative = (wordIndex: number, altIndex: number, value: string) => {
+    const newWords = [...words];
+    const newAlternatives = [...newWords[wordIndex].alternatives];
     newAlternatives[altIndex] = value;
-    newPhrases[phraseIndex] = { ...newPhrases[phraseIndex], alternatives: newAlternatives };
-    setPhrases(newPhrases);
+    newWords[wordIndex] = { ...newWords[wordIndex], alternatives: newAlternatives };
+    setWords(newWords);
     
-    // If this phrase is the error and this alternative was the correct replacement, update it
-    if (phraseIndex === errorPhraseIndex && correctReplacement === phrases[phraseIndex].alternatives[altIndex]) {
+    // If this word is the error and this alternative was the correct replacement, update it
+    if (wordIndex === errorWordIndex && correctReplacement === words[wordIndex].alternatives[altIndex]) {
         setCorrectReplacement(value);
     }
   };
 
-  const addPhrase = () => {
-    if (phrases.length >= 4) return;
-    setPhrases([...phrases, { text: '', alternatives: ['', '', ''] }]);
+  const addWord = () => {
+    // Find the next available word index based on existing words
+    const usedIndices = new Set(words.map(w => w.wordIndex));
+    let nextIndex = 0;
+    while (usedIndices.has(nextIndex)) {
+      nextIndex++;
+    }
+    
+    setWords([...words, { wordIndex: nextIndex, text: '', alternatives: ['', '', ''] }]);
   };
 
-  const removePhrase = (index: number) => {
-    const newPhrases = phrases.filter((_, i) => i !== index);
-    setPhrases(newPhrases);
-    if (errorPhraseIndex === index) {
-      setErrorPhraseIndex(-1);
+  const removeWord = (index: number) => {
+    const newWords = words.filter((_, i) => i !== index);
+    setWords(newWords);
+    if (errorWordIndex === words[index].wordIndex) {
+      setErrorWordIndex(-1);
       setCorrectReplacement('');
-    } else if (errorPhraseIndex > index) {
-      setErrorPhraseIndex(errorPhraseIndex - 1);
     }
+  };
+
+  // Get the original sentence words for display
+  const getSentenceWords = (): string[] => {
+    if (!text.trim()) return [];
+    return text.trim().split(/\s+/);
   };
 
   return (
@@ -72,31 +82,76 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
         placeholder={t('admin.questions.correctTheError.fullTextPlaceholder')}
       />
 
+      {/* Show sentence preview with word indices */}
+      {text.trim() && (
+        <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+          <p className="text-sm font-bold text-blue-700 mb-2">
+            {t('admin.questions.correctTheError.sentencePreview')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {getSentenceWords().map((word, idx) => {
+              const hasAlternatives = words.some(w => w.wordIndex === idx);
+              const isError = errorWordIndex === idx;
+              return (
+                <span
+                  key={idx}
+                  className={`px-2 py-1 rounded text-sm font-medium ${
+                    isError
+                      ? 'bg-red-500 text-white'
+                      : hasAlternatives
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                  title={`Word ${idx}`}
+                >
+                  {idx}:{word}
+                </span>
+              );
+            })}
+          </div>
+          <p className="text-xs text-blue-600 mt-2">
+            {t('admin.questions.correctTheError.legend')}
+          </p>
+        </div>
+      )}
+
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">
-            {t('admin.questions.correctTheError.phrases')} (1-4)
+            {t('admin.questions.correctTheError.wordsWithAlternatives')} (0-{getSentenceWords().length || '?'})
           </label>
           <Button
-            onClick={addPhrase}
-            disabled={phrases.length >= 4}
+            onClick={addWord}
+            disabled={!text.trim() || words.length >= (getSentenceWords().length || 0)}
             size="sm"
             variant="purple"
           >
-            {t('admin.questions.correctTheError.addPhrase')}
+            {t('admin.questions.correctTheError.addWord')}
           </Button>
         </div>
 
-        {phrases.map((phrase, pIdx) => (
-          <Card key={pIdx} variant="flat" className={`p-4 space-y-3 ${errorPhraseIndex === pIdx ? 'border-red-500 bg-red-50' : ''}`}>
+        {words.length === 0 && text.trim() && (
+          <p className="text-sm text-gray-500 italic text-center py-4">
+            {t('admin.questions.correctTheError.noWordsYet')}
+          </p>
+        )}
+
+        {words.length === 0 && !text.trim() && (
+          <p className="text-sm text-gray-500 italic text-center py-4">
+            {t('admin.questions.correctTheError.enterSentenceFirst')}
+          </p>
+        )}
+
+        {words.map((word, wIdx) => (
+          <Card key={wIdx} variant="flat" className={`p-4 space-y-3 ${errorWordIndex === word.wordIndex ? 'border-red-500 bg-red-50' : ''}`}>
             <div className="flex items-start space-x-3">
               <div className="flex items-center h-10">
                 <input
                   type="radio"
-                  name="errorPhrase"
-                  checked={errorPhraseIndex === pIdx}
+                  name="errorWord"
+                  checked={errorWordIndex === word.wordIndex}
                   onChange={() => {
-                    setErrorPhraseIndex(pIdx);
+                    setErrorWordIndex(word.wordIndex);
                     setCorrectReplacement('');
                   }}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
@@ -104,17 +159,22 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
                 />
               </div>
               <div className="flex-1">
-                <Input
-                  type="text"
-                  value={phrase.text}
-                  onChange={(e) => updatePhraseText(pIdx, e.target.value)}
-                  placeholder={t('admin.questions.correctTheError.phraseTextPlaceholder')}
-                  className="py-2 text-base"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    #{word.wordIndex}
+                  </span>
+                  <Input
+                    type="text"
+                    value={word.text}
+                    onChange={(e) => updateWordText(wIdx, e.target.value)}
+                    placeholder={t('admin.questions.correctTheError.wordTextPlaceholder')}
+                    className="py-2 text-base flex-1"
+                  />
+                </div>
               </div>
               <Button
                 variant="ghost"
-                onClick={() => removePhrase(pIdx)}
+                onClick={() => removeWord(wIdx)}
                 className="text-red-600 h-10 px-2"
               >
                 {t('common.remove')}
@@ -122,20 +182,20 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pl-7">
-              {phrase.alternatives.map((alt, aIdx) => (
+              {word.alternatives.map((alt, aIdx) => (
                 <div key={aIdx} className="relative">
                   <Input
                     type="text"
                     value={alt}
-                    onChange={(e) => updateAlternative(pIdx, aIdx, e.target.value)}
+                    onChange={(e) => updateAlternative(wIdx, aIdx, e.target.value)}
                     placeholder={`${t('admin.questions.correctTheError.alternative')} ${aIdx + 1}`}
                     className={`py-2 text-sm pr-8 ${
-                      errorPhraseIndex === pIdx && correctReplacement === alt && alt !== ''
+                      errorWordIndex === word.wordIndex && correctReplacement === alt && alt !== ''
                         ? 'border-green-500 bg-green-50'
                         : ''
                     }`}
                   />
-                  {errorPhraseIndex === pIdx && (
+                  {errorWordIndex === word.wordIndex && (
                     <button
                       type="button"
                       onClick={() => setCorrectReplacement(alt)}

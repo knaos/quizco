@@ -82,17 +82,10 @@ describe("getQuestionCorrectAnswer", () => {
       index: 0,
       content: {
         text: "This phrase is good",
-        phrases: [
-          {
-            text: "was",
-            alternatives: ["were", "is"],
-          },
-          {
-            text: "good",
-            alternatives: ["bad", "better"],
-          },
+        words: [
+          { wordIndex: 3, text: "good", alternatives: ["bad", "better"] },
         ],
-        errorPhraseIndex: 1,
+        errorWordIndex: 3,
         correctReplacement: "better",
       },
     };

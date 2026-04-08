@@ -333,36 +333,36 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
         questionText: "Correct error question 1",
         type: "CORRECT_THE_ERROR",
         content: {
-          text: "The sky is green.",
-          phrases: [
-            { text: "The sky", alternatives: ["The sea", "The land"] },
-            { text: "is green.", alternatives: ["is blue.", "is black."] },
+          text: "The sky is green",
+          words: [
+            { wordIndex: 1, text: "sky", alternatives: ["sea", "land"] },
+            { wordIndex: 3, text: "green", alternatives: ["blue", "black"] },
           ],
-          errorPhraseIndex: 1,
-          correctReplacement: "is blue.",
+          errorWordIndex: 3,
+          correctReplacement: "blue",
         },
       },
       {
         questionText: "Correct error question 2",
         type: "CORRECT_THE_ERROR",
         content: {
-          text: "Water is dry.",
-          phrases: [
-            { text: "Water", alternatives: ["Fire", "Stone"] },
-            { text: "is dry.", alternatives: ["is wet.", "is hard."] },
+          text: "Water is dry",
+          words: [
+            { wordIndex: 0, text: "Water", alternatives: ["Fire", "Stone"] },
+            { wordIndex: 3, text: "dry", alternatives: ["wet", "hard"] },
           ],
-          errorPhraseIndex: 1,
-          correctReplacement: "is wet.",
+          errorWordIndex: 3,
+          correctReplacement: "wet",
         },
       },
     ],
     submitPlayerOne: async (page) => {
-      await page.getByTestId("cte-phrase-1").click();
+      await page.getByTestId("cte-word-3").click();
       await page.getByTestId("cte-alternative-0").click();
       await page.getByTestId("player-submit-answer").click();
     },
     submitPlayerTwo: async (page) => {
-      await page.getByTestId("cte-phrase-0").click();
+      await page.getByTestId("cte-word-1").click();
       await page.getByTestId("cte-alternative-1").click();
       await page.getByTestId("player-submit-answer").click();
     },

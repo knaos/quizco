@@ -292,7 +292,7 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
               content={currentQuestion.content as CorrectTheErrorContent}
               lastAnswer={
                 state.teams.find((t) => t.name === teamName)?.lastAnswer as {
-                  selectedPhraseIndex: number;
+                  selectedWordIndex: number;
                   correction: string;
                 } | null
               }

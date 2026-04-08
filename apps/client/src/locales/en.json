@@ -129,10 +129,11 @@
       "leave_confirm": "Are you sure you want to leave the game? Your score will be preserved if you rejoin with the same name.",
       "questions": {
         "correctTheError": {
-          "instruction": "Identify the incorrect phrase in the sentence.",
-          "selectCorrection": "Select the correct replacement for this phrase:",
+          "instruction": "Identify the incorrect word in the sentence.",
+          "selectCorrection": "Select the correct replacement:",
           "correctionLabel": "Your correction:",
-          "correctionPlaceholder": "Type the correct word/phrase..."
+          "correctionPlaceholder": "Type the correct word/phrase...",
+          "noContent": "No question content available"
         }
       }
     },

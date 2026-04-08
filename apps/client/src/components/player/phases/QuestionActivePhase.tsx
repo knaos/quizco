@@ -54,7 +54,7 @@ const isSubmitDisabled = (
       return answer === null;
     case "CORRECT_THE_ERROR":
       return (
-        (answer as CorrectTheErrorAnswer)?.selectedPhraseIndex === -1 ||
+        (answer as CorrectTheErrorAnswer)?.selectedWordIndex === -1 ||
         !(answer as CorrectTheErrorAnswer)?.correction
       );
     default:
@@ -178,7 +178,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
                       content={currentQuestion.content}
                       value={
                         (answer as CorrectTheErrorAnswer) || {
-                          selectedPhraseIndex: -1,
+                          selectedWordIndex: -1,
                           correction: "",
                         }
                       }

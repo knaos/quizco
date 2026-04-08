@@ -48,35 +48,14 @@ export async function seedRound3(competitionId: string): Promise<void> {
         type: "CORRECT_THE_ERROR" as QuestionType,
         points: 2,
         content: {
-          text: "Пророк Илия избива 450 от пророците на Ваал при потока Кисон.",
-          phrases: [
-            {
-              text: "Пророк Елисей",
-              alternatives: ["Пророк Илия", "Цар Давид", "Пророк Йона"],
-            },
-            {
-              text: "избива 450",
-              alternatives: ["помазва 450", "изцелява 450", "избива 400"],
-            },
-            {
-              text: "от пророците на Ваал",
-              alternatives: [
-                "от жреците на Ашера",
-                "от синовете на Израел",
-                "от войниците на Ахав",
-              ],
-            },
-            {
-              text: "при потока Кисон.",
-              alternatives: [
-                "на планината Кармил.",
-                "в город Самария.",
-                "при река Йордан.",
-              ],
-            },
+          text: "Пророк Елисей избива 450 от пророците на Ваал при потока Кисон",
+          words: [
+            { wordIndex: 1, text: "Елисей", alternatives: ["Илия", "Давид", "Йона"] },
+            { wordIndex: 3, text: "450", alternatives: ["50", "200", "2000"] },
+            { wordIndex: 9, text: "потока", alternatives: ["планината", "града", "реката"] },
           ],
-          errorPhraseIndex: 0,
-          correctReplacement: "Пророк Илия",
+          errorWordIndex: 1,
+          correctReplacement: "Илия",
         },
       },
     ],

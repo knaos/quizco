@@ -490,29 +490,35 @@ export const HostDashboard: React.FC = () => {
                         }
                         if (q.type === "CORRECT_THE_ERROR") {
                           const content = q.content as CorrectTheErrorContent;
-                          // Display the phrases similar to player UI
+                          // Display the words similar to player UI
+                          const sentenceWords = content.text.split(/\s+/);
+                          const wordsWithAlternatives = new Set(content.words.map(w => w.wordIndex));
                           return (
                             <div className="space-y-4">
                               <div className="flex flex-wrap justify-center gap-3">
-                                {content.phrases.map((phrase, idx) => {
-                                  const isErrorPhrase = idx === content.errorPhraseIndex;
+                                {sentenceWords.map((word, idx) => {
+                                  const isErrorWord = idx === content.errorWordIndex;
+                                  const hasAlternatives = wordsWithAlternatives.has(idx);
                                   return (
                                     <div key={idx} className="relative">
-                                      <span className={`px-4 py-2 rounded-lg font-bold text-lg ${isErrorPhrase
+                                      <span className={`px-4 py-2 rounded-lg font-bold text-lg ${isErrorWord
                                         ? 'bg-green-500 text-white border-2 border-green-600'
-                                        : 'bg-gray-100 text-gray-500 border-2 border-gray-200'
+                                        : hasAlternatives
+                                          ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
+                                          : 'bg-gray-100 text-gray-500 border-2 border-gray-200'
                                         }`}>
-                                        {phrase.text}
+                                        {word}
                                       </span>
-                                      {isErrorPhrase && (
+                                      {isErrorWord && (
                                         <CheckCircle className="absolute -top-2 -right-2 text-green-600 w-5 h-5 bg-white rounded-full" />
                                       )}
                                     </div>
                                   );
                                 })}
                               </div>
-                              {content.errorPhraseIndex >= 0 && (
+                              {content.errorWordIndex >= 0 && (
                                 <div className="mt-8 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                                  <p className="text-xs text-green-600 font-black uppercase tracking-widest mb-2">Correct replacement:</p>
                                   <p className="text-xl font-black text-green-900 text-center">
                                     {content.correctReplacement}
                                   </p>

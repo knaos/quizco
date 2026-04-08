@@ -94,7 +94,7 @@ export const QuestionPreviewPhase: React.FC<QuestionPreviewPhaseProps> = ({ stat
               return (
                 <CorrectTheErrorPlayer
                   content={currentQuestion.content as CorrectTheErrorContent}
-                  value={{ selectedPhraseIndex: -1, correction: "" }}
+                  value={{ selectedWordIndex: -1, correction: "" }}
                   onChange={() => { }}
                   previewMode={true}
                 />

@@ -104,7 +104,7 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
             <CorrectTheErrorReveal
               content={currentQuestion.content as CorrectTheErrorContent}
               lastAnswer={{
-                selectedPhraseIndex: (currentQuestion.content as CorrectTheErrorContent).errorPhraseIndex,
+                selectedWordIndex: (currentQuestion.content as CorrectTheErrorContent).errorWordIndex,
                 correction: (currentQuestion.content as CorrectTheErrorContent).correctReplacement,
               }}
             />
