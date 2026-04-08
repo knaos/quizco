@@ -24,6 +24,7 @@ describe("AudienceRevealPhase", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+  index: 0,
       content: {
         answer: "Patience",
       },
@@ -58,6 +59,7 @@ describe("AudienceRevealPhase", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+  index: 0,
       content: {
         items: [
           { id: "item-2", text: "Deborah", order: 1 },
@@ -88,6 +90,7 @@ describe("AudienceRevealPhase", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+  index: 0,
       content: {
         options: ["Wrong", "Right"],
         correctIndices: [1],

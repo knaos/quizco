@@ -2,7 +2,6 @@ import React from "react";
 import { Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card } from "../../ui/Card";
-import Badge from "../../ui/Badge";
 import Input from "../../ui/Input";
 import { FillInTheBlanksPlayer } from "../questions/fillInTheBlanks/FillInTheBlanksPlayer";
 import { MatchingPlayer } from "../questions/matching/MatchingPlayer";

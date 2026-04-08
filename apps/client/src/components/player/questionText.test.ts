@@ -15,6 +15,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         options: ["Alpha", "Beta", "Gamma"],
         correctIndices: [0, 2],
@@ -29,6 +30,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         options: ["Closed answer"],
       },
@@ -49,6 +51,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         answer: "Mercy",
       },
@@ -62,6 +65,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         isTrue: false,
       },
@@ -75,6 +79,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         text: "This phrase is good",
         phrases: [
@@ -108,6 +113,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         text: "___ and ___",
         blanks: [
@@ -132,6 +138,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         pairs: [
           { id: "pair-1", left: "Paul", right: "Apostle" },
@@ -148,6 +155,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         items: [
           { id: "item-2", text: "Second", order: 1 },
@@ -165,6 +173,7 @@ describe("getQuestionCorrectAnswer", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
+      index: 0,
       content: {
         grid: [["A"]],
         clues: {

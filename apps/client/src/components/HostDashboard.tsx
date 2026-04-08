@@ -710,7 +710,7 @@ export const HostDashboard: React.FC = () => {
                       </button>
 
                       {expandedRounds[round.id] && (
-                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
+                        <div className="p-4 space-y-3 bg-white">
                           {round.questions.map((q) => (
                             <button
                               key={q.id}
@@ -719,19 +719,27 @@ export const HostDashboard: React.FC = () => {
                               className={`${state.currentQuestion?.id === q.id
                                 ? "bg-blue-600 text-white ring-4 ring-blue-100"
                                 : "bg-white hover:bg-blue-50 text-gray-700 border-2 border-gray-100"
-                                } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative`}
+                                } font-bold py-4 px-5 rounded-2xl transition-all text-left flex items-start group relative w-full`}
                             >
                               <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                  <p className="text-xs opacity-60 uppercase">{q.type}</p>
-                                  <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider">
-                                    <span className="flex items-center text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                                      <Clock className="w-3 h-3 mr-1" /> {q.timeLimitSeconds}s
+                                <div className="flex justify-between items-start mb-1 gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-black px-2 py-1 rounded-lg bg-purple-100 text-purple-700">
+                                      {`${q.section
+                                        ? `${q.section}-${q.index}`
+                                        : `${q.index}`}`}
                                     </span>
-                                    <span className="flex items-center text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
-                                      <Trophy className="w-3 h-3 mr-1" /> {q.points} pts
-                                    </span>
+                                    <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider">
+                                      <span className="flex items-center text-xs text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded-lg">
+                                        <Clock className="w-3 h-5 mr-1" /> {q.timeLimitSeconds}s
+                                      </span>
+                                      <span className="flex items-center text-xs text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-lg">
+                                        <Trophy className="w-3 h-5 mr-1" /> {q.points} pts
+                                      </span>
+                                    </div>
+                                    <p className="text-xs opacity-60 uppercase">{q.type}</p>
                                   </div>
+
                                 </div>
                                 <p className="line-clamp-2 mb-2">{q.questionText}</p>
 

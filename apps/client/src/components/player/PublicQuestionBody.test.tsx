@@ -17,6 +17,7 @@ const question: MultipleChoiceQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     options: ["One", "Two"],
     correctIndices: [1],
@@ -40,6 +41,7 @@ const crosswordQuestion: CrosswordQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     grid: [["A", "B"], ["", "C"]],
     clues: {
@@ -75,6 +77,7 @@ const closedQuestion: ClosedQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     options: ["Noah"],
   },
@@ -88,6 +91,7 @@ const openWordQuestion: OpenWordQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     answer: "Noah",
   },

@@ -149,6 +149,7 @@ interface BaseQuestion {
   timeLimitSeconds: number;
   grading: GradingMode;
   section?: string;
+  index: number;
 }
 
 export interface MultipleChoiceQuestion extends BaseQuestion {
