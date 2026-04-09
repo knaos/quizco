@@ -54,6 +54,7 @@ export interface HostDashboardResult {
   pendingAnswers: PendingAnswer[];
   collectedAnswers: CollectedAnswer[];
   expandedRounds: Record<string, boolean>;
+  isQuestionPickerOpen: boolean;
   modalQuestion: { id: string; text: string } | null;
   modalAnswers: CollectedAnswer[];
   selectCompetition: (competition: Competition, updateUrl?: boolean) => void;
@@ -66,6 +67,8 @@ export interface HostDashboardResult {
   handleNext: () => void;
   gradeAnswer: (answerId: string, correct: boolean) => void;
   toggleRound: (roundId: string) => void;
+  openQuestionPicker: () => void;
+  closeQuestionPicker: () => void;
   openAnswersModal: (questionId: string, questionText: string) => void;
   closeAnswersModal: () => void;
   showLeaderboard: () => void;
@@ -78,6 +81,7 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
   const [pendingAnswers, setPendingAnswers] = useState<PendingAnswer[]>([]);
   const [collectedAnswers, setCollectedAnswers] = useState<CollectedAnswer[]>([]);
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
+  const [isQuestionPickerOpen, setIsQuestionPickerOpen] = useState(false);
   const [modalQuestion, setModalQuestion] = useState<{ id: string; text: string } | null>(null);
   const [modalAnswers, setModalAnswers] = useState<CollectedAnswer[]>([]);
 
@@ -217,12 +221,15 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
     pendingAnswers,
     collectedAnswers,
     expandedRounds,
+    isQuestionPickerOpen,
     modalQuestion,
     modalAnswers,
     selectCompetition,
     handleBack,
-    startQuestion: (questionId: string) =>
-      emitCompetitionAction("HOST_START_QUESTION", { questionId }),
+    startQuestion: (questionId: string) => {
+      setIsQuestionPickerOpen(false);
+      emitCompetitionAction("HOST_START_QUESTION", { questionId });
+    },
     startTimer: () => emitCompetitionAction("HOST_START_TIMER"),
     pauseTimer: () => emitCompetitionAction("HOST_PAUSE_TIMER"),
     resumeTimer: () => emitCompetitionAction("HOST_RESUME_TIMER"),
@@ -234,6 +241,8 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
     },
     toggleRound: (roundId: string) =>
       setExpandedRounds((previous) => ({ ...previous, [roundId]: !previous[roundId] })),
+    openQuestionPicker: () => setIsQuestionPickerOpen(true),
+    closeQuestionPicker: () => setIsQuestionPickerOpen(false),
     openAnswersModal: (questionId: string, questionText: string) => {
       if (!selectedComp) {
         return;
@@ -246,7 +255,10 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
         .then((response) => response.json())
         .then((data) => setModalAnswers(Array.isArray(data) ? data : []));
     },
-    closeAnswersModal: () => setModalQuestion(null),
+    closeAnswersModal: () => {
+      setModalQuestion(null);
+      setModalAnswers([]);
+    },
     showLeaderboard: () =>
       emitCompetitionAction("HOST_SET_PHASE", { phase: "LEADERBOARD" }),
   };
