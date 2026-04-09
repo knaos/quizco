@@ -1,22 +1,56 @@
 import express from "express";
+import type { RequestHandler } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import fs from "fs";
+import path from "path";
 import adminRouter from "./routes/admin";
 import { GameManager } from "./GameManager";
 import { IGameRepository } from "./repositories/IGameRepository";
 import prisma from "./db/prisma";
 import { Logger } from "./utils/Logger";
 import { withErrorLogging } from "./utils/safeHandler";
+import {
+  resolveClientDistPath,
+  shouldServeClientRoute,
+} from "./config/staticClient";
+import { assertProductionSecurity, getSecurityConfig } from "./auth/config";
+import { createLoginHandler, requireAuth, verifySocketAuthToken } from "./auth/http";
 
 export function createQuizServer(
   gameManager: GameManager,
   repository: IGameRepository,
 ) {
   const logger = new Logger("QuizServer");
+  const securityConfig = getSecurityConfig(process.env);
+  assertProductionSecurity(securityConfig, process.env.NODE_ENV);
   const app = express();
-  app.use(cors());
+  const corsOptions = {
+    origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (
+        securityConfig.allowedOrigins.length === 0 ||
+        securityConfig.allowedOrigins.includes(origin)
+      ) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin not allowed"));
+    },
+    credentials: true,
+  };
+
+  app.use(cors(corsOptions));
   app.use(express.json());
+  app.post("/api/auth/login", createLoginHandler(securityConfig));
+
+  const hostOrAdminAuth = requireAuth(securityConfig, ["host", "admin"]);
 
   // Routes
   app.use("/api/admin", adminRouter);
@@ -78,7 +112,7 @@ export function createQuizServer(
     }
   });
 
-  app.get("/api/admin/pending-answers", async (req, res) => {
+  app.get("/api/admin/pending-answers", hostOrAdminAuth as RequestHandler, async (req, res) => {
     const competitionId = req.query.competitionId as string;
     try {
       const rows = await repository.getPendingAnswers(competitionId);
@@ -90,6 +124,7 @@ export function createQuizServer(
 
   app.get(
     "/api/competitions/:id/questions/:questionId/answers",
+    hostOrAdminAuth as RequestHandler,
     async (req, res) => {
       const { id, questionId } = req.params;
       try {
@@ -102,11 +137,48 @@ export function createQuizServer(
     },
   );
 
+  app.get(
+    "/api/competitions/:id/questions/:questionId/audience-stats",
+    async (req, res) => {
+      const { id, questionId } = req.params;
+      try {
+        const rows = await repository.getQuestionAnswers(id, questionId);
+        res.json(rows.map((row) => ({ isCorrect: row.isCorrect })));
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
+
+  const clientDistPath = resolveClientDistPath(
+    process.cwd(),
+    process.env.CLIENT_DIST_DIR,
+  );
+  const clientIndexPath = path.join(clientDistPath, "index.html");
+
+  if (fs.existsSync(clientIndexPath)) {
+    app.use(express.static(clientDistPath));
+    app.get(/.*/, (req, res, next) => {
+      if (!shouldServeClientRoute(req.path)) {
+        next();
+        return;
+      }
+
+      res.sendFile(clientIndexPath);
+    });
+    logger.info(`Serving client assets from ${clientDistPath}`);
+  } else {
+    logger.info(`Client assets not found at ${clientDistPath}; API-only mode`);
+  }
+
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: securityConfig.allowedOrigins.length > 0
+        ? securityConfig.allowedOrigins
+        : true,
       methods: ["GET", "POST"],
+      credentials: true,
     },
   });
 
@@ -146,6 +218,9 @@ export function createQuizServer(
     }
   }, 1000);
 
+  const hasHostAccess = (authToken: string | undefined): boolean =>
+    verifySocketAuthToken(authToken, securityConfig, ["host", "admin"]);
+
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
     const onSafe = <TArgs extends unknown[]>(
@@ -155,10 +230,27 @@ export function createQuizServer(
       socket.on(eventName, withErrorLogging(logger, `socket:${eventName}`, handler));
     };
 
-    onSafe("HOST_JOIN_ROOM", ({ competitionId }) => {
+    onSafe("PUBLIC_JOIN_ROOM", ({ competitionId }) => {
       if (!competitionId) return;
 
-      // Leave any other competition rooms
+      for (const room of socket.rooms) {
+        if (room.startsWith("competition_")) {
+          socket.leave(room);
+        }
+      }
+
+      const room = `competition_${competitionId}`;
+      socket.join(room);
+      socket.emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
+      console.log(`Viewer joined room: ${room}`);
+    });
+
+    onSafe("HOST_JOIN_ROOM", ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
+
       for (const room of socket.rooms) {
         if (room.startsWith("competition_")) {
           socket.leave(room);
@@ -289,8 +381,11 @@ export function createQuizServer(
       },
     );
 
-    onSafe("HOST_START_QUESTION", async ({ competitionId, questionId }) => {
-      if (!competitionId) return;
+    onSafe("HOST_START_QUESTION", async ({ competitionId, questionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       await gameManager.startQuestion(competitionId, questionId);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
@@ -298,8 +393,11 @@ export function createQuizServer(
       );
     });
 
-    onSafe("HOST_START_TIMER", ({ competitionId }) => {
-      if (!competitionId) return;
+    onSafe("HOST_START_TIMER", ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       const room = `competition_${competitionId}`;
       const state = gameManager.getState(competitionId);
       const duration = state.currentQuestion?.timeLimitSeconds ?? 30;
@@ -317,8 +415,11 @@ export function createQuizServer(
       io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
-    onSafe("HOST_REVEAL_ANSWER", ({ competitionId }) => {
-      if (!competitionId) return;
+    onSafe("HOST_REVEAL_ANSWER", ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       gameManager.revealAnswer(competitionId);
       const state = gameManager.getState(competitionId);
       io.to(`competition_${competitionId}`).emit(
@@ -329,8 +430,11 @@ export function createQuizServer(
       io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", state.teams);
     });
 
-    onSafe("HOST_NEXT", async ({ competitionId }) => {
-      if (!competitionId) return;
+    onSafe("HOST_NEXT", async ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       const room = `competition_${competitionId}`;
       await gameManager.next(competitionId, (state) => {
         try {
@@ -345,8 +449,11 @@ export function createQuizServer(
       io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
-    onSafe("HOST_SET_PHASE", async ({ competitionId, phase }) => {
-      if (!competitionId) return;
+    onSafe("HOST_SET_PHASE", async ({ competitionId, phase, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       await gameManager.setPhase(competitionId, phase);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
@@ -356,8 +463,11 @@ export function createQuizServer(
 
     onSafe(
       "HOST_GRADE_DECISION",
-      async ({ competitionId, answerId, correct }) => {
-        if (!competitionId) return;
+      async ({ competitionId, answerId, correct, authToken }) => {
+        if (!competitionId || !hasHostAccess(authToken)) {
+          socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+          return;
+        }
         await gameManager.handleGradeDecision(competitionId, answerId, correct);
         const state = gameManager.getState(competitionId);
         const room = `competition_${competitionId}`;
@@ -366,8 +476,11 @@ export function createQuizServer(
       },
     );
 
-    onSafe("HOST_PAUSE_TIMER", async ({ competitionId }) => {
-      if (!competitionId) return;
+    onSafe("HOST_PAUSE_TIMER", async ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       await gameManager.pauseTimer(competitionId);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",
@@ -375,8 +488,11 @@ export function createQuizServer(
       );
     });
 
-    onSafe("HOST_RESUME_TIMER", async ({ competitionId }) => {
-      if (!competitionId) return;
+    onSafe("HOST_RESUME_TIMER", async ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
       await gameManager.resumeTimer(competitionId);
       io.to(`competition_${competitionId}`).emit(
         "GAME_STATE_SYNC",

@@ -1,0 +1,11 @@
+services:
+  db:
+    ports: !override []
+    volumes: !override
+      - ${SYNOLOGY_POSTGRES_PATH:-/volume1/docker/quizco/postgres}:/var/lib/postgresql/data
+
+  app:
+    ports: !override
+      - "${SYNOLOGY_APP_PORT:-4010}:4000"
+    volumes: !override
+      - ${SYNOLOGY_BACKUPS_PATH:-/volume1/docker/quizco/backups}:/app/backups

@@ -20,8 +20,10 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useGame } from "../contexts/useGame";
+import { useAuth } from "../contexts/useAuth";
 import { useHostDashboard } from "../hooks/useHostDashboard";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { getQuestionReadOnlyRenderer, getQuestionRevealRenderer } from "./player/questionRenderers";
@@ -58,7 +60,7 @@ function formatSubmittedContent(value: unknown): string {
 function renderPresenterAnswerContent(
   question: Question,
   revealStep: number,
-  t: (key: string, options?: Record<string, unknown>) => string,
+  t: TFunction,
 ): React.ReactNode {
   if (question.type === "MULTIPLE_CHOICE") {
     const { options } = question.content as MultipleChoiceContent;
@@ -242,6 +244,7 @@ function renderPresenterAnswerContent(
 export const HostDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
+  const { hostToken } = useAuth();
   const {
     competitions,
     selectedComp,
@@ -267,7 +270,7 @@ export const HostDashboard: React.FC = () => {
     openAnswersModal,
     closeAnswersModal,
     showLeaderboard,
-  } = useHostDashboard(state);
+  } = useHostDashboard(state, hostToken);
 
   const visibleCollectedAnswers =
     state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER"

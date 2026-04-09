@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Competition, Question, Round } from "@quizco/shared";
 import { API_URL } from "../socket";
+import { createAuthHeaders } from "../auth";
 
 const API_BASE = `${API_URL}/api/admin`;
 
@@ -24,7 +25,7 @@ export interface AdminDataResult {
 }
 
 export function useAdminData(
-  adminPassword: string | null,
+  adminToken: string | null,
   onUnauthorized: () => void,
 ): AdminDataResult {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -34,11 +35,8 @@ export function useAdminData(
   const [isLoading, setIsLoading] = useState(false);
 
   const createHeaders = useCallback(
-    (includeJson = false) => ({
-      ...(includeJson ? { "Content-Type": "application/json" } : {}),
-      "x-admin-auth": adminPassword || "",
-    }),
-    [adminPassword],
+    (includeJson = false) => createAuthHeaders(adminToken, includeJson),
+    [adminToken],
   );
 
   const fetchQuestions = useCallback(
@@ -75,7 +73,7 @@ export function useAdminData(
   );
 
   const fetchCompetitions = useCallback(async () => {
-    if (!adminPassword) {
+    if (!adminToken) {
       return;
     }
     setIsLoading(true);
@@ -94,14 +92,14 @@ export function useAdminData(
     } finally {
       setIsLoading(false);
     }
-  }, [adminPassword, createHeaders, onUnauthorized]);
+  }, [adminToken, createHeaders, onUnauthorized]);
 
   useEffect(() => {
-    if (!adminPassword) {
+    if (!adminToken) {
       return;
     }
     void fetchCompetitions();
-  }, [adminPassword, fetchCompetitions]);
+  }, [adminToken, fetchCompetitions]);
 
   return {
     competitions,
