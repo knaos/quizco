@@ -3,6 +3,7 @@ import type {
   ChronologyContent,
   CorrectTheErrorContent,
   FillInTheBlanksContent,
+  GamePhase,
   MatchingContent,
   MultipleChoiceContent,
   Question,
@@ -58,6 +59,7 @@ function formatSubmittedContent(value: unknown): string {
 function renderPresenterAnswerContent(
   question: Question,
   revealStep: number,
+  phase: GamePhase,
   t: (key: string, options?: Record<string, unknown>) => string,
 ): React.ReactNode {
   if (question.type === "MULTIPLE_CHOICE") {
@@ -90,7 +92,7 @@ function renderPresenterAnswerContent(
   if (question.type === "CLOSED") {
     return (
       <div className="rounded-3xl border-2 border-slate-200 bg-white px-6 py-5 text-2xl font-bold text-slate-900" data-testid="host-question-options">
-        {(question.content as { options: string[] }).options[0]}
+        {t("host.free_response_placeholder")}
       </div>
     );
   }
@@ -98,20 +100,20 @@ function renderPresenterAnswerContent(
   if (question.type === "OPEN_WORD") {
     return (
       <div className="rounded-3xl border-2 border-slate-200 bg-white px-6 py-5 text-2xl font-bold text-slate-900" data-testid="host-question-options">
-        {(question.content as { answer: string }).answer}
+        {t("host.free_response_placeholder")}
       </div>
     );
   }
 
   if (question.type === "TRUE_FALSE") {
-    const answer = question.content.isTrue ? t("game.true") : t("game.false");
+    const correctAnswer = question.content.isTrue ? t("game.true") : t("game.false");
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="host-question-options">
         {[t("game.true"), t("game.false")].map((label) => (
           <div
             key={label}
             className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black ${
-              label === answer
+              phase === "REVEAL_ANSWER" && label === correctAnswer
                 ? "border-green-200 bg-green-50 text-green-900"
                 : "border-gray-200 bg-white text-gray-700"
             }`}
@@ -140,11 +142,7 @@ function renderPresenterAnswerContent(
                 {blank.options.map((option) => (
                   <div
                     key={`${question.id}-blank-${index}-${option.value}`}
-                    className={`rounded-2xl px-4 py-3 text-lg font-bold ${
-                      option.isCorrect
-                        ? "bg-green-50 text-green-900"
-                        : "bg-gray-50 text-gray-700"
-                    }`}
+                    className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700"
                   >
                     {option.value}
                   </div>
@@ -161,25 +159,39 @@ function renderPresenterAnswerContent(
     const content = question.content as MatchingContent;
     return (
       <div className="grid gap-4 md:grid-cols-2" data-testid="host-question-options">
-        {content.pairs.map((pair) => (
-          <div key={pair.id} className="rounded-3xl border border-gray-200 bg-white p-5">
-            <div className="text-lg font-black text-slate-900">{pair.left}</div>
-            <div className="mt-3 text-sm font-black uppercase tracking-[0.3em] text-blue-400">
-              {t("host.matches_with")}
-            </div>
-            <div className="mt-2 text-xl font-bold text-blue-950">{pair.right}</div>
+        <div className="rounded-3xl border border-gray-200 bg-white p-5">
+          <div className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-gray-400">
+            {t("host.matching_left_column")}
           </div>
-        ))}
+          <div className="space-y-2">
+            {content.pairs.map((pair) => (
+              <div key={`${pair.id}-left`} className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700">
+                {pair.left}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-3xl border border-gray-200 bg-white p-5">
+          <div className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-gray-400">
+            {t("host.matching_right_column")}
+          </div>
+          <div className="space-y-2">
+            {content.pairs.map((pair) => (
+              <div key={`${pair.id}-right`} className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700">
+                {pair.right}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (question.type === "CHRONOLOGY") {
     const content = question.content as ChronologyContent;
-    const orderedItems = [...content.items].sort((left, right) => left.order - right.order);
     return (
       <div className="space-y-3" data-testid="host-question-options">
-        {orderedItems.map((item, index) => (
+        {content.items.map((item, index) => (
           <div key={item.id} className="flex items-center gap-4 rounded-3xl border border-gray-200 bg-white px-5 py-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-black text-white">
               {index + 1}
@@ -201,21 +213,12 @@ function renderPresenterAnswerContent(
         <div className="space-y-4">
           {content.phrases.map((phrase, index) => (
             <div key={`${question.id}-phrase-${index}`} className="rounded-3xl border border-gray-200 bg-white p-5">
-              <div className="mb-3 flex items-center justify-between gap-4">
-                <div className="text-lg font-black text-slate-900">{phrase.text}</div>
-                {index === content.errorPhraseIndex ? (
-                  <Badge variant="red">{t("host.error_phrase")}</Badge>
-                ) : null}
-              </div>
+              <div className="mb-3 text-lg font-black text-slate-900">{phrase.text}</div>
               <div className="space-y-2">
                 {phrase.alternatives.map((alternative) => (
                   <div
                     key={`${question.id}-phrase-${index}-${alternative}`}
-                    className={`rounded-2xl px-4 py-3 text-lg font-bold ${
-                      alternative === content.correctReplacement
-                        ? "bg-green-50 text-green-900"
-                        : "bg-gray-50 text-gray-700"
-                    }`}
+                    className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700"
                   >
                     {alternative}
                   </div>
@@ -230,11 +233,17 @@ function renderPresenterAnswerContent(
 
   return (
     <div data-testid="host-question-options">
-      {getQuestionReadOnlyRenderer({
-        question,
-        testIdPrefix: "host-presenter",
-        t,
-      })}
+      {question.type === "CROSSWORD" ? (
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 text-lg font-semibold text-gray-700">
+          {t("host.crossword_presenter_placeholder")}
+        </div>
+      ) : (
+        getQuestionReadOnlyRenderer({
+          question,
+          testIdPrefix: "host-presenter",
+          t,
+        })
+      )}
     </div>
   );
 }
@@ -467,7 +476,7 @@ export const HostDashboard: React.FC = () => {
                         {t("host.presenter_answers_label")}
                       </p>
                       <div data-testid="host-presenter-answer-content">
-                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, t)}
+                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, state.phase, t)}
                       </div>
                     </div>
 
@@ -543,7 +552,7 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="border border-white/60 bg-white/90 p-6 shadow-lg">
+            <Card className="sticky top-6 z-10 border border-white/60 bg-white/90 p-6 shadow-lg">
               <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-400">{t("host.presenter_support_label")}</p>
               <div className="mt-5 space-y-4">
                 <Button
