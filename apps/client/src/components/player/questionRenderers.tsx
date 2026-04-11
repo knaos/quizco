@@ -145,20 +145,35 @@ function renderSimpleCorrectAnswer(question: Question, t: TFunction, variant: "a
 const questionRenderers: Record<QuestionType, QuestionRenderer> = {
   MULTIPLE_CHOICE: {
     preview: ({ question, revealStep, testIdPrefix }) => (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
-        {(question.content as MultipleChoiceContent).options.map((option, index) =>
-          index < revealStep ? (
+      <div
+        className="grid grid-cols-1 gap-6 w-full mt-8 md:grid-cols-2 md:auto-rows-fr"
+        data-testid={`${testIdPrefix}-preview-options-grid`}
+      >
+        {(question.content as MultipleChoiceContent).options.map((option, index) => {
+          const isRevealed = index < revealStep;
+
+          return (
             <div
               key={index}
               data-testid={`${testIdPrefix}-preview-option-${index}`}
-              className="p-8 rounded-3xl border-4 transition-all duration-500 transform bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
+              data-revealed={isRevealed ? "true" : "false"}
+              className={`min-h-32 p-8 rounded-3xl border-4 transition-all duration-500 transform ${
+                isRevealed
+                  ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
+                  : "bg-slate-100/80 border-transparent shadow-inner"
+              }`}
             >
-              <span className="text-3xl font-black text-gray-800 text-left">
+              <span
+                aria-hidden={!isRevealed}
+                className={`block text-3xl font-black text-left transition-opacity duration-300 ${
+                  isRevealed ? "text-gray-800 opacity-100" : "invisible select-none"
+                }`}
+              >
                 {option}
               </span>
             </div>
-          ) : null,
-        )}
+          );
+        })}
       </div>
     ),
     active: ({
