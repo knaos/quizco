@@ -145,21 +145,14 @@ function renderSimpleCorrectAnswer(question: Question, t: TFunction, variant: "a
 const questionRenderers: Record<QuestionType, QuestionRenderer> = {
   MULTIPLE_CHOICE: {
     preview: ({ question, revealStep, testIdPrefix }) => (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
-        {(question.content as MultipleChoiceContent).options.map((option, index) =>
-          index < revealStep ? (
-            <div
-              key={index}
-              data-testid={`${testIdPrefix}-preview-option-${index}`}
-              className="p-8 rounded-3xl border-4 transition-all duration-500 transform bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
-            >
-              <span className="text-3xl font-black text-gray-800 text-left">
-                {option}
-              </span>
-            </div>
-          ) : null,
-        )}
-      </div>
+      <MultipleChoicePlayer
+        options={(question.content as MultipleChoiceContent).options}
+        selectedIndices={[]}
+        onToggleIndex={() => undefined}
+        previewMode={true}
+        revealStep={revealStep}
+        testIdPrefix={testIdPrefix}
+      />
     ),
     active: ({
       question,

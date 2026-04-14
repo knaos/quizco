@@ -43,17 +43,16 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
               onClick={() => onToggleIndex(i)}
               disabled={disabled || previewMode}
               data-testid={`${testIdPrefix}-choice-${i}`}
-              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ${
-                previewMode
-                  ? isRevealed
-                    ? "bg-white border-blue-100 shadow-lg text-gray-800 cursor-default"
-                    : "bg-gray-100 border-transparent text-gray-400 cursor-default"
-                  : isSelected
-                    ? "text-left bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px] active:scale-95"
-                    : "text-left bg-white border-gray-100 text-gray-700 hover:border-blue-200 active:scale-95"
-              }`}
+              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ${previewMode
+                ? isRevealed
+                  ? "bg-white border-blue-100 shadow-lg text-gray-800 cursor-default"
+                  : "bg-gray-100 border-transparent text-gray-400 cursor-default"
+                : isSelected
+                  ? "text-left bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px] active:scale-95"
+                  : "text-left bg-white border-gray-100 text-gray-700 hover:border-blue-200 active:scale-95"
+                }`}
             >
-              <span className={!previewMode || isRevealed ? undefined : "flex-1 text-center text-3xl"}>
+              <span className="flex-1 text-center text-2xl">
                 {displayText}
               </span>
               {!previewMode && isSelected && (
