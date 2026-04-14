@@ -151,6 +151,7 @@ interface BaseQuestion {
   grading: GradingMode;
   section?: string;
   index: number;
+  realIndex: number;
 }
 
 export interface MultipleChoiceQuestion extends BaseQuestion {

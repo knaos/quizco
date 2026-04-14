@@ -35,6 +35,7 @@ model Question {
   id               String       @id @default(uuid()) @db.Uuid
   roundId          String       @db.Uuid
   index            Int?
+  realIndex        Int?
   questionText     String
   type             QuestionType
   points           Int          @default(10)

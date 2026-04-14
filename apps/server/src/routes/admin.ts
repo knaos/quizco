@@ -67,7 +67,7 @@ router.get("/competitions/:id", async (req, res) => {
             questions: {
               orderBy: [
                 { section: "asc" },
-                { index: "asc" },
+                { realIndex: "asc" },
               ],
             },
           },
@@ -161,7 +161,7 @@ router.get("/rounds/:id/questions", async (req, res) => {
       where: { roundId: id },
       orderBy: [
         { section: "asc" },
-        { index: "asc" },
+        { realIndex: "asc" },
       ],
     });
     res.json(questions);

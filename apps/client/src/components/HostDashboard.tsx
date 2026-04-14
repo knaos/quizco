@@ -377,9 +377,10 @@ export const HostDashboard: React.FC = () => {
                                 <div className="flex justify-between items-start mb-1 gap-2">
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs font-black px-2 py-1 rounded-lg bg-purple-100 text-purple-700">
-                                      {`${q.section
-                                        ? `${q.section}-${q.index}`
-                                        : `${q.index}`}`}
+                                      {q.index === 0 ? t("player.example_question") :
+                                        `${q.section
+                                          ? `${q.section}-${q.index}`
+                                          : `${q.index}`}`}
                                     </span>
                                     <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider">
                                       <span className="flex items-center text-xs text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded-lg">

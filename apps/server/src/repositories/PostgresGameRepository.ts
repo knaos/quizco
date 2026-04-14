@@ -132,7 +132,7 @@ export class PostgresGameRepository implements IGameRepository {
     return prisma.question.findMany({
       orderBy: [
         { section: "asc" },
-        { index: "asc" },
+        { realIndex: "asc" },
       ],
     });
   }
@@ -154,7 +154,7 @@ export class PostgresGameRepository implements IGameRepository {
           section: "asc",
         },
         {
-          index: "asc",
+          realIndex: "asc",
         },
       ],
       include: {
@@ -173,6 +173,7 @@ export class PostgresGameRepository implements IGameRepository {
       grading: q.grading,
       section: q.section,
       index: q.index,
+      realIndex: q.realIndex,
       round: q.round,
     }));
   }

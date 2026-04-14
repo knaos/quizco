@@ -124,6 +124,7 @@
       "waiting_next_round": "Waiting for the next round...",
       "section": "Section",
       "question": "Question",
+      "example_question": "Example question",
       "type_answer": "Type your answer...",
       "grading_waiting": "The round has ended. Waiting for the host to reveal the answer...",
       "no_active_quizzes": "No active quizzes found.",

@@ -20,6 +20,7 @@ export async function seedRound4(competitionId: string): Promise<void> {
       {
         roundId: round.id,
         index: 1,
+        realIndex: 1,
         questionText: "Попълнете кръстословицата",
         type: "CROSSWORD",
         points: 43,
