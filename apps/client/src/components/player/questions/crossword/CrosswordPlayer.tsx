@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
-import { socket } from "../../../../socket";
 import { useTranslation } from "react-i18next";
 import { Send, ArrowBigRight, ArrowBigDown } from "lucide-react";
-import { useGame } from "../../../../contexts/useGame";
 import { isStringGrid } from "../../../../utils/answerGuards";
 
 interface CrosswordPlayerProps {
@@ -16,6 +14,9 @@ interface CrosswordPlayerProps {
   onSubmit?: (grid: string[][]) => void;
   readOnly?: boolean;
   testIdPrefix?: string;
+  onRequestJoker?: () => void;
+  requestJokerLabel?: string;
+  submitLabel?: string;
 }
 
 /**
@@ -74,9 +75,11 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   onSubmit,
   readOnly = false,
   testIdPrefix = "crossword",
+  onRequestJoker,
+  requestJokerLabel,
+  submitLabel,
 }) => {
   const { t } = useTranslation();
-  const { state } = useGame();
 
   // Ref to store input elements for auto-focus
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -204,52 +207,6 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (readOnly) {
-      return undefined;
-    }
-
-    const handleJoker = (payload: {
-      x: number;
-      y: number;
-      letter: string;
-      teamId: string;
-    }) => {
-      const teamId = localStorage.getItem("quizco_team_id");
-      if (payload.teamId === teamId) {
-        const newGrid = [...userGrid.map((row) => [...row])];
-        newGrid[payload.y][payload.x] = payload.letter.toUpperCase();
-
-        if (onChange) {
-          onChange(newGrid);
-        } else {
-          setInternalGrid(newGrid);
-        }
-      }
-    };
-
-    socket.on("JOKER_REVEAL", handleJoker);
-    return () => {
-      socket.off("JOKER_REVEAL", handleJoker);
-    };
-  }, [readOnly, userGrid, onChange]);
-
-  const handleRequestJoker = () => {
-    if (readOnly) {
-      return;
-    }
-
-    const teamId = localStorage.getItem("quizco_team_id");
-    const competitionId = localStorage.getItem("quizco_selected_competition_id");
-    if (teamId && competitionId && state.currentQuestion) {
-      socket.emit("REQUEST_JOKER", {
-        competitionId,
-        teamId,
-        questionId: state.currentQuestion.id,
-      });
-    }
-  };
-
   const handleSubmit = () => {
     if (!readOnly && onSubmit) {
       onSubmit(userGrid);
@@ -374,7 +331,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
 
           <div className="flex-1 space-y-4 text-left">
             <div>
-              <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
+              <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.across")} <ArrowBigRight className="fill-white w-5 h-5" /></h3>
               <ul className="space-y-1">
                 {data.clues?.across?.map((clue, i) => (
                   <li 
@@ -389,7 +346,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
+              <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.down")} <ArrowBigDown className="fill-white w-5 h-5" /></h3>
               <ul className="space-y-1">
                 {data.clues?.down?.map((clue, i) => (
                   <li 
@@ -414,13 +371,11 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       {!readOnly && (
         <div className="flex justify-end">
           <button
-            onClick={handleRequestJoker}
+            onClick={onRequestJoker}
             className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2"
           >
             <span className="text-xl">🃏</span>
-            <span>
-              {t("game.request_joker", "Request Joker")} (-2pts)
-            </span>
+            <span>{requestJokerLabel ?? t("game.request_joker")} (-2pts)</span>
           </button>
         </div>
       )}
@@ -491,7 +446,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
 
         <div className="flex-1 space-y-4 text-left">
           <div>
-            <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
+            <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.across")} <ArrowBigRight className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.across?.map((clue, i) => (
                 <li 
@@ -508,7 +463,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             </ul>
           </div>
           <div>
-            <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
+            <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.down")} <ArrowBigDown className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.down?.map((clue, i) => (
                 <li 
@@ -535,8 +490,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl flex items-center justify-center space-x-2 shadow-lg transition"
           >
             <Send className="w-8 h-8" />
-
-            <span>{t("player.submit_crossword", "Submit Crossword")}</span>
+            <span>{submitLabel ?? t("player.submit_crossword")}</span>
           </button>
         </div>
       )}

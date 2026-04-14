@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { GameProvider } from "./contexts/GameContext";
@@ -11,14 +11,14 @@ import { AudienceView } from "./components/audience/AudienceView";
 
 function HostRoute({ children }: { children: React.ReactNode }) {
   const { isHostAuthenticated, loginHost } = useAuth();
+  const [error, setError] = useState<string | null>(null);
 
   if (!isHostAuthenticated) {
     return (
       <HostLogin
+        error={error}
         onLogin={(password) => {
-          if (!loginHost(password)) {
-            alert("Invalid host password");
-          }
+          setError(loginHost(password) ? null : "host.invalid_password");
         }}
       />
     );
@@ -30,22 +30,36 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <GameProvider>
-          <Routes>
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route
-              path="/host"
-              element={
+        <Routes>
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route
+            path="/host"
+            element={
+              <GameProvider>
                 <HostRoute>
                   <HostDashboard />
                 </HostRoute>
-              }
-            />
-            <Route path="/play" element={<PlayerView />} />
-            <Route path="/audience" element={<AudienceView />} />
-            <Route path="/" element={<Navigate to="/play" replace />} />
-          </Routes>
-        </GameProvider>
+              </GameProvider>
+            }
+          />
+          <Route
+            path="/play"
+            element={
+              <GameProvider>
+                <PlayerView />
+              </GameProvider>
+            }
+          />
+          <Route
+            path="/audience"
+            element={
+              <GameProvider>
+                <AudienceView />
+              </GameProvider>
+            }
+          />
+          <Route path="/" element={<Navigate to="/play" replace />} />
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   );

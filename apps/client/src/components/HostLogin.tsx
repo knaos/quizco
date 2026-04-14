@@ -8,9 +8,10 @@ import { Card } from "./ui/Card";
 
 interface HostLoginProps {
   onLogin: (password: string) => void;
+  error?: string | null;
 }
 
-export const HostLogin: React.FC<HostLoginProps> = ({ onLogin }) => {
+export const HostLogin: React.FC<HostLoginProps> = ({ onLogin, error }) => {
   const { t } = useTranslation();
   const [password, setPassword] = useState("");
 
@@ -51,6 +52,7 @@ export const HostLogin: React.FC<HostLoginProps> = ({ onLogin }) => {
               placeholder={t('host.password_placeholder')}
               data-testid="host-password-input"
               autoFocus
+              error={error ? t(error) : undefined}
             />
             <Button
               type="submit"
