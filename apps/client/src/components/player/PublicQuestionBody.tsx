@@ -37,6 +37,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   const { t } = useTranslation();
   const { currentQuestion } = props.state;
   const testIdPrefix = props.testIdPrefix ?? "player";
+  const exampleQuestion = currentQuestion?.index === 0;
 
   if (!currentQuestion) {
     return null;
@@ -46,11 +47,14 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
     <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
       <Card
         variant="elevated"
-        className="p-10 rounded-3xl border-b-8 border-blue-500"
+        className={`p-10 rounded-3xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}
       >
-        <span className="text-blue-600 font-black uppercase tracking-widest text-lg mb-4 block">
-          {currentQuestion.section && `${t("player.section")} ${currentQuestion.section}, `}
-          {`${t("player.question")} ${currentQuestion.index}`}
+        <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-blue-600"}`}>
+          {exampleQuestion
+            ? t("player.example_question")
+            : currentQuestion.section
+              ? `${t("player.section")} ${currentQuestion.section}, ${t("player.question")} ${currentQuestion.index}`
+              : `${t("player.question")} ${currentQuestion.index}`}
         </span>
         <h2
           className="text-4xl font-black text-gray-900 leading-tight"
@@ -60,7 +64,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
         </h2>
       </Card>
 
-      <div className="space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500">
+      <div className={`space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}>
         {props.mode === "interactive"
           ? getQuestionActiveRenderer({
             question: currentQuestion,

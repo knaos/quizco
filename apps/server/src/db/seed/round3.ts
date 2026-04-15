@@ -15,18 +15,18 @@ export async function seedRound3(competitionId: string): Promise<void> {
     data: [
       {
         roundId: round.id,
-        index: 1,
-        realIndex: 1,
+        index: 0,
+        realIndex: 0,
         questionText: "Исус ходеше по водата според Библията.",
         type: "TRUE_FALSE" as QuestionType,
-        points: 1,
+        points: 0,
         timeLimitSeconds: 10,
         content: { isTrue: true },
       },
       {
         roundId: round.id,
-        index: 2,
-        realIndex: 2,
+        index: 1,
+        realIndex: 1,
         questionText: "Ной взе в ковчега си динозаври.",
         type: "TRUE_FALSE" as QuestionType,
         points: 1,
@@ -35,8 +35,8 @@ export async function seedRound3(competitionId: string): Promise<void> {
       },
       {
         roundId: round.id,
-        index: 3,
-        realIndex: 3,
+        index: 2,
+        realIndex: 2,
         questionText: "Мойсей раздели Червено море с помощта на Бога.",
         type: "TRUE_FALSE" as QuestionType,
         points: 1,
@@ -46,12 +46,12 @@ export async function seedRound3(competitionId: string): Promise<void> {
 
       {
         roundId: round.id,
-        index: 4,
-        realIndex: 4,
+        index: 0,
+        realIndex: 3,
         questionText: "Кой уби Голиат?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
-        points: 1,
+        points: 0,
         content: {
           options: ["Давид", "Саул"],
           correctIndices: [0],
@@ -59,8 +59,8 @@ export async function seedRound3(competitionId: string): Promise<void> {
       },
       {
         roundId: round.id,
-        index: 5,
-        realIndex: 5,
+        index: 3,
+        realIndex: 4,
         questionText: "Колко дни Бог създаде света?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -72,8 +72,8 @@ export async function seedRound3(competitionId: string): Promise<void> {
       },
       {
         roundId: round.id,
-        index: 6,
-        realIndex: 6,
+        index: 4,
+        realIndex: 5,
         questionText: "Коя планина Мойсей получи десетте заповеди?",
         type: "MULTIPLE_CHOICE",
         timeLimitSeconds: 15,
@@ -86,11 +86,11 @@ export async function seedRound3(competitionId: string): Promise<void> {
 
       {
         roundId: round.id,
-        index: 7,
-        realIndex: 7,
+        index: 0,
+        realIndex: 6,
         questionText: "Поправи грешката в изречението",
         type: "CORRECT_THE_ERROR" as QuestionType,
-        points: 2,
+        points: 0,
         content: {
           text: "Авраам построи ковчег за да спаси животните от потопа",
           words: [
@@ -104,8 +104,8 @@ export async function seedRound3(competitionId: string): Promise<void> {
       },
       {
         roundId: round.id,
-        index: 8,
-        realIndex: 8,
+        index: 5,
+        realIndex: 7,
         questionText: "Поправи грешката в изречението",
         type: "CORRECT_THE_ERROR" as QuestionType,
         points: 2,
@@ -122,8 +122,8 @@ export async function seedRound3(competitionId: string): Promise<void> {
       },
       {
         roundId: round.id,
-        index: 9,
-        realIndex: 9,
+        index: 6,
+        realIndex: 8,
         questionText: "Поправи грешката в изречението",
         type: "CORRECT_THE_ERROR" as QuestionType,
         points: 2,
