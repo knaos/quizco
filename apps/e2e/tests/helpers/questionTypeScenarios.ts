@@ -349,15 +349,15 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
           text: "Water is dry",
           words: [
             { wordIndex: 0, text: "Water", alternatives: ["Fire", "Stone"] },
-            { wordIndex: 3, text: "dry", alternatives: ["wet", "hard"] },
+            { wordIndex: 2, text: "dry", alternatives: ["wet", "hard"] },
           ],
-          errorWordIndex: 3,
+          errorWordIndex: 2,
           correctReplacement: "wet",
         },
       },
     ],
     submitPlayerOne: async (page) => {
-      await page.getByTestId("cte-word-3").click();
+      await page.getByTestId("cte-word-2").click();
       await page.getByTestId("cte-alternative-0").click();
       await page.getByTestId("player-submit-answer").click();
     },

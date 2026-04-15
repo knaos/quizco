@@ -52,20 +52,13 @@ test("QUESTION_PREVIEW phase for CORRECT_THE_ERROR shows disabled word buttons w
     // Verify the question text is displayed
     await expect(session.playerOnePage.getByText("Find the error in the sentence")).toBeVisible();
 
-    // Verify word buttons are visible (there should be 4 words)
-    await expect(session.playerOnePage.getByTestId("cte-word-0")).toBeVisible();
-    await expect(session.playerOnePage.getByTestId("cte-word-0")).toHaveText("The");
+    // Verify word buttons with alternatives are visible and selectable
     await expect(session.playerOnePage.getByTestId("cte-word-1")).toBeVisible();
     await expect(session.playerOnePage.getByTestId("cte-word-1")).toHaveText("sky");
-    await expect(session.playerOnePage.getByTestId("cte-word-2")).toBeVisible();
-    await expect(session.playerOnePage.getByTestId("cte-word-2")).toHaveText("is");
     await expect(session.playerOnePage.getByTestId("cte-word-3")).toBeVisible();
     await expect(session.playerOnePage.getByTestId("cte-word-3")).toHaveText("green");
 
-    // Verify word buttons are disabled in preview mode (words with alternatives should still be disabled)
-    const wordButton0 = session.playerOnePage.getByTestId("cte-word-0");
-    await expect(wordButton0).toBeDisabled();
-
+    // Verify word buttons are disabled in preview mode (words with alternatives are still disabled)
     const wordButton1 = session.playerOnePage.getByTestId("cte-word-1");
     await expect(wordButton1).toBeDisabled();
 
@@ -93,12 +86,12 @@ test("QUESTION_PREVIEW phase for CORRECT_THE_ERROR shows disabled word buttons w
     // Verify players are now in QUESTION_ACTIVE
     await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE");
 
-    // Verify word buttons are now enabled (not disabled)
-    const activeWordButton0 = session.playerOnePage.getByTestId("cte-word-0");
-    await expect(activeWordButton0).toBeEnabled();
-
+    // Verify word buttons with alternatives are now enabled (not disabled)
     const activeWordButton1 = session.playerOnePage.getByTestId("cte-word-1");
     await expect(activeWordButton1).toBeEnabled();
+
+    const activeWordButton3 = session.playerOnePage.getByTestId("cte-word-3");
+    await expect(activeWordButton3).toBeEnabled();
 
     // Verify submit button is now visible
     const activeSubmitButton = session.playerOnePage.getByTestId("player-submit-answer");

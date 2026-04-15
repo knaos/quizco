@@ -118,6 +118,7 @@ export class PostgresGameRepository implements IGameRepository {
       grading: dbQuestion.grading as GradingMode,
       section: dbQuestion.section,
       index: dbQuestion.index,
+      realIndex: dbQuestion.realIndex ?? dbQuestion.index,
     };
 
     // Cast content based on the specific question type to satisfy discriminated union

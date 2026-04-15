@@ -421,9 +421,9 @@ describe("GradingService", () => {
         text: "Jesus was born in Nazareth",
         words: [
           { wordIndex: 0, text: "Jesus", alternatives: ["Peter", "John", "Paul"] },
-          { wordIndex: 2, text: "Nazareth", alternatives: ["Bethlehem", "Jerusalem", "Egypt"] },
+          { wordIndex: 4, text: "Nazareth", alternatives: ["Bethlehem", "Jerusalem", "Egypt"] },
         ],
-        errorWordIndex: 2,
+        errorWordIndex: 4,
         correctReplacement: "Bethlehem",
       },
     };
@@ -431,7 +431,7 @@ describe("GradingService", () => {
     // 1. Fully correct: 1pt for index, 1pt for replacement = 2
     expect(
       service.gradeAnswer(question, {
-        selectedWordIndex: 2,
+        selectedWordIndex: 4,
         correction: "Bethlehem",
       }),
     ).toEqual({
@@ -442,7 +442,7 @@ describe("GradingService", () => {
     // 2. Correct index, incorrect replacement: 1pt
     expect(
       service.gradeAnswer(question, {
-        selectedWordIndex: 2,
+        selectedWordIndex: 4,
         correction: "Jerusalem",
       }),
     ).toEqual({

@@ -41,7 +41,7 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
     setWords(newWords);
     
     // If this word is the error and this alternative was the correct replacement, update it
-    if (wordIndex === errorWordIndex && correctReplacement === words[wordIndex].alternatives[altIndex]) {
+    if (words[wordIndex].wordIndex === errorWordIndex && correctReplacement === words[wordIndex].alternatives[altIndex]) {
         setCorrectReplacement(value);
     }
   };
