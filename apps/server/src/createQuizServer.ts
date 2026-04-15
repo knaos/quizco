@@ -371,20 +371,28 @@ export function createQuizServer(
 
     onSafe("HOST_PAUSE_TIMER", async ({ competitionId }) => {
       if (!competitionId) return;
+      const room = `competition_${competitionId}`;
       await gameManager.pauseTimer(competitionId);
-      io.to(`competition_${competitionId}`).emit(
+      const state = gameManager.getState(competitionId);
+      io.to(room).emit("TIMER_SYNC", state.timeRemaining);
+      io.to(room).emit(
         "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
+        state,
       );
     });
 
-    onSafe("HOST_RESUME_TIMER", async ({ competitionId }) => {
+    onSafe("HOST_RESUME_TIMER", ({ competitionId }) => {
       if (!competitionId) return;
-      await gameManager.resumeTimer(competitionId);
-      io.to(`competition_${competitionId}`).emit(
-        "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
-      );
+      const room = `competition_${competitionId}`;
+      gameManager.resumeTimer(competitionId, (state) => {
+        try {
+          io.to(room).emit("TIMER_SYNC", state.timeRemaining);
+          io.to(room).emit("GAME_STATE_SYNC", state);
+        } catch (error) {
+          logger.error("Failed while broadcasting timer sync on resume", error);
+        }
+      });
+      io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
     onSafe("disconnect", () => {

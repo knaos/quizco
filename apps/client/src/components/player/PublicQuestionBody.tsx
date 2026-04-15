@@ -1,7 +1,6 @@
 import React from "react";
 import type { AnswerContent, GameState } from "@quizco/shared";
 import { useTranslation } from "react-i18next";
-import Badge from "../ui/Badge";
 import { Card } from "../ui/Card";
 import {
   getQuestionActiveRenderer,
