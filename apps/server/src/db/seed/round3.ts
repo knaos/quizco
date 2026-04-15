@@ -134,7 +134,7 @@ export async function seedRound3(competitionId: string): Promise<void> {
             { wordIndex: 2, text: "Голиат", alternatives: ["Филистимец", "Саул"] },
             { wordIndex: 7, text: "тояга", alternatives: ["лрашка", "арфа"] },
           ],
-          errorWordIndex: 8,
+          errorWordIndex: 7,
           correctReplacement: "прашка",
         },
       },
