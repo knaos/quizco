@@ -148,6 +148,13 @@ export class GameManager {
       );
     }
 
+    if (sessionQuestion.type === "FILL_IN_THE_BLANKS") {
+      // Server-side shuffle: scramble options for each blank
+      for (const blank of sessionQuestion.content.blanks) {
+        blank.options = this.shuffleArray(blank.options);
+      }
+    }
+
     session.currentQuestion = sessionQuestion;
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
