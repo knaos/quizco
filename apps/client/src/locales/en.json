@@ -83,6 +83,8 @@
       "lets_go": "Let's Go!",
       "waiting_host": "Waiting for the host to start...",
       "get_ready": "Get ready!",
+      "timer_paused": "Timer Paused",
+      "timer_paused_subtitle": "Waiting for host to resume...",
       "upcoming_question": "Upcoming Question",
       "host_reading": "The host is reading the question. Get ready to answer!",
       "submit_answer": "Submit Answer",

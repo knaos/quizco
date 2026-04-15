@@ -6,6 +6,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionSelector } from "./player/lobby/CompetitionSelector";
 import { TeamJoinForm } from "./player/lobby/TeamJoinForm";
 import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "./player/phases/SimplePhases";
+import { TimerPausedPhase } from "./player/phases/TimerPausedPhase";
 import { QuestionActivePhase } from "./player/phases/QuestionActivePhase";
 import { QuestionPreviewPhase } from "./player/phases/QuestionPreviewPhase";
 import { RevealAnswerPhase } from "./player/phases/RevealAnswerPhase";
@@ -99,7 +100,11 @@ export const PlayerView: React.FC = () => {
 
           {state.phase === "QUESTION_PREVIEW" && <QuestionPreviewPhase state={state} />}
 
-          {state.phase === "QUESTION_ACTIVE" && (
+          {state.phase === "QUESTION_ACTIVE" && state.timerPaused && (
+            <TimerPausedPhase />
+          )}
+
+          {state.phase === "QUESTION_ACTIVE" && !state.timerPaused && (
             <QuestionActivePhase
               state={state}
               hasSubmitted={session.hasSubmitted}
