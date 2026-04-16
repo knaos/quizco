@@ -54,6 +54,9 @@ jobs:
       - name: Push Prisma schema
         run: npx prisma db push --schema apps/server/prisma/schema.prisma
 
+      - name: Build shared package
+        run: npm run build -w @quizco/shared
+
       - name: Lint
         run: npm run lint
 
@@ -99,6 +102,9 @@ jobs:
 
       - name: Push Prisma schema
         run: npx prisma db push --schema apps/server/prisma/schema.prisma
+
+      - name: Build shared package
+        run: npm run build -w @quizco/shared
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
