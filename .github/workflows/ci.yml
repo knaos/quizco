@@ -71,6 +71,12 @@ jobs:
     needs: validate
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
+    env:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: quizuser
+      DB_PASSWORD: quizpassword
+      DATABASE_URL: postgresql://quizuser:quizpassword@postgres:5432/quizco
     services:
       postgres:
         image: postgres:15-alpine
