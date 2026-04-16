@@ -69,6 +69,8 @@ jobs:
   e2e-smoke:
     runs-on: ubuntu-latest
     needs: validate
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     services:
       postgres:
         image: postgres:15-alpine
@@ -105,10 +107,6 @@ jobs:
 
       - name: Build shared package
         run: npm run build -w @quizco/shared
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-        working-directory: apps/e2e
 
       - name: Run Playwright smoke suite
         run: npm run test:e2e -w @quizco/e2e -- tests/smoke.spec.ts
