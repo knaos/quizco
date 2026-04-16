@@ -62,7 +62,7 @@ function renderPresenterAnswerContent(
   question: Question,
   revealStep: number,
   phase: GamePhase,
-  t: (key: string, options?: Record<string, unknown>) => string,
+  t: TFunction,
 ): React.ReactNode {
   if (question.type === "MULTIPLE_CHOICE") {
     const { options } = question.content as MultipleChoiceContent;

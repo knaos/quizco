@@ -109,7 +109,7 @@ export function useHostDashboard(
         }));
         setPendingAnswers(normalized);
       });
-  }, [selectedComp]);
+  }, [authToken, selectedComp]);
 
   const fetchCurrentQuestionAnswers = useCallback(() => {
     if (!selectedComp || !state.currentQuestion) {
@@ -124,7 +124,7 @@ export function useHostDashboard(
     )
       .then((response) => response.json())
       .then((data: CollectedAnswer[]) => setCollectedAnswers(Array.isArray(data) ? data : []));
-  }, [selectedComp, state.currentQuestion]);
+  }, [authToken, selectedComp, state.currentQuestion]);
 
   const selectCompetition = useCallback((competition: Competition, updateUrl = true) => {
     setSelectedComp(competition);

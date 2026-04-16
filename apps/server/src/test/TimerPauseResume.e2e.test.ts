@@ -15,6 +15,7 @@ import { Logger } from "../utils/Logger";
 import { io as Client, Socket } from "socket.io-client";
 import { Server } from "http";
 import { AddressInfo } from "net";
+import { createHostTestToken } from "./authTestUtils";
 
 describe("Timer Pause/Resume E2E", () => {
   let httpServer: Server;
@@ -23,6 +24,7 @@ describe("Timer Pause/Resume E2E", () => {
   let gameManager: GameManager;
   let mockRepository: MockGameRepository;
   let port: number;
+  let hostAuthToken: string;
 
   const competitionId = "timer-test-competition";
 
@@ -31,6 +33,7 @@ describe("Timer Pause/Resume E2E", () => {
     const timerService = new TimerService();
     const logger = new Logger("TimerPauseResumeTest");
     gameManager = new GameManager(mockRepository, timerService, logger);
+    hostAuthToken = createHostTestToken();
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 
@@ -85,7 +88,7 @@ describe("Timer Pause/Resume E2E", () => {
 
   it("should pause and resume the timer via socket events", async () => {
     // 1. Setup
-    hostSocket.emit("HOST_JOIN_ROOM", { competitionId });
+    hostSocket.emit("HOST_JOIN_ROOM", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       playerSocket.emit(
         "JOIN_ROOM",
@@ -95,14 +98,18 @@ describe("Timer Pause/Resume E2E", () => {
     });
 
     // 2. Start Question and Timer
-    hostSocket.emit("HOST_START_QUESTION", { competitionId, questionId: "q1" });
+    hostSocket.emit("HOST_START_QUESTION", {
+      competitionId,
+      questionId: "q1",
+      authToken: hostAuthToken,
+    });
 
     // Wait for preview
     await new Promise<void>((resolve) => {
       playerSocket.once("GAME_STATE_SYNC", () => resolve());
     });
 
-    hostSocket.emit("HOST_START_TIMER", { competitionId });
+    hostSocket.emit("HOST_START_TIMER", { competitionId, authToken: hostAuthToken });
 
     // Wait for active
     await new Promise<void>((resolve) => {
@@ -114,7 +121,7 @@ describe("Timer Pause/Resume E2E", () => {
     });
 
     // 3. Pause Timer
-    hostSocket.emit("HOST_PAUSE_TIMER", { competitionId });
+    hostSocket.emit("HOST_PAUSE_TIMER", { competitionId, authToken: hostAuthToken });
 
     await new Promise<void>((resolve) => {
       playerSocket.once("GAME_STATE_SYNC", (state) => {
@@ -124,7 +131,7 @@ describe("Timer Pause/Resume E2E", () => {
     });
 
     // 4. Resume Timer
-    hostSocket.emit("HOST_RESUME_TIMER", { competitionId });
+    hostSocket.emit("HOST_RESUME_TIMER", { competitionId, authToken: hostAuthToken });
 
     await new Promise<void>((resolve) => {
       playerSocket.once("GAME_STATE_SYNC", (state) => {
