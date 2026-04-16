@@ -29,7 +29,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-fr">
         {options.map((opt: string, i: number) => {
           const isSelected = selectedIndices.includes(i);
 
@@ -43,7 +43,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
               onClick={() => onToggleIndex(i)}
               disabled={disabled || previewMode}
               data-testid={`${testIdPrefix}-choice-${i}`}
-              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ${
+              className={`h-full min-h-32 border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ${
                 previewMode
                   ? isRevealed
                     ? "bg-white border-blue-100 shadow-lg text-gray-800 cursor-default"
