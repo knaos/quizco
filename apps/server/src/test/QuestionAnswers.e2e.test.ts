@@ -6,6 +6,7 @@ import { TimerService } from "../services/TimerService";
 import { Logger } from "../utils/Logger";
 import { Server } from "http";
 import { AddressInfo } from "net";
+import { createHostTestToken } from "./authTestUtils";
 
 describe("Question Answers API E2E", () => {
   let httpServer: Server;
@@ -13,6 +14,7 @@ describe("Question Answers API E2E", () => {
   let mockRepository: MockGameRepository;
   let port: number;
   let baseUrl: string;
+  let hostAuthToken: string;
 
   const competitionId = "test-comp-id";
 
@@ -21,6 +23,7 @@ describe("Question Answers API E2E", () => {
     const timerService = new TimerService();
     const logger = new Logger("QuestionAnswersTest");
     gameManager = new GameManager(mockRepository, timerService, logger);
+    hostAuthToken = createHostTestToken();
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 
@@ -75,6 +78,11 @@ describe("Question Answers API E2E", () => {
     // 2. Fetch answers via API
     const response = await fetch(
       `${baseUrl}/api/competitions/${competitionId}/questions/${questionId}/answers`,
+      {
+        headers: {
+          Authorization: `Bearer ${hostAuthToken}`,
+        },
+      },
     );
     expect(response.status).toBe(200);
 
@@ -96,6 +104,11 @@ describe("Question Answers API E2E", () => {
     const questionId = "q2";
     const response = await fetch(
       `${baseUrl}/api/competitions/${competitionId}/questions/${questionId}/answers`,
+      {
+        headers: {
+          Authorization: `Bearer ${hostAuthToken}`,
+        },
+      },
     );
     expect(response.status).toBe(200);
     const data = await response.json();

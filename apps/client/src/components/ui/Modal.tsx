@@ -3,7 +3,7 @@ import { XCircle } from "lucide-react";
 import Button from "./Button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./Card";
 
-interface ModalProps {
+interface ModalProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
@@ -19,9 +19,13 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
   description,
   className = "",
+  ...props
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      {...props}
+    >
       <Card
         variant="elevated"
         className={`w-full max-w-2xl border-none shadow-2xl ${className}`}

@@ -23,7 +23,16 @@ export function useAudienceSession(state: GameState): AudienceSessionResult {
   const [selectedCompId, setSelectedCompId] = useState<string | null>(
     getInitialCompetitionId(),
   );
-  const [stats, setStats] = useState<AudienceAnswerStats | null>(null);
+  const [answerRecords, setAnswerRecords] = useState<AudienceAnswerRecord[]>([]);
+
+  const shouldShowStats =
+    Boolean(selectedCompId) &&
+    Boolean(state.currentQuestion) &&
+    ["QUESTION_ACTIVE", "GRADING", "REVEAL_ANSWER"].includes(state.phase);
+
+  const stats: AudienceAnswerStats | null = shouldShowStats
+    ? buildAudienceAnswerStats(answerRecords)
+    : null;
 
   useEffect(() => {
     fetch(`${API_URL}/api/competitions`)
@@ -45,35 +54,37 @@ export function useAudienceSession(state: GameState): AudienceSessionResult {
       `${window.location.pathname}?${params.toString()}`,
     );
 
-    socket.emit("HOST_JOIN_ROOM", { competitionId: selectedCompId });
+    socket.emit("PUBLIC_JOIN_ROOM", { competitionId: selectedCompId });
   }, [selectedCompId]);
 
   useEffect(() => {
-    if (
-      !selectedCompId ||
-      !state.currentQuestion ||
-      !["QUESTION_ACTIVE", "GRADING", "REVEAL_ANSWER"].includes(state.phase)
-    ) {
-      setStats(null);
+    if (!selectedCompId || !state.currentQuestion || !shouldShowStats) {
       return;
     }
 
     let cancelled = false;
 
     fetch(
-      `${API_URL}/api/competitions/${selectedCompId}/questions/${state.currentQuestion.id}/answers`,
+      `${API_URL}/api/competitions/${selectedCompId}/questions/${state.currentQuestion.id}/audience-stats`,
     )
       .then((response) => response.json())
       .then((data: AudienceAnswerRecord[]) => {
         if (!cancelled) {
-          setStats(buildAudienceAnswerStats(Array.isArray(data) ? data : []));
+          setAnswerRecords(Array.isArray(data) ? data : []);
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [selectedCompId, state.currentQuestion, state.phase, state.revealStep, state.teams]);
+  }, [
+    selectedCompId,
+    shouldShowStats,
+    state.currentQuestion,
+    state.phase,
+    state.revealStep,
+    state.teams,
+  ]);
 
   return {
     competitions,

@@ -7,6 +7,7 @@ import type {
   Round,
 } from "@quizco/shared";
 import { API_URL, socket } from "../socket";
+import { createAuthHeaders } from "../auth";
 
 export interface PendingAnswer {
   id: string;
@@ -54,6 +55,7 @@ export interface HostDashboardResult {
   pendingAnswers: PendingAnswer[];
   collectedAnswers: CollectedAnswer[];
   expandedRounds: Record<string, boolean>;
+  isQuestionPickerOpen: boolean;
   modalQuestion: { id: string; text: string } | null;
   modalAnswers: CollectedAnswer[];
   selectCompetition: (competition: Competition, updateUrl?: boolean) => void;
@@ -66,18 +68,24 @@ export interface HostDashboardResult {
   handleNext: () => void;
   gradeAnswer: (answerId: string, correct: boolean) => void;
   toggleRound: (roundId: string) => void;
+  openQuestionPicker: () => void;
+  closeQuestionPicker: () => void;
   openAnswersModal: (questionId: string, questionText: string) => void;
   closeAnswersModal: () => void;
   showLeaderboard: () => void;
 }
 
-export function useHostDashboard(state: GameState): HostDashboardResult {
+export function useHostDashboard(
+  state: GameState,
+  authToken: string | null,
+): HostDashboardResult {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
   const [compData, setCompData] = useState<CompetitionData | null>(null);
   const [pendingAnswers, setPendingAnswers] = useState<PendingAnswer[]>([]);
   const [collectedAnswers, setCollectedAnswers] = useState<CollectedAnswer[]>([]);
   const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
+  const [isQuestionPickerOpen, setIsQuestionPickerOpen] = useState(false);
   const [modalQuestion, setModalQuestion] = useState<{ id: string; text: string } | null>(null);
   const [modalAnswers, setModalAnswers] = useState<CollectedAnswer[]>([]);
 
@@ -86,7 +94,9 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
       return;
     }
 
-    fetch(`${API_URL}/api/admin/pending-answers?competitionId=${selectedComp.id}`)
+    fetch(`${API_URL}/api/admin/pending-answers?competitionId=${selectedComp.id}`, {
+      headers: createAuthHeaders(authToken),
+    })
       .then((response) => response.json())
       .then((data) => {
         const normalized = (Array.isArray(data) ? data : []).map((item: PendingAnswerApiRecord) => ({
@@ -99,7 +109,7 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
         }));
         setPendingAnswers(normalized);
       });
-  }, [selectedComp]);
+  }, [authToken, selectedComp]);
 
   const fetchCurrentQuestionAnswers = useCallback(() => {
     if (!selectedComp || !state.currentQuestion) {
@@ -108,14 +118,17 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
 
     fetch(
       `${API_URL}/api/competitions/${selectedComp.id}/questions/${state.currentQuestion.id}/answers`,
+      {
+        headers: createAuthHeaders(authToken),
+      },
     )
       .then((response) => response.json())
       .then((data: CollectedAnswer[]) => setCollectedAnswers(Array.isArray(data) ? data : []));
-  }, [selectedComp, state.currentQuestion]);
+  }, [authToken, selectedComp, state.currentQuestion]);
 
   const selectCompetition = useCallback((competition: Competition, updateUrl = true) => {
     setSelectedComp(competition);
-    socket.emit("HOST_JOIN_ROOM", { competitionId: competition.id });
+    socket.emit("HOST_JOIN_ROOM", { competitionId: competition.id, authToken });
 
     if (updateUrl) {
       const params = new URLSearchParams(window.location.search);
@@ -132,7 +145,7 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
           setExpandedRounds({ [data.rounds[0].id]: true });
         }
       });
-  }, []);
+  }, [authToken]);
 
   const handleBack = useCallback(() => {
     setSelectedComp(null);
@@ -190,7 +203,7 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
   useEffect(() => {
     const handleConnect = () => {
       if (selectedComp) {
-        socket.emit("HOST_JOIN_ROOM", { competitionId: selectedComp.id });
+        socket.emit("HOST_JOIN_ROOM", { competitionId: selectedComp.id, authToken });
       }
     };
 
@@ -198,16 +211,16 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
     return () => {
       socket.off("connect", handleConnect);
     };
-  }, [selectedComp]);
+  }, [authToken, selectedComp]);
 
   const emitCompetitionAction = useCallback(
     (eventName: string, payload?: Record<string, unknown>) => {
       if (!selectedComp) {
         return;
       }
-      socket.emit(eventName, { competitionId: selectedComp.id, ...payload });
+      socket.emit(eventName, { competitionId: selectedComp.id, authToken, ...payload });
     },
-    [selectedComp],
+    [authToken, selectedComp],
   );
 
   return {
@@ -217,12 +230,15 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
     pendingAnswers,
     collectedAnswers,
     expandedRounds,
+    isQuestionPickerOpen,
     modalQuestion,
     modalAnswers,
     selectCompetition,
     handleBack,
-    startQuestion: (questionId: string) =>
-      emitCompetitionAction("HOST_START_QUESTION", { questionId }),
+    startQuestion: (questionId: string) => {
+      setIsQuestionPickerOpen(false);
+      emitCompetitionAction("HOST_START_QUESTION", { questionId });
+    },
     startTimer: () => emitCompetitionAction("HOST_START_TIMER"),
     pauseTimer: () => emitCompetitionAction("HOST_PAUSE_TIMER"),
     resumeTimer: () => emitCompetitionAction("HOST_RESUME_TIMER"),
@@ -234,6 +250,8 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
     },
     toggleRound: (roundId: string) =>
       setExpandedRounds((previous) => ({ ...previous, [roundId]: !previous[roundId] })),
+    openQuestionPicker: () => setIsQuestionPickerOpen(true),
+    closeQuestionPicker: () => setIsQuestionPickerOpen(false),
     openAnswersModal: (questionId: string, questionText: string) => {
       if (!selectedComp) {
         return;
@@ -242,11 +260,17 @@ export function useHostDashboard(state: GameState): HostDashboardResult {
       setModalQuestion({ id: questionId, text: questionText });
       fetch(
         `${API_URL}/api/competitions/${selectedComp.id}/questions/${questionId}/answers`,
+        {
+          headers: createAuthHeaders(authToken),
+        },
       )
         .then((response) => response.json())
         .then((data) => setModalAnswers(Array.isArray(data) ? data : []));
     },
-    closeAnswersModal: () => setModalQuestion(null),
+    closeAnswersModal: () => {
+      setModalQuestion(null);
+      setModalAnswers([]);
+    },
     showLeaderboard: () =>
       emitCompetitionAction("HOST_SET_PHASE", { phase: "LEADERBOARD" }),
   };

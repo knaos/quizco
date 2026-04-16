@@ -159,7 +159,7 @@ describe("AudienceView", () => {
     view.unmount();
   });
 
-  it("honors the competition query param and joins passively", async () => {
+  it("honors the competition query param and joins publicly", async () => {
     window.history.replaceState({}, "", "/audience?competitionId=comp-1");
 
     const view = renderAudience();
@@ -168,7 +168,7 @@ describe("AudienceView", () => {
     expect(
       view.container.querySelector('[data-testid="audience-phase"]'),
     ).not.toBeNull();
-    expect(emit).toHaveBeenCalledWith("HOST_JOIN_ROOM", {
+    expect(emit).toHaveBeenCalledWith("PUBLIC_JOIN_ROOM", {
       competitionId: "comp-1",
     });
     view.unmount();
@@ -190,7 +190,7 @@ describe("AudienceView", () => {
       "comp-1",
     );
     expect(window.location.search).toContain("competitionId=comp-1");
-    expect(emit).toHaveBeenCalledWith("HOST_JOIN_ROOM", {
+    expect(emit).toHaveBeenCalledWith("PUBLIC_JOIN_ROOM", {
       competitionId: "comp-1",
     });
 

@@ -80,7 +80,7 @@ describe("useHostDashboard", () => {
   });
 
   it("loads competitions, selects one, and rejoins after reconnect", async () => {
-    const hook = renderHook(() => useHostDashboard(state));
+    const hook = renderHook(() => useHostDashboard(state, "host-token"));
     await flushEffects();
 
     expect(hook.result.competitions).toHaveLength(1);
@@ -90,11 +90,94 @@ describe("useHostDashboard", () => {
       await Promise.resolve();
     });
 
-    expect(emit).toHaveBeenCalledWith("HOST_JOIN_ROOM", { competitionId: "comp-1" });
+    expect(emit).toHaveBeenCalledWith("HOST_JOIN_ROOM", {
+      competitionId: "comp-1",
+      authToken: "host-token",
+    });
     expect(window.location.search).toContain("competitionId=comp-1");
 
     listeners.get("connect")?.forEach((handler) => handler());
-    expect(emit).toHaveBeenLastCalledWith("HOST_JOIN_ROOM", { competitionId: "comp-1" });
+    expect(emit).toHaveBeenLastCalledWith("HOST_JOIN_ROOM", {
+      competitionId: "comp-1",
+      authToken: "host-token",
+    });
+    hook.unmount();
+  });
+
+  it("tracks question picker modal state locally", async () => {
+    const hook = renderHook(() => useHostDashboard(state, "host-token"));
+    await flushEffects();
+
+    expect(hook.result.isQuestionPickerOpen).toBe(false);
+
+    await hook.act(async () => {
+      hook.result.openQuestionPicker();
+    });
+
+    expect(hook.result.isQuestionPickerOpen).toBe(true);
+
+    await hook.act(async () => {
+      hook.result.closeQuestionPicker();
+    });
+
+    expect(hook.result.isQuestionPickerOpen).toBe(false);
+    hook.unmount();
+  });
+
+  it("uses bearer auth for host-only fetches", async () => {
+    const fetchMock = vi.fn(async (input: string) => {
+      if (input.endsWith("/api/competitions")) {
+        return { json: async () => competitions } as Response;
+      }
+
+      if (input.includes("/api/admin/pending-answers")) {
+        return { json: async () => [] } as Response;
+      }
+
+      if (input.includes("/api/competitions/comp-1/questions/question-1/answers")) {
+        return { json: async () => [] } as Response;
+      }
+
+      return {
+        json: async () => ({
+          rounds: [],
+        }),
+      } as Response;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const gradingState: GameState = {
+      ...state,
+      phase: "GRADING",
+      currentQuestion: {
+        id: "question-1",
+        roundId: "round-1",
+        questionText: "Question",
+        type: "OPEN_WORD",
+        points: 10,
+        timeLimitSeconds: 30,
+        grading: "AUTO",
+        content: { answer: "Alpha" },
+      },
+    };
+
+    const hook = renderHook(() => useHostDashboard(gradingState, "host-token"));
+    await flushEffects();
+
+    await hook.act(async () => {
+      hook.result.selectCompetition(competitions[0], false);
+      await Promise.resolve();
+    });
+    await flushEffects();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/admin/pending-answers?competitionId=comp-1"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer host-token",
+        }),
+      }),
+    );
     hook.unmount();
   });
 });

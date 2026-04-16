@@ -28,15 +28,22 @@ const state: GameState = {
 };
 
 describe("PublicQuestionPreview", () => {
-  it("shows only the options revealed by the current reveal step", () => {
+  it("keeps unrevealed multiple-choice slots mounted so the preview grid stays stable", () => {
     const view = render(<PublicQuestionPreview state={state} testIdPrefix="audience" />);
+    const revealedOption = view.container.querySelector(
+      '[data-testid="audience-preview-option-1"]',
+    );
+    const hiddenOption = view.container.querySelector(
+      '[data-testid="audience-preview-option-2"]',
+    );
 
-    expect(view.container.textContent).toContain("Alpha");
-    expect(view.container.textContent).toContain("Beta");
-    expect(view.container.textContent).not.toContain("Gamma");
     expect(
-      view.container.querySelector('[data-testid="audience-preview-option-2"]'),
-    ).toBeNull();
+      view.container.querySelector('[data-testid="audience-preview-options-grid"]'),
+    ).not.toBeNull();
+    expect(revealedOption?.getAttribute("data-revealed")).toBe("true");
+    expect(revealedOption?.textContent).toContain("Beta");
+    expect(hiddenOption?.getAttribute("data-revealed")).toBe("false");
+    expect(hiddenOption?.querySelector("span")?.className).toContain("invisible");
 
     view.unmount();
   });

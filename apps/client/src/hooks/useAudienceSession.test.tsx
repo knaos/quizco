@@ -71,7 +71,7 @@ describe("useAudienceSession", () => {
 
     expect(window.localStorage.getItem("quizco_audience_competition_id")).toBe("comp-1");
     expect(window.location.search).toContain("competitionId=comp-1");
-    expect(emit).toHaveBeenCalledWith("HOST_JOIN_ROOM", { competitionId: "comp-1" });
+    expect(emit).toHaveBeenCalledWith("PUBLIC_JOIN_ROOM", { competitionId: "comp-1" });
     hook.unmount();
   });
 });

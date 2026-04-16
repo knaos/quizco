@@ -93,12 +93,26 @@ test("audience view mirrors public question flow and reveal stats", async ({ bro
     timeout: 20_000,
   });
 
-  await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_PREVIEW");
-  await expect(audiencePage.getByTestId("audience-preview-option-0")).toContainText("Wrong answer");
-  await expect(audiencePage.getByTestId("audience-preview-option-1")).toHaveCount(0);
+  const previewGrid = audiencePage.getByTestId("audience-preview-options-grid");
 
   await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_PREVIEW");
+  const previewHeightBeforeSecondReveal = await previewGrid.evaluate(
+    (element) => element.getBoundingClientRect().height,
+  );
+  await expect(audiencePage.getByTestId("audience-preview-option-0")).toContainText("Wrong answer");
+  await expect(audiencePage.getByTestId("audience-preview-option-1")).toHaveAttribute(
+    "data-revealed",
+    "false",
+  );
+
+  await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_PREVIEW");
+  const previewHeightAfterSecondReveal = await previewGrid.evaluate(
+    (element) => element.getBoundingClientRect().height,
+  );
   await expect(audiencePage.getByTestId("audience-preview-option-1")).toContainText("Correct answer");
+  expect(Math.abs(previewHeightAfterSecondReveal - previewHeightBeforeSecondReveal)).toBeLessThan(
+    1,
+  );
 
   await clickHostNextAndExpectPhase(sessions.hostPage, "QUESTION_ACTIVE");
   await expect(audiencePage.getByTestId("audience-phase")).toHaveText("QUESTION_ACTIVE", {

@@ -1,21 +1,31 @@
 import type { ReactElement } from "react";
-import { act } from "react";
+import { act, useEffect } from "react";
 import { render } from "../test/render";
 
-export function renderHook<T>(useHook: () => T) {
-  let result: T;
+interface RenderHookOptions {
+  wrapper?: (props: { children: ReactElement }) => ReactElement;
+}
+
+export function renderHook<T>(useHook: () => T, options?: RenderHookOptions) {
+  const resultRef: { current: T | undefined } = { current: undefined };
 
   function Harness(): ReactElement | null {
-    result = useHook();
+    const result = useHook();
+
+    useEffect(() => {
+      resultRef.current = result;
+    }, [result]);
+
     return null;
   }
 
-  const view = render(<Harness />);
+  const hookUi = <Harness />;
+  const view = render(options?.wrapper ? options.wrapper({ children: hookUi }) : hookUi);
 
   return {
     ...view,
     get result(): T {
-      return result!;
+      return resultRef.current!;
     },
     act,
   };

@@ -1,0 +1,13 @@
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+apps/client/dist
+apps/server/dist
+packages/shared/dist
+.turbo
+.git
+.worktrees
+apps/e2e/test-results
+apps/e2e/playwright-report
+backups
+npm-debug.log
