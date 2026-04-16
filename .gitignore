@@ -5,6 +5,7 @@ dist
 *.log
 build
 .DS_Store
+.worktrees/
 apps/e2e/test-results/
 apps/e2e/playwright-report/
 test-results/

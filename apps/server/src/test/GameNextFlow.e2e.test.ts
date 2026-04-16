@@ -15,6 +15,7 @@ import { Logger } from "../utils/Logger";
 import { io as Client, Socket } from "socket.io-client";
 import { Server } from "http";
 import { AddressInfo } from "net";
+import { createHostTestToken } from "./authTestUtils";
 
 describe("Game Loop E2E (Next Flow)", () => {
   let httpServer: Server;
@@ -23,6 +24,7 @@ describe("Game Loop E2E (Next Flow)", () => {
   let gameManager: GameManager;
   let mockRepository: MockGameRepository;
   let port: number;
+  let hostAuthToken: string;
 
   const competitionId = "test-comp-next";
 
@@ -31,6 +33,7 @@ describe("Game Loop E2E (Next Flow)", () => {
     const timerService = new TimerService();
     const logger = new Logger("GameNextFlowTest");
     gameManager = new GameManager(mockRepository, timerService, logger);
+    hostAuthToken = createHostTestToken();
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 
@@ -85,13 +88,13 @@ describe("Game Loop E2E (Next Flow)", () => {
   });
 
   it("should follow the 'next' flow correctly over the socket", async () => {
-    hostSocket.emit("HOST_JOIN_ROOM", { competitionId });
+    hostSocket.emit("HOST_JOIN_ROOM", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", () => resolve());
     });
 
     // WAITING -> WELCOME
-    hostSocket.emit("HOST_NEXT", { competitionId });
+    hostSocket.emit("HOST_NEXT", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", (state) => {
         expect(state.phase).toBe("WELCOME");
@@ -100,7 +103,7 @@ describe("Game Loop E2E (Next Flow)", () => {
     });
 
     // WELCOME -> ROUND_START
-    hostSocket.emit("HOST_NEXT", { competitionId });
+    hostSocket.emit("HOST_NEXT", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", (state) => {
         expect(state.phase).toBe("ROUND_START");
@@ -110,7 +113,7 @@ describe("Game Loop E2E (Next Flow)", () => {
     });
 
     // ROUND_START -> QUESTION_PREVIEW
-    hostSocket.emit("HOST_NEXT", { competitionId });
+    hostSocket.emit("HOST_NEXT", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", (state) => {
         expect(state.phase).toBe("QUESTION_PREVIEW");
@@ -120,7 +123,7 @@ describe("Game Loop E2E (Next Flow)", () => {
     });
 
     // QUESTION_PREVIEW -> Reveal Option A
-    hostSocket.emit("HOST_NEXT", { competitionId });
+    hostSocket.emit("HOST_NEXT", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", (state) => {
         expect(state.revealStep).toBe(1);
@@ -129,7 +132,7 @@ describe("Game Loop E2E (Next Flow)", () => {
     });
 
     // Reveal Option A -> Reveal Option B
-    hostSocket.emit("HOST_NEXT", { competitionId });
+    hostSocket.emit("HOST_NEXT", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", (state) => {
         expect(state.revealStep).toBe(2);
@@ -138,7 +141,7 @@ describe("Game Loop E2E (Next Flow)", () => {
     });
 
     // Reveal Option B -> QUESTION_ACTIVE
-    hostSocket.emit("HOST_NEXT", { competitionId });
+    hostSocket.emit("HOST_NEXT", { competitionId, authToken: hostAuthToken });
     await new Promise<void>((resolve) => {
       hostSocket.once("GAME_STATE_SYNC", (state) => {
         expect(state.phase).toBe("QUESTION_ACTIVE");

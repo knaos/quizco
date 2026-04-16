@@ -105,4 +105,42 @@ describe("usePlayerSession", () => {
     expect(hook.result.currentScore).toBe(9);
     hook.unmount();
   });
+
+  it("does not enter reconnect mode without persisted session data", async () => {
+    const hook = renderHook(() => usePlayerSession(baseState));
+    await flushEffects();
+
+    expect(emit).not.toHaveBeenCalledWith(
+      "RECONNECT_TEAM",
+      expect.anything(),
+      expect.any(Function),
+    );
+    expect(hook.result.isReconnecting).toBe(false);
+    hook.unmount();
+  });
+
+  it("hydrates the current question answer without relying on effect-driven resets", async () => {
+    window.localStorage.setItem("quizco_team_id", "team-2");
+
+    const questionState: GameState = {
+      ...baseState,
+      currentQuestion: {
+        id: "question-1",
+        roundId: "round-1",
+        questionText: "Type one",
+        type: "OPEN_WORD",
+        points: 1,
+        timeLimitSeconds: 30,
+        grading: "AUTO",
+        content: { answer: "answer" },
+      },
+    };
+
+    const hook = renderHook(() => usePlayerSession(questionState));
+    await flushEffects();
+
+    expect(hook.result.answer).toBe("answer");
+    expect(hook.result.submissionStatus).toBe("idle");
+    hook.unmount();
+  });
 });
