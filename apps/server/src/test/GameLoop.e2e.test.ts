@@ -15,6 +15,7 @@ import { Logger } from "../utils/Logger";
 import { io as Client, Socket } from "socket.io-client";
 import { Server } from "http";
 import { AddressInfo } from "net";
+import { createHostTestToken } from "./authTestUtils";
 
 describe("Game Loop E2E (Decoupled)", () => {
   let httpServer: Server;
@@ -24,6 +25,7 @@ describe("Game Loop E2E (Decoupled)", () => {
   let gameManager: GameManager;
   let mockRepository: MockGameRepository;
   let port: number;
+  let hostAuthToken: string;
 
   const competitionId = "test-competition-id";
 
@@ -32,6 +34,7 @@ describe("Game Loop E2E (Decoupled)", () => {
     const timerService = new TimerService();
     const logger = new Logger("GameLoopTest");
     gameManager = new GameManager(mockRepository, timerService, logger);
+    hostAuthToken = createHostTestToken();
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 
@@ -90,7 +93,7 @@ describe("Game Loop E2E (Decoupled)", () => {
 
   it("should complete a full question cycle with two players", async () => {
     // 1. Host joins room
-    hostSocket.emit("HOST_JOIN_ROOM", { competitionId });
+    hostSocket.emit("HOST_JOIN_ROOM", { competitionId, authToken: hostAuthToken });
 
     // 2. Players join room
     await new Promise<void>((resolve) => {
@@ -114,7 +117,11 @@ describe("Game Loop E2E (Decoupled)", () => {
     expect(state.teams).toHaveLength(2);
 
     // 3. Host starts question
-    hostSocket.emit("HOST_START_QUESTION", { competitionId, questionId: "q1" });
+    hostSocket.emit("HOST_START_QUESTION", {
+      competitionId,
+      questionId: "q1",
+      authToken: hostAuthToken,
+    });
 
     // Wait for state sync on clients
     await new Promise<void>((resolve) => {
@@ -126,7 +133,7 @@ describe("Game Loop E2E (Decoupled)", () => {
     });
 
     // 4. Host starts timer
-    hostSocket.emit("HOST_START_TIMER", { competitionId });
+    hostSocket.emit("HOST_START_TIMER", { competitionId, authToken: hostAuthToken });
 
     await new Promise<void>((resolve) => {
       player1Socket.once("GAME_STATE_SYNC", (syncState) => {
@@ -163,7 +170,7 @@ describe("Game Loop E2E (Decoupled)", () => {
     });
 
     // 7. Host reveals answer - scores are updated at this point
-    hostSocket.emit("HOST_REVEAL_ANSWER", { competitionId });
+    hostSocket.emit("HOST_REVEAL_ANSWER", { competitionId, authToken: hostAuthToken });
 
     // Wait for REVEAL_ANSWER phase
     await new Promise<void>((resolve) => {
@@ -187,7 +194,10 @@ describe("Game Loop E2E (Decoupled)", () => {
 
   it("should reject SUBMIT_ANSWER for unknown team and return failure callback", async () => {
     const rejectCompetitionId = "test-competition-reject";
-    hostSocket.emit("HOST_JOIN_ROOM", { competitionId: rejectCompetitionId });
+    hostSocket.emit("HOST_JOIN_ROOM", {
+      competitionId: rejectCompetitionId,
+      authToken: hostAuthToken,
+    });
 
     await new Promise<void>((resolve) => {
       player1Socket.emit(
@@ -197,7 +207,11 @@ describe("Game Loop E2E (Decoupled)", () => {
       );
     });
 
-    hostSocket.emit("HOST_START_QUESTION", { competitionId: rejectCompetitionId, questionId: "q1" });
+    hostSocket.emit("HOST_START_QUESTION", {
+      competitionId: rejectCompetitionId,
+      questionId: "q1",
+      authToken: hostAuthToken,
+    });
 
     await new Promise<void>((resolve) => {
       player1Socket.on("GAME_STATE_SYNC", (syncState) => {
@@ -207,7 +221,10 @@ describe("Game Loop E2E (Decoupled)", () => {
       });
     });
 
-    hostSocket.emit("HOST_START_TIMER", { competitionId: rejectCompetitionId });
+    hostSocket.emit("HOST_START_TIMER", {
+      competitionId: rejectCompetitionId,
+      authToken: hostAuthToken,
+    });
 
     await new Promise<void>((resolve) => {
       player1Socket.on("GAME_STATE_SYNC", (syncState) => {
