@@ -181,7 +181,6 @@ describe("HostDashboard", () => {
     vi.mocked(useAuth).mockReturnValue({
       hostToken: "host-token",
       adminToken: null,
-      role: "host",
       isHostAuthenticated: true,
       isAdminAuthenticated: false,
       loginHost: vi.fn(),
