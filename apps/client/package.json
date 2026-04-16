@@ -16,7 +16,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@quizco/shared": "^1.0.0",
-    "@tailwindcss/postcss": "^4.1.18",
     "i18next": "^25.7.4",
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.562.0",

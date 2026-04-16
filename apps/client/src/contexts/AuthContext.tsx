@@ -1,55 +1,65 @@
 import React, { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { AuthContext } from "./auth-context";
+import { loginWithPassword } from "../auth";
 
-const HOST_AUTH_KEY = "quizco_host_authenticated";
-const ADMIN_PASSWORD_KEY = "quizco_admin_password";
+const HOST_TOKEN_KEY = "quizco_host_token";
+const ADMIN_TOKEN_KEY = "quizco_admin_token";
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isHostAuthenticated, setIsHostAuthenticated] = useState(
-    localStorage.getItem(HOST_AUTH_KEY) === "true"
+  const [hostToken, setHostToken] = useState<string | null>(
+    sessionStorage.getItem(HOST_TOKEN_KEY)
   );
-  const [adminPassword, setAdminPassword] = useState<string | null>(
-    localStorage.getItem(ADMIN_PASSWORD_KEY)
+  const [adminToken, setAdminToken] = useState<string | null>(
+    sessionStorage.getItem(ADMIN_TOKEN_KEY)
   );
 
-  const isAdminAuthenticated = !!adminPassword;
+  const isHostAuthenticated = !!hostToken;
+  const isAdminAuthenticated = !!adminToken;
 
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === HOST_AUTH_KEY) {
-        setIsHostAuthenticated(e.newValue === "true");
+      if (e.key === HOST_TOKEN_KEY) {
+        setHostToken(e.newValue);
       }
-      if (e.key === ADMIN_PASSWORD_KEY) {
-        setAdminPassword(e.newValue);
+      if (e.key === ADMIN_TOKEN_KEY) {
+        setAdminToken(e.newValue);
       }
     };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const loginHost = (password: string): boolean => {
-    if (password === "host123") {
-      setIsHostAuthenticated(true);
-      localStorage.setItem(HOST_AUTH_KEY, "true");
+  const loginHost = async (password: string): Promise<boolean> => {
+    try {
+      const { token } = await loginWithPassword("host", password);
+      setHostToken(token);
+      sessionStorage.setItem(HOST_TOKEN_KEY, token);
       return true;
+    } catch {
+      return false;
     }
-    return false;
   };
 
-  const loginAdmin = (password: string) => {
-    setAdminPassword(password);
-    localStorage.setItem(ADMIN_PASSWORD_KEY, password);
+  const loginAdmin = async (password: string): Promise<boolean> => {
+    try {
+      const { token } = await loginWithPassword("admin", password);
+      setAdminToken(token);
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const logoutHost = () => {
-    setIsHostAuthenticated(false);
-    localStorage.removeItem(HOST_AUTH_KEY);
+    setHostToken(null);
+    sessionStorage.removeItem(HOST_TOKEN_KEY);
   };
 
   const logoutAdmin = () => {
-    setAdminPassword(null);
-    localStorage.removeItem(ADMIN_PASSWORD_KEY);
+    setAdminToken(null);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
   };
 
   return (
@@ -57,7 +67,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         isHostAuthenticated,
         isAdminAuthenticated,
-        adminPassword,
+        hostToken,
+        adminToken,
         loginHost,
         loginAdmin,
         logoutHost,

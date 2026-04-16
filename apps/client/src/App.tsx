@@ -17,8 +17,9 @@ function HostRoute({ children }: { children: React.ReactNode }) {
     return (
       <HostLogin
         error={error}
-        onLogin={(password) => {
-          setError(loginHost(password) ? null : "host.invalid_password");
+        onLogin={async (password) => {
+          const success = await loginHost(password);
+          setError(success ? null : "host.invalid_password");
         }}
       />
     );

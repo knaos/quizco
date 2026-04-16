@@ -38,8 +38,9 @@ type ConfirmState =
 
 export const AdminPanel: React.FC = () => {
   const { t } = useTranslation();
-  const { adminPassword, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
+  const { adminToken, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
   const [passwordInput, setPasswordInput] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [view, setView] = useState<"COMPETITIONS" | "EDITOR">("COMPETITIONS");
   const [editingQuestion, setEditingQuestion] = useState<{
     roundId: string;
@@ -48,7 +49,7 @@ export const AdminPanel: React.FC = () => {
   const [promptState, setPromptState] = useState<PromptState>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
 
-  const adminData = useAdminData(adminPassword, logoutAdmin);
+  const adminData = useAdminData(adminToken, logoutAdmin);
 
   useEffect(() => {
     document.title = "Admin panel";
@@ -163,7 +164,9 @@ export const AdminPanel: React.FC = () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <form onSubmit={(event) => {
           event.preventDefault();
-          loginAdmin(passwordInput);
+          void loginAdmin(passwordInput).then((success) => {
+            setLoginError(success ? null : "host.invalid_password");
+          });
         }} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
           <div className="flex justify-center mb-6">
             <div className="bg-blue-100 p-4 rounded-full shadow-inner">
@@ -179,6 +182,7 @@ export const AdminPanel: React.FC = () => {
               onChange={(event) => setPasswordInput(event.target.value)}
               placeholder={t("admin.password_placeholder")}
               autoFocus
+              error={loginError ? t(loginError) : undefined}
             />
             <Button type="submit" isLoading={adminData.isLoading} className="w-full py-4 rounded-2xl text-lg">
               {t("admin.login_button")}
