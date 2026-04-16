@@ -21,6 +21,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useGame } from "../contexts/useGame";
 import { useHostDashboard } from "../hooks/useHostDashboard";
@@ -60,7 +61,7 @@ function renderPresenterAnswerContent(
   question: Question,
   revealStep: number,
   phase: GamePhase,
-  t: (key: string, options?: Record<string, unknown>) => string,
+  t: TFunction,
 ): React.ReactNode {
   if (question.type === "MULTIPLE_CHOICE") {
     const { options } = question.content as MultipleChoiceContent;

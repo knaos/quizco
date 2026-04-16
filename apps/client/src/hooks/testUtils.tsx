@@ -1,12 +1,17 @@
 import type { ReactElement } from "react";
-import { act } from "react";
+import { act, useEffect } from "react";
 import { render } from "../test/render";
 
 export function renderHook<T>(useHook: () => T) {
-  let result: T;
+  const resultRef: { current: T | undefined } = { current: undefined };
 
   function Harness(): ReactElement | null {
-    result = useHook();
+    const result = useHook();
+
+    useEffect(() => {
+      resultRef.current = result;
+    }, [result]);
+
     return null;
   }
 
@@ -15,7 +20,7 @@ export function renderHook<T>(useHook: () => T) {
   return {
     ...view,
     get result(): T {
-      return result!;
+      return resultRef.current!;
     },
     act,
   };
