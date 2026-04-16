@@ -2,7 +2,11 @@ import type { ReactElement } from "react";
 import { act, useEffect } from "react";
 import { render } from "../test/render";
 
-export function renderHook<T>(useHook: () => T) {
+interface RenderHookOptions {
+  wrapper?: (props: { children: ReactElement }) => ReactElement;
+}
+
+export function renderHook<T>(useHook: () => T, options?: RenderHookOptions) {
   const resultRef: { current: T | undefined } = { current: undefined };
 
   function Harness(): ReactElement | null {
@@ -15,7 +19,8 @@ export function renderHook<T>(useHook: () => T) {
     return null;
   }
 
-  const view = render(<Harness />);
+  const hookUi = <Harness />;
+  const view = render(options?.wrapper ? options.wrapper({ children: hookUi }) : hookUi);
 
   return {
     ...view,

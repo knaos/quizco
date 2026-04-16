@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Competition, GameState } from "@quizco/shared";
 import { useGame } from "../contexts/useGame";
+import { useAuth } from "../contexts/useAuth";
 import { click, render } from "../test/render";
 import { HostDashboard } from "./HostDashboard";
 
@@ -8,6 +9,10 @@ const mockUseHostDashboard = vi.fn();
 
 vi.mock("../contexts/useGame", () => ({
   useGame: vi.fn(),
+}));
+
+vi.mock("../contexts/useAuth", () => ({
+  useAuth: vi.fn(),
 }));
 
 vi.mock("../hooks/useHostDashboard", () => ({
@@ -172,6 +177,17 @@ describe("HostDashboard", () => {
     vi.mocked(useGame).mockReturnValue({
       state,
       dispatch: vi.fn(),
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      hostToken: "host-token",
+      adminToken: null,
+      role: "host",
+      isHostAuthenticated: true,
+      isAdminAuthenticated: false,
+      loginHost: vi.fn(),
+      loginAdmin: vi.fn(),
+      logoutHost: vi.fn(),
+      logoutAdmin: vi.fn(),
     });
     mockUseHostDashboard.mockReset();
   });
