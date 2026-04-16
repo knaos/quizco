@@ -1,16 +1,48 @@
-version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: quizuser
-      POSTGRES_PASSWORD: quizpassword
-      POSTGRES_DB: quizco
+      POSTGRES_USER: ${POSTGRES_USER:-quizuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quizpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-quizco}
     ports:
-      - '5433:5432'
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-quizuser} -d ${POSTGRES_DB:-quizco}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      CLIENT_DIST_DIR: /app/apps/client/dist
+      HOST_PASSWORD: ${HOST_PASSWORD:-host123}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-dev-only-secret}
+      AUTH_TOKEN_TTL_SECONDS: ${AUTH_TOKEN_TTL_SECONDS:-43200}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-quizuser}:${POSTGRES_PASSWORD:-quizpassword}@db:5432/${POSTGRES_DB:-quizco}?schema=public
+    ports:
+      - "${QUIZCO_PORT:-4000}:4000"
+    volumes:
+      - quizco_backups:/app/backups
 
 volumes:
   postgres_data:
+  quizco_backups:

@@ -12,14 +12,14 @@ describe("useAdminData", () => {
     }) as Response);
     vi.stubGlobal("fetch", fetchMock);
 
-    const hook = renderHook(() => useAdminData("secret-pass", onUnauthorized));
+    const hook = renderHook(() => useAdminData("secret-token", onUnauthorized));
     await flushEffects();
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/admin/competitions"),
       expect.objectContaining({
         headers: expect.objectContaining({
-          "x-admin-auth": "secret-pass",
+          Authorization: "Bearer secret-token",
         }),
       }),
     );

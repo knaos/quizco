@@ -45,7 +45,7 @@ export function useAudienceSession(state: GameState): AudienceSessionResult {
       `${window.location.pathname}?${params.toString()}`,
     );
 
-    socket.emit("HOST_JOIN_ROOM", { competitionId: selectedCompId });
+    socket.emit("PUBLIC_JOIN_ROOM", { competitionId: selectedCompId });
   }, [selectedCompId]);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function useAudienceSession(state: GameState): AudienceSessionResult {
     let cancelled = false;
 
     fetch(
-      `${API_URL}/api/competitions/${selectedCompId}/questions/${state.currentQuestion.id}/answers`,
+      `${API_URL}/api/competitions/${selectedCompId}/questions/${state.currentQuestion.id}/audience-stats`,
     )
       .then((response) => response.json())
       .then((data: AudienceAnswerRecord[]) => {
