@@ -243,7 +243,7 @@ function renderPresenterAnswerContent(
         getQuestionReadOnlyRenderer({
           question,
           testIdPrefix: "host-presenter",
-          t,
+          t: t as TFunction,
         })
       )}
     </div>
