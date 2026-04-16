@@ -97,4 +97,24 @@ describe("useHostDashboard", () => {
     expect(emit).toHaveBeenLastCalledWith("HOST_JOIN_ROOM", { competitionId: "comp-1" });
     hook.unmount();
   });
+
+  it("tracks question picker modal state locally", async () => {
+    const hook = renderHook(() => useHostDashboard(state));
+    await flushEffects();
+
+    expect(hook.result.isQuestionPickerOpen).toBe(false);
+
+    await hook.act(async () => {
+      hook.result.openQuestionPicker();
+    });
+
+    expect(hook.result.isQuestionPickerOpen).toBe(true);
+
+    await hook.act(async () => {
+      hook.result.closeQuestionPicker();
+    });
+
+    expect(hook.result.isQuestionPickerOpen).toBe(false);
+    hook.unmount();
+  });
 });
