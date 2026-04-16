@@ -14,6 +14,7 @@ describe("GradingService", () => {
     timeLimitSeconds: 30,
     grading: "AUTO",
     index: 0,
+    realIndex: 0,
     content: { options: [], correctIndices: [0] },
   };
 
@@ -137,7 +138,6 @@ describe("GradingService", () => {
     const question: Question = {
       ...baseQuestion,
       grading: "MANUAL",
-    index: 0,
     };
 
     expect(service.gradeAnswer(question, "some answer")).toBeNull();
