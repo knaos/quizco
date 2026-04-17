@@ -32,7 +32,7 @@ export function useAdminData(
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [questionsByRound, setQuestionsByRound] = useState<Record<string, Question[]>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const createHeaders = useCallback(
     (includeJson = false) => createAuthHeaders(adminToken, includeJson),
@@ -98,7 +98,6 @@ export function useAdminData(
     if (!adminToken) {
       return;
     }
-    setIsLoading(true);
     fetch(`${API_BASE}/competitions`, { headers: createHeaders() })
       .then((res) => {
         if (res.ok) return res.json();
