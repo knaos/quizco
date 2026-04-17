@@ -52,8 +52,9 @@ export function getQuestionCorrectAnswer(question: Question, t: TFunction): stri
 
   if (type === "CORRECT_THE_ERROR") {
     const correctTheErrorContent = content as CorrectTheErrorContent;
-    const sentenceWords = correctTheErrorContent.text.split(/\s+/);
-    const errorWord = sentenceWords[correctTheErrorContent.errorWordIndex] || '??';
+    const errorWord =
+      correctTheErrorContent.words.find((word) => word.wordIndex === correctTheErrorContent.errorWordIndex)?.text ??
+      "??";
     return `${errorWord} -> ${correctTheErrorContent.correctReplacement}`;
   }
 

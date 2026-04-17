@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import type {
   ChronologyContent,
   CorrectTheErrorContent,
+  CorrectTheErrorWord,
   FillInTheBlanksContent,
   GamePhase,
   MatchingContent,
@@ -213,13 +214,13 @@ function renderPresenterAnswerContent(
           {content.text}
         </div>
         <div className="space-y-4">
-          {content.phrases.map((phrase, index) => (
-            <div key={`${question.id}-phrase-${index}`} className="rounded-3xl border border-gray-200 bg-white p-5">
-              <div className="mb-3 text-lg font-black text-slate-900">{phrase.text}</div>
+          {content.words.map((word: CorrectTheErrorWord, index: number) => (
+            <div key={`${question.id}-word-${index}`} className="rounded-3xl border border-gray-200 bg-white p-5">
+              <div className="mb-3 text-lg font-black text-slate-900">{word.text}</div>
               <div className="space-y-2">
-                {phrase.alternatives.map((alternative) => (
+                {word.alternatives.map((alternative: string) => (
                   <div
-                    key={`${question.id}-phrase-${index}-${alternative}`}
+                    key={`${question.id}-word-${index}-${alternative}`}
                     className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700"
                   >
                     {alternative}

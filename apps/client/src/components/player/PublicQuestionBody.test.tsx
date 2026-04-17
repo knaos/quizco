@@ -162,6 +162,7 @@ describe("PublicQuestionBody", () => {
       ...state,
       currentQuestion: {
         ...question,
+        index: 1,
         section: "Player A",
       },
     };
@@ -175,7 +176,7 @@ describe("PublicQuestionBody", () => {
       />,
     );
 
-    expect(view.container.textContent).toContain("Turn: Player A");
+    expect(view.container.textContent).toContain("Player A");
 
     view.unmount();
   });

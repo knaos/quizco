@@ -108,7 +108,7 @@ function buildCorrectTheErrorAnswer(
   content: CorrectTheErrorContent,
 ): CorrectTheErrorAnswer {
   return {
-    selectedPhraseIndex: content.errorPhraseIndex,
+    selectedWordIndex: content.errorWordIndex,
     correction: content.correctReplacement,
   };
 }
@@ -440,7 +440,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     preview: ({ question }) => (
       <CorrectTheErrorPlayer
         content={question.content as CorrectTheErrorContent}
-        value={{ selectedPhraseIndex: -1, correction: "" }}
+        value={{ selectedWordIndex: -1, correction: "" }}
         onChange={() => undefined}
         previewMode
       />
@@ -451,7 +451,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
           content={question.content as CorrectTheErrorContent}
           value={
             (answer as CorrectTheErrorAnswer) || {
-              selectedPhraseIndex: -1,
+              selectedWordIndex: -1,
               correction: "",
             }
           }
@@ -461,7 +461,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         <Button
           onClick={() => submitAnswer(answer, true)}
           disabled={
-            (answer as CorrectTheErrorAnswer)?.selectedPhraseIndex === -1 ||
+            (answer as CorrectTheErrorAnswer)?.selectedWordIndex === -1 ||
             !(answer as CorrectTheErrorAnswer)?.correction
           }
           data-testid={`${testIdPrefix}-submit-answer`}
@@ -476,7 +476,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         content={question.content as CorrectTheErrorContent}
         value={
           (answer as CorrectTheErrorAnswer) || {
-            selectedPhraseIndex: -1,
+            selectedWordIndex: -1,
             correction: "",
           }
         }
