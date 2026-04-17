@@ -3,14 +3,14 @@ import type { CorrectTheErrorContent } from "@quizco/shared";
 /**
  * Calculates the partial score for CORRECT_THE_ERROR question.
  * Returns 0, 1, or 2 based on:
- * - 1 point: correct phrase identified
+ * - 1 point: correct word identified
  * - 1 point: correct correction selected
  *
  * This mirrors server-side grading in GradingService.
  */
 export const calculatePartialScore = (
   content: CorrectTheErrorContent,
-  lastAnswer: { selectedPhraseIndex: number; correction: string } | null,
+  lastAnswer: { selectedWordIndex: number; correction: string } | null,
 ): number => {
   if (!lastAnswer) {
     return 0;
@@ -18,7 +18,7 @@ export const calculatePartialScore = (
 
   let score = 0;
 
-  if (lastAnswer.selectedPhraseIndex === content.errorPhraseIndex) {
+  if (lastAnswer.selectedWordIndex === content.errorWordIndex) {
     score += 1;
   }
 

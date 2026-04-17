@@ -110,6 +110,8 @@
       "lets_go": "Let's Go!",
       "waiting_host": "Waiting for the host to start...",
       "get_ready": "Get ready!",
+      "timer_paused": "Timer Paused",
+      "timer_paused_subtitle": "Waiting for host to resume...",
       "upcoming_question": "Upcoming Question",
       "host_reading": "The host is reading the question. Get ready to answer!",
       "submit_answer": "Submit Answer",
@@ -149,7 +151,9 @@
       "round_finished": "Round Finished!",
       "great_job": "Great job, everyone!",
       "waiting_next_round": "Waiting for the next round...",
+      "section": "Section",
       "question": "Question",
+      "example_question": "Example question",
       "type_answer": "Type your answer...",
       "grading_waiting": "The round has ended. Waiting for the host to reveal the answer...",
       "no_active_quizzes": "No active quizzes found.",
@@ -160,10 +164,11 @@
       "submit_crossword": "Submit Crossword",
       "questions": {
         "correctTheError": {
-          "instruction": "Identify the incorrect phrase in the sentence.",
-          "selectCorrection": "Select the correct replacement for this phrase:",
+          "instruction": "Identify the incorrect word in the sentence.",
+          "selectCorrection": "Select the correct replacement:",
           "correctionLabel": "Your correction:",
-          "correctionPlaceholder": "Type the correct word/phrase..."
+          "correctionPlaceholder": "Type the correct word/phrase...",
+          "noContent": "No question content available"
         }
       }
     },
@@ -274,15 +279,17 @@
         "correctTheError": {
           "fullText": "Full Sentence Text",
           "fullTextPlaceholder": "Enter the full sentence here for reference...",
-          "phrases": "Sentence Phrases",
-          "phrasesHelp": "Click the radio button next to the phrase that contains the error.",
-          "addPhrase": "Add Phrase",
-          "markAsError": "Mark as Error Phrase",
-          "phraseTextPlaceholder": "Phrase text...",
+          "sentencePreview": "Sentence preview",
+          "legend": "Gray words are not editable. Blue words have alternatives. Red marks the incorrect word.",
+          "wordsWithAlternatives": "Words with alternatives",
+          "addWord": "Add word",
+          "noWordsYet": "No words selected yet. Add a word that should offer alternatives.",
+          "enterSentenceFirst": "Enter the full sentence before choosing editable words.",
+          "targetWord": "Target word",
+          "boundWord": "Bound to",
+          "markAsError": "Mark as error word",
           "alternative": "Alternative",
-          "markAsCorrectReplacement": "Mark as Correct Replacement",
-          "correctReplacement": "Correct Replacement",
-          "correctReplacementPlaceholder": "Enter the correct text..."
+          "markAsCorrectReplacement": "Mark as correct replacement"
         }
       }
     }

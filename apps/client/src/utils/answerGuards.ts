@@ -42,5 +42,5 @@ export const isCorrectTheErrorAnswer = (
   Boolean(value) &&
   typeof value === "object" &&
   !Array.isArray(value) &&
-  typeof (value as CorrectTheErrorAnswer).selectedPhraseIndex === "number" &&
+  typeof (value as CorrectTheErrorAnswer).selectedWordIndex === "number" &&
   typeof (value as CorrectTheErrorAnswer).correction === "string";

@@ -108,7 +108,7 @@ function buildCorrectTheErrorAnswer(
   content: CorrectTheErrorContent,
 ): CorrectTheErrorAnswer {
   return {
-    selectedPhraseIndex: content.errorPhraseIndex,
+    selectedWordIndex: content.errorWordIndex,
     correction: content.correctReplacement,
   };
 }
@@ -145,36 +145,14 @@ function renderSimpleCorrectAnswer(question: Question, t: TFunction, variant: "a
 const questionRenderers: Record<QuestionType, QuestionRenderer> = {
   MULTIPLE_CHOICE: {
     preview: ({ question, revealStep, testIdPrefix }) => (
-      <div
-        className="grid grid-cols-1 gap-6 w-full mt-8 md:grid-cols-2 md:auto-rows-fr"
-        data-testid={`${testIdPrefix}-preview-options-grid`}
-      >
-        {(question.content as MultipleChoiceContent).options.map((option, index) => {
-          const isRevealed = index < revealStep;
-
-          return (
-            <div
-              key={index}
-              data-testid={`${testIdPrefix}-preview-option-${index}`}
-              data-revealed={isRevealed ? "true" : "false"}
-              className={`min-h-32 p-8 rounded-3xl border-4 transition-all duration-500 transform ${
-                isRevealed
-                  ? "bg-white border-blue-100 shadow-lg scale-100 opacity-100 translate-y-0"
-                  : "bg-slate-100/80 border-transparent shadow-inner"
-              }`}
-            >
-              <span
-                aria-hidden={!isRevealed}
-                className={`block text-3xl font-black text-left transition-opacity duration-300 ${
-                  isRevealed ? "text-gray-800 opacity-100" : "invisible select-none"
-                }`}
-              >
-                {option}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <MultipleChoicePlayer
+        options={(question.content as MultipleChoiceContent).options}
+        selectedIndices={[]}
+        onToggleIndex={() => undefined}
+        previewMode={true}
+        revealStep={revealStep}
+        testIdPrefix={testIdPrefix}
+      />
     ),
     active: ({
       question,
@@ -462,7 +440,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     preview: ({ question }) => (
       <CorrectTheErrorPlayer
         content={question.content as CorrectTheErrorContent}
-        value={{ selectedPhraseIndex: -1, correction: "" }}
+        value={{ selectedWordIndex: -1, correction: "" }}
         onChange={() => undefined}
         previewMode
       />
@@ -473,7 +451,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
           content={question.content as CorrectTheErrorContent}
           value={
             (answer as CorrectTheErrorAnswer) || {
-              selectedPhraseIndex: -1,
+              selectedWordIndex: -1,
               correction: "",
             }
           }
@@ -483,7 +461,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         <Button
           onClick={() => submitAnswer(answer, true)}
           disabled={
-            (answer as CorrectTheErrorAnswer)?.selectedPhraseIndex === -1 ||
+            (answer as CorrectTheErrorAnswer)?.selectedWordIndex === -1 ||
             !(answer as CorrectTheErrorAnswer)?.correction
           }
           data-testid={`${testIdPrefix}-submit-answer`}
@@ -498,7 +476,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         content={question.content as CorrectTheErrorContent}
         value={
           (answer as CorrectTheErrorAnswer) || {
-            selectedPhraseIndex: -1,
+            selectedWordIndex: -1,
             correction: "",
           }
         }

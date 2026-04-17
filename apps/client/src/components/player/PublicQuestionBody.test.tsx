@@ -17,6 +17,7 @@ const question: MultipleChoiceQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     options: ["One", "Two"],
     correctIndices: [1],
@@ -40,6 +41,7 @@ const crosswordQuestion: CrosswordQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     grid: [["A", "B"], ["", "C"]],
     clues: {
@@ -75,6 +77,7 @@ const closedQuestion: ClosedQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     options: ["Noah"],
   },
@@ -88,6 +91,7 @@ const openWordQuestion: OpenWordQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     answer: "Noah",
   },
@@ -158,6 +162,7 @@ describe("PublicQuestionBody", () => {
       ...state,
       currentQuestion: {
         ...question,
+        index: 1,
         section: "Player A",
       },
     };
@@ -171,7 +176,29 @@ describe("PublicQuestionBody", () => {
       />,
     );
 
-    expect(view.container.textContent).toContain("Turn: Player A");
+    expect(view.container.textContent).toContain("Player A");
+
+    view.unmount();
+  });
+
+  it("falls back to a generic question label when index metadata is missing", () => {
+    const view = render(
+      <PublicQuestionBody
+        mode="readOnly"
+        state={{
+          ...state,
+          currentQuestion: {
+            ...question,
+            index: undefined,
+          },
+        }}
+        answer=""
+        selectedIndices={[]}
+      />,
+    );
+
+    expect(view.container.textContent).toContain("Question");
+    expect(view.container.textContent).not.toContain("undefined");
 
     view.unmount();
   });

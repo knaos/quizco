@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import type { CorrectTheErrorContent, CorrectTheErrorPhrase } from '@quizco/shared';
+import React, { useEffect, useMemo, useState } from 'react';
+import type { CorrectTheErrorContent, CorrectTheErrorWord } from '@quizco/shared';
 import { useTranslation } from 'react-i18next';
 import Button from '../../ui/Button';
 import Input, { TextArea } from '../../ui/Input';
@@ -14,51 +14,99 @@ interface CorrectTheErrorEditorProps {
 const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, onChange }) => {
   const { t } = useTranslation();
   const [text, setText] = useState(content.text || '');
-  const [phrases, setPhrases] = useState<CorrectTheErrorPhrase[]>(content.phrases || []);
-  const [errorPhraseIndex, setErrorPhraseIndex] = useState(content.errorPhraseIndex ?? -1);
+  const [words, setWords] = useState<CorrectTheErrorWord[]>(content.words || []);
+  const [errorWordIndex, setErrorWordIndex] = useState(content.errorWordIndex ?? -1);
   const [correctReplacement, setCorrectReplacement] = useState(content.correctReplacement || '');
+
+  const getSentenceWords = (sentence: string): string[] => {
+    if (!sentence.trim()) return [];
+    return sentence.trim().split(/\s+/);
+  };
+
+  const sentenceWords = useMemo(() => getSentenceWords(text), [text]);
+  const boundWords = useMemo(
+    () =>
+      words.map((word) => ({
+        ...word,
+        text: sentenceWords[word.wordIndex] ?? word.text,
+      })),
+    [sentenceWords, words],
+  );
+  const resolvedErrorWordIndex = boundWords.some((word) => word.wordIndex === errorWordIndex)
+    ? errorWordIndex
+    : -1;
+  const resolvedCorrectReplacement = resolvedErrorWordIndex === -1 ? '' : correctReplacement;
+  const canAddMoreWords = Boolean(text.trim()) && words.length < sentenceWords.length;
 
   useEffect(() => {
     onChange({
       text,
-      phrases,
-      errorPhraseIndex,
-      correctReplacement,
+      words: boundWords,
+      errorWordIndex: resolvedErrorWordIndex,
+      correctReplacement: resolvedCorrectReplacement,
     });
-  }, [text, phrases, errorPhraseIndex, correctReplacement, onChange]);
+  }, [text, boundWords, resolvedErrorWordIndex, resolvedCorrectReplacement, onChange]);
 
-  const updatePhraseText = (index: number, value: string) => {
-    const newPhrases = [...phrases];
-    newPhrases[index] = { ...newPhrases[index], text: value };
-    setPhrases(newPhrases);
+  const updateWordTarget = (index: number, nextWordIndex: number) => {
+    if (words.some((word, wordIndex) => wordIndex !== index && word.wordIndex === nextWordIndex)) {
+      return;
+    }
+
+    const newWords = [...words];
+    const previousWordIndex = newWords[index].wordIndex;
+    newWords[index] = {
+      ...newWords[index],
+      wordIndex: nextWordIndex,
+      text: sentenceWords[nextWordIndex] || '',
+    };
+    setWords(newWords);
+
+    if (errorWordIndex === previousWordIndex) {
+      setErrorWordIndex(nextWordIndex);
+    }
   };
 
-  const updateAlternative = (phraseIndex: number, altIndex: number, value: string) => {
-    const newPhrases = [...phrases];
-    const newAlternatives = [...newPhrases[phraseIndex].alternatives];
+  const updateAlternative = (wordIndex: number, altIndex: number, value: string) => {
+    const newWords = [...words];
+    const newAlternatives = [...newWords[wordIndex].alternatives];
     newAlternatives[altIndex] = value;
-    newPhrases[phraseIndex] = { ...newPhrases[phraseIndex], alternatives: newAlternatives };
-    setPhrases(newPhrases);
+    newWords[wordIndex] = { ...newWords[wordIndex], alternatives: newAlternatives };
+    setWords(newWords);
     
-    // If this phrase is the error and this alternative was the correct replacement, update it
-    if (phraseIndex === errorPhraseIndex && correctReplacement === phrases[phraseIndex].alternatives[altIndex]) {
+    // If this word is the error and this alternative was the correct replacement, update it
+    if (words[wordIndex].wordIndex === errorWordIndex && correctReplacement === words[wordIndex].alternatives[altIndex]) {
         setCorrectReplacement(value);
     }
   };
 
-  const addPhrase = () => {
-    if (phrases.length >= 4) return;
-    setPhrases([...phrases, { text: '', alternatives: ['', '', ''] }]);
+  const addWord = () => {
+    // Find the next available word index based on existing words
+    const usedIndices = new Set(words.map(w => w.wordIndex));
+    let nextIndex = 0;
+    while (usedIndices.has(nextIndex) && nextIndex < sentenceWords.length) {
+      nextIndex++;
+    }
+
+    if (sentenceWords[nextIndex] === undefined) {
+      return;
+    }
+
+    setWords([
+      ...words,
+      {
+        wordIndex: nextIndex,
+        text: sentenceWords[nextIndex],
+        alternatives: ['', '', ''],
+      },
+    ]);
   };
 
-  const removePhrase = (index: number) => {
-    const newPhrases = phrases.filter((_, i) => i !== index);
-    setPhrases(newPhrases);
-    if (errorPhraseIndex === index) {
-      setErrorPhraseIndex(-1);
+  const removeWord = (index: number) => {
+    const newWords = words.filter((_, i) => i !== index);
+    setWords(newWords);
+    if (errorWordIndex === words[index].wordIndex) {
+      setErrorWordIndex(-1);
       setCorrectReplacement('');
-    } else if (errorPhraseIndex > index) {
-      setErrorPhraseIndex(errorPhraseIndex - 1);
     }
   };
 
@@ -72,31 +120,77 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
         placeholder={t('admin.questions.correctTheError.fullTextPlaceholder')}
       />
 
+      {/* Show sentence preview with word indices */}
+      {text.trim() && (
+        <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+          <p className="text-sm font-bold text-blue-700 mb-2">
+            {t('admin.questions.correctTheError.sentencePreview')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {sentenceWords.map((word, idx) => {
+              const hasAlternatives = boundWords.some((boundWord) => boundWord.wordIndex === idx);
+              const isError = resolvedErrorWordIndex === idx;
+              return (
+                <span
+                  key={idx}
+                  className={`px-2 py-1 rounded text-sm font-medium ${
+                    isError
+                      ? 'bg-red-500 text-white'
+                      : hasAlternatives
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                  title={`Word ${idx}`}
+                >
+                  {idx}:{word}
+                </span>
+              );
+            })}
+          </div>
+          <p className="text-xs text-blue-600 mt-2">
+            {t('admin.questions.correctTheError.legend')}
+          </p>
+        </div>
+      )}
+
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">
-            {t('admin.questions.correctTheError.phrases')} (1-4)
+            {t('admin.questions.correctTheError.wordsWithAlternatives')} (0-{sentenceWords.length || '?'})
           </label>
           <Button
-            onClick={addPhrase}
-            disabled={phrases.length >= 4}
+            onClick={addWord}
+            disabled={!canAddMoreWords}
             size="sm"
             variant="purple"
+            data-testid="cte-editor-add-word"
           >
-            {t('admin.questions.correctTheError.addPhrase')}
+            {t('admin.questions.correctTheError.addWord')}
           </Button>
         </div>
 
-        {phrases.map((phrase, pIdx) => (
-          <Card key={pIdx} variant="flat" className={`p-4 space-y-3 ${errorPhraseIndex === pIdx ? 'border-red-500 bg-red-50' : ''}`}>
+        {words.length === 0 && text.trim() && (
+          <p className="text-sm text-gray-500 italic text-center py-4">
+            {t('admin.questions.correctTheError.noWordsYet')}
+          </p>
+        )}
+
+        {words.length === 0 && !text.trim() && (
+          <p className="text-sm text-gray-500 italic text-center py-4">
+            {t('admin.questions.correctTheError.enterSentenceFirst')}
+          </p>
+        )}
+
+        {boundWords.map((word, wIdx) => (
+          <Card key={wIdx} variant="flat" className={`p-4 space-y-3 ${resolvedErrorWordIndex === word.wordIndex ? 'border-red-500 bg-red-50' : ''}`}>
             <div className="flex items-start space-x-3">
               <div className="flex items-center h-10">
                 <input
                   type="radio"
-                  name="errorPhrase"
-                  checked={errorPhraseIndex === pIdx}
+                  name="errorWord"
+                  checked={resolvedErrorWordIndex === word.wordIndex}
                   onChange={() => {
-                    setErrorPhraseIndex(pIdx);
+                    setErrorWordIndex(word.wordIndex);
                     setCorrectReplacement('');
                   }}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
@@ -104,17 +198,41 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
                 />
               </div>
               <div className="flex-1">
-                <Input
-                  type="text"
-                  value={phrase.text}
-                  onChange={(e) => updatePhraseText(pIdx, e.target.value)}
-                  placeholder={t('admin.questions.correctTheError.phraseTextPlaceholder')}
-                  className="py-2 text-base"
-                />
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-bold text-gray-500">
+                    {t('admin.questions.correctTheError.targetWord')}
+                  </label>
+                  <select
+                    value={word.wordIndex}
+                    onChange={(e) => updateWordTarget(wIdx, Number(e.target.value))}
+                    className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-base font-medium text-gray-800"
+                    data-testid={`cte-editor-word-target-${wIdx}`}
+                  >
+                    {sentenceWords.map((sentenceWord, sentenceWordIndex) => {
+                      const isUsedByOtherWord = words.some(
+                        (existingWord, existingWordIndex) =>
+                          existingWordIndex !== wIdx && existingWord.wordIndex === sentenceWordIndex,
+                      );
+
+                      return (
+                        <option
+                          key={`${sentenceWordIndex}-${sentenceWord}`}
+                          value={sentenceWordIndex}
+                          disabled={isUsedByOtherWord}
+                        >
+                          {sentenceWordIndex}: {sentenceWord}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <p className="mt-2 text-sm font-medium text-gray-600">
+                  {t('admin.questions.correctTheError.boundWord')}: {word.text}
+                </p>
               </div>
               <Button
                 variant="ghost"
-                onClick={() => removePhrase(pIdx)}
+                onClick={() => removeWord(wIdx)}
                 className="text-red-600 h-10 px-2"
               >
                 {t('common.remove')}
@@ -122,25 +240,25 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pl-7">
-              {phrase.alternatives.map((alt, aIdx) => (
+              {word.alternatives.map((alt, aIdx) => (
                 <div key={aIdx} className="relative">
                   <Input
                     type="text"
                     value={alt}
-                    onChange={(e) => updateAlternative(pIdx, aIdx, e.target.value)}
+                    onChange={(e) => updateAlternative(wIdx, aIdx, e.target.value)}
                     placeholder={`${t('admin.questions.correctTheError.alternative')} ${aIdx + 1}`}
                     className={`py-2 text-sm pr-8 ${
-                      errorPhraseIndex === pIdx && correctReplacement === alt && alt !== ''
+                      resolvedErrorWordIndex === word.wordIndex && resolvedCorrectReplacement === alt && alt !== ''
                         ? 'border-green-500 bg-green-50'
                         : ''
                     }`}
                   />
-                  {errorPhraseIndex === pIdx && (
+                  {resolvedErrorWordIndex === word.wordIndex && (
                     <button
                       type="button"
                       onClick={() => setCorrectReplacement(alt)}
                       className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full ${
-                        correctReplacement === alt && alt !== ''
+                        resolvedCorrectReplacement === alt && alt !== ''
                           ? 'text-green-600 bg-green-100'
                           : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
                       }`}
