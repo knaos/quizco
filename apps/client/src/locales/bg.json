@@ -279,15 +279,17 @@
         "correctTheError": {
           "fullText": "Пълен текст на изречението",
           "fullTextPlaceholder": "Въведете цялото изречение тук за справка...",
-          "phrases": "Фрази на изречението",
-          "phrasesHelp": "Кликнете върху бутона до фразата, която съдържа грешка.",
-          "addPhrase": "Добави фраза",
-          "markAsError": "Маркирай като грешна фраза",
-          "phraseTextPlaceholder": "Текст на фразата...",
+          "sentencePreview": "Преглед на изречението",
+          "legend": "Сивите думи не се редактират. Сините думи имат варианти. Червеното отбелязва грешната дума.",
+          "wordsWithAlternatives": "Думи с варианти",
+          "addWord": "Добави дума",
+          "noWordsYet": "Все още няма избрани думи. Добавете дума, която трябва да предлага варианти.",
+          "enterSentenceFirst": "Въведете цялото изречение, преди да избирате думи за редакция.",
+          "targetWord": "Целева дума",
+          "boundWord": "Обвързана дума",
+          "markAsError": "Маркирай като грешна дума",
           "alternative": "Вариант",
-          "markAsCorrectReplacement": "Маркирай като верен отговор",
-          "correctReplacement": "Правилна корекция",
-          "correctReplacementPlaceholder": "Въведете правилния текст..."
+          "markAsCorrectReplacement": "Маркирай като верен отговор"
         }
       }
     }

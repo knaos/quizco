@@ -181,6 +181,28 @@ describe("PublicQuestionBody", () => {
     view.unmount();
   });
 
+  it("falls back to a generic question label when index metadata is missing", () => {
+    const view = render(
+      <PublicQuestionBody
+        mode="readOnly"
+        state={{
+          ...state,
+          currentQuestion: {
+            ...question,
+            index: undefined,
+          },
+        }}
+        answer=""
+        selectedIndices={[]}
+      />,
+    );
+
+    expect(view.container.textContent).toContain("Question");
+    expect(view.container.textContent).not.toContain("undefined");
+
+    view.unmount();
+  });
+
   it("renders crossword questions in read-only mode for the audience", () => {
     const crosswordState: GameState = {
       ...state,

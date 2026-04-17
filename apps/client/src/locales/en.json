@@ -279,15 +279,17 @@
         "correctTheError": {
           "fullText": "Full Sentence Text",
           "fullTextPlaceholder": "Enter the full sentence here for reference...",
-          "phrases": "Sentence Phrases",
-          "phrasesHelp": "Click the radio button next to the phrase that contains the error.",
-          "addPhrase": "Add Phrase",
-          "markAsError": "Mark as Error Phrase",
-          "phraseTextPlaceholder": "Phrase text...",
+          "sentencePreview": "Sentence preview",
+          "legend": "Gray words are not editable. Blue words have alternatives. Red marks the incorrect word.",
+          "wordsWithAlternatives": "Words with alternatives",
+          "addWord": "Add word",
+          "noWordsYet": "No words selected yet. Add a word that should offer alternatives.",
+          "enterSentenceFirst": "Enter the full sentence before choosing editable words.",
+          "targetWord": "Target word",
+          "boundWord": "Bound to",
+          "markAsError": "Mark as error word",
           "alternative": "Alternative",
-          "markAsCorrectReplacement": "Mark as Correct Replacement",
-          "correctReplacement": "Correct Replacement",
-          "correctReplacementPlaceholder": "Enter the correct text..."
+          "markAsCorrectReplacement": "Mark as correct replacement"
         }
       }
     }

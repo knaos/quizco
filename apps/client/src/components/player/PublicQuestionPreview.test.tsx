@@ -47,4 +47,24 @@ describe("PublicQuestionPreview", () => {
 
     view.unmount();
   });
+
+  it("does not render undefined when question numbering metadata is missing", () => {
+    const view = render(
+      <PublicQuestionPreview
+        state={{
+          ...state,
+          currentQuestion: {
+            ...question,
+            index: undefined,
+          },
+        }}
+        testIdPrefix="audience"
+      />,
+    );
+
+    expect(view.container.textContent).toContain("Question");
+    expect(view.container.textContent).not.toContain("undefined");
+
+    view.unmount();
+  });
 });

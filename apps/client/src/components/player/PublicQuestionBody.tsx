@@ -37,6 +37,14 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   const { currentQuestion } = props.state;
   const testIdPrefix = props.testIdPrefix ?? "player";
   const exampleQuestion = currentQuestion?.index === 0;
+  const questionLabel =
+    typeof currentQuestion?.index === "number"
+      ? currentQuestion.section
+        ? `${t("player.section")} ${currentQuestion.section}, ${t("player.question")} ${currentQuestion.index}`
+        : `${t("player.question")} ${currentQuestion.index}`
+      : currentQuestion?.section
+        ? `${t("player.section")} ${currentQuestion.section}`
+        : t("player.question");
 
   if (!currentQuestion) {
     return null;
@@ -51,9 +59,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
         <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-blue-600"}`}>
           {exampleQuestion
             ? t("player.example_question")
-            : currentQuestion.section
-              ? `${t("player.section")} ${currentQuestion.section}, ${t("player.question")} ${currentQuestion.index}`
-              : `${t("player.question")} ${currentQuestion.index}`}
+            : questionLabel}
         </span>
         <h2
           className="text-4xl font-black text-gray-900 leading-tight"

@@ -134,6 +134,7 @@ export class PostgresGameRepository implements IGameRepository {
       orderBy: [
         { section: "asc" },
         { realIndex: "asc" },
+        { createdAt: "asc" },
       ],
     });
   }
@@ -156,6 +157,9 @@ export class PostgresGameRepository implements IGameRepository {
         },
         {
           realIndex: "asc",
+        },
+        {
+          createdAt: "asc",
         },
       ],
       include: {

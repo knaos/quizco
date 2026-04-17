@@ -16,6 +16,14 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
 }) => {
   const { t } = useTranslation();
   const exampleQuestion = state.currentQuestion?.index === 0;
+  const questionLabel =
+    typeof state.currentQuestion?.index === "number"
+      ? state.currentQuestion.section
+        ? `${t("player.section")} ${state.currentQuestion.section}, ${t("player.question")} ${state.currentQuestion.index}`
+        : `${t("player.question")} ${state.currentQuestion.index}`
+      : state.currentQuestion?.section
+        ? `${t("player.section")} ${state.currentQuestion.section}`
+        : t("player.question");
 
   if (!state.currentQuestion) {
     return null;
@@ -30,9 +38,7 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
         <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-yellow-600"}`}>
           {exampleQuestion
             ? t("player.example_question")
-            : state.currentQuestion.section
-              ? `${t("player.section")} ${state.currentQuestion.section}, ${t("player.question")} ${state.currentQuestion.index}`
-              : `${t("player.question")} ${state.currentQuestion.index}`}
+            : questionLabel}
         </span>
         <h2 className="text-4xl font-black text-gray-900 leading-tight">
           {state.currentQuestion.questionText}

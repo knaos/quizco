@@ -86,6 +86,7 @@ export function createQuizServer(
             orderBy: [
               { section: "asc" },
               { realIndex: "asc" },
+              { createdAt: "asc" },
             ],
             include: {
               answers: true,

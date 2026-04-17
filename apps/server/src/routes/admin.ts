@@ -10,6 +10,36 @@ import {
 
 const router = Router();
 
+async function getNextQuestionIndex(
+  roundId: string,
+  section?: string | null,
+): Promise<number> {
+  const aggregate = await prisma.question.aggregate({
+    _max: {
+      index: true,
+    },
+    where: {
+      roundId,
+      section: section ?? null,
+    },
+  });
+
+  return (aggregate._max.index ?? -1) + 1;
+}
+
+async function getNextRealIndex(roundId: string): Promise<number> {
+  const aggregate = await prisma.question.aggregate({
+    _max: {
+      realIndex: true,
+    },
+    where: {
+      roundId,
+    },
+  });
+
+  return (aggregate._max.realIndex ?? -1) + 1;
+}
+
 // Apply auth middleware to all admin routes
 router.use(authMiddleware);
 
@@ -68,6 +98,7 @@ router.get("/competitions/:id", async (req, res) => {
               orderBy: [
                 { section: "asc" },
                 { realIndex: "asc" },
+                { createdAt: "asc" },
               ],
             },
           },
@@ -162,6 +193,7 @@ router.get("/rounds/:id/questions", async (req, res) => {
       orderBy: [
         { section: "asc" },
         { realIndex: "asc" },
+        { createdAt: "asc" },
       ],
     });
     res.json(questions);
@@ -179,8 +211,19 @@ router.post("/questions", async (req, res) => {
     timeLimitSeconds,
     content,
     grading,
+    section,
+    index,
+    realIndex,
   } = req.body;
   try {
+    const normalizedSection = typeof section === "string" && section.trim() ? section.trim() : null;
+    const resolvedIndex =
+      typeof index === "number"
+        ? index
+        : await getNextQuestionIndex(roundId, normalizedSection);
+    const resolvedRealIndex =
+      typeof realIndex === "number" ? realIndex : await getNextRealIndex(roundId);
+
     const question = await prisma.question.create({
       data: {
         roundId,
@@ -190,6 +233,9 @@ router.post("/questions", async (req, res) => {
         timeLimitSeconds,
         content,
         grading: grading as GradingMode,
+        section: normalizedSection,
+        index: resolvedIndex,
+        realIndex: resolvedRealIndex,
       },
     });
     res.status(201).json(question);
@@ -200,9 +246,43 @@ router.post("/questions", async (req, res) => {
 
 router.put("/questions/:id", async (req, res) => {
   const { id } = req.params;
-  const { questionText, type, points, timeLimitSeconds, content, grading } =
+  const {
+    questionText,
+    type,
+    points,
+    timeLimitSeconds,
+    content,
+    grading,
+    section,
+    index,
+    realIndex,
+  } =
     req.body;
   try {
+    const existingQuestion = await prisma.question.findUnique({
+      where: { id },
+      select: {
+        roundId: true,
+        section: true,
+        index: true,
+        realIndex: true,
+      },
+    });
+
+    if (!existingQuestion) {
+      res.status(404).json({ error: "Question not found" });
+      return;
+    }
+
+    const normalizedSection = typeof section === "string" ? section.trim() || null : existingQuestion.section;
+    const sectionChanged = normalizedSection !== existingQuestion.section;
+    const resolvedIndex =
+      typeof index === "number"
+        ? index
+        : sectionChanged
+          ? await getNextQuestionIndex(existingQuestion.roundId, normalizedSection)
+          : existingQuestion.index;
+
     const question = await prisma.question.update({
       where: { id },
       data: {
@@ -212,6 +292,10 @@ router.put("/questions/:id", async (req, res) => {
         timeLimitSeconds,
         content,
         grading: grading as GradingMode,
+        section: normalizedSection,
+        index: resolvedIndex,
+        realIndex:
+          typeof realIndex === "number" ? realIndex : existingQuestion.realIndex,
       },
     });
     res.json(question);

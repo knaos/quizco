@@ -143,19 +143,66 @@ describe("GradingService", () => {
     expect(service.gradeAnswer(question, "some answer")).toBeNull();
   });
 
-  it("disables scoring for questions with points=0", () => {
+  it("preserves correctness but awards zero points for zero-point questions", () => {
     const question: Question = {
       ...baseQuestion,
       points: 0,
+      content: { options: ["A", "B"], correctIndices: [1] },
     };
 
-    // Any answer should return isCorrect: true, score: 0
-    expect(service.gradeAnswer(question, "any answer" as unknown as AnswerContent)).toEqual({
+    expect(service.gradeAnswer(question, [1] as unknown as AnswerContent)).toEqual({
       isCorrect: true,
       score: 0,
     });
-    expect(service.gradeAnswer(question, [0, 1] as unknown as AnswerContent)).toEqual({
+    expect(service.gradeAnswer(question, [0] as unknown as AnswerContent)).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+  });
+
+  it("still respects manual grading for zero-point questions", () => {
+    const question: Question = {
+      ...baseQuestion,
+      points: 0,
+      grading: "MANUAL",
+    };
+
+    expect(service.gradeAnswer(question, [0] as unknown as AnswerContent)).toBeNull();
+  });
+
+  it("returns zero-point partial credit for correct-the-error without auto-passing", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CORRECT_THE_ERROR",
+      points: 0,
+      content: {
+        text: "The sky is green",
+        words: [
+          { wordIndex: 1, text: "sky", alternatives: ["sea", "land"] },
+          { wordIndex: 3, text: "green", alternatives: ["blue", "black"] },
+        ],
+        errorWordIndex: 3,
+        correctReplacement: "blue",
+      },
+    };
+
+    expect(
+      service.gradeAnswer(question, {
+        selectedWordIndex: 3,
+        correction: "blue",
+      }),
+    ).toEqual({
       isCorrect: true,
+      score: 0,
+    });
+
+    expect(
+      service.gradeAnswer(question, {
+        selectedWordIndex: 1,
+        correction: "land",
+      }),
+    ).toEqual({
+      isCorrect: false,
       score: 0,
     });
   });
