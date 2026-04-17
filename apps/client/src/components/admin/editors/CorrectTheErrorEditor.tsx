@@ -24,52 +24,28 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
   };
 
   const sentenceWords = useMemo(() => getSentenceWords(text), [text]);
+  const boundWords = useMemo(
+    () =>
+      words.map((word) => ({
+        ...word,
+        text: sentenceWords[word.wordIndex] ?? word.text,
+      })),
+    [sentenceWords, words],
+  );
+  const resolvedErrorWordIndex = boundWords.some((word) => word.wordIndex === errorWordIndex)
+    ? errorWordIndex
+    : -1;
+  const resolvedCorrectReplacement = resolvedErrorWordIndex === -1 ? '' : correctReplacement;
+  const canAddMoreWords = Boolean(text.trim()) && words.length < sentenceWords.length;
 
   useEffect(() => {
     onChange({
       text,
-      words,
-      errorWordIndex,
-      correctReplacement,
+      words: boundWords,
+      errorWordIndex: resolvedErrorWordIndex,
+      correctReplacement: resolvedCorrectReplacement,
     });
-  }, [text, words, errorWordIndex, correctReplacement, onChange]);
-
-  useEffect(() => {
-    setWords((previousWords) => {
-      const synchronizedWords = previousWords
-        .filter((word) => sentenceWords[word.wordIndex] !== undefined)
-        .map((word) => ({
-          ...word,
-          text: sentenceWords[word.wordIndex],
-        }));
-
-      const changed =
-        synchronizedWords.length !== previousWords.length ||
-        synchronizedWords.some((word, index) => {
-          const previousWord = previousWords[index];
-          return (
-            !previousWord ||
-            previousWord.wordIndex !== word.wordIndex ||
-            previousWord.text !== word.text ||
-            previousWord.alternatives.length !== word.alternatives.length ||
-            previousWord.alternatives.some((alternative, altIndex) => alternative !== word.alternatives[altIndex])
-          );
-        });
-
-      return changed ? synchronizedWords : previousWords;
-    });
-  }, [sentenceWords]);
-
-  useEffect(() => {
-    if (errorWordIndex === -1) {
-      return;
-    }
-
-    if (!words.some((word) => word.wordIndex === errorWordIndex)) {
-      setErrorWordIndex(-1);
-      setCorrectReplacement('');
-    }
-  }, [errorWordIndex, words]);
+  }, [text, boundWords, resolvedErrorWordIndex, resolvedCorrectReplacement, onChange]);
 
   const updateWordTarget = (index: number, nextWordIndex: number) => {
     if (words.some((word, wordIndex) => wordIndex !== index && word.wordIndex === nextWordIndex)) {
@@ -152,8 +128,8 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
           </p>
           <div className="flex flex-wrap gap-2">
             {sentenceWords.map((word, idx) => {
-              const hasAlternatives = words.some(w => w.wordIndex === idx);
-              const isError = errorWordIndex === idx;
+              const hasAlternatives = boundWords.some((boundWord) => boundWord.wordIndex === idx);
+              const isError = resolvedErrorWordIndex === idx;
               return (
                 <span
                   key={idx}
@@ -184,7 +160,7 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
           </label>
           <Button
             onClick={addWord}
-            disabled={!text.trim() || words.length >= (sentenceWords.length || 0)}
+            disabled={!canAddMoreWords}
             size="sm"
             variant="purple"
             data-testid="cte-editor-add-word"
@@ -205,14 +181,14 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
           </p>
         )}
 
-        {words.map((word, wIdx) => (
-          <Card key={wIdx} variant="flat" className={`p-4 space-y-3 ${errorWordIndex === word.wordIndex ? 'border-red-500 bg-red-50' : ''}`}>
+        {boundWords.map((word, wIdx) => (
+          <Card key={wIdx} variant="flat" className={`p-4 space-y-3 ${resolvedErrorWordIndex === word.wordIndex ? 'border-red-500 bg-red-50' : ''}`}>
             <div className="flex items-start space-x-3">
               <div className="flex items-center h-10">
                 <input
                   type="radio"
                   name="errorWord"
-                  checked={errorWordIndex === word.wordIndex}
+                  checked={resolvedErrorWordIndex === word.wordIndex}
                   onChange={() => {
                     setErrorWordIndex(word.wordIndex);
                     setCorrectReplacement('');
@@ -272,17 +248,17 @@ const CorrectTheErrorEditor: React.FC<CorrectTheErrorEditorProps> = ({ content, 
                     onChange={(e) => updateAlternative(wIdx, aIdx, e.target.value)}
                     placeholder={`${t('admin.questions.correctTheError.alternative')} ${aIdx + 1}`}
                     className={`py-2 text-sm pr-8 ${
-                      errorWordIndex === word.wordIndex && correctReplacement === alt && alt !== ''
+                      resolvedErrorWordIndex === word.wordIndex && resolvedCorrectReplacement === alt && alt !== ''
                         ? 'border-green-500 bg-green-50'
                         : ''
                     }`}
                   />
-                  {errorWordIndex === word.wordIndex && (
+                  {resolvedErrorWordIndex === word.wordIndex && (
                     <button
                       type="button"
                       onClick={() => setCorrectReplacement(alt)}
                       className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full ${
-                        correctReplacement === alt && alt !== ''
+                        resolvedCorrectReplacement === alt && alt !== ''
                           ? 'text-green-600 bg-green-100'
                           : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
                       }`}
