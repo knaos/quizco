@@ -71,7 +71,7 @@ export const getHydratedPlayerAnswerState = (
       return {
         answer: isCorrectTheErrorAnswer(persistedAnswer)
           ? persistedAnswer
-          : { selectedPhraseIndex: -1, correction: "" },
+          : { selectedWordIndex: -1, correction: "" },
         selectedIndices: [],
       };
 

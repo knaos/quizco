@@ -83,7 +83,11 @@ export function createQuizServer(
         orderBy: { orderIndex: "asc" },
         include: {
           questions: {
-            orderBy: { createdAt: "asc" },
+            orderBy: [
+              { section: "asc" },
+              { realIndex: "asc" },
+              { createdAt: "asc" },
+            ],
             include: {
               answers: true,
             },
@@ -481,10 +485,13 @@ export function createQuizServer(
         socket.emit("AUTH_ERROR", { message: "Unauthorized" });
         return;
       }
+      const room = `competition_${competitionId}`;
       await gameManager.pauseTimer(competitionId);
-      io.to(`competition_${competitionId}`).emit(
+      const state = gameManager.getState(competitionId);
+      io.to(room).emit("TIMER_SYNC", state.timeRemaining);
+      io.to(room).emit(
         "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
+        state,
       );
     });
 
@@ -493,11 +500,16 @@ export function createQuizServer(
         socket.emit("AUTH_ERROR", { message: "Unauthorized" });
         return;
       }
-      await gameManager.resumeTimer(competitionId);
-      io.to(`competition_${competitionId}`).emit(
-        "GAME_STATE_SYNC",
-        gameManager.getState(competitionId),
-      );
+      const room = `competition_${competitionId}`;
+      await gameManager.resumeTimer(competitionId, (state) => {
+        try {
+          io.to(room).emit("TIMER_SYNC", state.timeRemaining);
+          io.to(room).emit("GAME_STATE_SYNC", state);
+        } catch (error) {
+          logger.error("Failed while broadcasting timer sync on resume", error);
+        }
+      });
+      io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
     onSafe("disconnect", () => {

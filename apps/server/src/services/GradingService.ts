@@ -29,70 +29,71 @@ export class GradingService {
 
     // Auto-grading logic
     try {
+      let gradingResult: { isCorrect: boolean; score: number } | null = null;
+
       if (question.type === "MULTIPLE_CHOICE") {
-        return this.gradeMultipleChoice(
+        gradingResult = this.gradeMultipleChoice(
           question.content as MultipleChoiceContent,
           answer as unknown as number[],
           question.points
         );
-      }
-
-      if (question.type === "CLOSED") {
-        return this.gradeClosed(
+      } else if (question.type === "CLOSED") {
+        gradingResult = this.gradeClosed(
           question.content as ClosedQuestionContent,
           answer as string,
           question.points
         );
-      }
-
-      if (question.type === "CROSSWORD") {
-        return this.gradeCrossword(
+      } else if (question.type === "CROSSWORD") {
+        gradingResult = this.gradeCrossword(
           question.content as CrosswordContent,
           answer as CrosswordAnswer,
           question.points,
           options.usedJokers || false
         );
-      }
-
-      if (question.type === "FILL_IN_THE_BLANKS") {
-        return this.gradeFillInTheBlanks(
+      } else if (question.type === "FILL_IN_THE_BLANKS") {
+        gradingResult = this.gradeFillInTheBlanks(
           question.content as FillInTheBlanksContent,
           answer as FillInTheBlanksAnswer,
           question.points
         );
-      }
-
-      if (question.type === "MATCHING") {
-        return this.gradeMatching(
+      } else if (question.type === "MATCHING") {
+        gradingResult = this.gradeMatching(
           question.content as MatchingContent,
           answer as MatchingAnswer,
           question.points
         );
-      }
-
-      if (question.type === "CHRONOLOGY") {
-        return this.gradeChronology(
+      } else if (question.type === "CHRONOLOGY") {
+        gradingResult = this.gradeChronology(
           question.content as ChronologyContent,
           answer as ChronologyAnswer,
           question.points
         );
-      }
-
-      if (question.type === "TRUE_FALSE") {
-        return this.gradeTrueFalse(
+      } else if (question.type === "TRUE_FALSE") {
+        gradingResult = this.gradeTrueFalse(
           question.content as TrueFalseContent,
           answer as unknown as boolean,
           question.points
         );
-      }
-
-      if (question.type === "CORRECT_THE_ERROR") {
-        return this.gradeCorrectTheError(
+      } else if (question.type === "CORRECT_THE_ERROR") {
+        gradingResult = this.gradeCorrectTheError(
           question.content as CorrectTheErrorContent,
           answer as unknown as CorrectTheErrorAnswer,
           question.points
         );
       }
+
+      if (!gradingResult) {
+        return null;
+      }
+
+      if (question.points === 0) {
+        return {
+          isCorrect: gradingResult.isCorrect,
+          score: 0,
+        };
+      }
+
+      return gradingResult;
     } catch (error) {
       console.error("Error grading answer:", error);
       return { isCorrect: false, score: 0 };
@@ -392,14 +393,14 @@ export class GradingService {
     answer: CorrectTheErrorAnswer,
     _totalPoints: number
   ) {
-    if (!answer || typeof answer.selectedPhraseIndex === "undefined") {
+    if (!answer || typeof answer.selectedWordIndex === "undefined") {
       return { isCorrect: false, score: 0 };
     }
 
     let score = 0;
 
-    // 1. Correct phrase selection (1pt)
-    if (answer.selectedPhraseIndex === content.errorPhraseIndex) {
+    // 1. Correct word selection (1pt)
+    if (answer.selectedWordIndex === content.errorWordIndex) {
       score += 1;
     }
 

@@ -70,7 +70,7 @@ const getDefaultContentForType = (type: QuestionType): EditorContent => {
     case "TRUE_FALSE":
       return { isTrue: true };
     case "CORRECT_THE_ERROR":
-      return { text: "", phrases: [], errorPhraseIndex: -1, correctReplacement: "" };
+      return { text: "", words: [], errorWordIndex: -1, correctReplacement: "" };
   }
 };
 

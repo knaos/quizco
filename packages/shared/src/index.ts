@@ -32,7 +32,7 @@ export type ChronologyAnswer = {
 };
 export type TrueFalseAnswer = boolean;
 export type CorrectTheErrorAnswer = {
-  selectedPhraseIndex: number;
+  selectedWordIndex: number; // Index into original sentence words that was selected
   correction: string;
 };
 
@@ -118,16 +118,17 @@ export interface TrueFalseContent {
   isTrue: boolean;
 }
 
-export interface CorrectTheErrorPhrase {
-  text: string;
-  alternatives: string[]; // Exactly 3
+export interface CorrectTheErrorWord {
+  wordIndex: number; // Index of the word in the sentence (0-based)
+  text: string; // The original word text
+  alternatives: string[]; // Alternative options for this word
 }
 
 export interface CorrectTheErrorContent {
-  text: string; // The full sentence for display/reference
-  phrases: CorrectTheErrorPhrase[]; // 1 to 4 phrases
-  errorPhraseIndex: number;
-  correctReplacement: string; // The correct alternative for the error phrase
+  text: string; // The full sentence
+  words: CorrectTheErrorWord[]; // Only words with alternatives (subset of words in sentence)
+  errorWordIndex: number; // Index into the original sentence's words that is wrong
+  correctReplacement: string; // The correct alternative for the error word
 }
 
 export type QuestionContent =
@@ -149,6 +150,8 @@ interface BaseQuestion {
   timeLimitSeconds: number;
   grading: GradingMode;
   section?: string;
+  index?: number;
+  realIndex?: number;
 }
 
 export interface MultipleChoiceQuestion extends BaseQuestion {

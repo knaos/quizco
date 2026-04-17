@@ -4,6 +4,7 @@ import { useGame } from "../../contexts/useGame";
 import { LanguageSwitcher } from "../LanguageSwitcher";
 import { CompetitionSelector } from "../player/lobby/CompetitionSelector";
 import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "../player/phases/SimplePhases";
+import { TimerPausedPhase } from "../player/phases/TimerPausedPhase";
 import { PublicQuestionPreview } from "../player/PublicQuestionPreview";
 import { PublicQuestionBody } from "../player/PublicQuestionBody";
 import { AudienceRevealPhase } from "./AudienceRevealPhase";
@@ -49,7 +50,11 @@ export const AudienceView: React.FC = () => {
           <PublicQuestionPreview state={state} testIdPrefix="audience" />
         ) : null}
 
-        {state.phase === "QUESTION_ACTIVE" && state.currentQuestion ? (
+        {state.phase === "QUESTION_ACTIVE" && state.timerPaused && (
+          <TimerPausedPhase />
+        )}
+
+        {state.phase === "QUESTION_ACTIVE" && !state.timerPaused && state.currentQuestion ? (
           <div className="w-full max-w-3xl space-y-8">
             <PublicQuestionBody mode="readOnly" state={state} testIdPrefix="audience" />
             <div

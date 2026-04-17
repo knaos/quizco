@@ -9,6 +9,7 @@ const baseQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO" as const,
+  index: 0,
 };
 
 describe("getHydratedPlayerAnswerState", () => {

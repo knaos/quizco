@@ -11,6 +11,7 @@ const question: MultipleChoiceQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     options: ["One", "Two"],
     correctIndices: [1],

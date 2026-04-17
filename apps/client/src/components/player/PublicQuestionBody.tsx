@@ -1,7 +1,6 @@
 import React from "react";
 import type { AnswerContent, GameState } from "@quizco/shared";
 import { useTranslation } from "react-i18next";
-import Badge from "../ui/Badge";
 import { Card } from "../ui/Card";
 import {
   getQuestionActiveRenderer,
@@ -37,55 +36,60 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   const { t } = useTranslation();
   const { currentQuestion } = props.state;
   const testIdPrefix = props.testIdPrefix ?? "player";
+  const exampleQuestion = currentQuestion?.index === 0;
+  const questionLabel =
+    typeof currentQuestion?.index === "number"
+      ? currentQuestion.section
+        ? `${t("player.section")} ${currentQuestion.section}, ${t("player.question")} ${currentQuestion.index}`
+        : `${t("player.question")} ${currentQuestion.index}`
+      : currentQuestion?.section
+        ? `${t("player.section")} ${currentQuestion.section}`
+        : t("player.question");
 
   if (!currentQuestion) {
     return null;
   }
 
   return (
-    <div className="space-y-8 text-left">
-      {currentQuestion.section ? (
-        <Badge
-          variant="yellow"
-          className="p-4 rounded-2xl border-2 border-yellow-400 text-2xl"
-        >
-          {t("player.turn")}: {currentQuestion.section}
-        </Badge>
-      ) : null}
-
-      <Card className="p-8 border-b-4 border-blue-500">
-        <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">
-          {t("player.question")}
+    <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
+      <Card
+        variant="elevated"
+        className={`p-10 rounded-3xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}
+      >
+        <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-blue-600"}`}>
+          {exampleQuestion
+            ? t("player.example_question")
+            : questionLabel}
         </span>
         <h2
-          className="text-2xl md:text-3xl font-bold mt-2 text-gray-800"
+          className="text-4xl font-black text-gray-900 leading-tight"
           data-testid={`${testIdPrefix}-active-question-text`}
         >
           {currentQuestion.questionText}
         </h2>
       </Card>
 
-      <div className="space-y-6 w-full">
+      <div className={`space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}>
         {props.mode === "interactive"
           ? getQuestionActiveRenderer({
-              question: currentQuestion,
-              answer: props.answer,
-              selectedIndices: props.selectedIndices,
-              hasSubmitted: props.hasSubmitted,
-              setAnswer: props.setAnswer,
-              toggleIndex: props.toggleIndex,
-              submitAnswer: props.submitAnswer,
-              requestJoker: props.requestJoker,
-              testIdPrefix,
-              t,
-            })
+            question: currentQuestion,
+            answer: props.answer,
+            selectedIndices: props.selectedIndices,
+            hasSubmitted: props.hasSubmitted,
+            setAnswer: props.setAnswer,
+            toggleIndex: props.toggleIndex,
+            submitAnswer: props.submitAnswer,
+            requestJoker: props.requestJoker,
+            testIdPrefix,
+            t,
+          })
           : getQuestionReadOnlyRenderer({
-              question: currentQuestion,
-              answer: props.answer,
-              selectedIndices: props.selectedIndices,
-              testIdPrefix,
-              t,
-            })}
+            question: currentQuestion,
+            answer: props.answer,
+            selectedIndices: props.selectedIndices,
+            testIdPrefix,
+            t,
+          })}
       </div>
     </div>
   );

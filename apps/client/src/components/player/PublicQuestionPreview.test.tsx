@@ -11,6 +11,7 @@ const question: MultipleChoiceQuestion = {
   points: 10,
   timeLimitSeconds: 30,
   grading: "AUTO",
+  index: 0,
   content: {
     options: ["Alpha", "Beta", "Gamma"],
     correctIndices: [1],
@@ -43,6 +44,26 @@ describe("PublicQuestionPreview", () => {
     expect(revealedOption?.textContent).toContain("Beta");
     expect(hiddenOption?.getAttribute("data-revealed")).toBe("false");
     expect(hiddenOption?.querySelector("span")?.className).toContain("invisible");
+
+    view.unmount();
+  });
+
+  it("does not render undefined when question numbering metadata is missing", () => {
+    const view = render(
+      <PublicQuestionPreview
+        state={{
+          ...state,
+          currentQuestion: {
+            ...question,
+            index: undefined,
+          },
+        }}
+        testIdPrefix="audience"
+      />,
+    );
+
+    expect(view.container.textContent).toContain("Question");
+    expect(view.container.textContent).not.toContain("undefined");
 
     view.unmount();
   });

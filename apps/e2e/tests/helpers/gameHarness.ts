@@ -1,6 +1,6 @@
 import { expect, request, type APIRequestContext, type Browser, type Page } from "@playwright/test";
 
-export const ADMIN_AUTH_HEADER = { "x-admin-auth": "admin123" };
+export const ADMIN_AUTH_HEADER = {};
 
 export interface QuestionDraft {
   questionText: string;
@@ -17,6 +17,9 @@ export interface QuestionDraft {
   points?: number;
   timeLimitSeconds?: number;
   grading?: "AUTO" | "MANUAL";
+  section?: string;
+  index?: number;
+  realIndex?: number;
   content: unknown;
 }
 
@@ -33,9 +36,24 @@ export interface SessionPages {
 }
 
 export async function createAdminApi(): Promise<APIRequestContext> {
+  const authApi = await request.newContext({
+    baseURL: "http://127.0.0.1:4000",
+  });
+  const loginRes = await authApi.post("/api/auth/login", {
+    data: {
+      role: "admin",
+      password: "admin123",
+    },
+  });
+  expect(loginRes.ok()).toBeTruthy();
+  const { token } = (await loginRes.json()) as { token: string };
+  await authApi.dispose();
+
   return request.newContext({
     baseURL: "http://127.0.0.1:4000",
-    extraHTTPHeaders: ADMIN_AUTH_HEADER,
+    extraHTTPHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
 
@@ -79,10 +97,15 @@ export async function createCompetitionWithQuestions(
         points: question.points ?? 10,
         timeLimitSeconds: question.timeLimitSeconds ?? 30,
         grading: question.grading ?? "AUTO",
+        section: question.section,
+        index: question.index,
+        realIndex: question.realIndex,
         content: question.content,
       },
     });
-    expect(createQuestionRes.ok()).toBeTruthy();
+    if (!createQuestionRes.ok()) {
+      throw new Error(`create question failed: ${createQuestionRes.status()} ${await createQuestionRes.text()}`);
+    }
     const createdQuestion = (await createQuestionRes.json()) as { id: string };
     questionIds.push(createdQuestion.id);
   }

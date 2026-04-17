@@ -13,6 +13,8 @@ describe("GradingService", () => {
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
+    index: 0,
+    realIndex: 0,
     content: { options: [], correctIndices: [0] },
   };
 
@@ -139,6 +141,70 @@ describe("GradingService", () => {
     };
 
     expect(service.gradeAnswer(question, "some answer")).toBeNull();
+  });
+
+  it("preserves correctness but awards zero points for zero-point questions", () => {
+    const question: Question = {
+      ...baseQuestion,
+      points: 0,
+      content: { options: ["A", "B"], correctIndices: [1] },
+    };
+
+    expect(service.gradeAnswer(question, [1] as unknown as AnswerContent)).toEqual({
+      isCorrect: true,
+      score: 0,
+    });
+    expect(service.gradeAnswer(question, [0] as unknown as AnswerContent)).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+  });
+
+  it("still respects manual grading for zero-point questions", () => {
+    const question: Question = {
+      ...baseQuestion,
+      points: 0,
+      grading: "MANUAL",
+    };
+
+    expect(service.gradeAnswer(question, [0] as unknown as AnswerContent)).toBeNull();
+  });
+
+  it("returns zero-point partial credit for correct-the-error without auto-passing", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CORRECT_THE_ERROR",
+      points: 0,
+      content: {
+        text: "The sky is green",
+        words: [
+          { wordIndex: 1, text: "sky", alternatives: ["sea", "land"] },
+          { wordIndex: 3, text: "green", alternatives: ["blue", "black"] },
+        ],
+        errorWordIndex: 3,
+        correctReplacement: "blue",
+      },
+    };
+
+    expect(
+      service.gradeAnswer(question, {
+        selectedWordIndex: 3,
+        correction: "blue",
+      }),
+    ).toEqual({
+      isCorrect: true,
+      score: 0,
+    });
+
+    expect(
+      service.gradeAnswer(question, {
+        selectedWordIndex: 1,
+        correction: "land",
+      }),
+    ).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
   });
 
   it("grades FILL_IN_THE_BLANKS correctly with partial scoring", () => {
@@ -399,25 +465,21 @@ describe("GradingService", () => {
       ...baseQuestion,
       type: "CORRECT_THE_ERROR",
       content: {
-        text: "Jesus was born in Nazareth.",
-        phrases: [
-          { text: "Jesus", alternatives: ["Peter", "John", "Paul"] },
-          { text: "was born", alternatives: ["died", "lived", "preached"] },
-          {
-            text: "in Nazareth",
-            alternatives: ["in Bethlehem", "in Jerusalem", "in Egypt"],
-          },
+        text: "Jesus was born in Nazareth",
+        words: [
+          { wordIndex: 0, text: "Jesus", alternatives: ["Peter", "John", "Paul"] },
+          { wordIndex: 4, text: "Nazareth", alternatives: ["Bethlehem", "Jerusalem", "Egypt"] },
         ],
-        errorPhraseIndex: 2,
-        correctReplacement: "in Bethlehem",
+        errorWordIndex: 4,
+        correctReplacement: "Bethlehem",
       },
     };
 
     // 1. Fully correct: 1pt for index, 1pt for replacement = 2
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 2,
-        correction: "in Bethlehem",
+        selectedWordIndex: 4,
+        correction: "Bethlehem",
       }),
     ).toEqual({
       isCorrect: true,
@@ -427,8 +489,8 @@ describe("GradingService", () => {
     // 2. Correct index, incorrect replacement: 1pt
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 2,
-        correction: "in Jerusalem",
+        selectedWordIndex: 4,
+        correction: "Jerusalem",
       }),
     ).toEqual({
       isCorrect: false,
@@ -438,8 +500,8 @@ describe("GradingService", () => {
     // 3. Incorrect index, correct replacement: 1pt
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 0,
-        correction: "in Bethlehem",
+        selectedWordIndex: 0,
+        correction: "Bethlehem",
       }),
     ).toEqual({
       isCorrect: false,
@@ -449,7 +511,7 @@ describe("GradingService", () => {
     // 4. Incorrect index, incorrect replacement: 0pt
     expect(
       service.gradeAnswer(question, {
-        selectedPhraseIndex: 1,
+        selectedWordIndex: 1,
         correction: "wrong",
       }),
     ).toEqual({

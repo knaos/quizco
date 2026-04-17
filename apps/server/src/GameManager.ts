@@ -148,6 +148,13 @@ export class GameManager {
       );
     }
 
+    if (sessionQuestion.type === "FILL_IN_THE_BLANKS") {
+      // Server-side shuffle: scramble options for each blank
+      for (const blank of sessionQuestion.content.blanks) {
+        blank.options = this.shuffleArray(blank.options);
+      }
+    }
+
     session.currentQuestion = sessionQuestion;
     session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
@@ -213,15 +220,35 @@ export class GameManager {
   public async pauseTimer(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
+    
+    this.timerService.stop(competitionId);
     session.timerPaused = true;
     await this.saveState();
   }
 
-  public async resumeTimer(competitionId: string) {
+  public async resumeTimer(
+    competitionId: string,
+    onTick?: (state: GameState) => void,
+  ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
+    
     session.timerPaused = false;
     await this.saveState();
+
+    const currentTimeRemaining = session.timeRemaining;
+    this.timerService.start(competitionId, currentTimeRemaining, {
+      onTick: async (remaining) => {
+        if (session.timerPaused) return;
+        session.timeRemaining = remaining;
+        if (onTick) onTick(session);
+      },
+      onEnd: async () => {
+        session.timerPaused = false;
+        await this.endQuestion(competitionId);
+        if (onTick) onTick(session);
+      },
+    });
   }
 
   public async revealAnswer(competitionId: string) {
