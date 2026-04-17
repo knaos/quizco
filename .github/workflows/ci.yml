@@ -53,8 +53,8 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate --schema apps/server/prisma/schema.prisma
 
-      - name: Push Prisma schema
-        run: npx prisma db push --schema apps/server/prisma/schema.prisma
+      - name: Apply Prisma migrations
+        run: npx prisma migrate deploy --schema apps/server/prisma/schema.prisma
 
       - name: Build shared package
         run: npm run build -w @quizco/shared
