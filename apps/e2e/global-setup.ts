@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 async function globalSetup(_config: FullConfig): Promise<void> {
   execFileSync(
     "npx",
-    ["prisma", "migrate", "deploy"],
+    ["prisma", "db", "push"],
     {
       cwd: path.resolve(__dirname, "../server"),
       stdio: "inherit",
