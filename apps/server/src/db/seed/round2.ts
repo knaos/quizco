@@ -11,7 +11,7 @@ export async function seedRound2(competitionId: string): Promise<void> {
       competitionId,
       orderIndex: 2,
       type: "STANDARD",
-      title: "Round 2: Bible chronology",
+      title: "Рунд 2: Библейска хронология",
     },
   });
 

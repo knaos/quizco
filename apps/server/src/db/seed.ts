@@ -19,11 +19,11 @@ async function seed() {
 
     const competitions = [
       {
-        title: "The Bible Competition",
+        title: "Библейското състезание",
         host_pin: "1111",
       },
       {
-        title: "Test Competition",
+        title: "Тестово състезание",
         host_pin: "0000",
       },
     ];

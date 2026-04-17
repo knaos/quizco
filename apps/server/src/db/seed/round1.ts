@@ -7,7 +7,7 @@ export async function seedRound1(competitionId: string): Promise<void> {
       competitionId,
       orderIndex: 1,
       type: "STANDARD",
-      title: "Round 1: Individual game",
+      title: "Рунд 1: Индивидуална игра",
     },
   });
 

@@ -11,7 +11,7 @@ export async function seedRound4(competitionId: string): Promise<void> {
       competitionId,
       orderIndex: 4,
       type: "CROSSWORD",
-      title: "Round 4: Bible Crossword",
+      title: "Рунд 4: Библейска кръстословица",
     },
   });
 
