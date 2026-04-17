@@ -98,8 +98,17 @@ export function useAdminData(
     if (!adminToken) {
       return;
     }
-    void fetchCompetitions();
-  }, [adminToken, fetchCompetitions]);
+    setIsLoading(true);
+    fetch(`${API_BASE}/competitions`, { headers: createHeaders() })
+      .then((res) => {
+        if (res.ok) return res.json();
+        if (res.status === 401) onUnauthorized();
+      })
+      .then((data) => {
+        if (data) setCompetitions(data);
+      })
+      .finally(() => setIsLoading(false));
+  }, [adminToken, createHeaders, onUnauthorized]);
 
   return {
     competitions,
