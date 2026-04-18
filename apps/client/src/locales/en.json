@@ -178,6 +178,24 @@
       "correct_count": "{{correct}}/{{total}} teams correct ({{percentage}}%)",
       "open_answer_hidden": "Audience will see the correct answer after reveal"
     },
+    "demo": {
+      "document_title": "BC Demo",
+      "header_badge": "Visual Demo",
+      "title": "Jerusalem Wall Highscores",
+      "subtitle": "A live scoreboard concept where each team rebuilds a section of the city wall as their score rises.",
+      "orbit_hint": "Slow orbit camera",
+      "city_label": "Jerusalem",
+      "leaderboard_title": "Highscores",
+      "how_it_works_title": "Score to stone",
+      "how_it_works_1": "Low scores stay at the foundation layer with rough stones.",
+      "how_it_works_2": "Middle scores raise taller walls and watchtowers.",
+      "how_it_works_3": "Top scores finish the skyline with fortified towers and bright banners.",
+      "tiers": {
+        "foundation": "Foundation",
+        "rising": "Rising Wall",
+        "fortified": "Fortified"
+      }
+    },
     "game": {
       "true": "True",
       "false": "False",
