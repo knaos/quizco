@@ -58,6 +58,7 @@ export interface HostDashboardResult {
   isQuestionPickerOpen: boolean;
   modalQuestion: { id: string; text: string } | null;
   modalAnswers: CollectedAnswer[];
+  isTransitionDisabled: boolean;
   selectCompetition: (competition: Competition, updateUrl?: boolean) => void;
   handleBack: () => void;
   startQuestion: (questionId: string) => void;
@@ -88,6 +89,12 @@ export function useHostDashboard(
   const [isQuestionPickerOpen, setIsQuestionPickerOpen] = useState(false);
   const [modalQuestion, setModalQuestion] = useState<{ id: string; text: string } | null>(null);
   const [modalAnswers, setModalAnswers] = useState<CollectedAnswer[]>([]);
+  const [isTransitionDisabled, setIsTransitionDisabled] = useState(false);
+
+  const disableTransition = useCallback(() => {
+    setIsTransitionDisabled(true);
+    setTimeout(() => setIsTransitionDisabled(false), 1000);
+  }, []);
 
   const fetchPendingAnswers = useCallback(() => {
     if (!selectedComp) {
@@ -233,17 +240,30 @@ export function useHostDashboard(
     isQuestionPickerOpen,
     modalQuestion,
     modalAnswers,
+    isTransitionDisabled,
     selectCompetition,
     handleBack,
     startQuestion: (questionId: string) => {
       setIsQuestionPickerOpen(false);
       emitCompetitionAction("HOST_START_QUESTION", { questionId });
     },
-    startTimer: () => emitCompetitionAction("HOST_START_TIMER"),
-    pauseTimer: () => emitCompetitionAction("HOST_PAUSE_TIMER"),
-    resumeTimer: () => emitCompetitionAction("HOST_RESUME_TIMER"),
+    startTimer: () => {
+      disableTransition();
+      emitCompetitionAction("HOST_START_TIMER");
+    },
+    pauseTimer: () => {
+      disableTransition();
+      emitCompetitionAction("HOST_PAUSE_TIMER");
+    },
+    resumeTimer: () => {
+      disableTransition();
+      emitCompetitionAction("HOST_RESUME_TIMER");
+    },
     revealAnswer: () => emitCompetitionAction("HOST_REVEAL_ANSWER"),
-    handleNext: () => emitCompetitionAction("HOST_NEXT"),
+    handleNext: () => {
+      disableTransition();
+      emitCompetitionAction("HOST_NEXT");
+    },
     gradeAnswer: (answerId: string, correct: boolean) => {
       emitCompetitionAction("HOST_GRADE_DECISION", { answerId, correct });
       setPendingAnswers((previous) => previous.filter((answer) => answer.id !== answerId));

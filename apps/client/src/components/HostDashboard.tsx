@@ -279,6 +279,7 @@ export const HostDashboard: React.FC = () => {
     openAnswersModal,
     closeAnswersModal,
     showLeaderboard,
+    isTransitionDisabled,
   } = useHostDashboard(state, hostToken);
 
   const menuRef = useRef<MenuRef>(null);
@@ -451,6 +452,7 @@ export const HostDashboard: React.FC = () => {
                         type="button"
                         variant={state.timerPaused ? "success" : "warning"}
                         onClick={state.timerPaused ? resumeTimer : pauseTimer}
+                        disabled={isTransitionDisabled}
                         className="rounded-3xl py-3 text-base"
                         data-testid="host-toggle-timer"
                       >
@@ -468,7 +470,7 @@ export const HostDashboard: React.FC = () => {
                             : "primary"
                       }
                       onClick={handleNext}
-                      disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
+                      disabled={isTransitionDisabled || (state.phase === "LEADERBOARD" && state.currentQuestion === null)}
                       data-testid="host-next-action"
                       className="flex w-3/4 items-center justify-center rounded-3xl px-4 text-xl shadow-2xl shadow-blue-200"
                     >
