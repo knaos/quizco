@@ -436,26 +436,45 @@ export const HostDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div
-                    className="flex min-w-[14rem] flex-col rounded-[2rem] border border-slate-200 bg-slate-950 px-6 py-5 text-white shadow-xl"
-                    data-testid="host-timer-card"
-                  >
-                    <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
-                    <span className="mt-3 text-6xl font-black tabular-nums" data-testid="host-timer">
-                      {state.timeRemaining}s
-                    </span>
+                  <div className="flex w-full items-stretch gap-4">
+                    <div
+                      className="flex w-1/4 min-w-[10rem] flex-col rounded-3xl border border-slate-200 bg-slate-950 px-5 py-4 text-white shadow-xl"
+                      data-testid="host-timer-card"
+                    >
+                      <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
+                      <span className="mt-2 text-5xl font-black tabular-nums" data-testid="host-timer">
+                        {state.timeRemaining}s
+                      </span>
+                    </div>
                     {state.phase === "QUESTION_ACTIVE" ? (
                       <Button
                         type="button"
                         variant={state.timerPaused ? "success" : "warning"}
                         onClick={state.timerPaused ? resumeTimer : pauseTimer}
-                        className="mt-5 w-full rounded-2xl py-4 text-lg"
+                        className="rounded-3xl py-3 text-base"
                         data-testid="host-toggle-timer"
                       >
-                        {state.timerPaused ? <Play className="mr-2 h-5 w-5" /> : <Pause className="mr-2 h-5 w-5" />}
+                        {state.timerPaused ? <Play className="mr-2 h-4 w-4" /> : <Pause className="mr-2 h-4 w-4" />}
                         {state.timerPaused ? t("host.resume_timer") : t("host.pause_timer")}
                       </Button>
                     ) : null}
+                    <Button
+                      type="button"
+                      variant={
+                        state.phase === "QUESTION_ACTIVE"
+                          ? "danger"
+                          : state.phase === "QUESTION_PREVIEW"
+                            ? "success"
+                            : "primary"
+                      }
+                      onClick={handleNext}
+                      disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
+                      data-testid="host-next-action"
+                      className="flex w-3/4 items-center justify-center rounded-3xl px-4 text-xl shadow-2xl shadow-blue-200"
+                    >
+                      <SkipForward className="mr-3 h-7 w-7" />
+                      {getNextActionLabel()}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -544,53 +563,6 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="sticky top-6 z-10 border border-white/60 bg-white/90 p-6 shadow-lg">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-400">{t("host.presenter_support_label")}</p>
-              <div className="mt-5 space-y-4">
-                <Button
-                  type="button"
-                  variant={
-                    state.phase === "QUESTION_ACTIVE"
-                      ? "danger"
-                      : state.phase === "QUESTION_PREVIEW"
-                        ? "success"
-                        : "primary"
-                  }
-                  onClick={handleNext}
-                  disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
-                  data-testid="host-next-action"
-                  className="w-full rounded-[2rem] py-6 text-2xl shadow-2xl shadow-blue-200"
-                >
-                  <SkipForward className="mr-3 h-8 w-8" />
-                  {getNextActionLabel()}
-                </Button>
-
-                {state.phase === "QUESTION_PREVIEW" ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={startTimer}
-                    className="w-full rounded-2xl border-green-200 bg-green-50 py-4 text-green-800"
-                  >
-                    <Play className="mr-2 h-5 w-5" />
-                    {t("host.actions.skip_to_timer")}
-                  </Button>
-                ) : null}
-
-                {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && currentQuestion ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={revealAnswer}
-                    className="w-full rounded-2xl border-yellow-200 bg-yellow-50 py-4 text-yellow-800"
-                  >
-                    <CheckCircle className="mr-2 h-5 w-5" />
-                    {t("host.actions.reveal_answer_action")}
-                  </Button>
-                ) : null}
-              </div>
-            </Card>
-
             <Card className="border border-white/60 bg-white/90 p-6 shadow-lg">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -677,6 +649,7 @@ export const HostDashboard: React.FC = () => {
           onClose={closeQuestionPicker}
           data-testid="host-question-picker-modal"
           className="max-w-5xl"
+          scrollable
         >
           <div className="space-y-4">
             {compData?.rounds.map((round) => (

@@ -10,6 +10,7 @@ interface ModalProps extends React.HTMLAttributes<HTMLDivElement> {
   footer?: React.ReactNode;
   description?: React.ReactNode;
   className?: string;
+  scrollable?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -19,6 +20,7 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
   description,
   className = "",
+  scrollable = false,
   ...props
 }) => {
   return (
@@ -46,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
             <XCircle className="h-6 w-6" />
           </Button>
         </CardHeader>
-        <CardContent className="space-y-6">{children}</CardContent>
+        <CardContent className={`space-y-6 ${scrollable ? "max-h-[70vh] overflow-y-auto" : ""}`}>{children}</CardContent>
         {footer ? <CardFooter>{footer}</CardFooter> : null}
       </Card>
     </div>
