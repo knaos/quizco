@@ -619,13 +619,12 @@ export const HostDashboard: React.FC = () => {
                 <Trophy className="h-6 w-6 text-yellow-500" />
                 <h3 className="text-lg font-black uppercase tracking-[0.25em] text-slate-900">{t("host.leaderboard")}</h3>
               </div>
-              <div className="space-y-3" data-testid="host-leaderboard-summary">
+              <div className="max-h-80 overflow-y-auto space-y-3" data-testid="host-leaderboard-summary">
                 {state.teams.length === 0 ? (
                   <p className="text-sm font-medium italic text-slate-400">{t("host.no_teams_joined")}</p>
                 ) : (
                   [...state.teams]
                     .sort((left, right) => right.score - left.score)
-                    .slice(0, 5)
                     .map((team, index) => (
                       <div key={team.id} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
                         <div className="flex items-center gap-3">
