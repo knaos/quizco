@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircle } from "lucide-react";
 
 interface MultipleChoicePlayerProps {
@@ -27,10 +28,12 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
   revealStep = 0,
   testIdPrefix = "player",
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <div
-        className="grid grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-fr"
+        className="grid grid-cols-1 gap-4 md:grid-cols-2 relative"
         data-testid={previewMode ? `${testIdPrefix}-preview-options-grid` : undefined}
       >
         {options.map((opt: string, i: number) => {
@@ -45,7 +48,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
               disabled={disabled || previewMode}
               data-testid={previewMode ? `${testIdPrefix}-preview-option-${i}` : `${testIdPrefix}-choice-${i}`}
               data-revealed={previewMode ? String(isRevealed) : undefined}
-              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ${previewMode
+              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex flex-col items-center justify-center gap-2 ${previewMode
                 ? isRevealed
                   ? "bg-white border-blue-100 shadow-lg text-gray-800 cursor-default"
                   : "bg-gray-100 border-transparent text-gray-400 cursor-default"
@@ -54,14 +57,17 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
                   : "text-left bg-white border-gray-100 text-gray-700 hover:border-blue-200 active:scale-95"
                 }`}
             >
+              <div className="text-xs uppercase tracking-[0.3em] text-inherit">
+                {t("player.option_label", { label: String.fromCharCode(65 + i) })}
+              </div>
               <span
                 aria-hidden={previewMode && !isRevealed}
-                className={`flex-1 text-center text-2xl ${previewMode && !isRevealed ? "invisible select-none" : ""}`}
+                className={`text-center text-2xl ${previewMode && !isRevealed ? "invisible select-none" : ""}`}
               >
                 {opt}
               </span>
               {!previewMode && isSelected && (
-                <CheckCircle className="w-6 h-6 text-white" />
+                <CheckCircle className="w-6 h-6 text-white absolute right-4" />
               )}
             </button>
           );

@@ -486,9 +486,7 @@ export const HostDashboard: React.FC = () => {
                       <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-slate-400">
                         {t("host.presenter_answers_label")}
                       </p>
-                      <div data-testid="host-presenter-answer-content">
-                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, state.phase, t)}
-                      </div>
+
                     </div>
 
                     {state.phase === "REVEAL_ANSWER" ? (
@@ -505,7 +503,12 @@ export const HostDashboard: React.FC = () => {
                           })}
                         </div>
                       </div>
-                    ) : null}
+                    ) :
+                      <div data-testid="host-presenter-answer-content">
+                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, state.phase, t)}
+                      </div>
+                    }
+
                   </div>
                 ) : (
                   <div className="rounded-[2rem] border-2 border-dashed border-blue-200 bg-blue-50 px-6 py-10 text-center">
