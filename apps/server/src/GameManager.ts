@@ -559,6 +559,7 @@ export class GameManager {
         if (questions.length > 0) {
           session.phase = "ROUND_START";
           session.currentQuestion = questions[0];
+          session.timeRemaining = questions[0].timeLimitSeconds;
           // We need to know which round we are in
           session.revealStep = 0; // reusing this for round index if needed? No, let's keep it simple.
         } else {
@@ -620,6 +621,7 @@ export class GameManager {
         if (nextQuestion) {
           session.phase = "ROUND_START";
           session.currentQuestion = nextQuestion;
+          session.timeRemaining = nextQuestion.timeLimitSeconds;
           // Reset last answer status for all teams when moving to next round
           for (const team of session.teams) {
             team.lastAnswerCorrect = null;
