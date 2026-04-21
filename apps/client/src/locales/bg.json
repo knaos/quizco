@@ -133,6 +133,7 @@
       "crossword_your_grid": "Вашият Отговор",
       "crossword_no_answer": "Няма изпратен отговор",
       "waiting_grading": "Изчакване на оценяване",
+      "no_answer": "Няма изпратен отговор",
       "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново.",
       "chronology_instruction": "Плъзнете всяко събитие в правилния слот от времевата линия.",
       "chronology_slot": "Стъпка {{position}}",

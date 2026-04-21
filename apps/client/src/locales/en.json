@@ -133,6 +133,7 @@
       "crossword_your_grid": "Your Answer",
       "crossword_no_answer": "No answer submitted",
       "waiting_grading": "Waiting for grading",
+      "no_answer": "No answer submitted",
       "session_lost_rejoin": "Session lost. Please rejoin.",
       "chronology_instruction": "Drag each event into the correct timeline slot.",
       "chronology_slot": "Step {{position}}",
