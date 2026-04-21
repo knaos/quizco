@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import type {
   AnswerContent,
   Competition,
@@ -24,6 +31,14 @@ const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
 const TEAM_COLOR_KEY = "quizco_team_color";
 const SELECTED_COMP_ID_KEY = "quizco_selected_competition_id";
+const DEFAULT_PLAYER_COLOR = "#3B82F6";
+
+interface PersistedPlayerSession {
+  teamId: string | null;
+  teamName: string;
+  color: string;
+  selectedCompetitionId: string | null;
+}
 
 export interface PlayerIdentity {
   teamId: string | null;
@@ -97,9 +112,15 @@ type PlayerSessionAction =
   | { type: "select-competition" }
   | { type: "clear-selected-competition" }
   | { type: "join-requested"; request: PendingJoinRequest }
-  | { type: "join-succeeded"; team: { id: string; name: string; color: string } }
+  | {
+      type: "join-succeeded";
+      team: { id: string; name: string; color: string };
+    }
   | { type: "join-failed" }
-  | { type: "reconnect-succeeded"; team: { id: string; name: string; color: string } }
+  | {
+      type: "reconnect-succeeded";
+      team: { id: string; name: string; color: string };
+    }
   | { type: "reconnect-failed" }
   | { type: "finish-initial-reconnect" }
   | { type: "connection-reestablished" }
@@ -124,16 +145,48 @@ function createEmptyDraftState(): DraftAnswerState {
   };
 }
 
+function readPersistedPlayerSession(): PersistedPlayerSession {
+  return {
+    teamId: localStorage.getItem(TEAM_ID_KEY),
+    teamName: localStorage.getItem(TEAM_NAME_KEY) || "",
+    color: localStorage.getItem(TEAM_COLOR_KEY) || DEFAULT_PLAYER_COLOR,
+    selectedCompetitionId: localStorage.getItem(SELECTED_COMP_ID_KEY),
+  };
+}
+
+function persistPlayerSession(session: PersistedPlayerSession): void {
+  if (session.teamId) {
+    localStorage.setItem(TEAM_ID_KEY, session.teamId);
+    localStorage.setItem(TEAM_NAME_KEY, session.teamName);
+    localStorage.setItem(TEAM_COLOR_KEY, session.color);
+    if (session.selectedCompetitionId) {
+      localStorage.setItem(SELECTED_COMP_ID_KEY, session.selectedCompetitionId);
+    } else {
+      localStorage.removeItem(SELECTED_COMP_ID_KEY);
+    }
+    return;
+  }
+
+  localStorage.removeItem(TEAM_ID_KEY);
+  localStorage.removeItem(TEAM_NAME_KEY);
+  localStorage.removeItem(TEAM_COLOR_KEY);
+  localStorage.removeItem(SELECTED_COMP_ID_KEY);
+}
+
+function clearPersistedPlayerSession(): void {
+  localStorage.removeItem(TEAM_ID_KEY);
+  localStorage.removeItem(TEAM_NAME_KEY);
+  localStorage.removeItem(TEAM_COLOR_KEY);
+  localStorage.removeItem(SELECTED_COMP_ID_KEY);
+}
+
 /**
  * Rehydrates the reducer from localStorage so reconnects start from persisted
  * identity rather than a blank client session.
  */
-function createInitialPlayerSessionState(saved: {
-  teamId: string | null;
-  teamName: string;
-  color: string;
-  selectedCompetitionId: string | null;
-}): PlayerSessionState {
+function createInitialPlayerSessionState(
+  saved: PersistedPlayerSession,
+): PlayerSessionState {
   return {
     teamId: saved.teamId,
     teamName: saved.teamName,
@@ -201,7 +254,14 @@ function playerSessionReducer(
     case "reconnect-failed":
       return {
         ...state,
+        teamId: null,
+        teamName: "",
+        color: DEFAULT_PLAYER_COLOR,
         joinedState: false,
+        isReconnecting: false,
+        loginError: null,
+        pendingJoinRequest: null,
+        draftState: createEmptyDraftState(),
       };
     case "finish-initial-reconnect":
       return {
@@ -223,9 +283,12 @@ function playerSessionReducer(
         ...state,
         teamId: null,
         teamName: "",
+        color: DEFAULT_PLAYER_COLOR,
         joinedState: false,
+        isReconnecting: false,
         loginError: null,
         pendingJoinRequest: null,
+        reconnectAttempt: 0,
         draftState: createEmptyDraftState(),
       };
     case "replace-draft":
@@ -244,22 +307,20 @@ function playerSessionReducer(
 }
 
 export function usePlayerSession(state: GameState): PlayerSessionResult {
-  const savedCompetitionId = localStorage.getItem(SELECTED_COMP_ID_KEY);
-  const savedTeamId = localStorage.getItem(TEAM_ID_KEY);
-  const savedTeamName = localStorage.getItem(TEAM_NAME_KEY) || "";
-  const savedTeamColor = localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6";
+  const [persistedSession] = useState(readPersistedPlayerSession);
+  const persistedSessionRef = useRef(persistedSession);
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(
-    savedCompetitionId,
+    persistedSession.selectedCompetitionId,
   );
   const [sessionState, dispatch] = useReducer(
     playerSessionReducer,
     {
-      teamId: savedTeamId,
-      teamName: savedTeamName,
-      color: savedTeamColor,
-      selectedCompetitionId: savedCompetitionId,
+      teamId: persistedSession.teamId,
+      teamName: persistedSession.teamName,
+      color: persistedSession.color,
+      selectedCompetitionId: persistedSession.selectedCompetitionId,
     },
     createInitialPlayerSessionState,
   );
@@ -274,7 +335,6 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     joinedState,
     isReconnecting,
     loginError,
-    reconnectAttempt,
     pendingJoinRequest,
     draftState,
   } = sessionState;
@@ -284,7 +344,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       return undefined;
     }
 
-    if (!pendingJoinRequest || pendingJoinRequest.competitionId !== selectedCompId) {
+    if (
+      !pendingJoinRequest ||
+      pendingJoinRequest.competitionId !== selectedCompId
+    ) {
       return undefined;
     }
 
@@ -338,7 +401,9 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     };
   }, [currentTeam?.lastAnswer, state.currentQuestion]);
   const isDraftCurrentQuestion = draftState.questionId === currentQuestionId;
-  const answer = isDraftCurrentQuestion ? draftState.answer : hydratedState.answer;
+  const answer = isDraftCurrentQuestion
+    ? draftState.answer
+    : hydratedState.answer;
   const selectedIndices = isDraftCurrentQuestion
     ? draftState.selectedIndices
     : hydratedState.selectedIndices;
@@ -359,34 +424,55 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       competitionId: string,
       joinedTeam: { id: string; name: string; color: string },
     ) => {
+      const nextPersistedSession: PersistedPlayerSession = {
+        teamId: joinedTeam.id,
+        teamName: joinedTeam.name,
+        color: joinedTeam.color,
+        selectedCompetitionId: competitionId,
+      };
+      persistedSessionRef.current = nextPersistedSession;
+      persistPlayerSession(nextPersistedSession);
       dispatch({ type: "join-succeeded", team: joinedTeam });
       setSelectedCompId(competitionId);
-      localStorage.setItem(TEAM_ID_KEY, joinedTeam.id);
-      localStorage.setItem(TEAM_NAME_KEY, joinedTeam.name);
-      localStorage.setItem(TEAM_COLOR_KEY, joinedTeam.color);
-      localStorage.setItem(SELECTED_COMP_ID_KEY, competitionId);
     },
     [],
   );
 
   const clearPersistedIdentity = useCallback(() => {
-    localStorage.removeItem(TEAM_ID_KEY);
-    localStorage.removeItem(TEAM_NAME_KEY);
-    localStorage.removeItem(TEAM_COLOR_KEY);
+    persistedSessionRef.current = {
+      teamId: null,
+      teamName: "",
+      color: DEFAULT_PLAYER_COLOR,
+      selectedCompetitionId: null,
+    };
+    clearPersistedPlayerSession();
   }, []);
 
   const reconnectTeam = useCallback(
-    (competitionId: string, reconnectingTeamId: string, isInitialAttempt: boolean) => {
+    (
+      competitionId: string,
+      reconnectingTeamId: string,
+      isInitialAttempt: boolean,
+    ) => {
       socket.emit(
         "RECONNECT_TEAM",
         { competitionId, teamId: reconnectingTeamId },
         (
-          response?:
-            | { success: boolean; team: { id?: string; name: string; color: string } }
-            | null,
+          response?: {
+            success: boolean;
+            team: { id?: string; name: string; color: string };
+          } | null,
         ) => {
           if (response?.success) {
             const resolvedTeamId = response.team.id ?? reconnectingTeamId;
+            const nextPersistedSession: PersistedPlayerSession = {
+              teamId: resolvedTeamId,
+              teamName: response.team.name,
+              color: response.team.color,
+              selectedCompetitionId: competitionId,
+            };
+            persistedSessionRef.current = nextPersistedSession;
+            persistPlayerSession(nextPersistedSession);
             dispatch({
               type: "reconnect-succeeded",
               team: {
@@ -396,14 +482,11 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
               },
             });
             setSelectedCompId(competitionId);
-            localStorage.setItem(TEAM_ID_KEY, resolvedTeamId);
-            localStorage.setItem(TEAM_NAME_KEY, response.team.name);
-            localStorage.setItem(TEAM_COLOR_KEY, response.team.color);
-            localStorage.setItem(SELECTED_COMP_ID_KEY, competitionId);
           } else if (response) {
             clearPersistedIdentity();
             clearPendingFinalSubmission();
             dispatch({ type: "reconnect-failed" });
+            setSelectedCompId(null);
           }
 
           if (isInitialAttempt) {
@@ -416,17 +499,27 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   );
 
   useEffect(() => {
-    if (!savedTeamId || !savedCompetitionId) {
+    const initialPersistedSession = persistedSessionRef.current;
+    if (
+      !initialPersistedSession.teamId ||
+      !initialPersistedSession.selectedCompetitionId
+    ) {
       return;
     }
 
-    reconnectTeam(savedCompetitionId, savedTeamId, true);
-  }, [reconnectTeam, savedCompetitionId, savedTeamId]);
+    reconnectTeam(
+      initialPersistedSession.selectedCompetitionId,
+      initialPersistedSession.teamId,
+      true,
+    );
+  }, [reconnectTeam]);
 
   useEffect(() => {
     const handleConnect = () => {
-      const reconnectCompetitionId = selectedCompId ?? savedCompetitionId;
-      const reconnectingTeamId = resolvedTeamId ?? savedTeamId;
+      const persistedSession = persistedSessionRef.current;
+      const reconnectCompetitionId =
+        selectedCompId ?? persistedSession.selectedCompetitionId;
+      const reconnectingTeamId = resolvedTeamId ?? persistedSession.teamId;
       if (!reconnectingTeamId || !reconnectCompetitionId) {
         return;
       }
@@ -440,7 +533,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     return () => {
       socket.off("connect", handleConnect);
     };
-  }, [reconnectTeam, resolvedTeamId, savedCompetitionId, savedTeamId, selectedCompId]);
+  }, [reconnectTeam, resolvedTeamId, selectedCompId]);
 
   useEffect(() => {
     lastPartialSubmissionKeyRef.current = null;
@@ -451,10 +544,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       return;
     }
 
-    localStorage.setItem(TEAM_ID_KEY, matchedPendingJoinTeam.id);
-    localStorage.setItem(TEAM_NAME_KEY, matchedPendingJoinTeam.name);
-    localStorage.setItem(TEAM_COLOR_KEY, matchedPendingJoinTeam.color);
-    localStorage.setItem(SELECTED_COMP_ID_KEY, selectedCompId);
+    persistedSessionRef.current = {
+      teamId: matchedPendingJoinTeam.id,
+      teamName: matchedPendingJoinTeam.name,
+      color: matchedPendingJoinTeam.color,
+      selectedCompetitionId: selectedCompId,
+    };
+    persistPlayerSession(persistedSessionRef.current);
   }, [matchedPendingJoinTeam, selectedCompId, teamId]);
 
   useEffect(() => {
@@ -503,9 +599,20 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     state.phase,
   ]);
 
-  useEffect(() => {
+  const replayPendingFinalSubmission = useCallback(() => {
     const pendingSubmission = getPendingFinalSubmission();
-    if (!pendingSubmission || !selectedCompId || !resolvedTeamId || !state.currentQuestion || !joined) {
+    if (!pendingSubmission) {
+      lastPendingReplayKeyRef.current = null;
+      return;
+    }
+
+    if (
+      !socket.connected ||
+      !selectedCompId ||
+      !resolvedTeamId ||
+      !state.currentQuestion ||
+      !joined
+    ) {
       return;
     }
 
@@ -516,6 +623,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       state.phase !== "QUESTION_ACTIVE" ||
       currentTeam?.isExplicitlySubmitted
     ) {
+      if (
+        currentQuestionId !== pendingSubmission.questionId ||
+        state.phase !== "QUESTION_ACTIVE"
+      ) {
+        clearPendingFinalSubmission();
+        lastPendingReplayKeyRef.current = null;
+      }
       return;
     }
 
@@ -548,7 +662,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
           return;
         }
 
-        if (response?.error === "INVALID_PHASE" || response?.error === "QUESTION_MISMATCH") {
+        if (
+          response?.error === "INVALID_PHASE" ||
+          response?.error === "QUESTION_MISMATCH"
+        ) {
           clearPendingFinalSubmission();
           lastPendingReplayKeyRef.current = null;
           dispatch({
@@ -562,14 +679,36 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       },
     );
   }, [
+    currentQuestionId,
     currentTeam?.isExplicitlySubmitted,
     joined,
-    reconnectAttempt,
     resolvedTeamId,
     selectedCompId,
     state.currentQuestion,
     state.phase,
   ]);
+
+  useEffect(() => {
+    replayPendingFinalSubmission();
+  }, [replayPendingFinalSubmission]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (!socket.connected) {
+        return;
+      }
+
+      // Browser offline mode can drop packets without forcing an immediate
+      // Socket.IO reconnect, so replay persisted final answers here as well.
+      lastPendingReplayKeyRef.current = null;
+      replayPendingFinalSubmission();
+    };
+
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [replayPendingFinalSubmission]);
 
   useEffect(() => {
     if (!resolvedTeamId || state.currentQuestion?.type !== "CROSSWORD") {
@@ -583,7 +722,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       x: number;
       y: number;
     }) => {
-      if (payload.teamId !== resolvedTeamId || payload.questionId !== state.currentQuestion?.id) {
+      if (
+        payload.teamId !== resolvedTeamId ||
+        payload.questionId !== state.currentQuestion?.id
+      ) {
         return;
       }
 
@@ -598,7 +740,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
             previous.questionId === currentQuestion.id
               ? previous.answer
               : hydratedState.answer;
-          const hydrated = getHydratedPlayerAnswerState(currentQuestion, baseAnswer);
+          const hydrated = getHydratedPlayerAnswerState(
+            currentQuestion,
+            baseAnswer,
+          );
           const grid = Array.isArray(hydrated.answer)
             ? (hydrated.answer as string[][]).map((row) => [...row])
             : [];
@@ -624,15 +769,30 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     return () => {
       socket.off("JOKER_REVEAL", handleJokerReveal);
     };
-  }, [hydratedState.answer, hydratedState.selectedIndices, resolvedTeamId, state.currentQuestion]);
+  }, [
+    hydratedState.answer,
+    hydratedState.selectedIndices,
+    resolvedTeamId,
+    state.currentQuestion,
+  ]);
 
   useEffect(() => {
-    if (!joined || !resolvedTeamId || state.phase !== "QUESTION_ACTIVE" || currentTeam?.isExplicitlySubmitted) {
+    if (
+      !joined ||
+      !resolvedTeamId ||
+      state.phase !== "QUESTION_ACTIVE" ||
+      currentTeam?.isExplicitlySubmitted
+    ) {
       return;
     }
 
     const timer = window.setTimeout(() => {
-      if (state.currentQuestion?.type !== "MULTIPLE_CHOICE" && answer !== "" && answer !== null && answer !== undefined) {
+      if (
+        state.currentQuestion?.type !== "MULTIPLE_CHOICE" &&
+        answer !== "" &&
+        answer !== null &&
+        answer !== undefined
+      ) {
         socket.emit("SUBMIT_ANSWER", {
           competitionId: selectedCompId,
           teamId: resolvedTeamId,
@@ -657,12 +817,20 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   const selectCompetition = useCallback((competitionId: string) => {
     dispatch({ type: "select-competition" });
     setSelectedCompId(competitionId);
+    persistedSessionRef.current = {
+      ...persistedSessionRef.current,
+      selectedCompetitionId: competitionId,
+    };
     localStorage.setItem(SELECTED_COMP_ID_KEY, competitionId);
   }, []);
 
   const clearSelectedCompetition = useCallback(() => {
     dispatch({ type: "clear-selected-competition" });
     setSelectedCompId(null);
+    persistedSessionRef.current = {
+      ...persistedSessionRef.current,
+      selectedCompetitionId: null,
+    };
     localStorage.removeItem(SELECTED_COMP_ID_KEY);
   }, []);
 
@@ -684,9 +852,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       "JOIN_ROOM",
       { competitionId: selectedCompId, teamName, color },
       (
-        response?:
-          | { success: boolean; team: { id: string; name: string; color: string } }
-          | null,
+        response?: {
+          success: boolean;
+          team: { id: string; name: string; color: string };
+        } | null,
       ) => {
         if (!response) {
           return;
@@ -704,7 +873,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
 
   const leaveSession = useCallback(() => {
     clearPersistedIdentity();
-    localStorage.removeItem(SELECTED_COMP_ID_KEY);
+    clearPendingFinalSubmission();
     dispatch({ type: "leave-session" });
     setSelectedCompId(null);
   }, [clearPersistedIdentity]);
@@ -712,7 +881,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   const submitAnswer = useCallback(
     (value: AnswerContent, isFinal = false) => {
       if (!state.currentQuestion || !selectedCompId || !resolvedTeamId) {
-        dispatch({ type: "set-login-error", error: "player.session_lost_rejoin" });
+        dispatch({
+          type: "set-login-error",
+          error: "player.session_lost_rejoin",
+        });
         dispatch({ type: "reconnect-failed" });
         return;
       }
@@ -733,6 +905,9 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
           answer: value,
         });
         lastPendingReplayKeyRef.current = null;
+        if (!socket.connected) {
+          return;
+        }
       }
 
       socket.emit(
@@ -765,7 +940,9 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
               questionId: state.currentQuestion?.id ?? previous.questionId,
               answer: value,
               selectedIndices: Array.isArray(value)
-                ? value.filter((entry): entry is number => typeof entry === "number")
+                ? value.filter(
+                    (entry): entry is number => typeof entry === "number",
+                  )
                 : previous.selectedIndices,
               submissionStatus: response?.success ? "success" : "error",
             }),
@@ -784,12 +961,17 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
 
       const currentQuestion = state.currentQuestion;
       const isMultipleChoice = currentQuestion?.type === "MULTIPLE_CHOICE";
-      const content = currentQuestion?.content as MultipleChoiceContent | undefined;
-      const isSingleChoice = isMultipleChoice && content?.correctIndices?.length === 1;
+      const content = currentQuestion?.content as
+        | MultipleChoiceContent
+        | undefined;
+      const isSingleChoice =
+        isMultipleChoice && content?.correctIndices?.length === 1;
 
       let nextIndices: number[];
       if (selectedIndices.includes(index)) {
-        nextIndices = selectedIndices.filter((existingIndex) => existingIndex !== index);
+        nextIndices = selectedIndices.filter(
+          (existingIndex) => existingIndex !== index,
+        );
       } else if (isSingleChoice) {
         nextIndices = [index];
       } else {
@@ -807,7 +989,12 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       });
       submitAnswer(nextIndices, false);
     },
-    [currentTeam?.isExplicitlySubmitted, selectedIndices, state.currentQuestion, submitAnswer],
+    [
+      currentTeam?.isExplicitlySubmitted,
+      selectedIndices,
+      state.currentQuestion,
+      submitAnswer,
+    ],
   );
 
   const updateAnswer = useCallback(
@@ -864,7 +1051,8 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     currentScore: currentTeam?.score ?? 0,
     setTeamName: (nextTeamName: string) =>
       dispatch({ type: "set-team-name", teamName: nextTeamName }),
-    setColor: (nextColor: string) => dispatch({ type: "set-color", color: nextColor }),
+    setColor: (nextColor: string) =>
+      dispatch({ type: "set-color", color: nextColor }),
     setAnswer: updateAnswer,
     selectCompetition,
     clearSelectedCompetition,

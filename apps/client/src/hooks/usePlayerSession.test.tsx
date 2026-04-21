@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameState } from "@quizco/shared";
 import { flushEffects } from "../test/render";
+import { socket } from "../socket";
 import { renderHook } from "./testUtils";
 import { usePlayerSession } from "./usePlayerSession";
 
@@ -56,6 +57,7 @@ const baseState: GameState = {
 
 describe("usePlayerSession", () => {
   beforeEach(() => {
+    socket.connected = true;
     const storage = new Map<string, string>();
     Object.defineProperty(window, "localStorage", {
       configurable: true,
@@ -123,6 +125,33 @@ describe("usePlayerSession", () => {
       expect.any(Function),
     );
     expect(hook.result.isReconnecting).toBe(false);
+    hook.unmount();
+  });
+
+  it("clears stale identity when reconnect is rejected", async () => {
+    window.localStorage.setItem("quizco_team_id", "team-1");
+    window.localStorage.setItem("quizco_team_name", "Alpha");
+    window.localStorage.setItem("quizco_team_color", "#111111");
+    window.localStorage.setItem("quizco_selected_competition_id", "competition-1");
+
+    emit.mockImplementation((event, _payload, callback) => {
+      if (event === "RECONNECT_TEAM") {
+        callback?.({ success: false });
+      }
+    });
+
+    const hook = renderHook(() => usePlayerSession(baseState));
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    expect(hook.result.joined).toBe(false);
+    expect(hook.result.identity.teamId).toBeNull();
+    expect(hook.result.identity.teamName).toBe("");
+    expect(hook.result.identity.color).toBe("#3B82F6");
+    expect(hook.result.isReconnecting).toBe(false);
+    expect(window.localStorage.getItem("quizco_team_id")).toBeNull();
+    expect(window.localStorage.getItem("quizco_selected_competition_id")).toBeNull();
     hook.unmount();
   });
 
@@ -219,6 +248,45 @@ describe("usePlayerSession", () => {
     hook.unmount();
   });
 
+  it("does not trigger reconnect after a successful join persists identity", async () => {
+    emit.mockImplementation((event, _payload, callback) => {
+      if (event === "JOIN_ROOM") {
+        callback?.({
+          success: true,
+          team: { id: "team-1", name: "Alpha", color: "#111111" },
+        });
+      }
+    });
+
+    const hook = renderHook(() => usePlayerSession(baseState));
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    hook.act(() => {
+      hook.result.selectCompetition("competition-1");
+      hook.result.setTeamName("Alpha");
+      hook.result.setColor("#111111");
+    });
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    hook.act(() => {
+      hook.result.joinTeam();
+    });
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    expect(
+      emit.mock.calls.filter(([eventName]) => eventName === "RECONNECT_TEAM"),
+    ).toHaveLength(0);
+    expect(hook.result.joined).toBe(true);
+    expect(hook.result.identity.teamId).toBe("team-1");
+    hook.unmount();
+  });
+
   it("hydrates the current question answer without relying on effect-driven resets", async () => {
     window.localStorage.setItem("quizco_team_id", "team-2");
 
@@ -246,7 +314,7 @@ describe("usePlayerSession", () => {
     hook.unmount();
   });
 
-  it("replays a pending final submission after socket reconnect", async () => {
+  it("does not duplicate a pending final submission on raw socket connect before reconnect completes", async () => {
     window.localStorage.setItem("quizco_team_id", "team-1");
     window.localStorage.setItem("quizco_team_name", "Alpha");
     window.localStorage.setItem("quizco_team_color", "#111111");
@@ -313,8 +381,108 @@ describe("usePlayerSession", () => {
     });
 
     const submitAnswerCalls = emit.mock.calls.filter(([eventName]) => eventName === "SUBMIT_ANSWER");
-    expect(submitAnswerCalls).toHaveLength(2);
-    expect(submitAnswerCalls[1][1]).toEqual(
+    expect(submitAnswerCalls).toHaveLength(1);
+
+    hook.unmount();
+  });
+
+  it("defers an offline final submission until reconnect", async () => {
+    socket.connected = false;
+
+    window.localStorage.setItem("quizco_team_id", "team-1");
+    window.localStorage.setItem("quizco_team_name", "Alpha");
+    window.localStorage.setItem("quizco_team_color", "#111111");
+    window.localStorage.setItem("quizco_selected_competition_id", "competition-1");
+
+    const activeState: GameState = {
+      ...baseState,
+      phase: "QUESTION_ACTIVE",
+      currentQuestion: {
+        id: "question-1",
+        roundId: "round-1",
+        questionText: "Type one",
+        type: "OPEN_WORD",
+        points: 1,
+        timeLimitSeconds: 30,
+        grading: "AUTO",
+        content: { answer: "Faith" },
+      },
+    };
+
+    const hook = renderHook(() => usePlayerSession(activeState));
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    hook.act(() => {
+      hook.result.submitAnswer("Faith", true);
+    });
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    expect(
+      emit.mock.calls.filter(([eventName]) => eventName === "SUBMIT_ANSWER"),
+    ).toHaveLength(0);
+    expect(window.localStorage.getItem("quizco_pending_final_submission")).not.toBeNull();
+
+    socket.connected = true;
+    hook.unmount();
+  });
+
+  it("replays a pending final submission when the browser comes back online without a socket reconnect", async () => {
+    window.localStorage.setItem("quizco_team_id", "team-1");
+    window.localStorage.setItem("quizco_team_name", "Alpha");
+    window.localStorage.setItem("quizco_team_color", "#111111");
+    window.localStorage.setItem("quizco_selected_competition_id", "competition-1");
+    window.localStorage.setItem(
+      "quizco_pending_final_submission",
+      JSON.stringify({
+        competitionId: "competition-1",
+        teamId: "team-1",
+        questionId: "question-1",
+        answer: "Faith",
+      }),
+    );
+
+    const activeState: GameState = {
+      ...baseState,
+      phase: "QUESTION_ACTIVE",
+      currentQuestion: {
+        id: "question-1",
+        roundId: "round-1",
+        questionText: "Type one",
+        type: "OPEN_WORD",
+        points: 1,
+        timeLimitSeconds: 30,
+        grading: "AUTO",
+        content: { answer: "Faith" },
+      },
+    };
+
+    emit.mockImplementation((event, _payload, callback) => {
+      if (event === "RECONNECT_TEAM") {
+        callback?.({
+          success: true,
+          team: { id: "team-1", name: "Alpha", color: "#111111" },
+        });
+      }
+    });
+
+    const hook = renderHook(() => usePlayerSession(activeState));
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    emit.mockClear();
+
+    await hook.act(async () => {
+      window.dispatchEvent(new Event("online"));
+      await flushEffects();
+    });
+
+    expect(emit).toHaveBeenCalledWith(
+      "SUBMIT_ANSWER",
       expect.objectContaining({
         competitionId: "competition-1",
         teamId: "team-1",
@@ -322,6 +490,66 @@ describe("usePlayerSession", () => {
         answer: "Faith",
         isFinal: true,
       }),
+      expect.any(Function),
+    );
+
+    hook.unmount();
+  });
+
+  it("replays a pending final submission after the initial reconnect restores the session", async () => {
+    window.localStorage.setItem("quizco_team_id", "team-1");
+    window.localStorage.setItem("quizco_team_name", "Alpha");
+    window.localStorage.setItem("quizco_team_color", "#111111");
+    window.localStorage.setItem("quizco_selected_competition_id", "competition-1");
+    window.localStorage.setItem(
+      "quizco_pending_final_submission",
+      JSON.stringify({
+        competitionId: "competition-1",
+        teamId: "team-1",
+        questionId: "question-1",
+        answer: "Faith",
+      }),
+    );
+
+    const activeState: GameState = {
+      ...baseState,
+      phase: "QUESTION_ACTIVE",
+      currentQuestion: {
+        id: "question-1",
+        roundId: "round-1",
+        questionText: "Type one",
+        type: "OPEN_WORD",
+        points: 1,
+        timeLimitSeconds: 30,
+        grading: "AUTO",
+        content: { answer: "Faith" },
+      },
+    };
+
+    emit.mockImplementation((event, _payload, callback) => {
+      if (event === "RECONNECT_TEAM") {
+        callback?.({
+          success: true,
+          team: { id: "team-1", name: "Alpha", color: "#111111" },
+        });
+      }
+    });
+
+    const hook = renderHook(() => usePlayerSession(activeState));
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    expect(emit).toHaveBeenCalledWith(
+      "SUBMIT_ANSWER",
+      expect.objectContaining({
+        competitionId: "competition-1",
+        teamId: "team-1",
+        questionId: "question-1",
+        answer: "Faith",
+        isFinal: true,
+      }),
+      expect.any(Function),
     );
 
     hook.unmount();
@@ -384,6 +612,32 @@ describe("usePlayerSession", () => {
       emit.mock.calls.filter(([eventName]) => eventName === "SUBMIT_ANSWER"),
     ).toHaveLength(0);
 
+    hook.unmount();
+  });
+
+  it("clears the pending final submission when leaving the session", async () => {
+    window.localStorage.setItem(
+      "quizco_pending_final_submission",
+      JSON.stringify({
+        competitionId: "competition-1",
+        teamId: "team-1",
+        questionId: "question-1",
+        answer: "Faith",
+      }),
+    );
+
+    const hook = renderHook(() => usePlayerSession(baseState));
+    await hook.act(async () => {
+      await flushEffects();
+    });
+
+    hook.act(() => {
+      hook.result.leaveSession();
+    });
+
+    expect(window.localStorage.getItem("quizco_pending_final_submission")).toBeNull();
+    expect(hook.result.identity.teamId).toBeNull();
+    expect(hook.result.selectedCompId).toBeNull();
     hook.unmount();
   });
 });

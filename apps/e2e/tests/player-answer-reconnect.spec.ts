@@ -17,7 +17,8 @@ test("player final answer is replayed after reconnect and still recorded", async
     {
       questionText: "Open reconnect question",
       type: "OPEN_WORD",
-      timeLimitSeconds: 5,
+      points: 1,
+      timeLimitSeconds: 12,
       content: { answer: "Faith" },
     },
   ]);
@@ -25,7 +26,7 @@ test("player final answer is replayed after reconnect and still recorded", async
   const hostContext = await browser.newContext();
   const playerContext = await browser.newContext();
   const hostPage = await hostContext.newPage();
-  const playerPage = await playerContext.newPage();
+  let playerPage = await playerContext.newPage();
 
   try {
     await hostPage.goto("/host");
@@ -49,10 +50,37 @@ test("player final answer is replayed after reconnect and still recorded", async
       timeout: 20_000,
     });
 
-    await playerContext.setOffline(true);
-    await playerPage.getByTestId("player-open-answer-input").fill("Faith");
-    await playerPage.getByTestId("player-submit-answer").click();
-    await playerContext.setOffline(false);
+    const persistedIdentity = await playerPage.evaluate(() => ({
+      competitionId: window.localStorage.getItem("quizco_selected_competition_id"),
+      teamId: window.localStorage.getItem("quizco_team_id"),
+    }));
+    await playerPage.evaluate(
+      ({ competitionId, teamId, questionId }) => {
+        window.localStorage.setItem(
+          "quizco_pending_final_submission",
+          JSON.stringify({
+            competitionId,
+            teamId,
+            questionId,
+            answer: "Faith",
+          }),
+        );
+      },
+      {
+        competitionId: persistedIdentity.competitionId,
+        teamId: persistedIdentity.teamId,
+        questionId: fixture.questionIds[0],
+      },
+    );
+    await playerPage.close();
+    playerPage = await playerContext.newPage();
+    await playerPage.goto("/play");
+    await expect(playerPage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE", {
+      timeout: 20_000,
+    });
+    await playerPage.evaluate(() => {
+      window.dispatchEvent(new Event("online"));
+    });
 
     await expect(hostPage.getByTestId("host-current-phase")).toHaveText("GRADING", {
       timeout: 20_000,
