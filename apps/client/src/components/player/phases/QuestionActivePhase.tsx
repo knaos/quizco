@@ -51,13 +51,12 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
         />
       ) : (
         <div
-          className={`rounded-2xl border-2 p-8 ${
-            submissionStatus === "error"
+          className={`rounded-2xl border-2 p-8 ${submissionStatus === "error"
               ? "border-red-500 bg-red-100"
               : submissionStatus === "success" || currentTeam?.isExplicitlySubmitted
                 ? "border-green-500 bg-green-100"
                 : "border-blue-500 bg-blue-100"
-          }`}
+            }`}
           data-testid="player-submission-state"
         >
           {submissionStatus === "error" ? (
@@ -70,18 +69,16 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
           ) : (
             <>
               <CheckCircle
-                className={`mx-auto mb-4 h-16 w-16 ${
-                  submissionStatus === "success" || currentTeam?.isExplicitlySubmitted
+                className={`mx-auto mb-4 h-16 w-16 ${submissionStatus === "success" || currentTeam?.isExplicitlySubmitted
                     ? "text-green-500"
                     : "animate-pulse text-blue-500"
-                }`}
+                  }`}
               />
               <h2
-                className={`text-2xl font-bold ${
-                  submissionStatus === "success" || currentTeam?.isExplicitlySubmitted
+                className={`text-2xl font-bold ${submissionStatus === "success" || currentTeam?.isExplicitlySubmitted
                     ? "text-green-800"
                     : "text-blue-800"
-                }`}
+                  }`}
               >
                 {t("player.answer_received")}
               </h2>
@@ -98,13 +95,6 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
           )}
         </div>
       )}
-
-      <div
-        className="text-4xl font-black text-gray-300"
-        data-testid="player-time-remaining"
-      >
-        {state.timeRemaining}s
-      </div>
     </div>
   );
 };

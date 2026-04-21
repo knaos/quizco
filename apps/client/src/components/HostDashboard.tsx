@@ -59,6 +59,15 @@ function formatSubmittedContent(value: unknown): string {
   return String(value ?? "");
 }
 
+function formatHostTime(seconds: number): string {
+  if (seconds > 60) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${Math.ceil(seconds)}s`;
+}
+
 function renderPresenterAnswerContent(
   question: Question,
   revealStep: number,
@@ -441,7 +450,7 @@ export const HostDashboard: React.FC = () => {
                     >
                       <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
                       <span className="mt-2 text-5xl font-black tabular-nums" data-testid="host-timer">
-                        {state.timeRemaining}s
+                        {formatHostTime(state.timeRemaining)}
                       </span>
                     </div>
                     {state.phase === "QUESTION_ACTIVE" ? (
