@@ -119,15 +119,21 @@ function renderPresenterAnswerContent(
 
   if (question.type === "TRUE_FALSE") {
     const correctAnswer = question.content.isTrue ? t("game.true") : t("game.false");
+    if (phase === "REVEAL_ANSWER") {
+      return (
+        <div className="grid grid-cols-1 gap-4" data-testid="host-question-options">
+          <div className="rounded-3xl border-2 border-green-200 bg-green-50 px-6 py-5 text-2xl font-black text-green-900">
+            {correctAnswer}
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="host-question-options">
         {[t("game.true"), t("game.false")].map((label) => (
           <div
             key={label}
-            className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black ${phase === "REVEAL_ANSWER" && label === correctAnswer
-              ? "border-green-200 bg-green-50 text-green-900"
-              : "border-gray-200 bg-white text-gray-700"
-              }`}
+            className="rounded-3xl border-2 px-6 py-5 text-2xl font-black border-gray-200 bg-white text-gray-700"
           >
             {label}
           </div>

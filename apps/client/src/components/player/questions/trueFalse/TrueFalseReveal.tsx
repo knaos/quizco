@@ -1,41 +1,78 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, XCircle } from 'lucide-react';
 import type { TrueFalseContent } from '@quizco/shared';
 
 interface TrueFalseRevealProps {
   content: TrueFalseContent;
   lastAnswer: boolean | null;
+  variant?: "player" | "audience" | "host";
 }
 
 export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
   content,
   lastAnswer,
+  variant = "player",
 }) => {
   const { t } = useTranslation();
 
-  const isAnswerCorrect = lastAnswer === content.isTrue;
+  const correctAnswer = content.isTrue;
+  const playerAnswer = lastAnswer;
+
+  if (variant === "host") {
+    return (
+      <div className={`aspect-square md:aspect-auto md:h-24 rounded-3xl text-4xl font-black uppercase flex items-center justify-center w-full shadow-2xl border-b-8 ${content.isTrue
+        ? "bg-green-600 text-white border-green-800"
+        : "bg-red-500 text-white border-red-700"
+        }`}>
+        {content.isTrue ? t("game.true") : t("game.false")}
+      </div>
+    );
+  }
+
+  const isPlayerCorrect = playerAnswer !== null && playerAnswer === correctAnswer;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className={`${isAnswerCorrect ? "bg-green-50 border-green-200" : lastAnswer !== null ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"} p-6 rounded-2xl border-2`}>
-        <span className={`${isAnswerCorrect ? "text-green-600" : lastAnswer !== null ? "text-red-600" : "text-gray-600"} text-xs font-bold uppercase`}>{t('player.your_answer')}</span>
-        <div className={`text-2xl font-black ${isAnswerCorrect ? "text-green-900" : lastAnswer !== null ? "text-red-900" : "text-gray-900"} mt-1 flex items-center justify-between`}>
-          <span>
-            {lastAnswer === null ? t("player.no_answer_submitted") : (lastAnswer ? t("game.true") : t("game.false"))}
-          </span>
-          {isAnswerCorrect ? (
-            <CheckCircle className="text-green-600 w-8 h-8 ml-2" />
-          ) : lastAnswer !== null ? (
-            <XCircle className="text-red-600 w-8 h-8 ml-2" />
-          ) : null}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl mx-auto">
+      <div className="flex flex-col items-center gap-3">
+        <div className={`aspect-square md:aspect-auto md:h-24 rounded-3xl text-4xl font-black uppercase flex items-center justify-center w-full shadow-2xl border-b-8 ${correctAnswer === true
+          ? isPlayerCorrect
+            ? "bg-green-600 text-white border-green-800"
+            : "bg-green-500 text-white border-green-700"
+          : "bg-gray-200 text-gray-400 border-gray-300 grayscale"
+          }`}>
+          {t("game.true")}
         </div>
+        <span className={`text-md font-bold uppercase ${correctAnswer === true ? "text-green-600" : "text-red-500"
+          }`}>
+          {correctAnswer === true
+            ? t("player.correct_answer")
+            : isPlayerCorrect
+              ? ""
+              : playerAnswer === true
+                ? t("player.your_answer")
+                : ""}
+        </span>
       </div>
-      <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
-        <span className="text-green-600 text-xs font-bold uppercase">{t('player.correct_answer')}</span>
-        <p className="text-2xl font-black text-green-900 mt-1">
-          {content.isTrue ? t("game.true") : t("game.false")}
-        </p>
+
+      <div className="flex flex-col items-center gap-3">
+        <div className={`aspect-square md:aspect-auto md:h-24 rounded-3xl text-4xl font-black uppercase flex items-center justify-center w-full shadow-2xl border-b-8 ${correctAnswer === false
+          ? isPlayerCorrect
+            ? "bg-red-600 text-white border-red-800"
+            : "bg-red-500 text-white border-red-700"
+          : "bg-gray-200 text-gray-400 border-gray-300 grayscale"
+          }`}>
+          {t("game.false")}
+        </div>
+        <span className={`text-md font-bold uppercase ${correctAnswer === false ? "text-green-600" : "text-red-500"
+          }`}>
+          {correctAnswer === false
+            ? t("player.correct_answer")
+            : isPlayerCorrect
+              ? ""
+              : playerAnswer === false
+                ? t("player.your_answer")
+                : ""}
+        </span>
       </div>
     </div>
   );

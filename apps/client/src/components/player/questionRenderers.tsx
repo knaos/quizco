@@ -433,6 +433,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
             ? (question.content as TrueFalseContent).isTrue
             : ((lastAnswer as boolean | null) ?? null)
         }
+        variant={variant}
       />
     ),
   },
