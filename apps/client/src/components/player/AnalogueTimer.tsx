@@ -57,8 +57,17 @@ export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
     return `M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
   };
 
+  const isPulsing = displayTime <= 5 && displayTime > 0;
+
   return (
-    <div className="relative drop-shadow-lg" style={{ width: 120, height: 120 }}>
+    <div
+      className="relative drop-shadow-lg"
+      style={{
+        width: 120,
+        height: 120,
+        animation: isPulsing ? "scale-pulse 1s infinite" : "none",
+      }}
+    >
       <svg
         width={120}
         height={120}

@@ -57,12 +57,6 @@ export const AudienceView: React.FC = () => {
         {state.phase === "QUESTION_ACTIVE" && !state.timerPaused && state.currentQuestion ? (
           <div className="w-full max-w-3xl space-y-8">
             <PublicQuestionBody mode="readOnly" state={state} testIdPrefix="audience" />
-            <div
-              className="text-4xl font-black text-gray-300"
-              data-testid="audience-time-remaining"
-            >
-              {state.timeRemaining}s
-            </div>
           </div>
         ) : null}
 
