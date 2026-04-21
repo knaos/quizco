@@ -75,6 +75,10 @@ interface PendingJoinRequest {
   color: string;
 }
 
+/**
+ * Groups the mutable, client-only session state so semantic events can update
+ * it through a single transition boundary instead of multiple ad hoc setters.
+ */
 interface PlayerSessionState {
   teamId: string | null;
   teamName: string;
@@ -107,6 +111,10 @@ type PlayerSessionAction =
       updater: (previous: DraftAnswerState) => DraftAnswerState;
     };
 
+/**
+ * Resets answer-local state when a new question arrives or the user leaves the
+ * session.
+ */
 function createEmptyDraftState(): DraftAnswerState {
   return {
     questionId: null,
@@ -116,6 +124,10 @@ function createEmptyDraftState(): DraftAnswerState {
   };
 }
 
+/**
+ * Rehydrates the reducer from localStorage so reconnects start from persisted
+ * identity rather than a blank client session.
+ */
 function createInitialPlayerSessionState(saved: {
   teamId: string | null;
   teamName: string;
@@ -135,6 +147,10 @@ function createInitialPlayerSessionState(saved: {
   };
 }
 
+/**
+ * Encodes the session transitions explicitly so socket callbacks stay readable
+ * and local state changes remain easy to audit.
+ */
 function playerSessionReducer(
   state: PlayerSessionState,
   action: PlayerSessionAction,
