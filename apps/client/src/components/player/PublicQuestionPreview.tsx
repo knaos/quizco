@@ -49,7 +49,6 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
         <AnalogueTimer
           timeRemaining={state.timeRemaining}
           totalTime={state.currentQuestion.timeLimitSeconds}
-          paused={true}
         />
       </Card>
 

@@ -73,7 +73,6 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
         <AnalogueTimer
           timeRemaining={props.state.timeRemaining}
           totalTime={props.state.currentQuestion?.timeLimitSeconds || 30}
-          paused={props.state.timerPaused}
         />
       </Card>
 
