@@ -43,6 +43,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   previewMode = false,
 }) => {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+  const [selectedRight, setSelectedRight] = useState<string | null>(null);
   const [cardPositions, setCardPositions] = useState<{
     left: Record<string, CardPosition>;
     right: Record<string, CardPosition>;
@@ -120,25 +121,37 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
     return () => clearTimeout(timer);
   }, [value, updatePositions]);
 
-  const handleLeftClick = (id: string) => {
-    if (disabled || previewMode) return;
-    setSelectedLeft(id === selectedLeft ? null : id);
-  };
-
-  const handleRightClick = (rightText: string) => {
-    if (disabled || previewMode || !selectedLeft) return;
-
+  const createMatch = useCallback((leftId: string, rightText: string) => {
     const newValue = { ...value };
-    // Remove any existing match for this right item
     Object.keys(newValue).forEach((key) => {
       if (newValue[key] === rightText) {
         delete newValue[key];
       }
     });
-
-    newValue[selectedLeft] = rightText;
+    newValue[leftId] = rightText;
     onChange(newValue);
-    setSelectedLeft(null);
+  }, [value, onChange]);
+
+  const handleLeftClick = (id: string) => {
+    if (disabled || previewMode) return;
+    
+    if (selectedRight) {
+      createMatch(id, selectedRight);
+      setSelectedRight(null);
+    } else {
+      setSelectedLeft(id === selectedLeft ? null : id);
+    }
+  };
+
+  const handleRightClick = (rightText: string) => {
+    if (disabled || previewMode) return;
+
+    if (selectedLeft) {
+      createMatch(selectedLeft, rightText);
+      setSelectedLeft(null);
+    } else {
+      setSelectedRight(rightText === selectedRight ? null : rightText);
+    }
   };
 
   const clearMatch = (leftId: string) => {
@@ -251,13 +264,15 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
                 key={text}
                 ref={(el) => { if (el) rightRefs.current[text] = el; }}
                 onClick={() => handleRightClick(text)}
-                disabled={disabled || !selectedLeft}
+                disabled={disabled}
                 data-testid={`matching-right-${rightIndex}`}
-                className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all text-left ${isMatched
-                  ? "bg-blue-50 border-blue-200 text-blue-800"
-                  : selectedLeft
-                    ? "bg-white border-blue-200 text-blue-600 animate-pulse"
-                    : "bg-gray-50 border-transparent text-gray-400 cursor-not-allowed"
+                className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all text-left ${selectedRight === text
+                  ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
+                  : isMatched
+                    ? "bg-blue-50 border-blue-200 text-blue-800"
+                    : selectedLeft || selectedRight
+                      ? "bg-white border-blue-200 text-blue-600 animate-pulse"
+                      : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
                   }`}
               >
                 <span>{text}</span>
