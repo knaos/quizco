@@ -213,6 +213,7 @@ describe("HostDashboard", () => {
 
     const view = render(<HostDashboard />);
 
+    click(view.container.querySelector('button[aria-label="Menu"]') as HTMLElement);
     click(view.container.querySelector('[data-testid="host-open-question-picker"]') as HTMLElement);
     click(view.container.querySelector('[data-testid="host-open-answers-modal"]') as HTMLElement);
 
