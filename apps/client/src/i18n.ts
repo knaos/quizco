@@ -13,12 +13,12 @@ i18n
       en: enTranslations,
       bg: bgTranslations,
     },
-    fallbackLng: "en",
+    fallbackLng: "bg",
     interpolation: {
       escapeValue: false, // react already safes from xss
     },
     detection: {
-      order: ["localStorage", "navigator"],
+      order: ["localStorage"],
       caches: ["localStorage"],
     },
   });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TrueFalseContent } from '@quizco/shared';
+import { Check, X } from 'lucide-react';
 
 interface TrueFalseRevealProps {
   content: TrueFalseContent;
@@ -40,6 +41,8 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
             : "bg-green-500 text-white border-green-700"
           : "bg-gray-200 text-gray-400 border-gray-300 grayscale"
           }`}>
+          {correctAnswer === true && isPlayerCorrect && <Check className='mr-2' strokeWidth={5} size={36} />}
+          {correctAnswer === false && !isPlayerCorrect && <X className='mr-2' strokeWidth={5} size={36} />}
           {t("game.true")}
         </div>
         <span className={`text-md font-bold uppercase ${correctAnswer === true ? "text-green-600" : "text-red-500"
@@ -61,6 +64,8 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
             : "bg-red-500 text-white border-red-700"
           : "bg-gray-200 text-gray-400 border-gray-300 grayscale"
           }`}>
+          {correctAnswer === false && isPlayerCorrect && <Check className='mr-2' strokeWidth={5} size={36} />}
+          {correctAnswer === true && !isPlayerCorrect && <X className='mr-2' strokeWidth={5} size={36} />}
           {t("game.false")}
         </div>
         <span className={`text-md font-bold uppercase ${correctAnswer === false ? "text-green-600" : "text-red-500"
