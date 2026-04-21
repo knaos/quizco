@@ -1,4 +1,5 @@
 import { expect, request, test, type APIRequestContext, type Page } from "@playwright/test";
+import { HOST_PASSWORD } from "./helpers/gameHarness";
 import { io } from "socket.io-client";
 
 const ADMIN_AUTH_HEADER = { "x-admin-auth": "admin123" };
@@ -68,7 +69,7 @@ async function createOpenWordCompetition(
 
 async function loginHostAndSelectCompetition(hostPage: Page, competitionId: string): Promise<void> {
   await hostPage.goto("/host");
-  await hostPage.getByTestId("host-password-input").fill("host123");
+  await hostPage.getByTestId("host-password-input").fill(HOST_PASSWORD);
   await hostPage.getByTestId("host-login-submit").click();
   await hostPage.getByTestId(`host-competition-option-${competitionId}`).click();
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
