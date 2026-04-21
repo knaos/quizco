@@ -65,7 +65,7 @@ export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
       style={{
         width: 120,
         height: 120,
-        animation: isPulsing ? "scale-pulse 1s infinite" : "none",
+        animation: isPulsing ? "scale-pulse ease-in-out 1s infinite" : "none",
       }}
     >
       <svg
