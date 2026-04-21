@@ -60,12 +60,13 @@ function formatSubmittedContent(value: unknown): string {
 }
 
 function formatHostTime(seconds: number): string {
-  if (seconds > 60) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+  const totalSec = Math.ceil(seconds);
+  if (totalSec >= 60) {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }
-  return `${Math.ceil(seconds)}s`;
+  return `${totalSec}s`;
 }
 
 function renderPresenterAnswerContent(

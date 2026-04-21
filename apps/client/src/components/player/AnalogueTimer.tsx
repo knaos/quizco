@@ -11,11 +11,11 @@ export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
 }) => {
   const displayTime = timeRemaining;
 
-  const percentage = Math.max(0, Math.min(1, displayTime / totalTime));
+  const percentage = totalTime > 0 ? Math.max(0, Math.min(1, displayTime / totalTime)) : 0;
 
   const getColor = () => {
-    if (percentage > 0.5) return "#22c55e";
-    if (percentage > 0.25) return "#eab308";
+    if (percentage > 0.3) return "#22c55e";
+    if (percentage > 0.15) return "#eab308";
     return "#ef4444";
   };
 
@@ -24,12 +24,13 @@ export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
   const color = getColor();
 
   const formatTime = (seconds: number) => {
-    if (seconds > 60) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
+    const totalSec = Math.ceil(seconds);
+    if (totalSec > 60) {
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
       return `${mins}:${secs.toString().padStart(2, "0")}`;
     }
-    return Math.ceil(seconds);
+    return totalSec;
   };
 
   const displayText = formatTime(displayTime);
@@ -88,7 +89,7 @@ export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
         )}
       </svg>
 
-      <div className={`absolute inset-0 flex items-center justify-center font-black text-white drop-shadow-lg text-3xl`}>
+      <div className={`absolute inset-0 flex items-center justify-center font-black text-slate-900 drop-shadow-sm text-3xl`}>
         {displayText}
       </div>
     </div>
