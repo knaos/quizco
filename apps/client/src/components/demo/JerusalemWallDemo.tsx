@@ -302,7 +302,7 @@ export const JerusalemWallDemo: React.FC = () => {
         }
       });
     };
-  }, [teams]);
+  }, [teams, maxScore]);
 
   return (
     <div

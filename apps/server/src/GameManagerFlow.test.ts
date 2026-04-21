@@ -129,4 +129,66 @@ describe("GameManager Next Flow", () => {
     await gameManager.next(compId, () => {});
     expect(gameManager.getState(compId).phase).toBe("LEADERBOARD");
   });
+
+  it("should update timeRemaining when transitioning to next round", async () => {
+    const round1 = await prisma.round.create({
+      data: {
+        competitionId: compId,
+        orderIndex: 1,
+        type: "STANDARD",
+        title: "R1",
+      },
+    });
+    const q1 = await prisma.question.create({
+      data: {
+        roundId: round1.id,
+        questionText: "Q1",
+        type: "CLOSED",
+        content: { options: ["Ans"] },
+        timeLimitSeconds: 10,
+      },
+    });
+
+    const round2 = await prisma.round.create({
+      data: {
+        competitionId: compId,
+        orderIndex: 2,
+        type: "STANDARD",
+        title: "R2",
+      },
+    });
+    const q2 = await prisma.question.create({
+      data: {
+        roundId: round2.id,
+        questionText: "Q2",
+        type: "CLOSED",
+        content: { options: ["Ans"] },
+        timeLimitSeconds: 30,
+      },
+    });
+
+    // WAITING -> WELCOME
+    await gameManager.next(compId, () => {});
+    // WELCOME -> ROUND_START
+    await gameManager.next(compId, () => {});
+    // ROUND_START -> QUESTION_PREVIEW
+    await gameManager.next(compId, () => {});
+    expect(gameManager.getState(compId).timeRemaining).toBe(10);
+
+    // QUESTION_PREVIEW -> QUESTION_ACTIVE
+    await gameManager.next(compId, () => {});
+    // QUESTION_ACTIVE -> GRADING
+    await gameManager.next(compId, () => {});
+    // GRADING -> REVEAL_ANSWER
+    await gameManager.next(compId, () => {});
+    // REVEAL_ANSWER -> ROUND_END
+    await gameManager.next(compId, () => {});
+    expect(gameManager.getState(compId).phase).toBe("ROUND_END");
+
+    // ROUND_END -> ROUND_START (next round) - should update timeRemaining from q2
+    await gameManager.next(compId, () => {});
+    expect(gameManager.getState(compId).phase).toBe("ROUND_START");
+    expect(gameManager.getState(compId).currentQuestion?.id).toBe(q2.id);
+    expect(gameManager.getState(compId).timeRemaining).toBe(30);
+  });
 });

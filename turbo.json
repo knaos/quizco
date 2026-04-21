@@ -10,11 +10,20 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
     },
     "test": {
-      "dependsOn": ["build"],
+      "cache": false,
+      "dependsOn": [
+        "build"
+      ],
       "outputs": []
     },
     "test:e2e": {

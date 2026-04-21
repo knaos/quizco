@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import type {
   ChronologyContent,
   CorrectTheErrorContent,
@@ -16,7 +16,6 @@ import {
   Clock,
   Pause,
   Play,
-  Settings,
   SkipForward,
   Trophy,
   Users,
@@ -33,6 +32,7 @@ import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { Card } from "./ui/Card";
 import { Modal } from "./ui/Modal";
+import { Menu, type MenuRef } from "./ui/Menu";
 
 function formatSubmittedContent(value: unknown): string {
   if (typeof value === "string") {
@@ -75,11 +75,10 @@ function renderPresenterAnswerContent(
           return (
             <div
               key={`${question.id}-option-${index}`}
-              className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black transition-all ${
-                isHidden
-                  ? "border-dashed border-gray-200 bg-gray-100 text-gray-400"
-                  : "border-blue-100 bg-white text-gray-900 shadow-sm"
-              }`}
+              className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black transition-all ${isHidden
+                ? "border-dashed border-gray-200 bg-gray-100 text-gray-400"
+                : "border-blue-100 bg-white text-gray-900 shadow-sm"
+                }`}
             >
               <div className="mb-2 text-xs uppercase tracking-[0.3em] text-gray-400">
                 {t("host.option_label", { label: String.fromCharCode(65 + index) })}
@@ -115,11 +114,10 @@ function renderPresenterAnswerContent(
         {[t("game.true"), t("game.false")].map((label) => (
           <div
             key={label}
-            className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black ${
-              phase === "REVEAL_ANSWER" && label === correctAnswer
-                ? "border-green-200 bg-green-50 text-green-900"
-                : "border-gray-200 bg-white text-gray-700"
-            }`}
+            className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black ${phase === "REVEAL_ANSWER" && label === correctAnswer
+              ? "border-green-200 bg-green-50 text-green-900"
+              : "border-gray-200 bg-white text-gray-700"
+              }`}
           >
             {label}
           </div>
@@ -268,10 +266,8 @@ export const HostDashboard: React.FC = () => {
     selectCompetition,
     handleBack,
     startQuestion,
-    startTimer,
     pauseTimer,
     resumeTimer,
-    revealAnswer,
     handleNext,
     gradeAnswer,
     toggleRound,
@@ -280,7 +276,10 @@ export const HostDashboard: React.FC = () => {
     openAnswersModal,
     closeAnswersModal,
     showLeaderboard,
+    isTransitionDisabled,
   } = useHostDashboard(state, hostToken);
+
+  const menuRef = useRef<MenuRef>(null);
 
   const visibleCollectedAnswers =
     state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER"
@@ -361,8 +360,8 @@ export const HostDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eef4ff_45%,_#f8fafc_100%)] p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col gap-4 rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
+        <header className="flex flex-col gap-4 rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-sm backdrop-blur">
+          <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={handleBack}
@@ -372,44 +371,34 @@ export const HostDashboard: React.FC = () => {
               <ChevronRight className="h-5 w-5 rotate-180" />
             </button>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-blue-500">{t("host.dashboard")}</p>
               <h1 className="text-3xl font-black tracking-tight text-slate-950">{selectedComp.title}</h1>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-2xl bg-slate-900 p-1">
-              <LanguageSwitcher />
-            </div>
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-slate-700" data-testid="host-team-count">
               {state.teams.length} {t("host.connected_teams")}
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={openQuestionPicker}
-              data-testid="host-open-question-picker"
-              className="rounded-2xl"
-            >
-              {t("host.open_question_picker")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={showLeaderboard}
-              className="rounded-2xl"
-            >
-              <Trophy className="mr-2 h-5 w-5" />
-              {t("host.show_leaderboard_compact")}
-            </Button>
-            <a
-              href="/admin"
-              target="_blank"
-              className="inline-flex items-center rounded-2xl border border-gray-200 bg-white px-4 py-3 font-bold text-gray-800 shadow-sm transition hover:bg-gray-50"
-            >
-              <Settings className="mr-2 h-5 w-5" />
-              {t("host.admin_panel")}
-            </a>
+            <Menu ref={menuRef}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={openQuestionPicker}
+                data-testid="host-open-question-picker"
+                className="w-full justify-start rounded-xl px-4"
+              >
+                {t("host.open_question_picker")}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={showLeaderboard}
+                className="w-full justify-start rounded-xl px-4"
+              >
+                <Trophy className="mr-2 h-5 w-5" />
+              </Button>
+              <div className="flex items-center justify-center rounded-xl px-4 py-2 bg-slate-900">
+                <LanguageSwitcher />
+              </div>
+            </Menu>
           </div>
         </header>
 
@@ -436,11 +425,8 @@ export const HostDashboard: React.FC = () => {
                       </Badge>
                     </div>
                     <div>
-                      <p className="mb-2 text-xs font-black uppercase tracking-[0.35em] text-blue-500">
-                        {currentQuestion ? t("host.presenter_question_label") : t("host.presenter_ready_label")}
-                      </p>
                       <h2
-                        className="max-w-4xl text-3xl font-black leading-tight text-slate-950 md:text-5xl"
+                        className="max-w-4xl text-3xl font-black leading-tight text-slate-950"
                         data-testid="host-presenter-question"
                       >
                         {currentQuestionText}
@@ -448,26 +434,46 @@ export const HostDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div
-                    className="flex min-w-[14rem] flex-col rounded-[2rem] border border-slate-200 bg-slate-950 px-6 py-5 text-white shadow-xl"
-                    data-testid="host-timer-card"
-                  >
-                    <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
-                    <span className="mt-3 text-6xl font-black tabular-nums" data-testid="host-timer">
-                      {state.timeRemaining}s
-                    </span>
+                  <div className="flex w-full items-stretch gap-4">
+                    <div
+                      className="flex w-1/4 min-w-[10rem] flex-col rounded-3xl border border-slate-200 bg-slate-950 px-5 py-4 text-white shadow-xl"
+                      data-testid="host-timer-card"
+                    >
+                      <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
+                      <span className="mt-2 text-5xl font-black tabular-nums" data-testid="host-timer">
+                        {state.timeRemaining}s
+                      </span>
+                    </div>
                     {state.phase === "QUESTION_ACTIVE" ? (
                       <Button
                         type="button"
                         variant={state.timerPaused ? "success" : "warning"}
                         onClick={state.timerPaused ? resumeTimer : pauseTimer}
-                        className="mt-5 w-full rounded-2xl py-4 text-lg"
+                        disabled={isTransitionDisabled}
+                        className="rounded-3xl py-3 text-base"
                         data-testid="host-toggle-timer"
                       >
-                        {state.timerPaused ? <Play className="mr-2 h-5 w-5" /> : <Pause className="mr-2 h-5 w-5" />}
+                        {state.timerPaused ? <Play className="mr-2 h-4 w-4" /> : <Pause className="mr-2 h-4 w-4" />}
                         {state.timerPaused ? t("host.resume_timer") : t("host.pause_timer")}
                       </Button>
                     ) : null}
+                    <Button
+                      type="button"
+                      variant={
+                        state.phase === "QUESTION_ACTIVE"
+                          ? "danger"
+                          : state.phase === "QUESTION_PREVIEW"
+                            ? "success"
+                            : "primary"
+                      }
+                      onClick={handleNext}
+                      disabled={isTransitionDisabled || (state.phase === "LEADERBOARD" && state.currentQuestion === null)}
+                      data-testid="host-next-action"
+                      className="flex w-3/4 items-center justify-center rounded-3xl px-4 text-xl shadow-2xl shadow-blue-200"
+                    >
+                      <SkipForward className="mr-3 h-7 w-7" />
+                      {getNextActionLabel()}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -479,9 +485,7 @@ export const HostDashboard: React.FC = () => {
                       <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-slate-400">
                         {t("host.presenter_answers_label")}
                       </p>
-                      <div data-testid="host-presenter-answer-content">
-                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, state.phase, t)}
-                      </div>
+
                     </div>
 
                     {state.phase === "REVEAL_ANSWER" ? (
@@ -498,7 +502,12 @@ export const HostDashboard: React.FC = () => {
                           })}
                         </div>
                       </div>
-                    ) : null}
+                    ) :
+                      <div data-testid="host-presenter-answer-content">
+                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, state.phase, t)}
+                      </div>
+                    }
+
                   </div>
                 ) : (
                   <div className="rounded-[2rem] border-2 border-dashed border-blue-200 bg-blue-50 px-6 py-10 text-center">
@@ -556,53 +565,6 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="sticky top-6 z-10 border border-white/60 bg-white/90 p-6 shadow-lg">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-400">{t("host.presenter_support_label")}</p>
-              <div className="mt-5 space-y-4">
-                <Button
-                  type="button"
-                  variant={
-                    state.phase === "QUESTION_ACTIVE"
-                      ? "danger"
-                      : state.phase === "QUESTION_PREVIEW"
-                        ? "success"
-                        : "primary"
-                  }
-                  onClick={handleNext}
-                  disabled={state.phase === "LEADERBOARD" && state.currentQuestion === null}
-                  data-testid="host-next-action"
-                  className="w-full rounded-[2rem] py-6 text-2xl shadow-2xl shadow-blue-200"
-                >
-                  <SkipForward className="mr-3 h-8 w-8" />
-                  {getNextActionLabel()}
-                </Button>
-
-                {state.phase === "QUESTION_PREVIEW" ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={startTimer}
-                    className="w-full rounded-2xl border-green-200 bg-green-50 py-4 text-green-800"
-                  >
-                    <Play className="mr-2 h-5 w-5" />
-                    {t("host.actions.skip_to_timer")}
-                  </Button>
-                ) : null}
-
-                {(state.phase === "GRADING" || state.phase === "QUESTION_ACTIVE") && currentQuestion ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={revealAnswer}
-                    className="w-full rounded-2xl border-yellow-200 bg-yellow-50 py-4 text-yellow-800"
-                  >
-                    <CheckCircle className="mr-2 h-5 w-5" />
-                    {t("host.actions.reveal_answer_action")}
-                  </Button>
-                ) : null}
-              </div>
-            </Card>
-
             <Card className="border border-white/60 bg-white/90 p-6 shadow-lg">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -656,13 +618,12 @@ export const HostDashboard: React.FC = () => {
                 <Trophy className="h-6 w-6 text-yellow-500" />
                 <h3 className="text-lg font-black uppercase tracking-[0.25em] text-slate-900">{t("host.leaderboard")}</h3>
               </div>
-              <div className="space-y-3" data-testid="host-leaderboard-summary">
+              <div className="max-h-80 overflow-y-auto space-y-3" data-testid="host-leaderboard-summary">
                 {state.teams.length === 0 ? (
                   <p className="text-sm font-medium italic text-slate-400">{t("host.no_teams_joined")}</p>
                 ) : (
                   [...state.teams]
                     .sort((left, right) => right.score - left.score)
-                    .slice(0, 5)
                     .map((team, index) => (
                       <div key={team.id} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -689,6 +650,7 @@ export const HostDashboard: React.FC = () => {
           onClose={closeQuestionPicker}
           data-testid="host-question-picker-modal"
           className="max-w-5xl"
+          scrollable
         >
           <div className="space-y-4">
             {compData?.rounds.map((round) => (
@@ -720,11 +682,10 @@ export const HostDashboard: React.FC = () => {
                           type="button"
                           onClick={() => startQuestion(question.id)}
                           data-testid={`host-question-option-${question.id}`}
-                          className={`rounded-3xl border-2 p-5 text-left transition ${
-                            isCurrentQuestion
-                              ? "border-blue-500 bg-blue-600 text-white"
-                              : "border-slate-100 bg-white hover:border-blue-200 hover:bg-blue-50"
-                          }`}
+                          className={`rounded-3xl border-2 p-5 text-left transition ${isCurrentQuestion
+                            ? "border-blue-500 bg-blue-600 text-white"
+                            : "border-slate-100 bg-white hover:border-blue-200 hover:bg-blue-50"
+                            }`}
                         >
                           <div className="mb-3 flex items-start justify-between gap-4">
                             <div>

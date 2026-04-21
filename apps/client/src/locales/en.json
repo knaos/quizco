@@ -108,6 +108,7 @@
       "team_name": "Team Name",
       "pick_color": "Pick a Color",
       "lets_go": "Let's Go!",
+      "option_label": "Option {{label}}",
       "waiting_host": "Waiting for the host to start...",
       "get_ready": "Get ready!",
       "timer_paused": "Timer Paused",
