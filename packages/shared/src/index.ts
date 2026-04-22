@@ -118,6 +118,12 @@ export interface TrueFalseContent {
   isTrue: boolean;
 }
 
+export interface TrueFalseRevealProps {
+  content: TrueFalseContent;
+  lastAnswer: boolean | null;
+  variant?: "player" | "audience" | "host";
+}
+
 export interface CorrectTheErrorWord {
   wordIndex: number; // Index of the word in the sentence (0-based)
   text: string; // The original word text

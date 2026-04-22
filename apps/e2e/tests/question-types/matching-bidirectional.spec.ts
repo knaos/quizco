@@ -59,8 +59,16 @@ test("MATCHING supports right-to-left connection flow", async ({ browser }) => {
     // Test clearing selection by clicking right item again (deselect)
     await session.playerOnePage.getByTestId("matching-right-1").click();
     
-    // Right item 1 should now be selected (Vegetable)
+    // Right item 1 should now be selected (Vegetable) - first click selects
     const rightItem1 = session.playerOnePage.getByTestId("matching-right-1");
+    await expect(rightItem1).toHaveClass(/bg-blue-600|border-blue-400/);
+
+    // Click again to deselect (right-side toggle off)
+    await rightItem1.click();
+    await expect(rightItem1).not.toHaveClass(/bg-blue-600|border-blue-400/);
+
+    // Click a third time to reselect before creating the match
+    await rightItem1.click();
     await expect(rightItem1).toHaveClass(/bg-blue-600|border-blue-400/);
 
     // Connect to Apple (left item m1)
