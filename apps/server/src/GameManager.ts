@@ -4,6 +4,10 @@ import {
   Question,
   GamePhase,
   AnswerContent,
+  MultipleChoiceContent,
+  ClosedQuestionContent,
+  FillInTheBlanksContent,
+  MatchingContent,
 } from "@quizco/shared";
 import { IGameRepository } from "./repositories/IGameRepository";
 import { GradingService } from "./services/GradingService";
@@ -142,16 +146,37 @@ export class GameManager {
     const sessionQuestion = JSON.parse(JSON.stringify(question));
 
     if (sessionQuestion.type === "CHRONOLOGY") {
-      // Server-side shuffle: ensure everyone gets the same order
       sessionQuestion.content.items = this.shuffleArray(
         sessionQuestion.content.items,
       );
     }
 
     if (sessionQuestion.type === "FILL_IN_THE_BLANKS") {
-      // Server-side shuffle: scramble options for each blank
       for (const blank of sessionQuestion.content.blanks) {
         blank.options = this.shuffleArray(blank.options);
+      }
+    }
+
+    if (sessionQuestion.type === "MULTIPLE_CHOICE" || sessionQuestion.type === "CLOSED") {
+      const cacheKey = `shuffle_${question.id}`;
+      const mappingKey = `mapping_${question.id}`;
+      const cached = session.metadata?.[cacheKey];
+      if (cached) {
+        sessionQuestion.content = cached;
+      } else {
+        const result = this.shuffleWithMapping(sessionQuestion.content);
+        sessionQuestion.content = result.shuffled;
+        session.metadata = session.metadata || {};
+        session.metadata[cacheKey] = result.shuffled;
+        session.metadata[mappingKey] = result.indexMapping;
+      }
+    }
+
+    if (sessionQuestion.type === "MATCHING") {
+      const { heroes, stories } = sessionQuestion.content;
+      if (heroes && heroes.length > 0 && stories && stories.length > 0) {
+        const shuffledStories = this.shuffleArray([...stories]);
+        sessionQuestion.content = { heroes, stories: shuffledStories };
       }
     }
 
@@ -160,12 +185,17 @@ export class GameManager {
     session.timeRemaining = question.timeLimitSeconds;
     session.revealStep = 0;
     session.timerPaused = false;
-    
-    // Preserve chronology tracking across questions - only clear question-specific metadata
-    // Keep chronologyPerfectAnswers and chronologyBonusAwarded for the completion bonus
+
+    // Preserve metadata across questions (shuffle cache, index mapping, chronology tracking)
     const preservedChronologyPerfect = session.metadata?.chronologyPerfectAnswers;
     const preservedChronologyBonus = session.metadata?.chronologyBonusAwarded;
-    session.metadata = {};
+    const shuffleData: Record<string, any> = {};
+    for (const key of Object.keys(session.metadata || {})) {
+      if (key.startsWith("shuffle_") || key.startsWith("mapping_")) {
+        shuffleData[key] = session.metadata[key];
+      }
+    }
+    session.metadata = { ...shuffleData };
     if (preservedChronologyPerfect) session.metadata.chronologyPerfectAnswers = preservedChronologyPerfect;
     if (preservedChronologyBonus) session.metadata.chronologyBonusAwarded = preservedChronologyBonus;
 
@@ -287,10 +317,31 @@ export class GameManager {
 
       const usedJokers = session.metadata?.usedJokers?.has(team.id) || false;
 
+      // Map answer indices from display order to internal (shuffled) order for grading
+      let answerToGrade: AnswerContent = team.lastAnswer;
+      if (
+        session.currentQuestion?.type === "MULTIPLE_CHOICE" ||
+        session.currentQuestion?.type === "CLOSED"
+      ) {
+        const mappingKey = `mapping_${session.currentQuestion.id}`;
+        const indexMapping = session.metadata?.[mappingKey];
+        if (indexMapping && Array.isArray(team.lastAnswer)) {
+          // Reverse mapping: display index -> internal index
+          const reverseMapping: number[] = [];
+          indexMapping.forEach((newIdx: number, origIdx: number) => {
+            reverseMapping[newIdx] = origIdx;
+          });
+          const mapped = (team.lastAnswer as number[]).map(
+            (idx: number) => reverseMapping[idx] ?? idx,
+          );
+          answerToGrade = mapped;
+        }
+      }
+
       // Grade the answer
       const gradingResult = this.gradingService.gradeAnswer(
         session.currentQuestion,
-        team.lastAnswer,
+        answerToGrade,
         { usedJokers },
       );
 
@@ -557,9 +608,13 @@ export class GameManager {
         break;
       case "WELCOME":
         if (questions.length > 0) {
+          const q = questions[0];
+          if (q.type === "MATCHING" && q.content.stories) {
+            q.content.stories = this.shuffleArray([...q.content.stories]);
+          }
           session.phase = "ROUND_START";
-          session.currentQuestion = questions[0];
-          session.timeRemaining = questions[0].timeLimitSeconds;
+          session.currentQuestion = q;
+          session.timeRemaining = q.timeLimitSeconds;
           // We need to know which round we are in
           session.revealStep = 0; // reusing this for round index if needed? No, let's keep it simple.
         } else {
@@ -619,6 +674,9 @@ export class GameManager {
         );
         const nextQuestion = questions[currentIndex + 1];
         if (nextQuestion) {
+          if (nextQuestion.type === "MATCHING" && nextQuestion.content.stories) {
+            nextQuestion.content.stories = this.shuffleArray([...nextQuestion.content.stories]);
+          }
           session.phase = "ROUND_START";
           session.currentQuestion = nextQuestion;
           session.timeRemaining = nextQuestion.timeLimitSeconds;
@@ -682,6 +740,121 @@ export class GameManager {
 
   public async getQuestionsForCompetition(competitionId: string) {
     return this.repository.getQuestionsForCompetition(competitionId);
+  }
+
+private shuffleOptions(
+    content: MultipleChoiceContent,
+  ): MultipleChoiceContent;
+  private shuffleOptions(
+    content: ClosedQuestionContent,
+  ): ClosedQuestionContent;
+  private shuffleOptions(
+    content: MultipleChoiceContent | ClosedQuestionContent,
+  ): MultipleChoiceContent | ClosedQuestionContent {
+    if (!content.options || content.options.length === 0) {
+      return content;
+    }
+
+    if ("correctIndices" in content && content.correctIndices) {
+      const options = content.options;
+      const correctIndices = new Set(content.correctIndices);
+      const correctAnswers = options.filter((_, i) => correctIndices.has(i));
+
+      const shuffledOptions = this.shuffleArray(options);
+      const newCorrectIndices: number[] = [];
+
+      shuffledOptions.forEach((opt, i) => {
+        if (correctAnswers.includes(opt)) {
+          newCorrectIndices.push(i);
+        }
+      });
+
+      return { ...content, options: shuffledOptions, correctIndices: newCorrectIndices };
+    }
+
+    const shuffledOptions = this.shuffleArray([...content.options]);
+    return { ...content, options: shuffledOptions };
+  }
+
+/**
+    * Shuffle options while tracking the mapping from original to shuffled indices.
+    * Used for consistent shuffle across clients and correct grading.
+    */
+  private shuffleWithMapping(content: MultipleChoiceContent): {
+    shuffled: MultipleChoiceContent;
+    indexMapping: number[]; // original index -> new index
+  } {
+    if (!content.options || content.options.length === 0) {
+      return {
+        shuffled: content,
+        indexMapping: [],
+      };
+    }
+
+    const options = content.options;
+    const correctIndices = new Set(content.correctIndices);
+    const correctAnswers = options.filter((_, i) => correctIndices.has(i));
+
+    // Create mapping before shuffling
+    const shuffledOptions = this.shuffleArray(options);
+    const indexMapping = options.map(
+      (opt) => shuffledOptions.indexOf(opt),
+    );
+
+    const newCorrectIndices: number[] = [];
+    shuffledOptions.forEach((opt, i) => {
+      if (correctAnswers.includes(opt)) {
+        newCorrectIndices.push(i);
+      }
+    });
+
+    return {
+      shuffled: { ...content, options: shuffledOptions, correctIndices: newCorrectIndices },
+      indexMapping,
+    };
+  }
+
+  /**
+   * Shuffle display positions for MATCHING question while preserving original right answers.
+   * Uses deterministic shuffle based on question ID to ensure consistent display.
+   */
+  private shuffleMatching(content: MatchingContent): {
+    shuffled: MatchingContent;
+    indexMapping: number[]; // display index -> original index
+  } {
+    if (!content.stories || content.stories.length === 0) {
+      return {
+        shuffled: content,
+        indexMapping: [],
+      };
+    }
+
+    const stories = content.stories;
+    const originalOrder = [...stories];
+    const shuffledStories = [...stories].sort((a, b) => {
+      const hashA = this.hashString(a.id);
+      const hashB = this.hashString(b.id);
+      return hashA - hashB;
+    });
+
+    const indexMapping = shuffledStories.map(
+      (story) => originalOrder.findIndex((s) => s.id === story.id),
+    );
+
+    return {
+      shuffled: { heroes: content.heroes, stories: shuffledStories },
+      indexMapping,
+    };
+  }
+
+  private hashString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0;
+    }
+    return Math.abs(hash);
   }
 
   /**

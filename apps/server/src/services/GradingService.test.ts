@@ -267,17 +267,22 @@ describe("GradingService", () => {
       ...baseQuestion,
       type: "MATCHING",
       content: {
-        pairs: [
-          { id: "1", left: "France", right: "Paris" },
-          { id: "2", left: "Germany", right: "Berlin" },
-          { id: "3", left: "Spain", right: "Madrid" },
+        heroes: [
+          { id: "h1", text: "France", type: "hero" },
+          { id: "h2", text: "Germany", type: "hero" },
+          { id: "h3", text: "Spain", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "Paris", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "Berlin", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "Madrid", type: "story", correspondsTo: "h3" },
         ],
       },
     };
 
     // All 3 correct: 3 points
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin", "3": "Madrid" }),
+      service.gradeAnswer(question, { "h1": "s1", "h2": "s2", "h3": "s3" }),
     ).toEqual({
       isCorrect: true,
       score: 3,
@@ -285,7 +290,7 @@ describe("GradingService", () => {
 
     // 2 correct: 2 points
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Berlin", "3": "Barcelona" }),
+      service.gradeAnswer(question, { "h1": "s1", "h2": "s2", "h3": "s1" }),
     ).toEqual({
       isCorrect: false,
       score: 2,
@@ -293,7 +298,7 @@ describe("GradingService", () => {
 
     // 1 correct: 1 point
     expect(
-      service.gradeAnswer(question, { "1": "Paris", "2": "Munich", "3": "Barcelona" }),
+      service.gradeAnswer(question, { "h1": "s1", "h2": "s3", "h3": "s2" }),
     ).toEqual({
       isCorrect: false,
       score: 1,
@@ -301,14 +306,14 @@ describe("GradingService", () => {
 
     // 0 correct: 0 points
     expect(
-      service.gradeAnswer(question, { "1": "London", "2": "Munich", "3": "Barcelona" }),
+      service.gradeAnswer(question, { "h1": "s2", "h2": "s3", "h3": "s1" }),
     ).toEqual({
       isCorrect: false,
       score: 0,
     });
 
     // Incomplete answer (only 1 pair submitted, but correct): 1 point
-    expect(service.gradeAnswer(question, { "1": "Paris" })).toEqual({
+    expect(service.gradeAnswer(question, { "h1": "s1" })).toEqual({
       isCorrect: false,
       score: 1,
     });

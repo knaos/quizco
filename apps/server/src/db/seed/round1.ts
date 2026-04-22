@@ -102,10 +102,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 0,
       content: {
-        pairs: [
-          { id: "m1_s1_q1", left: "Исус", right: "възкресява дъщерята на Яир, началника на синагогата." },
-          { id: "m1_s1_q2", left: "Апостол Павел", right: "възкресява момче на име Евтих, което пада от прозореца." },
-          { id: "m1_s1_q3", left: "Пророк Илия", right: "възкресява синът на вдовицата в Сарепта Сидонска." },
+        heroes: [
+          { id: "h1", text: "Исус", type: "hero" },
+          { id: "h2", text: "Апостол Павел", type: "hero" },
+          { id: "h3", text: "Пророк Илия", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "възкресява дъщерята на Яир, началника на синагогата.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "възкресява момче на име Евтих, което пада от прозореца.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "възкресява синът на вдовицата в Сарепта Сидонска.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -119,10 +124,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 3,
       content: {
-        pairs: [
-          { id: "m2_s1_q1", left: "Моисей", right: "разделя водите на Червено море с жезъла си." },
-          { id: "m2_s1_q2", left: "Илия", right: "затваря небето за три години и шест месеца." },
-          { id: "m2_s1_q3", left: "Елисей", right: "лекува прокаженията Нааман в река Йордан." },
+        heroes: [
+          { id: "h1", text: "Моисей", type: "hero" },
+          { id: "h2", text: "Илия", type: "hero" },
+          { id: "h3", text: "Елисей", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "разделя водите на Червено море с жезъла си.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "затваря небето за три години и шест месеца.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "лекува прокаженията Нааман в река Йордан.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -255,10 +265,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 0,
       content: {
-        pairs: [
-          { id: "m1_s2_q1", left: "Апостол Петър", right: "пише две послания до странствуващите в света." },
-          { id: "m1_s2_q2", left: "Апостол Павел", right: "пише послание до римляни за оправданието чрез вяра." },
-          { id: "m1_s2_q3", left: "Апостол Йоан", right: "пише евангелие и три послания за Божията любов." },
+        heroes: [
+          { id: "h1", text: "Апостол Петър", type: "hero" },
+          { id: "h2", text: "Апостол Павел", type: "hero" },
+          { id: "h3", text: "Апостол Йоан", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "пише две послания до странствуващите в света.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "пише послание до римляни за оправданието чрез вяра.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "пише евангелие и три послания за Божията любов.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -272,10 +287,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 3,
       content: {
-        pairs: [
-          { id: "m2_s2_q1", left: "Денят на Петдесетница", right: "се излива Светият Дух върху учениците." },
-          { id: "m2_s2_q2", left: "Разрушението на Вавилон", right: "е пророкувано от Данаил чрез написанието." },
-          { id: "m2_s2_q3", left: "Съдът над Анан и Сапфира", right: "е заради лъжата срещу Светия Дух." },
+        heroes: [
+          { id: "h1", text: "Денят на Петдесетница", type: "hero" },
+          { id: "h2", text: "Разрушението на Вавилон", type: "hero" },
+          { id: "h3", text: "Съдът над Анан и Сапфира", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "се излива Светият Дух върху учениците.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "е пророкувано от Данаил чрез написанието.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "е заради лъжата срещу Светия Дух.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -408,10 +428,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 0,
       content: {
-        pairs: [
-          { id: "m1_s3_q1", left: "Ноевият ковчег", right: "спасява семейството му от потопа." },
-          { id: "m1_s3_q2", left: "Лот и семейството му", right: "са спасени от огъня на Содом." },
-          { id: "m1_s3_q3", left: "Моисей и израилтяните", right: "са спасени от Червено море." },
+        heroes: [
+          { id: "h1", text: "Ноевият ковчег", type: "hero" },
+          { id: "h2", text: "Лот и семейството му", type: "hero" },
+          { id: "h3", text: "Моисей и израилтяните", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "спасява семейството му от потопа.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "са спасени от огъня на Содом.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "са спасени от Червено море.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -425,10 +450,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 3,
       content: {
-        pairs: [
-          { id: "m2_s3_q1", left: "Авраам", right: "ще стане баща на много народи." },
-          { id: "m2_s3_q2", left: "Давид", right: "ще има дом, от който ще излезе вечен Цар." },
-          { id: "m2_s3_q3", left: "Йеремия", right: "ще напише нов завет в техните сърца." },
+        heroes: [
+          { id: "h1", text: "Авраам", type: "hero" },
+          { id: "h2", text: "Давид", type: "hero" },
+          { id: "h3", text: "Йеремия", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "ще стане баща на много народи.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "ще има дом, от който ще излезе вечен Цар.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "ще напише нов завет в техните сърца.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -561,10 +591,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 0,
       content: {
-        pairs: [
-          { id: "m1_s4_q1", left: "Псалтир", right: "е написана от цар Давид." },
-          { id: "m1_s4_q2", left: "Притчи", right: "е написана от Соломон." },
-          { id: "m1_s4_q3", left: "Послания", right: "са написани от апостолите." },
+        heroes: [
+          { id: "h1", text: "Псалтир", type: "hero" },
+          { id: "h2", text: "Притчи", type: "hero" },
+          { id: "h3", text: "Послания", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "е написана от цар Давид.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "е написана от Соломон.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "са написани от апостолите.", type: "story", correspondsTo: "h3" },
         ],
       },
     },
@@ -578,10 +613,15 @@ export async function seedRound1(competitionId: string): Promise<void> {
       timeLimitSeconds: 25,
       points: 3,
       content: {
-        pairs: [
-          { id: "m2_s4_q1", left: "Исая", right: "пророкува за Месията, Който ще се роди от девица." },
-          { id: "m2_s4_q2", left: "Йеремия", right: "пророкува за Новия завет." },
-          { id: "m2_s4_q3", left: "Йезекиил", right: "пророкува за новото сърце и Божия Дух." },
+        heroes: [
+          { id: "h1", text: "Исая", type: "hero" },
+          { id: "h2", text: "Йеремия", type: "hero" },
+          { id: "h3", text: "Йезекиил", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "пророкува за Месията, Който ще се роди от девица.", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "пророкува за Новия завет.", type: "story", correspondsTo: "h2" },
+          { id: "s3", text: "пророкува за новото сърце и Божия Дух.", type: "story", correspondsTo: "h3" },
         ],
       },
     },

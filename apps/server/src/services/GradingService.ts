@@ -305,17 +305,21 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    const pairs = content.pairs;
+    const { heroes, stories } = content;
+    const storyById = new Map(stories.map((s) => [s.id, s]));
     let correctCount = 0;
 
-    pairs.forEach((pair) => {
-      if (answer[pair.id] === pair.right) {
-        correctCount++;
+    heroes.forEach((hero) => {
+      const matchedStoryId = answer[hero.id];
+      if (matchedStoryId) {
+        const matchedStory = storyById.get(matchedStoryId);
+        if (matchedStory && matchedStory.correspondsTo === hero.id) {
+          correctCount++;
+        }
       }
     });
 
-    const isCorrect = correctCount === pairs.length;
-    // 1 point per correct match
+    const isCorrect = correctCount === heroes.length;
     return { isCorrect, score: correctCount };
   }
 

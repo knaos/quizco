@@ -46,8 +46,8 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
       right: {} as Record<string, CardPosition>,
     };
 
-    const leftItems = content.pairs.map((p) => ({ id: p.id, text: p.left }));
-    const rightItems = content.pairs.map((p) => p.right);
+    const leftItems = content.heroes.map((h) => ({ id: h.id, text: h.text }));
+    const rightItems = content.stories.map((s) => ({ id: s.id, text: s.text }));
 
     leftItems.forEach((item) => {
       const el = leftRefs.current[item.id];
@@ -63,11 +63,11 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
       }
     });
 
-    rightItems.forEach((text) => {
-      const el = rightRefs.current[text];
+    rightItems.forEach((item) => {
+      const el = rightRefs.current[item.id];
       if (el) {
         const rect = el.getBoundingClientRect();
-        newPositions.right[text] = {
+        newPositions.right[item.id] = {
           left: rect.left - containerRect.left,
           right: rect.right - containerRect.left,
           top: rect.top - containerRect.top,
@@ -112,15 +112,17 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
     );
   }
 
-  // Build a map of correct matches: leftId -> rightText
+  // Build a map of correct matches: leftId -> rightId
   const correctMatches: Record<string, string> = {};
-  content.pairs.forEach((pair) => {
-    correctMatches[pair.id] = pair.right;
+  content.stories.forEach((story) => {
+    if (story.correspondsTo) {
+      correctMatches[story.correspondsTo] = story.id;
+    }
   });
 
   // Get left items and right items in a stable order
-  const leftItems = content.pairs.map((p) => ({ id: p.id, text: p.left }));
-  const rightItems = content.pairs.map((p) => p.right);
+  const leftItems = content.heroes.map((h) => ({ id: h.id, text: h.text }));
+  const rightItems = content.stories.map((s) => ({ id: s.id, text: s.text }));
 
   return (
     <div className="w-full" ref={containerRef}>
@@ -134,14 +136,14 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
         >
           {/* Render paths using actual card positions */}
           {leftItems.map((leftItem) => {
-            const userRightText = lastAnswer[leftItem.id];
-            const correctRightText = correctMatches[leftItem.id];
-            const isCorrect = userRightText === correctRightText;
+            const userRightId = lastAnswer[leftItem.id];
+            const correctRightId = correctMatches[leftItem.id];
+            const isCorrect = userRightId === correctRightId;
 
-            if (!userRightText) return null;
+            if (!userRightId) return null;
 
             const leftPos = positions.left[leftItem.id];
-            const rightPos = positions.right[userRightText];
+            const rightPos = positions.right[userRightId];
 
             if (!leftPos || !rightPos) return null;
 
@@ -157,7 +159,7 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
             const path = `M ${startX} ${startY} C ${startX + curvature} ${startY}, ${endX - curvature} ${endY}, ${endX} ${endY}`;
 
             return (
-              <g key={`${leftItem.id}-${userRightText}`}>
+              <g key={`${leftItem.id}-${userRightId}`}>
                 {/* Shadow/glow effect */}
                 <path
                   d={path}
@@ -187,16 +189,16 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
           {/* Left side cards */}
           <div className="space-y-4">
             {leftItems.map((item) => {
-              const userRightText = lastAnswer[item.id];
-              const correctRightText = correctMatches[item.id];
-              const isCorrect = userRightText === correctRightText;
+              const userRightId = lastAnswer[item.id];
+              const correctRightId = correctMatches[item.id];
+              const isCorrect = userRightId === correctRightId;
 
               let cardClass =
                 "w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all flex items-center justify-between ";
               if (isCorrect) {
                 cardClass +=
                   "bg-green-50 border-green-500 text-green-900 shadow-md";
-              } else if (userRightText) {
+              } else if (userRightId) {
                 cardClass +=
                   "bg-red-50 border-red-500 text-red-900 shadow-md";
               } else {
@@ -212,7 +214,7 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
                   className={cardClass}
                 >
                   <span>{item.text}</span>
-                  {userRightText &&
+                  {userRightId &&
                     (isCorrect ? (
                       <CheckCircle className="w-6 h-6 text-green-600" />
                     ) : (
@@ -225,10 +227,9 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
 
           {/* Right side cards - show user's selections */}
           <div className="space-y-4">
-            {rightItems.map((text) => {
-              // Find which left item this right item is connected to
+            {rightItems.map((item) => {
               const connectedLeftId = Object.keys(lastAnswer).find(
-                (key) => lastAnswer[key] === text
+                (key) => lastAnswer[key] === item.id
               );
               const isMatched = !!connectedLeftId;
               const isCorrect =
@@ -250,13 +251,13 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
 
               return (
                 <div
-                  key={text}
+                  key={item.id}
                   ref={(el) => {
-                    if (el) rightRefs.current[text] = el;
+                    if (el) rightRefs.current[item.id] = el;
                   }}
                   className={cardClass}
                 >
-                  <span>{text}</span>
+                  <span>{item.text}</span>
                 </div>
               );
             })}
@@ -269,14 +270,19 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
             {t("player.correct_answer")}:
           </p>
           <div className="flex flex-wrap gap-2">
-            {content.pairs.map((pair) => (
-              <span
-                key={pair.id}
-                className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
-              >
-                {pair.left} → {pair.right}
-              </span>
-            ))}
+            {content.heroes.map((hero) => {
+              const matchingStory = content.stories.find(
+                (s) => s.correspondsTo === hero.id
+              );
+              return (
+                <span
+                  key={hero.id}
+                  className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                >
+                  {hero.text} → {matchingStory?.text}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>

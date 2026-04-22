@@ -880,4 +880,98 @@ describe("GameManager Integration", () => {
       expect(gameManager.getState(testCompId).timerPaused).toBe(false);
     });
   });
+
+  describe("Server-side shuffle", () => {
+    beforeEach(async () => {
+      vi.useFakeTimers();
+    });
+
+    it("should shuffle MULTIPLE_CHOICE options and remap correct indices", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Shuffle Test", host_pin: "0000" },
+      });
+
+      await gameManager.addTeam(comp.id, "Team A", "#FF0000");
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 1",
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "What is 2+2?",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B", "C", "D"], correctIndices: [1] },
+        },
+      });
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const state = gameManager.getState(comp.id);
+
+      expect(state.currentQuestion).not.toBeNull();
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      expect(mcContent.options).toHaveLength(4);
+
+      const shuffledOpts = mcContent.options;
+      const originalOpts = ["A", "B", "C", "D"];
+      const originalCorrect = originalOpts[1];
+
+      expect(shuffledOpts).toContain(originalCorrect);
+      expect(mcContent.correctIndices).toEqual(
+        shuffledOpts.indexOf(originalCorrect) >= 0
+          ? [shuffledOpts.indexOf(originalCorrect)]
+          : [],
+      );
+    });
+
+    it("should produce consistent shuffle across multiple startQuestion calls", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Consistency Test", host_pin: "0001" },
+      });
+
+      await gameManager.addTeam(comp.id, "Team A", "#FF0000");
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 1",
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Test question",
+          type: "MULTIPLE_CHOICE",
+          points: 10,
+          timeLimitSeconds: 30,
+          content: { options: ["X", "Y", "Z"], correctIndices: [0] },
+        },
+      });
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const state1 = gameManager.getState(comp.id);
+      const mcContent1 = state1.currentQuestion!.content as { options: string[] };
+      const options1 = [...mcContent1.options];
+
+      vi.setSystemTime(Date.now() + 1000);
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const state2 = gameManager.getState(comp.id);
+      const mcContent2 = state2.currentQuestion!.content as { options: string[] };
+      const options2 = [...mcContent2.options];
+
+      expect(options1).toEqual(options2);
+    });
+  });
 });

@@ -101,7 +101,14 @@ function buildFillInTheBlanksAnswer(content: FillInTheBlanksContent): string[] {
 }
 
 function buildMatchingAnswer(content: MatchingContent): Record<string, string> {
-  return Object.fromEntries(content.pairs.map((pair) => [pair.id, pair.right]));
+  const storyByHero = new Map(
+    content.stories
+      .filter((s) => s.correspondsTo)
+      .map((s) => [s.correspondsTo, s.id])
+  );
+  return Object.fromEntries(
+    content.heroes.map((hero) => [hero.id, storyByHero.get(hero.id) || ""])
+  );
 }
 
 function buildCorrectTheErrorAnswer(
@@ -312,7 +319,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
           onClick={() => submitAnswer(answer, true)}
           disabled={
             Object.keys((answer as Record<string, string>) || {}).length <
-            (question.content as MatchingContent).pairs.length
+            (question.content as MatchingContent).heroes.length
           }
           data-testid={`${testIdPrefix}-submit-answer`}
           className="w-full py-6 rounded-3xl text-3xl shadow-xl"

@@ -94,14 +94,16 @@ export interface FillInTheBlanksContent {
   prefill?: boolean; // If true, auto-fill blanks with first option
 }
 
-export interface MatchingPair {
+export interface MatchingItem {
   id: string;
-  left: string;
-  right: string;
+  text: string;
+  type: "hero" | "story";
+  correspondsTo?: string; // Only for stories - the hero id it matches
 }
 
 export interface MatchingContent {
-  pairs: MatchingPair[];
+  heroes: MatchingItem[];
+  stories: MatchingItem[];
 }
 
 export interface ChronologyItem {

@@ -27,14 +27,6 @@ const hashString = (input: string): number => {
   return Math.abs(hash);
 };
 
-const deterministicShuffle = <T,>(items: T[], getKey: (item: T) => string, seed: string): T[] => {
-  return [...items].sort((a, b) => {
-    const aHash = hashString(`${seed}:${getKey(a)}`);
-    const bHash = hashString(`${seed}:${getKey(b)}`);
-    return aHash - bHash;
-  });
-};
-
 export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   content,
   value,
@@ -54,15 +46,14 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   const rightRefs = useRef<Record<string, HTMLButtonElement>>({});
 
   const { leftItems, rightItems } = useMemo(() => {
-    const left = content.pairs.map((p) => ({ id: p.id, text: p.left }));
-    const right = content.pairs.map((p) => p.right);
-    const seed = content.pairs.map((p) => `${p.id}:${p.left}:${p.right}`).join("|");
+    const left = content.heroes.map((h) => ({ id: h.id, text: h.text }));
+    const right = content.stories.map((s) => ({ id: s.id, text: s.text }));
 
     return {
-      leftItems: deterministicShuffle(left, (item) => item.id, `${seed}:left`),
-      rightItems: deterministicShuffle(right, (item) => item, `${seed}:right`),
+      leftItems: left,
+      rightItems: right,
     };
-  }, [content.pairs]);
+  }, [content.heroes, content.stories]);
 
   const updatePositions = useCallback(() => {
     if (!containerRef.current) return;
@@ -84,11 +75,11 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
       }
     });
 
-    rightItems.forEach((text) => {
-      const el = rightRefs.current[text];
+    rightItems.forEach((item) => {
+      const el = rightRefs.current[item.id];
       if (el) {
         const rect = el.getBoundingClientRect();
-        newPositions.right[text] = {
+        newPositions.right[item.id] = {
           left: rect.left - containerRect.left,
           right: rect.right - containerRect.left,
           top: rect.top - containerRect.top,
@@ -121,14 +112,14 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
     return () => clearTimeout(timer);
   }, [value, updatePositions]);
 
-  const createMatch = useCallback((leftId: string, rightText: string) => {
+  const createMatch = useCallback((leftId: string, rightId: string) => {
     const newValue = { ...value };
     Object.keys(newValue).forEach((key) => {
-      if (newValue[key] === rightText) {
+      if (newValue[key] === rightId) {
         delete newValue[key];
       }
     });
-    newValue[leftId] = rightText;
+    newValue[leftId] = rightId;
     onChange(newValue);
   }, [value, onChange]);
 
@@ -143,14 +134,14 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
     }
   };
 
-  const handleRightClick = (rightText: string) => {
+  const handleRightClick = (id: string) => {
     if (disabled || previewMode) return;
 
     if (selectedLeft) {
-      createMatch(selectedLeft, rightText);
+      createMatch(selectedLeft, id);
       setSelectedLeft(null);
     } else {
-      setSelectedRight(rightText === selectedRight ? null : rightText);
+      setSelectedRight(id === selectedRight ? null : id);
     }
   };
 
@@ -165,9 +156,9 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   const renderArrows = () => {
     const arrows: React.ReactElement[] = [];
 
-    Object.entries(value).forEach(([leftId, rightText], index) => {
+    Object.entries(value).forEach(([leftId, rightId], index) => {
       const leftPos = cardPositions.left[leftId];
-      const rightPos = cardPositions.right[rightText];
+      const rightPos = cardPositions.right[rightId];
 
       if (leftPos && rightPos) {
         const startX = leftPos.right;
@@ -182,7 +173,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
         const path = `M ${startX} ${startY} C ${startX + curvature} ${startY}, ${endX - curvature} ${endY}, ${endX} ${endY}`;
 
         arrows.push(
-          <g key={`${leftId}-${rightText}`}>
+          <g key={`${leftId}-${rightId}`}>
             {/* Shadow/glow effect */}
             <path
               d={path}
@@ -253,20 +244,20 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
         </div>
 
         <div className="space-y-4">
-          {rightItems.map((text, rightIndex) => {
+          {rightItems.map((item, rightIndex) => {
             const matchedLeftId = Object.keys(value).find(
-              (key) => value[key] === text
+              (key) => value[key] === item.id
             );
             const isMatched = !!matchedLeftId;
 
             return (
               <button
-                key={text}
-                ref={(el) => { if (el) rightRefs.current[text] = el; }}
-                onClick={() => handleRightClick(text)}
+                key={item.id}
+                ref={(el) => { if (el) rightRefs.current[item.id] = el; }}
+                onClick={() => handleRightClick(item.id)}
                 disabled={disabled}
                 data-testid={`matching-right-${rightIndex}`}
-                className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all text-left ${selectedRight === text
+                className={`w-full p-4 rounded-2xl text-lg font-bold border-4 transition-all text-left ${selectedRight === item.id
                   ? "bg-blue-600 border-blue-400 text-white shadow-lg translate-y-[-2px]"
                   : isMatched
                     ? "bg-blue-50 border-blue-200 text-blue-800"
@@ -275,7 +266,7 @@ export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
                       : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
                   }`}
               >
-                <span>{text}</span>
+                <span>{item.text}</span>
               </button>
             );
           })}

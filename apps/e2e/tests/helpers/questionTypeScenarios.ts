@@ -216,9 +216,13 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
         questionText: "Matching question 1",
         type: "MATCHING",
         content: {
-          pairs: [
-            { id: "m1", left: "Left One", right: "Right One" },
-            { id: "m2", left: "Left Two", right: "Right Two" },
+          heroes: [
+            { id: "h1", text: "Left One", type: "hero" },
+            { id: "h2", text: "Left Two", type: "hero" },
+          ],
+          stories: [
+            { id: "s1", text: "Right One", type: "story", correspondsTo: "h1" },
+            { id: "s2", text: "Right Two", type: "story", correspondsTo: "h2" },
           ],
         },
       },
@@ -226,9 +230,13 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
         questionText: "Matching question 2",
         type: "MATCHING",
         content: {
-          pairs: [
-            { id: "m3", left: "Apple", right: "Fruit" },
-            { id: "m4", left: "Carrot", right: "Vegetable" },
+          heroes: [
+            { id: "h3", text: "Apple", type: "hero" },
+            { id: "h4", text: "Carrot", type: "hero" },
+          ],
+          stories: [
+            { id: "s3", text: "Fruit", type: "story", correspondsTo: "h3" },
+            { id: "s4", text: "Vegetable", type: "story", correspondsTo: "h4" },
           ],
         },
       },

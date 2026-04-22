@@ -34,8 +34,12 @@ export function getQuestionCorrectAnswer(question: Question, t: TFunction): stri
   }
 
   if (type === "MATCHING") {
-    return (content as MatchingContent).pairs
-      .map((pair) => `${pair.left} -> ${pair.right}`)
+    const matchingContent = content as MatchingContent;
+    return matchingContent.heroes
+      .map((hero) => {
+        const story = matchingContent.stories.find((s) => s.correspondsTo === hero.id);
+        return `${hero.text} -> ${story?.text || "??"}`;
+      })
       .join(" | ");
   }
 
