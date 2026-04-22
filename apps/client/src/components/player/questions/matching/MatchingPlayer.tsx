@@ -18,15 +18,6 @@ interface CardPosition {
   centerY: number;
 }
 
-const hashString = (input: string): number => {
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    hash = ((hash << 5) - hash) + input.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-};
-
 export const MatchingPlayer: React.FC<MatchingPlayerProps> = ({
   content,
   value,

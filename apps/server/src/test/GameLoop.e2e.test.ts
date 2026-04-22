@@ -146,18 +146,21 @@ describe("Game Loop E2E (Decoupled)", () => {
     const team1Id = state.teams.find((t) => t.name === "Team 1")!.id;
     const team2Id = state.teams.find((t) => t.name === "Team 2")!.id;
 
+    const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+    const displayedCorrectIndex = mcContent.correctIndices[0];
+
     player1Socket.emit("SUBMIT_ANSWER", {
       competitionId,
       teamId: team1Id,
       questionId: "q1",
-      answer: [1], // Correct
+      answer: [displayedCorrectIndex], // Correct - use displayed index
     });
 
     player2Socket.emit("SUBMIT_ANSWER", {
       competitionId,
       teamId: team2Id,
       questionId: "q1",
-      answer: [0], // Incorrect
+      answer: [0], // Incorrect (always wrong index)
     });
 
     // 6. Wait for transition to GRADING (all answered)

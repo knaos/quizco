@@ -289,6 +289,13 @@
           "no_items": "Няма добавени елементи. Кликнете \"Добави Елемент\", за да започнете."
         }
       },
+      "matchingEditor": {
+        "heroLabel": "Герой (Ляво)",
+        "storyLabel": "История (Дясно)",
+        "heroPlaceholder": "Герой {{number}}",
+        "storyPlaceholder": "История {{number}}",
+        "addPair": "Добави Двойка"
+      },
       "confirm_delete_round": "Изтрийте този рунд и всичките му въпроси?",
       "confirm_delete_question": "Изтрийте този въпрос?",
       "round": {

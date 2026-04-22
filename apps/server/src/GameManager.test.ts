@@ -327,10 +327,18 @@ describe("GameManager Integration", () => {
       () => {},
     );
 
-    await gameManager.submitAnswer(testCompId, team.id, questionId, [1], true); // Correct & Final
+    const state = gameManager.getState(testCompId);
+    const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+    const displayedCorrectIndex = mcContent.correctIndices[0];
+
+    await gameManager.submitAnswer(testCompId, team.id, questionId, [displayedCorrectIndex], true); // Submit displayed index
 
     // Scores are now updated when revealAnswer is called, not on submit
     await gameManager.revealAnswer(testCompId);
+
+    const answer = await prisma.answer.findFirst({
+      where: { teamId: team.id, questionId: questionId },
+    });
 
     const updatedTeam = gameManager
       .getState(testCompId)
@@ -338,9 +346,6 @@ describe("GameManager Integration", () => {
     expect(updatedTeam?.score).toBe(1); // 1 point per correct answer
 
     // Wait for DB to settle if needed, though submitAnswer is awaited
-    const answer = await prisma.answer.findFirst({
-      where: { teamId: team.id, questionId: questionId },
-    });
     expect(answer?.isCorrect).toBe(true);
   });
 
@@ -394,6 +399,7 @@ describe("GameManager Integration", () => {
     });
 
     it("grades the latest partial answer on question end and keeps a single answer row", async () => {
+      vi.useRealTimers();
       const competition = await prisma.competition.create({
         data: { title: "Latest Wins", host_pin: "1" },
       });
@@ -424,14 +430,18 @@ describe("GameManager Integration", () => {
       await gameManager.startQuestion(testCompId, question.id);
       await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
 
+      const state = gameManager.getState(testCompId);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const displayedCorrectIndex = mcContent.correctIndices[0];
+
       await gameManager.submitAnswer(testCompId, team.id, question.id, [0], false);
-      await gameManager.submitAnswer(testCompId, team.id, question.id, [1], false);
+      await gameManager.submitAnswer(testCompId, team.id, question.id, [displayedCorrectIndex], false);
 
       await gameManager.next(testCompId, () => {});
 
       const stateTeam = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
       expect(gameManager.getState(testCompId).phase).toBe("GRADING");
-      expect(stateTeam?.lastAnswer).toEqual([1]);
+      expect(stateTeam?.lastAnswer).toEqual([displayedCorrectIndex]);
       expect(stateTeam?.lastAnswerCorrect).toBe(true);
       // MULTIPLE_CHOICE uses per-correct-index scoring (1 point here).
       expect(stateTeam?.score).toBe(1);
@@ -440,7 +450,7 @@ describe("GameManager Integration", () => {
         where: { teamId: team.id, questionId: question.id },
       });
       expect(dbAnswers).toHaveLength(1);
-      expect(dbAnswers[0].submittedContent).toEqual([1]);
+      expect(dbAnswers[0].submittedContent).toEqual([displayedCorrectIndex]);
       expect(dbAnswers[0].isCorrect).toBe(true);
       expect(dbAnswers[0].scoreAwarded).toBe(1);
     });
@@ -632,11 +642,16 @@ describe("GameManager Integration", () => {
       // 2. Mock a correct answer to set the status
       await gameManager.startQuestion(testCompId, questionId);
       await gameManager.startTimer(testCompId, 10, () => {});
+
+      const state = gameManager.getState(testCompId);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const displayedCorrectIndex = mcContent.correctIndices[0];
+
       await gameManager.submitAnswer(
         testCompId,
         team.id,
         questionId,
-        [0],
+        [displayedCorrectIndex],
         true,
       );
 
@@ -887,11 +902,12 @@ describe("GameManager Integration", () => {
     });
 
     it("should shuffle MULTIPLE_CHOICE options and remap correct indices", async () => {
+      vi.useRealTimers();
       const comp = await prisma.competition.create({
         data: { title: "Shuffle Test", host_pin: "0000" },
       });
 
-      await gameManager.addTeam(comp.id, "Team A", "#FF0000");
+      const team = await gameManager.addTeam(comp.id, "Team A", "#FF0000");
 
       const round = await prisma.round.create({
         data: {
@@ -910,10 +926,12 @@ describe("GameManager Integration", () => {
           points: 10,
           timeLimitSeconds: 30,
           content: { options: ["A", "B", "C", "D"], correctIndices: [1] },
+          grading: "AUTO",
         },
       });
 
       await gameManager.startQuestion(comp.id, question.id);
+      await gameManager.startTimer(comp.id, 30, () => {});
       const state = gameManager.getState(comp.id);
 
       expect(state.currentQuestion).not.toBeNull();
@@ -930,6 +948,16 @@ describe("GameManager Integration", () => {
           ? [shuffledOpts.indexOf(originalCorrect)]
           : [],
       );
+
+      const displayedCorrectIndex = mcContent.correctIndices[0];
+      const submitResult = await gameManager.submitAnswer(comp.id, team.id, question.id, [displayedCorrectIndex], true);
+      expect(submitResult.accepted).toBe(true);
+
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const updatedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(updatedTeam?.score).toBeGreaterThan(0);
     });
 
     it("should produce consistent shuffle across multiple startQuestion calls", async () => {
@@ -956,22 +984,26 @@ describe("GameManager Integration", () => {
           points: 10,
           timeLimitSeconds: 30,
           content: { options: ["X", "Y", "Z"], correctIndices: [0] },
+          grading: "AUTO",
         },
       });
 
       await gameManager.startQuestion(comp.id, question.id);
       const state1 = gameManager.getState(comp.id);
-      const mcContent1 = state1.currentQuestion!.content as { options: string[] };
+      const mcContent1 = state1.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const options1 = [...mcContent1.options];
+      const correctIdx1 = mcContent1.correctIndices[0];
 
       vi.setSystemTime(Date.now() + 1000);
 
       await gameManager.startQuestion(comp.id, question.id);
       const state2 = gameManager.getState(comp.id);
-      const mcContent2 = state2.currentQuestion!.content as { options: string[] };
+      const mcContent2 = state2.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const options2 = [...mcContent2.options];
+      const correctIdx2 = mcContent2.correctIndices[0];
 
       expect(options1).toEqual(options2);
+      expect(correctIdx1).toEqual(correctIdx2);
     });
   });
 });

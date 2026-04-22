@@ -193,14 +193,11 @@ function renderPresenterAnswerContent(
             {t("host.matching_right_column")}
           </div>
           <div className="space-y-2">
-            {content.stories.map((story) => {
-              const matchingHero = content.heroes.find((h) => h.id === story.correspondsTo);
-              return (
-                <div key={`${story.id}-right`} className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700">
-                  {story.text} {matchingHero && <span className="text-green-600">(→ {matchingHero.text})</span>}
-                </div>
-              );
-            })}
+            {content.stories.map((story) => (
+              <div key={`${story.id}-right`} className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700">
+                {story.text}
+              </div>
+            ))}
           </div>
         </div>
       </div>

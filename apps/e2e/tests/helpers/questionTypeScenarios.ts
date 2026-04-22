@@ -243,28 +243,28 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
     ],
     submitPlayerOne: async (page, questionIndex) => {
       if (questionIndex === 0) {
-        await page.getByTestId("matching-left-m1").click();
+        await page.getByTestId("matching-left-h1").click();
         await page.getByRole("button", { name: "Right One", exact: true }).first().click();
-        await page.getByTestId("matching-left-m2").click();
+        await page.getByTestId("matching-left-h2").click();
         await page.getByRole("button", { name: "Right Two", exact: true }).first().click();
       } else {
-        await page.getByTestId("matching-left-m3").click();
+        await page.getByTestId("matching-left-h3").click();
         await page.getByRole("button", { name: "Fruit", exact: true }).first().click();
-        await page.getByTestId("matching-left-m4").click();
+        await page.getByTestId("matching-left-h4").click();
         await page.getByRole("button", { name: "Vegetable", exact: true }).first().click();
       }
       await page.getByTestId("player-submit-answer").click();
     },
     submitPlayerTwo: async (page, questionIndex) => {
       if (questionIndex === 0) {
-        await page.getByTestId("matching-left-m1").click();
+        await page.getByTestId("matching-left-h1").click();
         await page.getByRole("button", { name: "Right Two", exact: true }).first().click();
-        await page.getByTestId("matching-left-m2").click();
+        await page.getByTestId("matching-left-h2").click();
         await page.getByRole("button", { name: "Right One", exact: true }).first().click();
       } else {
-        await page.getByTestId("matching-left-m3").click();
+        await page.getByTestId("matching-left-h3").click();
         await page.getByRole("button", { name: "Vegetable", exact: true }).first().click();
-        await page.getByTestId("matching-left-m4").click();
+        await page.getByTestId("matching-left-h4").click();
         await page.getByRole("button", { name: "Fruit", exact: true }).first().click();
       }
       await page.getByTestId("player-submit-answer").click();

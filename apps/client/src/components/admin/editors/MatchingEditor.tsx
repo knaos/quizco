@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
 import type { MatchingContent, MatchingItem } from "@quizco/shared";
 import { v4 as uuidv4 } from "uuid";
@@ -14,6 +15,7 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
   content,
   onChange,
 }) => {
+  const { t } = useTranslation();
   const heroes = content.heroes || [];
   const stories = content.stories || [];
 
@@ -67,8 +69,8 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4 mb-2">
-        <label className="text-sm font-medium text-gray-700">Hero (Left)</label>
-        <label className="text-sm font-medium text-gray-700">Story (Right)</label>
+        <label className="text-sm font-medium text-gray-700">{t('matchingEditor.heroLabel')}</label>
+        <label className="text-sm font-medium text-gray-700">{t('matchingEditor.storyLabel')}</label>
       </div>
       
       {heroes.map((hero, index) => {
@@ -79,14 +81,14 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
               type="text"
               value={hero.text}
               onChange={(e) => updateHero(hero.id, e.target.value)}
-              placeholder={`Hero ${index + 1}`}
+              placeholder={t('matchingEditor.heroPlaceholder', { number: index + 1 })}
             />
             <span className="text-gray-400">↔</span>
             <Input
               type="text"
               value={matchingStory?.text || ""}
               onChange={(e) => matchingStory && updateStory(matchingStory.id, e.target.value)}
-              placeholder={`Story ${index + 1}`}
+              placeholder={t('matchingEditor.storyPlaceholder', { number: index + 1 })}
             />
             <Button
               variant="ghost"
@@ -104,7 +106,7 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
         onClick={addPair}
         className="text-blue-600 p-0 hover:bg-transparent hover:underline"
       >
-        <Plus className="w-4 h-4 mr-1" /> Add Pair
+        <Plus className="w-4 h-4 mr-1" /> {t('matchingEditor.addPair')}
       </Button>
     </div>
   );
