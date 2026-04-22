@@ -168,10 +168,29 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       }
     }
     
-    // All cells are filled, wrap to first cell
-    const firstCellKey = clueCells[0];
-    const [firstR, firstC] = firstCellKey.split('-').map(Number);
-    return { r: firstR, c: firstC };
+    // All cells are filled, return null to keep focus on current cell
+    return null;
+  }, []);
+
+  /**
+   * Find the previous cell within a clue's cells.
+   * Returns the previous cell in the clue's sequence.
+   */
+  const findPrevCellInClue = useCallback((
+    currentR: number,
+    currentC: number,
+    clueCells: string[]
+  ): { r: number; c: number } | null => {
+    const currentKey = `${currentR}-${currentC}`;
+    const currentIndex = clueCells.indexOf(currentKey);
+
+    if (currentIndex <= 0) {
+      return null;
+    }
+
+    const prevCellKey = clueCells[currentIndex - 1];
+    const [prevR, prevC] = prevCellKey.split('-').map(Number);
+    return { r: prevR, c: prevC };
   }, []);
 
   const handleChange = (r: number, c: number, val: string) => {
@@ -206,6 +225,41 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       // If nextCell is null, we're at the end of the active clue - focus stays on current cell
     }
   };
+
+  /**
+   * Handle key down events for backspace navigation.
+   */
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) => {
+    if (e.key === "Backspace") {
+      const currentVal = userGrid[r]?.[c] || "";
+      
+      if (currentVal === "" && activeClue && activeClueCells.length > 0) {
+        const prevCell = findPrevCellInClue(r, c, activeClueCells);
+        
+        if (prevCell) {
+          const newGrid = [...userGrid.map((row) => [...row])];
+          newGrid[prevCell.r][prevCell.c] = "";
+          
+          if (onChange) {
+            onChange(newGrid);
+          } else {
+            setInternalGrid(newGrid);
+          }
+          
+          if (onProgress) {
+            onProgress(newGrid);
+          }
+          
+          const prevKey = `${prevCell.r}-${prevCell.c}`;
+          const prevInput = inputRefs.current.get(prevKey);
+          if (prevInput) {
+            e.preventDefault();
+            prevInput.focus();
+          }
+        }
+      }
+    }
+  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress]);
 
   const handleSubmit = () => {
     if (!readOnly && onSubmit) {
@@ -422,6 +476,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                           type="text"
                           value={userGrid[r][c]}
                           onChange={(e) => handleChange(r, c, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, r, c)}
                           onFocus={() => handleCellFocus(r, c)}
                           data-testid={`crossword-cell-${r}-${c}`}
                           ref={(el) => {
