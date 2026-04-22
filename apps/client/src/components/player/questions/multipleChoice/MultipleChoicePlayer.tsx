@@ -67,7 +67,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
                 {opt}
               </span>
               {!previewMode && isSelected && (
-                <CheckCircle className="w-6 h-6 text-white absolute right-4" />
+                <CheckCircle className="w-6 h-6 text-white absolute bottom-2 right-2" />
               )}
             </button>
           );

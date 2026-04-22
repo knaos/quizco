@@ -59,6 +59,16 @@ function formatSubmittedContent(value: unknown): string {
   return String(value ?? "");
 }
 
+function formatHostTime(seconds: number): string {
+  const totalSec = Math.ceil(seconds);
+  if (totalSec >= 60) {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${totalSec}s`;
+}
+
 function renderPresenterAnswerContent(
   question: Question,
   revealStep: number,
@@ -109,15 +119,21 @@ function renderPresenterAnswerContent(
 
   if (question.type === "TRUE_FALSE") {
     const correctAnswer = question.content.isTrue ? t("game.true") : t("game.false");
+    if (phase === "REVEAL_ANSWER") {
+      return (
+        <div className="grid grid-cols-1 gap-4" data-testid="host-question-options">
+          <div className="rounded-3xl border-2 border-green-200 bg-green-50 px-6 py-5 text-2xl font-black text-green-900">
+            {correctAnswer}
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="host-question-options">
         {[t("game.true"), t("game.false")].map((label) => (
           <div
             key={label}
-            className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black ${phase === "REVEAL_ANSWER" && label === correctAnswer
-              ? "border-green-200 bg-green-50 text-green-900"
-              : "border-gray-200 bg-white text-gray-700"
-              }`}
+            className="rounded-3xl border-2 px-6 py-5 text-2xl font-black border-gray-200 bg-white text-gray-700"
           >
             {label}
           </div>
@@ -441,7 +457,7 @@ export const HostDashboard: React.FC = () => {
                     >
                       <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
                       <span className="mt-2 text-5xl font-black tabular-nums" data-testid="host-timer">
-                        {state.timeRemaining}s
+                        {formatHostTime(state.timeRemaining)}
                       </span>
                     </div>
                     {state.phase === "QUESTION_ACTIVE" ? (
