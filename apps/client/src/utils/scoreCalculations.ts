@@ -49,11 +49,17 @@ export function calculateMatchingScore(
     return 0;
   }
 
+  const { heroes, stories } = content;
+  const storyById = new Map(stories.map((s) => [s.id, s]));
   let correctCount = 0;
 
-  for (const pair of content.pairs) {
-    if (answer[pair.id] === pair.right) {
-      correctCount++;
+  for (const hero of heroes) {
+    const matchedStoryId = answer[hero.id];
+    if (matchedStoryId) {
+      const matchedStory = storyById.get(matchedStoryId);
+      if (matchedStory && matchedStory.correspondsTo === hero.id) {
+        correctCount++;
+      }
     }
   }
 

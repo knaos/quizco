@@ -216,9 +216,13 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
         questionText: "Matching question 1",
         type: "MATCHING",
         content: {
-          pairs: [
-            { id: "m1", left: "Left One", right: "Right One" },
-            { id: "m2", left: "Left Two", right: "Right Two" },
+          heroes: [
+            { id: "h1", text: "Left One", type: "hero" },
+            { id: "h2", text: "Left Two", type: "hero" },
+          ],
+          stories: [
+            { id: "s1", text: "Right One", type: "story", correspondsTo: "h1" },
+            { id: "s2", text: "Right Two", type: "story", correspondsTo: "h2" },
           ],
         },
       },
@@ -226,37 +230,41 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
         questionText: "Matching question 2",
         type: "MATCHING",
         content: {
-          pairs: [
-            { id: "m3", left: "Apple", right: "Fruit" },
-            { id: "m4", left: "Carrot", right: "Vegetable" },
+          heroes: [
+            { id: "h3", text: "Apple", type: "hero" },
+            { id: "h4", text: "Carrot", type: "hero" },
+          ],
+          stories: [
+            { id: "s3", text: "Fruit", type: "story", correspondsTo: "h3" },
+            { id: "s4", text: "Vegetable", type: "story", correspondsTo: "h4" },
           ],
         },
       },
     ],
     submitPlayerOne: async (page, questionIndex) => {
       if (questionIndex === 0) {
-        await page.getByTestId("matching-left-m1").click();
+        await page.getByTestId("matching-left-h1").click();
         await page.getByRole("button", { name: "Right One", exact: true }).first().click();
-        await page.getByTestId("matching-left-m2").click();
+        await page.getByTestId("matching-left-h2").click();
         await page.getByRole("button", { name: "Right Two", exact: true }).first().click();
       } else {
-        await page.getByTestId("matching-left-m3").click();
+        await page.getByTestId("matching-left-h3").click();
         await page.getByRole("button", { name: "Fruit", exact: true }).first().click();
-        await page.getByTestId("matching-left-m4").click();
+        await page.getByTestId("matching-left-h4").click();
         await page.getByRole("button", { name: "Vegetable", exact: true }).first().click();
       }
       await page.getByTestId("player-submit-answer").click();
     },
     submitPlayerTwo: async (page, questionIndex) => {
       if (questionIndex === 0) {
-        await page.getByTestId("matching-left-m1").click();
+        await page.getByTestId("matching-left-h1").click();
         await page.getByRole("button", { name: "Right Two", exact: true }).first().click();
-        await page.getByTestId("matching-left-m2").click();
+        await page.getByTestId("matching-left-h2").click();
         await page.getByRole("button", { name: "Right One", exact: true }).first().click();
       } else {
-        await page.getByTestId("matching-left-m3").click();
+        await page.getByTestId("matching-left-h3").click();
         await page.getByRole("button", { name: "Vegetable", exact: true }).first().click();
-        await page.getByTestId("matching-left-m4").click();
+        await page.getByTestId("matching-left-h4").click();
         await page.getByRole("button", { name: "Fruit", exact: true }).first().click();
       }
       await page.getByTestId("player-submit-answer").click();

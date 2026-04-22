@@ -133,9 +133,13 @@ describe("getQuestionCorrectAnswer", () => {
       grading: "AUTO",
       index: 0,
       content: {
-        pairs: [
-          { id: "pair-1", left: "Paul", right: "Apostle" },
-          { id: "pair-2", left: "David", right: "King" },
+        heroes: [
+          { id: "h1", text: "Paul", type: "hero" },
+          { id: "h2", text: "David", type: "hero" },
+        ],
+        stories: [
+          { id: "s1", text: "Apostle", type: "story", correspondsTo: "h1" },
+          { id: "s2", text: "King", type: "story", correspondsTo: "h2" },
         ],
       },
     };

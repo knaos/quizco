@@ -84,13 +84,13 @@ function getRevealBadge(
       currentTeam?.lastAnswer as Record<string, string> | null,
     );
     return (
-      <Badge variant={score === content.pairs.length ? "green" : score > 0 ? "yellow" : "red"}>
+      <Badge variant={score === content.heroes.length ? "green" : score > 0 ? "yellow" : "red"}>
         {score > 0 ? (
           <CheckCircle className="mr-2 h-4 w-4" />
         ) : (
           <XCircle className="mr-2 h-4 w-4" />
         )}
-        {score}/{content.pairs.length}
+        {score}/{content.heroes.length}
       </Badge>
     );
   }

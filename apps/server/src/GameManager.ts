@@ -4,6 +4,11 @@ import {
   Question,
   GamePhase,
   AnswerContent,
+  MultipleChoiceContent,
+  ClosedQuestionContent,
+  FillInTheBlanksContent,
+  MatchingContent,
+  SessionMetadata,
 } from "@quizco/shared";
 import { IGameRepository } from "./repositories/IGameRepository";
 import { GradingService } from "./services/GradingService";
@@ -12,7 +17,7 @@ import { TimerService } from "./services/TimerService";
 import { ILogger } from "./utils/Logger";
 
 export class GameManager {
-  private sessions: Map<string, GameState & { metadata?: any }> = new Map();
+  private sessions: Map<string, GameState & { metadata?: SessionMetadata }> = new Map();
   private gradingService: GradingService;
   private persistenceService: StatePersistenceService;
 
@@ -41,7 +46,7 @@ export class GameManager {
 
   private getOrCreateSession(
     competitionId: string,
-  ): GameState & { metadata?: any } {
+  ): GameState & { metadata?: SessionMetadata } {
     if (!this.sessions.has(competitionId)) {
       this.logger.info(
         `Creating new session for competition: ${competitionId}`,
@@ -138,47 +143,83 @@ export class GameManager {
       return;
     }
 
-    // Deep clone to avoid mutating repository cache
+    await this.prepareSessionQuestion(session, question);
+    session.phase = "QUESTION_PREVIEW";
+
+    this.timerService.stop(competitionId);
+
+    await this.saveState();
+  }
+
+  /**
+   * Prepare a question for the session by applying shuffles and setting up session state.
+   * This handles MULTIPLE_CHOICE/CLOSED shuffling, MATCHING story shuffling, etc.
+   * Used by startQuestion and from transition branches in next().
+   */
+  private async prepareSessionQuestion(
+    session: GameState & { metadata?: SessionMetadata },
+    question: Question,
+  ): Promise<void> {
     const sessionQuestion = JSON.parse(JSON.stringify(question));
 
     if (sessionQuestion.type === "CHRONOLOGY") {
-      // Server-side shuffle: ensure everyone gets the same order
       sessionQuestion.content.items = this.shuffleArray(
         sessionQuestion.content.items,
       );
     }
 
     if (sessionQuestion.type === "FILL_IN_THE_BLANKS") {
-      // Server-side shuffle: scramble options for each blank
       for (const blank of sessionQuestion.content.blanks) {
         blank.options = this.shuffleArray(blank.options);
       }
     }
 
+    if (sessionQuestion.type === "MULTIPLE_CHOICE" || sessionQuestion.type === "CLOSED") {
+      const cacheKey = `shuffle_${question.id}` as const;
+      const cached = session.metadata?.[cacheKey];
+      if (cached) {
+        sessionQuestion.content = cached;
+      } else {
+        const result = this.shuffleWithMapping(sessionQuestion.content);
+        sessionQuestion.content = result.shuffled;
+        session.metadata = session.metadata || {};
+        session.metadata[cacheKey] = result.shuffled;
+      }
+    }
+
+    if (sessionQuestion.type === "MATCHING") {
+      const { heroes, stories } = sessionQuestion.content;
+      if (heroes && heroes.length > 0 && stories && stories.length > 0) {
+        const shuffledStories = this.shuffleArray([...stories]);
+        sessionQuestion.content = { heroes, stories: shuffledStories };
+      }
+    }
+
     session.currentQuestion = sessionQuestion;
-    session.phase = "QUESTION_PREVIEW";
     session.timeRemaining = question.timeLimitSeconds;
     session.revealStep = 0;
     session.timerPaused = false;
-    
-    // Preserve chronology tracking across questions - only clear question-specific metadata
-    // Keep chronologyPerfectAnswers and chronologyBonusAwarded for the completion bonus
+
     const preservedChronologyPerfect = session.metadata?.chronologyPerfectAnswers;
     const preservedChronologyBonus = session.metadata?.chronologyBonusAwarded;
-    session.metadata = {};
-    if (preservedChronologyPerfect) session.metadata.chronologyPerfectAnswers = preservedChronologyPerfect;
-    if (preservedChronologyBonus) session.metadata.chronologyBonusAwarded = preservedChronologyBonus;
+    const shuffleData: Record<string, unknown> = {};
+    const metadata = session.metadata as Record<string, unknown> | undefined || {};
+    for (const key of Object.keys(metadata)) {
+      if (key.startsWith("shuffle_")) {
+        shuffleData[key] = metadata[key];
+      }
+    }
+    session.metadata = { ...shuffleData };
+    if (preservedChronologyPerfect)
+      session.metadata.chronologyPerfectAnswers = preservedChronologyPerfect;
+    if (preservedChronologyBonus)
+      session.metadata.chronologyBonusAwarded = preservedChronologyBonus;
 
-    // Reset last answer status for all teams
     for (const team of session.teams) {
       team.lastAnswerCorrect = null;
       team.lastAnswer = null;
       team.isExplicitlySubmitted = false;
     }
-
-    this.timerService.stop(competitionId);
-
-    await this.saveState();
   }
 
   public async startTimer(
@@ -220,7 +261,7 @@ export class GameManager {
   public async pauseTimer(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
-    
+
     this.timerService.stop(competitionId);
     session.timerPaused = true;
     await this.saveState();
@@ -232,7 +273,7 @@ export class GameManager {
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
-    
+
     session.timerPaused = false;
     await this.saveState();
 
@@ -258,10 +299,10 @@ export class GameManager {
 
     this.timerService.stop(competitionId);
     session.phase = "REVEAL_ANSWER";
-    
+
     // Refresh team scores when revealing answer - this emits SCORE_UPDATE to clients
     await this.refreshTeamScores(competitionId);
-    
+
     await this.saveState();
   }
 
@@ -285,12 +326,15 @@ export class GameManager {
         continue;
       }
 
-      const usedJokers = session.metadata?.usedJokers?.has(team.id) || false;
+      const usedJokers = session.metadata?.usedJokers?.includes(team.id) || false;
+
+      // Grade the answer - use team.lastAnswer directly since correctIndices are already displayed indices
+      const answerToGrade: AnswerContent = team.lastAnswer;
 
       // Grade the answer
       const gradingResult = this.gradingService.gradeAnswer(
         session.currentQuestion,
-        team.lastAnswer,
+        answerToGrade,
         { usedJokers },
       );
 
@@ -448,8 +492,9 @@ export class GameManager {
     const grid = content.grid;
 
     // Ensure metadata for this question's jokers exists
+    session.metadata = session.metadata || {};
     if (!session.metadata.revealedCells) {
-      session.metadata.revealedCells = {}; // teamId -> string[] (serialized "x,y")
+      session.metadata.revealedCells = {};
     }
     if (!session.metadata.revealedCells[teamId]) {
       session.metadata.revealedCells[teamId] = [];
@@ -484,8 +529,8 @@ export class GameManager {
     team.score -= 2;
     teamRevealed.push(`${randomCell.x},${randomCell.y}`);
 
-    if (!session.metadata.usedJokers) session.metadata.usedJokers = new Set();
-    session.metadata.usedJokers.add(teamId);
+    if (!session.metadata.usedJokers) session.metadata.usedJokers = [];
+    session.metadata.usedJokers.push(teamId);
 
     // Update score in DB
     await this.repository.updateTeamScore(teamId, team.score);
@@ -557,11 +602,9 @@ export class GameManager {
         break;
       case "WELCOME":
         if (questions.length > 0) {
-          session.phase = "ROUND_START";
-          session.currentQuestion = questions[0];
-          session.timeRemaining = questions[0].timeLimitSeconds;
-          // We need to know which round we are in
-          session.revealStep = 0; // reusing this for round index if needed? No, let's keep it simple.
+          const q = questions[0];
+          await this.prepareSessionQuestion(session, q);
+          session.phase = "ROUND_START"; // Set phase after preparation
         } else {
           session.phase = "LEADERBOARD";
         }
@@ -619,15 +662,8 @@ export class GameManager {
         );
         const nextQuestion = questions[currentIndex + 1];
         if (nextQuestion) {
-          session.phase = "ROUND_START";
-          session.currentQuestion = nextQuestion;
-          session.timeRemaining = nextQuestion.timeLimitSeconds;
-          // Reset last answer status for all teams when moving to next round
-          for (const team of session.teams) {
-            team.lastAnswerCorrect = null;
-            team.lastAnswer = null;
-            team.isExplicitlySubmitted = false;
-          }
+          await this.prepareSessionQuestion(session, nextQuestion);
+          session.phase = "ROUND_START"; // Set phase after preparation
         } else {
           session.phase = "LEADERBOARD";
         }
@@ -685,6 +721,55 @@ export class GameManager {
   }
 
   /**
+      * Shuffle options while tracking the mapping from original to shuffled indices.
+      * Used for consistent shuffle across clients and correct grading.
+      */
+  private shuffleWithMapping(content: MultipleChoiceContent): {
+    shuffled: MultipleChoiceContent;
+    indexMapping: number[]; // original index -> new index
+  } {
+    if (!content.options || content.options.length === 0) {
+      return {
+        shuffled: content,
+        indexMapping: [],
+      };
+    }
+
+    const options = content.options;
+    const correctIndices = new Set(content.correctIndices);
+
+    // Map options to objects preserving original index
+    const entriesWithIndex = options.map((option, originalIndex) => ({
+      option,
+      originalIndex,
+    }));
+
+    // Shuffle the entries
+    const shuffledEntries = this.shuffleArray(entriesWithIndex);
+
+    // Build indexMapping: originalIndex -> newIndex
+    const indexMapping: number[] = shuffledEntries.map(
+      (entry) => entry.originalIndex,
+    );
+
+    // Compute new correct indices from shuffled entries
+    const newCorrectIndices: number[] = [];
+    shuffledEntries.forEach((entry, newIndex) => {
+      if (correctIndices.has(entry.originalIndex)) {
+        newCorrectIndices.push(newIndex);
+      }
+    });
+
+    // Restore options to original values
+    const shuffledOptions = shuffledEntries.map((entry) => entry.option);
+
+    return {
+      shuffled: { ...content, options: shuffledOptions, correctIndices: newCorrectIndices },
+      indexMapping,
+    };
+  }
+
+  /**
    * Fisher-Yates shuffle algorithm
    */
   private shuffleArray<T>(array: T[]): T[] {
@@ -734,90 +819,4 @@ export class GameManager {
     return null;
   }
 
-  /**
-   * Checks if the team has completed all chronology questions perfectly
-   * and awards a +4 bonus if so.
-   * Returns the bonus points to award (0 or 4).
-   * Note: Uses arrays instead of Sets for JSON serialization compatibility.
-   */
-  private async checkChronologyCompletionBonus(
-    competitionId: string,
-    teamId: string,
-    questionId: string,
-    allQuestions: Question[],
-    team: Team,
-  ): Promise<number> {
-    const session = this.getOrCreateSession(competitionId);
-
-    // Get all chronology questions in this competition
-    const chronologyQuestions = allQuestions.filter(
-      (q) => q.type === "CHRONOLOGY",
-    );
-
-    if (chronologyQuestions.length === 0) {
-      return 0;
-    }
-
-    // Initialize tracking structures if needed (use arrays for JSON serialization)
-    if (!session.metadata.chronologyPerfectAnswers) {
-      session.metadata.chronologyPerfectAnswers = {};
-    }
-    if (!session.metadata.chronologyPerfectAnswers[teamId]) {
-      session.metadata.chronologyPerfectAnswers[teamId] = [];
-    }
-    if (!session.metadata.chronologyBonusAwarded) {
-      session.metadata.chronologyBonusAwarded = {};
-    }
-
-    const teamPerfectAnswers: string[] = session.metadata.chronologyPerfectAnswers[teamId];
-    const teamBonusAwarded: boolean = session.metadata.chronologyBonusAwarded[teamId] || false;
-
-    // Add this question to the team's perfect answers (if not already present)
-    if (!teamPerfectAnswers.includes(questionId)) {
-      teamPerfectAnswers.push(questionId);
-    }
-
-    // Check if all chronology questions are answered perfectly
-    const allAnsweredPerfectly =
-      teamPerfectAnswers.length >= chronologyQuestions.length;
-
-    // Award bonus only once
-    if (allAnsweredPerfectly && !teamBonusAwarded) {
-      session.metadata.chronologyBonusAwarded[teamId] = true;
-
-      // Update team score
-      team.score += 4;
-      await this.repository.updateTeamScore(teamId, team.score);
-
-      this.logger.info(
-        `Team ${teamId} completed all ${chronologyQuestions.length} chronology questions perfectly! Awarded +4 bonus points.`,
-      );
-
-      return 4;
-    }
-
-    return 0;
-  }
-
-  /**
-   * Resets the chronology tracking for a team when they get an incorrect answer.
-   * This ensures they must complete all chronology questions perfectly to get the bonus.
-   */
-  private resetChronologyTracking(
-    session: GameState & { metadata?: any },
-    teamId: string,
-    _questionId: string,
-  ) {
-    if (!session.metadata.chronologyPerfectAnswers) {
-      session.metadata.chronologyPerfectAnswers = {};
-    }
-
-    // Clear the team's perfect answers for chronology (use array)
-    session.metadata.chronologyPerfectAnswers[teamId] = [];
-
-    // Allow bonus to be awarded again
-    if (session.metadata.chronologyBonusAwarded) {
-      session.metadata.chronologyBonusAwarded[teamId] = false;
-    }
-  }
 }

@@ -64,7 +64,7 @@ const getDefaultContentForType = (type: QuestionType): EditorContent => {
     case "FILL_IN_THE_BLANKS":
       return { text: "", blanks: [] };
     case "MATCHING":
-      return { pairs: [] };
+      return { heroes: [], stories: [] };
     case "CHRONOLOGY":
       return { items: [] };
     case "TRUE_FALSE":

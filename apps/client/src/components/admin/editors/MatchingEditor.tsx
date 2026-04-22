@@ -1,6 +1,7 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
-import type { MatchingContent, MatchingPair } from "@quizco/shared";
+import type { MatchingContent, MatchingItem } from "@quizco/shared";
 import { v4 as uuidv4 } from "uuid";
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
@@ -14,72 +15,112 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
   content,
   onChange,
 }) => {
+  const { t } = useTranslation();
+  const heroes = content.heroes || [];
+  const stories = content.stories || [];
+
   const addPair = () => {
-    const newPair: MatchingPair = {
-      id: uuidv4(),
-      left: "",
-      right: "",
+    const heroId = uuidv4();
+    const storyId = uuidv4();
+    const newHero: MatchingItem = {
+      id: heroId,
+      text: "",
+      type: "hero",
+    };
+    const newStory: MatchingItem = {
+      id: storyId,
+      text: "",
+      type: "story",
+      correspondsTo: heroId,
     };
     onChange({
-      ...content,
-      pairs: [...(content.pairs || []), newPair],
+      heroes: [...heroes, newHero],
+      stories: [...stories, newStory],
     });
   };
 
-  const removePair = (id: string) => {
+  const removePair = (heroId: string) => {
     onChange({
-      ...content,
-      pairs: content.pairs.filter((p) => p.id !== id),
+      heroes: heroes.filter((h) => h.id !== heroId),
+      stories: stories.filter((s) => s.correspondsTo !== heroId),
     });
   };
 
-  const updatePair = (id: string, field: "left" | "right", value: string) => {
+  const updateHero = (id: string, value: string) => {
+    const updatedHeroes = heroes.map((h) =>
+      h.id === id ? { ...h, text: value } : h
+    );
     onChange({
-      ...content,
-      pairs: content.pairs.map((p) =>
-        p.id === id ? { ...p, [field]: value } : p
-      ),
+      heroes: updatedHeroes,
+      stories,
+    });
+  };
+
+  const updateStory = (id: string, value: string, correspondsTo?: string) => {
+    const existingStory = stories.find((s) => s.id === id);
+    let updatedStories: MatchingItem[];
+
+    if (existingStory) {
+      updatedStories = stories.map((s) =>
+        s.id === id ? { ...s, text: value } : s
+      );
+    } else {
+      const newStory: MatchingItem = {
+        id,
+        text: value,
+        type: "story",
+        correspondsTo: correspondsTo,
+      };
+      updatedStories = [...stories, newStory];
+    }
+
+    onChange({
+      heroes,
+      stories: updatedStories,
     });
   };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4 mb-2">
-        <label className="text-sm font-medium text-gray-700">Left Side</label>
-        <label className="text-sm font-medium text-gray-700">Right Side (Correct Match)</label>
+        <label className="text-sm font-medium text-gray-700">{t('matchingEditor.heroLabel')}</label>
+        <label className="text-sm font-medium text-gray-700">{t('matchingEditor.storyLabel')}</label>
       </div>
       
-      {content.pairs.map((pair) => (
-        <div key={pair.id} className="flex items-center space-x-3">
-          <Input
-            type="text"
-            value={pair.left}
-            onChange={(e) => updatePair(pair.id, "left", e.target.value)}
-            placeholder="Left item"
-          />
-          <span className="text-gray-400">↔</span>
-          <Input
-            type="text"
-            value={pair.right}
-            onChange={(e) => updatePair(pair.id, "right", e.target.value)}
-            placeholder="Right item"
-          />
-          <Button
-            variant="ghost"
-            onClick={() => removePair(pair.id)}
-            className="p-2"
-          >
-            <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-500" />
-          </Button>
-        </div>
-      ))}
+      {heroes.map((hero, index) => {
+        const matchingStory = stories.find((s) => s.correspondsTo === hero.id);
+        return (
+          <div key={hero.id} className="flex items-center space-x-3">
+            <Input
+              type="text"
+              value={hero.text}
+              onChange={(e) => updateHero(hero.id, e.target.value)}
+              placeholder={t('matchingEditor.heroPlaceholder', { number: index + 1 })}
+            />
+            <span className="text-gray-400">↔</span>
+            <Input
+              type="text"
+              value={matchingStory?.text || ""}
+              onChange={(e) => updateStory(matchingStory?.id || hero.id, e.target.value, hero.id)}
+              placeholder={t('matchingEditor.storyPlaceholder', { number: index + 1 })}
+            />
+            <Button
+              variant="ghost"
+              onClick={() => removePair(hero.id)}
+              className="p-2"
+            >
+              <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-500" />
+            </Button>
+          </div>
+        );
+      })}
 
       <Button
         variant="ghost"
         onClick={addPair}
         className="text-blue-600 p-0 hover:bg-transparent hover:underline"
       >
-        <Plus className="w-4 h-4 mr-1" /> Add Pair
+        <Plus className="w-4 h-4 mr-1" /> {t('matchingEditor.addPair')}
       </Button>
     </div>
   );
