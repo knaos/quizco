@@ -175,7 +175,7 @@ export class GameManager {
     }
 
     if (sessionQuestion.type === "MULTIPLE_CHOICE" || sessionQuestion.type === "CLOSED") {
-      const cacheKey = `shuffle_${question.id}`;
+      const cacheKey = `shuffle_${question.id}` as const;
       const cached = session.metadata?.[cacheKey];
       if (cached) {
         sessionQuestion.content = cached;
@@ -202,10 +202,11 @@ export class GameManager {
 
     const preservedChronologyPerfect = session.metadata?.chronologyPerfectAnswers;
     const preservedChronologyBonus = session.metadata?.chronologyBonusAwarded;
-    const shuffleData: Partial<SessionMetadata> = {};
-    for (const key of Object.keys(session.metadata || {})) {
+    const shuffleData: Record<string, unknown> = {};
+    const metadata = session.metadata as Record<string, unknown> | undefined || {};
+    for (const key of Object.keys(metadata)) {
       if (key.startsWith("shuffle_")) {
-        shuffleData[key] = session.metadata[key];
+        shuffleData[key] = metadata[key];
       }
     }
     session.metadata = { ...shuffleData };
@@ -325,7 +326,7 @@ export class GameManager {
         continue;
       }
 
-      const usedJokers = session.metadata?.usedJokers?.has(team.id) || false;
+      const usedJokers = session.metadata?.usedJokers?.includes(team.id) || false;
 
       // Grade the answer - use team.lastAnswer directly since correctIndices are already displayed indices
       const answerToGrade: AnswerContent = team.lastAnswer;
@@ -491,8 +492,9 @@ export class GameManager {
     const grid = content.grid;
 
     // Ensure metadata for this question's jokers exists
+    session.metadata = session.metadata || {};
     if (!session.metadata.revealedCells) {
-      session.metadata.revealedCells = {}; // teamId -> string[] (serialized "x,y")
+      session.metadata.revealedCells = {};
     }
     if (!session.metadata.revealedCells[teamId]) {
       session.metadata.revealedCells[teamId] = [];
@@ -527,8 +529,8 @@ export class GameManager {
     team.score -= 2;
     teamRevealed.push(`${randomCell.x},${randomCell.y}`);
 
-    if (!session.metadata.usedJokers) session.metadata.usedJokers = new Set();
-    session.metadata.usedJokers.add(teamId);
+    if (!session.metadata.usedJokers) session.metadata.usedJokers = [];
+    session.metadata.usedJokers.push(teamId);
 
     // Update score in DB
     await this.repository.updateTeamScore(teamId, team.score);

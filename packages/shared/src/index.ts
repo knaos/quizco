@@ -261,6 +261,8 @@ export interface SessionMetadata {
   shuffle_mapping?: Record<string, unknown>;
   chronologyPerfectAnswers?: number;
   chronologyBonusAwarded?: boolean;
+  usedJokers?: string[];
+  revealedCells?: Record<string, string[]>;
   [key: `shuffle_${string}`]: unknown;
 }
 
