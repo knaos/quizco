@@ -256,6 +256,14 @@ export interface GameState {
   timerPaused: boolean;
 }
 
+export interface SessionMetadata {
+  shuffle_seed?: string;
+  shuffle_mapping?: Record<string, unknown>;
+  chronologyPerfectAnswers?: number;
+  chronologyBonusAwarded?: boolean;
+  [key: `shuffle_${string}`]: unknown;
+}
+
 export interface SocketEvents {
   // Client to Server
   JOIN_ROOM: (payload: {

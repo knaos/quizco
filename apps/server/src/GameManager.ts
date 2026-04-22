@@ -8,6 +8,7 @@ import {
   ClosedQuestionContent,
   FillInTheBlanksContent,
   MatchingContent,
+  SessionMetadata,
 } from "@quizco/shared";
 import { IGameRepository } from "./repositories/IGameRepository";
 import { GradingService } from "./services/GradingService";
@@ -16,7 +17,7 @@ import { TimerService } from "./services/TimerService";
 import { ILogger } from "./utils/Logger";
 
 export class GameManager {
-  private sessions: Map<string, GameState & { metadata?: any }> = new Map();
+  private sessions: Map<string, GameState & { metadata?: SessionMetadata }> = new Map();
   private gradingService: GradingService;
   private persistenceService: StatePersistenceService;
 
@@ -45,7 +46,7 @@ export class GameManager {
 
   private getOrCreateSession(
     competitionId: string,
-  ): GameState & { metadata?: any } {
+  ): GameState & { metadata?: SessionMetadata } {
     if (!this.sessions.has(competitionId)) {
       this.logger.info(
         `Creating new session for competition: ${competitionId}`,
@@ -156,7 +157,7 @@ export class GameManager {
    * Used by startQuestion and from transition branches in next().
    */
   private async prepareSessionQuestion(
-    session: GameState & { metadata?: any },
+    session: GameState & { metadata?: SessionMetadata },
     question: Question,
   ): Promise<void> {
     const sessionQuestion = JSON.parse(JSON.stringify(question));
@@ -201,7 +202,7 @@ export class GameManager {
 
     const preservedChronologyPerfect = session.metadata?.chronologyPerfectAnswers;
     const preservedChronologyBonus = session.metadata?.chronologyBonusAwarded;
-    const shuffleData: Record<string, any> = {};
+    const shuffleData: Partial<SessionMetadata> = {};
     for (const key of Object.keys(session.metadata || {})) {
       if (key.startsWith("shuffle_")) {
         shuffleData[key] = session.metadata[key];

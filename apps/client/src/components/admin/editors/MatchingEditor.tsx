@@ -56,10 +56,24 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
     });
   };
 
-  const updateStory = (id: string, value: string) => {
-    const updatedStories = stories.map((s) =>
-      s.id === id ? { ...s, text: value } : s
-    );
+  const updateStory = (id: string, value: string, correspondsTo?: string) => {
+    const existingStory = stories.find((s) => s.id === id);
+    let updatedStories: MatchingItem[];
+
+    if (existingStory) {
+      updatedStories = stories.map((s) =>
+        s.id === id ? { ...s, text: value } : s
+      );
+    } else {
+      const newStory: MatchingItem = {
+        id,
+        text: value,
+        type: "story",
+        correspondsTo: correspondsTo,
+      };
+      updatedStories = [...stories, newStory];
+    }
+
     onChange({
       heroes,
       stories: updatedStories,
@@ -87,7 +101,7 @@ export const MatchingEditor: React.FC<MatchingEditorProps> = ({
             <Input
               type="text"
               value={matchingStory?.text || ""}
-              onChange={(e) => matchingStory && updateStory(matchingStory.id, e.target.value)}
+              onChange={(e) => updateStory(matchingStory?.id || hero.id, e.target.value, hero.id)}
               placeholder={t('matchingEditor.storyPlaceholder', { number: index + 1 })}
             />
             <Button

@@ -282,7 +282,7 @@
           "add_option": "Add Option",
           "hint": "Add placeholders like {0} in the text above to configure options."
         },
-"chronology": {
+        "chronology": {
           "instruction": "Drag each event into the correct timeline slot.",
           "add_item": "Add Item",
           "placeholder": "Enter event or item...",
