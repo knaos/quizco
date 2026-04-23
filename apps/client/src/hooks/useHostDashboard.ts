@@ -93,7 +93,7 @@ export function useHostDashboard(
 
   const disableTransition = useCallback(() => {
     setIsTransitionDisabled(true);
-    setTimeout(() => setIsTransitionDisabled(false), 1000);
+    setTimeout(() => setIsTransitionDisabled(false), 0);
   }, []);
 
   const fetchPendingAnswers = useCallback(() => {

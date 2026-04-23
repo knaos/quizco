@@ -245,6 +245,7 @@ export interface Team {
   lastAnswer: AnswerContent | null;
   isExplicitlySubmitted: boolean;
   isConnected: boolean;
+  lastAwardedBonusTier?: number; // Track last streak bonus tier awarded (1, 2, or 3)
 }
 
 export interface GameState {
