@@ -47,24 +47,6 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
         </div>
       </Card>
 
-      {stats ? (
-        <Card
-          className="p-6 text-left border-b-4 border-blue-500"
-          data-testid="audience-answer-stats"
-        >
-          <p className="text-sm font-bold uppercase tracking-widest text-blue-600">
-            {t("audience.answer_summary")}
-          </p>
-          <p className="mt-2 text-3xl font-black text-gray-900">
-            {t("audience.correct_count", {
-              correct: stats.totalCorrect,
-              total: stats.totalSubmitted,
-              percentage: stats.correctPercentage,
-            })}
-          </p>
-        </Card>
-      ) : null}
-
       <div className="mx-auto inline-block rounded-2xl bg-blue-600 p-6 text-white shadow-lg animate-pulse">
         <p className="flex items-center text-xl font-bold">
           <Clock className="mr-2" /> {t("player.next_soon")}
