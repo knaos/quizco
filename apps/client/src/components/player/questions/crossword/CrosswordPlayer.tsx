@@ -227,9 +227,55 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   };
 
   /**
-   * Handle key down events for backspace navigation.
+   * Handle key down events for arrow key navigation and backspace.
    */
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) => {
+    // Handle arrow key navigation
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      e.preventDefault();
+
+      let targetR = r;
+      let targetC = c;
+
+      if (e.key === "ArrowLeft") targetC = c - 1;
+      else if (e.key === "ArrowRight") targetC = c + 1;
+      else if (e.key === "ArrowUp") targetR = r - 1;
+      else if (e.key === "ArrowDown") targetR = r + 1;
+
+      // Find the next valid cell in the direction
+      while (
+        targetR >= 0 &&
+        targetR < data.grid.length &&
+        targetC >= 0 &&
+        targetC < (data.grid[0]?.length ?? 0)
+      ) {
+        // Check if this is a valid cell (not a dark/empty cell in the grid)
+        if (data.grid[targetR]?.[targetC]?.trim() !== "") {
+          const targetKey = `${targetR}-${targetC}`;
+          const targetInput = inputRefs.current.get(targetKey);
+          if (targetInput) {
+            // If there's an active clue and the target is outside its cells, deselect the clue
+            if (activeClue && activeClueCells.length > 0 && !activeClueCells.includes(targetKey)) {
+              setActiveClue(null);
+              setActiveClueCells([]);
+              setHighlightedCells([]);
+              setSelectedClueIndex(null);
+            }
+            targetInput.focus();
+            // Select the existing text for easy overwriting
+            targetInput.select();
+          }
+          return;
+        }
+        // Move to next cell in same direction
+        if (e.key === "ArrowLeft") targetC--;
+        else if (e.key === "ArrowRight") targetC++;
+        else if (e.key === "ArrowUp") targetR--;
+        else if (e.key === "ArrowDown") targetR++;
+      }
+      return;
+    }
+
     if (e.key === "Backspace") {
       const currentVal = userGrid[r]?.[c] || "";
       
@@ -259,7 +305,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         }
       }
     }
-  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress]);
+  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress, data.grid]);
 
   const handleSubmit = () => {
     if (!readOnly && onSubmit) {
@@ -286,6 +332,8 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       if (!activeClueCells.includes(cellKey)) {
         setActiveClue(null);
         setActiveClueCells([]);
+        setHighlightedCells([]);
+        setSelectedClueIndex(null);
       }
     }
   }, [activeClue, activeClueCells]);
@@ -452,6 +500,14 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                   className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${
                     isHighlighted ? "!bg-blue-200" : "bg-white"
                   }`}
+                  onClick={() => {
+                    if (activeClue && !activeClueCells.includes(cellKey)) {
+                      setActiveClue(null);
+                      setActiveClueCells([]);
+                      setHighlightedCells([]);
+                      setSelectedClueIndex(null);
+                    }
+                  }}
                 >
                   {isEmpty ? (
                     <div className="w-full h-full bg-gray-800 rounded-sm" />
@@ -478,6 +534,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                           onChange={(e) => handleChange(r, c, e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, r, c)}
                           onFocus={() => handleCellFocus(r, c)}
+                          onClick={() => handleCellFocus(r, c)}
                           data-testid={`crossword-cell-${r}-${c}`}
                           ref={(el) => {
                             if (el) {
