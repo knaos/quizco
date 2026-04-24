@@ -5,4 +5,7 @@ export const API_URL = resolveApiUrl(
   window.location,
   import.meta.env.VITE_API_URL,
 );
-export const socket = io(API_URL);
+export const socket = io(API_URL, {
+  ackTimeout: 2000,
+  retries: 3,
+});

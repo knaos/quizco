@@ -8,6 +8,8 @@ interface RenderHookOptions {
 
 export function renderHook<T>(useHook: () => T, options?: RenderHookOptions) {
   const resultRef: { current: T | undefined } = { current: undefined };
+  const renderHarness = () =>
+    options?.wrapper ? options.wrapper({ children: <Harness /> }) : <Harness />;
 
   function Harness(): ReactElement | null {
     const result = useHook();
@@ -19,11 +21,13 @@ export function renderHook<T>(useHook: () => T, options?: RenderHookOptions) {
     return null;
   }
 
-  const hookUi = <Harness />;
-  const view = render(options?.wrapper ? options.wrapper({ children: hookUi }) : hookUi);
+  const view = render(renderHarness());
 
   return {
     ...view,
+    rerenderHook() {
+      view.rerender(renderHarness());
+    },
     get result(): T {
       return resultRef.current!;
     },

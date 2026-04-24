@@ -1,4 +1,5 @@
 import { expect, request, test, type APIRequestContext, type Page } from "@playwright/test";
+import { HOST_PASSWORD } from "./helpers/gameHarness";
 
 const ADMIN_AUTH_HEADER = { "x-admin-auth": "admin123" };
 
@@ -90,7 +91,7 @@ test("host plus two players complete a full competition cycle", async ({ browser
   const playerTwoPage = await playerTwoContext.newPage();
 
   await hostPage.goto("/host");
-  await hostPage.getByTestId("host-password-input").fill("host123");
+  await hostPage.getByTestId("host-password-input").fill(HOST_PASSWORD);
   await hostPage.getByTestId("host-login-submit").click();
   await hostPage.getByTestId(`host-competition-option-${competitionId}`).click();
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
