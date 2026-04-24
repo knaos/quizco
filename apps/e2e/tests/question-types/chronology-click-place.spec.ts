@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   createAdminApi,
   createCompetitionWithQuestions,
@@ -7,6 +7,36 @@ import {
   movePreviewToActive,
   moveToQuestionPreview,
 } from "../helpers/gameHarness";
+
+const attemptDragByItem = async (
+  page: Page,
+  itemTestId: string,
+  targetTestId: string,
+): Promise<void> => {
+  const item = page.getByTestId(itemTestId);
+  const target = page.getByTestId(targetTestId).first();
+
+  await expect(item).toBeVisible();
+  await expect(target).toBeVisible();
+
+  const itemBox = await item.boundingBox();
+  const targetBox = await target.boundingBox();
+
+  if (!itemBox || !targetBox) {
+    throw new Error("Unable to compute drag coordinates for chronology click-place test.");
+  }
+
+  const startX = itemBox.x + itemBox.width / 2;
+  const startY = itemBox.y + itemBox.height / 2;
+  const targetX = targetBox.x + targetBox.width / 2;
+  const targetY = targetBox.y + targetBox.height / 2;
+
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + 10, startY + 10, { steps: 2 });
+  await page.mouse.move(targetX, targetY, { steps: 12 });
+  await page.mouse.up();
+};
 
 test("Chronology supports click-to-place interaction", async ({ browser }) => {
   const adminApi = await createAdminApi();
@@ -52,6 +82,11 @@ test("Chronology supports click-to-place interaction", async ({ browser }) => {
     // Verify card is selected (has selection styling)
     const card = session.playerOnePage.getByTestId("chronology-item-c1");
     await expect(card).toHaveClass(/ring-4/);
+
+    // Drag should be disabled while a card is selected for click placement.
+    await attemptDragByItem(session.playerOnePage, "chronology-item-c1", "chronology-slot-0");
+    await expect(session.playerOnePage.getByTestId("chronology-slot-0")).not.toContainText("First");
+    await expect(session.playerOnePage.getByTestId("chronology-pool-dropzone")).toContainText("First");
 
     // Click on slot 0 to place the selected card
     await session.playerOnePage.getByTestId("chronology-slot-0").click();

@@ -46,6 +46,7 @@ interface ChronologyCardProps {
   id: string;
   text: string;
   isSelected: boolean;
+  dragDisabled?: boolean;
   className?: string;
   dragProps?: React.HTMLAttributes<HTMLDivElement>;
   onClick?: () => void;
@@ -55,6 +56,7 @@ const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
   id,
   text,
   isSelected,
+  dragDisabled = false,
   className = "",
   dragProps,
   onClick,
@@ -63,7 +65,7 @@ const ChronologyCardShell: React.FC<ChronologyCardProps> = ({
     <div
       data-testid={`chronology-item-${id}`}
       onClick={onClick}
-      className={`flex h-16 cursor-grab items-center gap-3 rounded-2xl border-2 p-3 transition-all active:cursor-grabbing ${className} ${isSelected
+      className={`flex h-16 items-center gap-3 rounded-2xl border-2 p-3 transition-all ${dragDisabled ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"} ${className} ${isSelected
         ? "border-blue-500 bg-blue-100 ring-4 ring-blue-300"
         : "border-blue-100 bg-white hover:border-blue-300"
         }`}
@@ -78,6 +80,7 @@ interface DraggableChronologyCardProps {
   id: string;
   text: string;
   isSelected: boolean;
+  dragDisabled?: boolean;
   onSelect: () => void;
 }
 
@@ -85,18 +88,19 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
   id,
   text,
   isSelected,
+  dragDisabled = false,
   onSelect,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id });
+    useDraggable({ id, disabled: dragDisabled });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     touchAction: "pan-y" as const,
   };
   const dragProps: React.HTMLAttributes<HTMLDivElement> = {
-    ...attributes,
-    ...listeners,
+    ...(dragDisabled ? {} : attributes),
+    ...(dragDisabled ? {} : listeners),
   };
 
   return (
@@ -105,6 +109,7 @@ const DraggableChronologyCard: React.FC<DraggableChronologyCardProps> = ({
         id={id}
         text={text}
         isSelected={isSelected}
+        dragDisabled={dragDisabled}
         className={
           isDragging
             ? "pointer-events-none border-blue-500 bg-blue-50/70 opacity-0"
@@ -154,6 +159,7 @@ interface PoolItemDropTargetProps {
   id: string;
   text: string;
   isSelected: boolean;
+  dragDisabled?: boolean;
   onSelect: () => void;
 }
 
@@ -165,6 +171,7 @@ const PoolItemDropTarget: React.FC<PoolItemDropTargetProps> = ({
   id,
   text,
   isSelected,
+  dragDisabled = false,
   onSelect,
 }) => {
   const dropId = `${POOL_ITEM_DROPPABLE_PREFIX}${id}`;
@@ -176,6 +183,7 @@ const PoolItemDropTarget: React.FC<PoolItemDropTargetProps> = ({
         id={id}
         text={text}
         isSelected={isSelected}
+        dragDisabled={dragDisabled}
         onSelect={onSelect}
       />
     </div>
@@ -217,6 +225,7 @@ interface TimelineSlotProps {
   itemMap: ChronologyItemMap;
   overId: string | null;
   selectedId: string | null;
+  dragDisabled?: boolean;
   onCardSelect: (id: string) => void;
   onSlotClick: () => void;
 }
@@ -227,6 +236,7 @@ const TimelineSlot: React.FC<TimelineSlotProps> = ({
   itemMap,
   overId,
   selectedId,
+  dragDisabled = false,
   onCardSelect,
   onSlotClick,
 }) => {
@@ -249,6 +259,7 @@ const TimelineSlot: React.FC<TimelineSlotProps> = ({
             id={slotId}
             text={itemMap[slotId]?.text ?? ""}
             isSelected={selectedId === slotId}
+            dragDisabled={dragDisabled}
             onSelect={() => onCardSelect(slotId)}
           />
         ) : (
@@ -331,6 +342,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const poolDropElementRef = useRef<HTMLElement | null>(null);
+  const dragDisabled = disabled || selectedId !== null;
 
   const { setNodeRef: setPoolNodeRef, isOver: isOverPool } = useDroppable({
     id: POOL_DROPPABLE_ID,
@@ -360,18 +372,18 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    if (disabled) {
+    if (dragDisabled) {
       return;
     }
     setActiveId(String(event.active.id));
-  }, [disabled]);
+  }, [dragDisabled]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
-    if (disabled) {
+    if (dragDisabled) {
       return;
     }
     setOverId(event.over ? String(event.over.id) : null);
-  }, [disabled]);
+  }, [dragDisabled]);
 
   const resetDragState = useCallback(() => {
     setActiveId(null);
@@ -435,7 +447,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
-      if (disabled) {
+      if (dragDisabled) {
         resetDragState();
         return;
       }
@@ -484,7 +496,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
       moveCard(String(active.id), stableTarget);
       resetDragState();
     },
-    [boardState, disabled, moveCard, overId, resetDragState],
+    [boardState, dragDisabled, moveCard, overId, resetDragState],
   );
 
   const activeItem = activeId ? itemMap[activeId] : null;
@@ -545,7 +557,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   return (
     <div className="w-full space-y-3 text-center">
       <DndContext
-        sensors={disabled ? [] : sensors}
+        sensors={sensors}
         collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
@@ -566,6 +578,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                   id={id}
                   text={itemMap[id]?.text ?? ""}
                   isSelected={selectedId === id}
+                  dragDisabled={dragDisabled}
                   onSelect={() => handleCardSelect(id)}
                 />
               ))}
@@ -585,6 +598,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                   itemMap={itemMap}
                   overId={overId}
                   selectedId={selectedId}
+                  dragDisabled={dragDisabled}
                   onCardSelect={handleCardSelect}
                   onSlotClick={() => handleSlotClick(index)}
                 />

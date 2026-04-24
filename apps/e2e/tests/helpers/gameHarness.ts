@@ -1,6 +1,7 @@
 import { expect, request, type APIRequestContext, type Browser, type Page } from "@playwright/test";
 
 export const ADMIN_AUTH_HEADER = {};
+const HOST_PASSWORD = process.env.HOST_PASSWORD ?? "change-me-host";
 
 export interface QuestionDraft {
   questionText: string;
@@ -135,7 +136,7 @@ export async function createHostAndPlayers(
   const playerTwoPage = await playerTwoContext.newPage();
 
   await hostPage.goto("/host");
-  await hostPage.getByTestId("host-password-input").fill("host123");
+  await hostPage.getByTestId("host-password-input").fill(HOST_PASSWORD);
   await hostPage.getByTestId("host-login-submit").click();
   await hostPage.getByTestId(`host-competition-option-${competitionId}`).click();
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
