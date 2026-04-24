@@ -13,7 +13,6 @@ interface AudienceRevealPhaseProps {
 
 export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
   state,
-  stats,
 }) => {
   const { t } = useTranslation();
 
