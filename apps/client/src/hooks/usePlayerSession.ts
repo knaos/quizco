@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type {
   AnswerContent,
   Competition,
@@ -18,6 +18,24 @@ const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
 const TEAM_COLOR_KEY = "quizco_team_color";
 const SELECTED_COMP_ID_KEY = "quizco_selected_competition_id";
+
+const AUTO_SUBMIT_DELAY_MS = 500;
+
+const saveTeamToStorage = (teamId: string, teamName: string, color: string) => {
+  localStorage.setItem(TEAM_ID_KEY, teamId);
+  localStorage.setItem(TEAM_NAME_KEY, teamName);
+  localStorage.setItem(TEAM_COLOR_KEY, color);
+};
+
+const clearTeamFromStorage = () => {
+  localStorage.removeItem(TEAM_ID_KEY);
+  localStorage.removeItem(TEAM_NAME_KEY);
+  localStorage.removeItem(TEAM_COLOR_KEY);
+};
+
+const clearCompetitionFromStorage = () => {
+  localStorage.removeItem(SELECTED_COMP_ID_KEY);
+};
 
 export interface PlayerIdentity {
   teamId: string | null;
@@ -56,12 +74,117 @@ export interface PlayerSessionResult {
   requestJoker: () => void;
 }
 
-interface DraftAnswerState {
+export interface DraftAnswerState {
   questionId: string | null;
   answer: AnswerContent;
   selectedIndices: number[];
   submissionStatus: "idle" | "success" | "error";
 }
+
+type DraftAnswerAction =
+  | { type: "SET_ANSWER"; payload: AnswerContent; questionId: string | null }
+  | { type: "SET_INDICES"; payload: number[]; questionId: string | null }
+  | { type: "SET_SUBMISSION_STATUS"; payload: "idle" | "success" | "error" }
+  | { type: "RESET" }
+  | { type: "HYDRATE_FROM_SERVER"; payload: { questionId: string; answer: AnswerContent; selectedIndices: number[] } };
+
+export function draftAnswerReducer(state: DraftAnswerState, action: DraftAnswerAction): DraftAnswerState {
+  switch (action.type) {
+    case "SET_ANSWER":
+      return {
+        ...state,
+        questionId: action.questionId,
+        answer: action.payload,
+        submissionStatus: "idle",
+      };
+    case "SET_INDICES":
+      return {
+        ...state,
+        questionId: action.questionId,
+        answer: action.payload,
+        selectedIndices: action.payload,
+        submissionStatus: "idle",
+      };
+    case "SET_SUBMISSION_STATUS":
+      return {
+        ...state,
+        submissionStatus: action.payload,
+      };
+    case "RESET":
+      return {
+        questionId: null,
+        answer: "",
+        selectedIndices: [],
+        submissionStatus: "idle",
+      };
+    case "HYDRATE_FROM_SERVER":
+      return {
+        questionId: action.payload.questionId,
+        answer: action.payload.answer,
+        selectedIndices: action.payload.selectedIndices,
+        submissionStatus: "idle",
+      };
+    default:
+      return state;
+  }
+}
+
+export interface TeamState {
+  teamId: string | null;
+  teamName: string;
+  color: string;
+  joined: boolean;
+}
+
+type TeamAction =
+  | { type: "SET_IDENTITY"; payload: { teamId: string; teamName: string; color: string } }
+  | { type: "JOIN" }
+  | { type: "LEAVE" }
+  | { type: "SET_TEAM_NAME"; payload: string }
+  | { type: "SET_COLOR"; payload: string };
+
+export function teamReducer(state: TeamState, action: TeamAction): TeamState {
+  switch (action.type) {
+    case "SET_IDENTITY":
+      return {
+        ...state,
+        teamId: action.payload.teamId,
+        teamName: action.payload.teamName,
+        color: action.payload.color,
+      };
+    case "JOIN":
+      return {
+        ...state,
+        joined: true,
+      };
+    case "LEAVE":
+      return {
+        teamId: null,
+        teamName: "",
+        color: "#3B82F6",
+        joined: false,
+      };
+    case "SET_TEAM_NAME":
+      return {
+        ...state,
+        teamName: action.payload,
+      };
+    case "SET_COLOR":
+      return {
+        ...state,
+        color: action.payload,
+      };
+    default:
+      return state;
+  }
+}
+
+const initialDraftState: DraftAnswerState = {
+  questionId: null,
+  answer: "",
+  selectedIndices: [],
+  submissionStatus: "idle",
+};
 
 export function usePlayerSession(state: GameState): PlayerSessionResult {
   const savedCompetitionId = localStorage.getItem(SELECTED_COMP_ID_KEY);
@@ -73,22 +196,23 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   const [selectedCompId, setSelectedCompId] = useState<string | null>(
     savedCompetitionId,
   );
-  const [teamId, setTeamId] = useState<string | null>(savedTeamId);
-  const [teamName, setTeamName] = useState(savedTeamName);
-  const [color, setColor] = useState(savedTeamColor);
-  const [joined, setJoined] = useState(false);
-  const [draftState, setDraftState] = useState<DraftAnswerState>({
-    questionId: null,
-    answer: "",
-    selectedIndices: [],
-    submissionStatus: "idle",
-  });
   const [isReconnecting, setIsReconnecting] = useState(
     Boolean(savedTeamId && savedCompetitionId),
   );
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  const [teamState, dispatchTeam] = useReducer(teamReducer, {
+    teamId: savedTeamId,
+    teamName: savedTeamName,
+    color: savedTeamColor,
+    joined: false,
+  });
+
+  const [draftState, dispatchDraft] = useReducer(draftAnswerReducer, initialDraftState);
+
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
+
+  const { teamId, teamName, color, joined } = teamState;
 
   const currentTeam = useMemo(() => {
     if (!teamId) {
@@ -106,14 +230,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     (currentTeam?.lastAnswer as CorrectTheErrorAnswer | null) ?? null,
   );
   const currentQuestionId = state.currentQuestion?.id ?? null;
+
   const hydratedState = useMemo<DraftAnswerState>(() => {
     if (!state.currentQuestion) {
-      return {
-        questionId: null,
-        answer: "",
-        selectedIndices: [],
-        submissionStatus: "idle",
-      };
+      return initialDraftState;
     }
 
     const hydrated = getHydratedPlayerAnswerState(
@@ -128,6 +248,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       submissionStatus: "idle",
     };
   }, [currentTeam?.lastAnswer, state.currentQuestion]);
+
   const isDraftCurrentQuestion = draftState.questionId === currentQuestionId;
   const answer = isDraftCurrentQuestion ? draftState.answer : hydratedState.answer;
   const selectedIndices = isDraftCurrentQuestion
@@ -140,8 +261,17 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   useEffect(() => {
     if (!selectedCompId) {
       fetch(`${API_URL}/api/competitions`)
-        .then((response) => response.json())
-        .then((data) => setCompetitions(Array.isArray(data) ? data : []));
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => setCompetitions(Array.isArray(data) ? data : []))
+        .catch((error) => {
+          console.error("Failed to fetch competitions:", error);
+          setCompetitions([]);
+        });
     }
   }, [selectedCompId]);
 
@@ -156,15 +286,18 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       (response: { success: boolean; team: { id?: string; name: string; color: string } }) => {
         if (response.success) {
           const resolvedTeamId = response.team.id ?? savedTeamId;
-          setTeamId(resolvedTeamId);
-          setTeamName(response.team.name);
-          setColor(response.team.color);
-          setJoined(true);
-          localStorage.setItem(TEAM_ID_KEY, resolvedTeamId);
-          localStorage.setItem(TEAM_NAME_KEY, response.team.name);
-          localStorage.setItem(TEAM_COLOR_KEY, response.team.color);
+          dispatchTeam({
+            type: "SET_IDENTITY",
+            payload: {
+              teamId: resolvedTeamId,
+              teamName: response.team.name,
+              color: response.team.color,
+            },
+          });
+          dispatchTeam({ type: "JOIN" });
+          saveTeamToStorage(resolvedTeamId, response.team.name, response.team.color);
         } else {
-          localStorage.removeItem(TEAM_ID_KEY);
+          clearTeamFromStorage();
         }
         setIsReconnecting(false);
       },
@@ -191,33 +324,28 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
         return;
       }
 
-      setDraftState((previous) => {
-        const currentQuestion = state.currentQuestion;
-        if (!currentQuestion) {
-          return previous;
-        }
-        const baseAnswer =
-          previous.questionId === currentQuestion.id
-            ? previous.answer
-            : hydratedState.answer;
-        const hydrated = getHydratedPlayerAnswerState(currentQuestion, baseAnswer);
-        const grid = Array.isArray(hydrated.answer)
-          ? (hydrated.answer as string[][]).map((row) => [...row])
-          : [];
+      const currentQuestion = state.currentQuestion;
+      if (!currentQuestion) {
+        return;
+      }
 
-        if (grid[payload.y]?.[payload.x] !== undefined) {
-          grid[payload.y][payload.x] = payload.letter.toUpperCase();
-        }
+      const baseAnswer =
+        draftState.questionId === currentQuestion.id
+          ? draftState.answer
+          : hydratedState.answer;
+      const hydrated = getHydratedPlayerAnswerState(currentQuestion, baseAnswer);
+      const grid = Array.isArray(hydrated.answer)
+        ? (hydrated.answer as string[][]).map((row) => [...row])
+        : [];
 
-        return {
-          questionId: currentQuestion.id,
-          answer: grid,
-          selectedIndices:
-            previous.questionId === currentQuestion.id
-              ? previous.selectedIndices
-              : hydratedState.selectedIndices,
-          submissionStatus: "idle",
-        };
+      if (grid[payload.y]?.[payload.x] !== undefined) {
+        grid[payload.y][payload.x] = payload.letter.toUpperCase();
+      }
+
+      dispatchDraft({
+        type: "SET_ANSWER",
+        payload: grid,
+        questionId: currentQuestion.id,
       });
     };
 
@@ -225,7 +353,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     return () => {
       socket.off("JOKER_REVEAL", handleJokerReveal);
     };
-  }, [hydratedState.answer, hydratedState.selectedIndices, state.currentQuestion, teamId]);
+  }, [teamId, state.currentQuestion, draftState.questionId, draftState.answer, hydratedState]);
 
   useEffect(() => {
     if (!joined || !teamId || state.phase !== "QUESTION_ACTIVE" || currentTeam?.isExplicitlySubmitted) {
@@ -233,7 +361,12 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     }
 
     const timer = window.setTimeout(() => {
-      if (state.currentQuestion?.type !== "MULTIPLE_CHOICE" && answer !== "" && answer !== null && answer !== undefined) {
+      if (
+        state.currentQuestion?.type !== "MULTIPLE_CHOICE" &&
+        answer !== "" &&
+        answer !== null &&
+        answer !== undefined
+      ) {
         socket.emit("SUBMIT_ANSWER", {
           competitionId: selectedCompId,
           teamId,
@@ -242,7 +375,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
           isFinal: false,
         });
       }
-    }, 500);
+    }, AUTO_SUBMIT_DELAY_MS);
 
     return () => window.clearTimeout(timer);
   }, [
@@ -262,7 +395,15 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
 
   const clearSelectedCompetition = useCallback(() => {
     setSelectedCompId(null);
-    localStorage.removeItem(SELECTED_COMP_ID_KEY);
+    clearCompetitionFromStorage();
+  }, []);
+
+  const setTeamName = useCallback((newTeamName: string) => {
+    dispatchTeam({ type: "SET_TEAM_NAME", payload: newTeamName });
+  }, []);
+
+  const setColor = useCallback((newColor: string) => {
+    dispatchTeam({ type: "SET_COLOR", payload: newColor });
   }, []);
 
   const joinTeam = useCallback(() => {
@@ -278,32 +419,26 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
           return;
         }
 
-        setTeamId(response.team.id);
-        setTeamName(response.team.name);
-        setColor(response.team.color);
-        setJoined(true);
+        dispatchTeam({
+          type: "SET_IDENTITY",
+          payload: {
+            teamId: response.team.id,
+            teamName: response.team.name,
+            color: response.team.color,
+          },
+        });
+        dispatchTeam({ type: "JOIN" });
         setLoginError(null);
-        localStorage.setItem(TEAM_ID_KEY, response.team.id);
-        localStorage.setItem(TEAM_NAME_KEY, response.team.name);
-        localStorage.setItem(TEAM_COLOR_KEY, response.team.color);
+        saveTeamToStorage(response.team.id, response.team.name, response.team.color);
       },
     );
   }, [color, selectedCompId, teamName]);
 
   const leaveSession = useCallback(() => {
-    localStorage.removeItem(TEAM_ID_KEY);
-    localStorage.removeItem(TEAM_NAME_KEY);
-    localStorage.removeItem(TEAM_COLOR_KEY);
-    localStorage.removeItem(SELECTED_COMP_ID_KEY);
-    setTeamId(null);
-    setJoined(false);
-    setTeamName("");
-    setDraftState({
-      questionId: null,
-      answer: "",
-      selectedIndices: [],
-      submissionStatus: "idle",
-    });
+    clearTeamFromStorage();
+    clearCompetitionFromStorage();
+    dispatchTeam({ type: "LEAVE" });
+    dispatchDraft({ type: "RESET" });
     setSelectedCompId(null);
   }, []);
 
@@ -311,7 +446,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     (value: AnswerContent, isFinal = false) => {
       if (!state.currentQuestion || !selectedCompId || !teamId) {
         setLoginError("player.session_lost_rejoin");
-        setJoined(false);
+        dispatchTeam({ type: "LEAVE" });
         return;
       }
 
@@ -336,14 +471,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
           if (!isFinal) {
             return;
           }
-          setDraftState((previous) => ({
-            questionId: state.currentQuestion?.id ?? previous.questionId,
-            answer: value,
-            selectedIndices: Array.isArray(value)
-              ? value.filter((entry): entry is number => typeof entry === "number")
-              : previous.selectedIndices,
-            submissionStatus: response?.success ? "success" : "error",
-          }));
+          dispatchDraft({
+            type: "SET_SUBMISSION_STATUS",
+            payload: response?.success ? "success" : "error",
+          });
         },
       );
     },
@@ -370,11 +501,10 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
         nextIndices = [...selectedIndices, index];
       }
 
-      setDraftState({
-        questionId: state.currentQuestion?.id ?? null,
-        answer: nextIndices,
-        selectedIndices: nextIndices,
-        submissionStatus: "idle",
+      dispatchDraft({
+        type: "SET_INDICES",
+        payload: nextIndices,
+        questionId: currentQuestion?.id ?? null,
       });
       submitAnswer(nextIndices, false);
     },
@@ -383,17 +513,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
 
   const updateAnswer = useCallback(
     (value: AnswerContent) => {
-      setDraftState((previous) => ({
+      dispatchDraft({
+        type: "SET_ANSWER",
+        payload: value,
         questionId: currentQuestionId,
-        answer: value,
-        selectedIndices:
-          previous.questionId === currentQuestionId
-            ? previous.selectedIndices
-            : hydratedState.selectedIndices,
-        submissionStatus: "idle",
-      }));
+      });
     },
-    [currentQuestionId, hydratedState.selectedIndices],
+    [currentQuestionId],
   );
 
   const getGradingStatus = useCallback(() => {
@@ -411,6 +537,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       questionId: state.currentQuestion.id,
     });
   }, [selectedCompId, state.currentQuestion, teamId]);
+
+  const getCorrectAnswer = useCallback(
+    (question: NonNullable<GameState["currentQuestion"]>, t: TFunction) => {
+      return getQuestionCorrectAnswer(question, t);
+    },
+    [],
+  );
 
   return {
     competitions,
@@ -435,7 +568,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     leaveSession,
     toggleIndex,
     submitAnswer,
-    getCorrectAnswer: getQuestionCorrectAnswer,
+    getCorrectAnswer,
     getGradingStatus,
     requestJoker,
   };
