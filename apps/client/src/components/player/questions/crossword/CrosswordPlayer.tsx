@@ -56,13 +56,13 @@ const calculateCellNumbers = (clues: CrosswordContent['clues']): Map<string, num
  */
 const getCellsForClue = (clue: CrosswordClue): string[] => {
   const cells: string[] = [];
-  
+
   for (let i = 0; i < clue.answer.length; i++) {
     const row = clue.direction === "across" ? clue.y : clue.y + i;
     const col = clue.direction === "across" ? clue.x + i : clue.x;
     cells.push(`${row}-${col}`);
   }
-  
+
   return cells;
 };
 
@@ -113,7 +113,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   // State for highlighted cells when clicking on clues
   const [highlightedCells, setHighlightedCells] = useState<string[]>([]);
   const [selectedClueIndex, setSelectedClueIndex] = useState<number | null>(null);
-  
+
   // State for active clue (used for direction-aware auto-advance)
   const [activeClue, setActiveClue] = useState<CrosswordClue | null>(null);
   const [activeClueCells, setActiveClueCells] = useState<string[]>([]);
@@ -125,53 +125,72 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
    * If all cells are filled, returns the first cell of the clue.
    */
   const findNextCellInClue = useCallback((
-    currentR: number, 
-    currentC: number, 
+    currentR: number,
+    currentC: number,
     clueCells: string[],
     grid: string[][]
   ): { r: number; c: number } | null => {
     // Find the index of the current cell in the clue cells array
     const currentKey = `${currentR}-${currentC}`;
     const currentIndex = clueCells.indexOf(currentKey);
-    
+
     if (currentIndex === -1) {
       // Not in clue cells, return first cell
       const firstKey = clueCells[0];
       const [firstR, firstC] = firstKey.split('-').map(Number);
       return { r: firstR, c: firstC };
     }
-    
+
     // Start searching from the next cell after current
     let searchIndex = currentIndex + 1;
-    
+
     // First, try to find an empty cell after the current position
     while (searchIndex < clueCells.length) {
       const nextKey = clueCells[searchIndex];
       const [nextR, nextC] = nextKey.split('-').map(Number);
-      
+
       // Check if this cell is empty
       if (!grid[nextR]?.[nextC] || grid[nextR][nextC] === "") {
         return { r: nextR, c: nextC };
       }
       searchIndex++;
     }
-    
+
     // All cells after current are filled, wrap around to find first empty cell
     // Search from the beginning up to current position
     for (let i = 0; i <= currentIndex; i++) {
       const key = clueCells[i];
       const [r, c] = key.split('-').map(Number);
-      
+
       // Check if this cell is empty
       if (!grid[r]?.[c] || grid[r][c] === "") {
         return { r, c };
       }
     }
-    
-    // All cells are filled, wrap to first cell
-    const firstCellKey = clueCells[0];
-    const [firstR, firstC] = firstCellKey.split('-').map(Number);
-    return { r: firstR, c: firstC };
+
+    // All cells are filled, return null to keep focus on current cell
+    return null;
+  }, []);
+
+  /**
+   * Find the previous cell within a clue's cells.
+   * Returns the previous cell in the clue's sequence.
+   */
+  const findPrevCellInClue = useCallback((
+    currentR: number,
+    currentC: number,
+    clueCells: string[]
+  ): { r: number; c: number } | null => {
+    const currentKey = `${currentR}-${currentC}`;
+    const currentIndex = clueCells.indexOf(currentKey);
+
+    if (currentIndex <= 0) {
+      return null;
+    }
+
+    const prevCellKey = clueCells[currentIndex - 1];
+    const [prevR, prevC] = prevCellKey.split('-').map(Number);
+    return { r: prevR, c: prevC };
   }, []);
 
   const handleChange = (r: number, c: number, val: string) => {
@@ -195,7 +214,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     if (upperVal.length > 0 && activeClue && activeClueCells.length > 0) {
       // Pass newGrid to findNextCellInClue so it checks the updated grid state
       const nextCell = findNextCellInClue(r, c, activeClueCells, newGrid);
-      
+
       if (nextCell) {
         const nextKey = `${nextCell.r}-${nextCell.c}`;
         const nextInput = inputRefs.current.get(nextKey);
@@ -206,6 +225,88 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       // If nextCell is null, we're at the end of the active clue - focus stays on current cell
     }
   };
+
+  /**
+   * Handle key down events for arrow key navigation and backspace.
+   */
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) => {
+    // Handle arrow key navigation
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      e.preventDefault();
+
+      let targetR = r;
+      let targetC = c;
+
+      if (e.key === "ArrowLeft") targetC = c - 1;
+      else if (e.key === "ArrowRight") targetC = c + 1;
+      else if (e.key === "ArrowUp") targetR = r - 1;
+      else if (e.key === "ArrowDown") targetR = r + 1;
+
+      // Find the next valid cell in the direction
+      while (
+        targetR >= 0 &&
+        targetR < data.grid.length &&
+        targetC >= 0 &&
+        targetC < (data.grid[targetR]?.length ?? 0)
+      ) {
+        // Check if this is a valid cell (not a dark/empty cell in the grid)
+        if (data.grid[targetR]?.[targetC]?.trim() !== "") {
+          const targetKey = `${targetR}-${targetC}`;
+          const targetInput = inputRefs.current.get(targetKey);
+          if (targetInput) {
+            // If there's an active clue and the target is outside its cells, deselect the clue
+            if (activeClue && activeClueCells.length > 0 && !activeClueCells.includes(targetKey)) {
+              setActiveClue(null);
+              setActiveClueCells([]);
+              setHighlightedCells([]);
+              setSelectedClueIndex(null);
+            }
+            targetInput.focus();
+            // Select the existing text for easy overwriting
+            targetInput.select();
+          }
+          return;
+        }
+        // Move to next cell in same direction
+        if (e.key === "ArrowLeft") targetC--;
+        else if (e.key === "ArrowRight") targetC++;
+        else if (e.key === "ArrowUp") targetR--;
+        else if (e.key === "ArrowDown") targetR++;
+      }
+      return;
+    }
+
+    if (e.key === "Backspace") {
+      const currentVal = userGrid[r]?.[c] || "";
+
+      if (currentVal === "" && activeClue && activeClueCells.length > 0) {
+        const prevCell = findPrevCellInClue(r, c, activeClueCells);
+
+        if (prevCell) {
+          const newGrid = [...userGrid];
+          newGrid[prevCell.r] = [...newGrid[prevCell.r]];
+          newGrid[prevCell.r][prevCell.c] = "";
+
+          if (onChange) {
+            onChange(newGrid);
+          } else {
+            setInternalGrid(newGrid);
+          }
+
+          if (onProgress) {
+            onProgress(newGrid);
+          }
+
+          const prevKey = `${prevCell.r}-${prevCell.c}`;
+          const prevInput = inputRefs.current.get(prevKey);
+          if (prevInput) {
+            e.preventDefault();
+            prevInput.focus();
+          }
+        }
+      }
+    }
+  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress, data.grid]);
 
   const handleSubmit = () => {
     if (!readOnly && onSubmit) {
@@ -218,20 +319,22 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
    * Uses ref to track if a clue switch is in progress to avoid clearing during transitions.
    */
   const clueSwitchInProgress = useRef(false);
-  
+
   const handleCellFocus = useCallback((r: number, c: number) => {
     // Skip clearing if we're in the middle of switching clues
     if (clueSwitchInProgress.current) {
       return;
     }
-    
+
     const cellKey = `${r}-${c}`;
-    
+
     // If there's an active clue and the focused cell is not in it, clear the active clue
     if (activeClue && activeClueCells.length > 0) {
       if (!activeClueCells.includes(cellKey)) {
         setActiveClue(null);
         setActiveClueCells([]);
+        setHighlightedCells([]);
+        setSelectedClueIndex(null);
       }
     }
   }, [activeClue, activeClueCells]);
@@ -239,7 +342,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   // Handle click on a clue to highlight corresponding cells and set focus
   const handleClueClick = (clue: CrosswordClue, index: number) => {
     const cells = getCellsForClue(clue);
-    
+
     // Toggle: if same clue clicked again, clear highlight and active clue
     if (selectedClueIndex === index) {
       setHighlightedCells([]);
@@ -249,14 +352,14 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
     } else {
       // Mark that we're switching clues to prevent handleCellFocus from clearing
       clueSwitchInProgress.current = true;
-      
+
       setHighlightedCells(cells);
       setSelectedClueIndex(index);
-      
+
       // Set the active clue for direction-aware navigation
       setActiveClue(clue);
       setActiveClueCells(cells);
-      
+
       // Find the first empty cell in the clue to focus on
       // If all cells are filled, use the first cell
       let focusCellKey = cells[0];
@@ -267,12 +370,12 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
           break;
         }
       }
-      
+
       const firstInput = inputRefs.current.get(focusCellKey);
       if (firstInput) {
         firstInput.focus();
       }
-      
+
       // Reset the flag after a short delay to allow focus event to complete
       setTimeout(() => {
         clueSwitchInProgress.current = false;
@@ -300,9 +403,8 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                 return (
                   <div
                     key={`${r}-${c}`}
-                    className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${
-                      isHighlighted ? "!bg-blue-200" : "bg-white"
-                    }`}
+                    className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${isHighlighted ? "!bg-blue-200" : "bg-white"
+                      }`}
                   >
                     {isEmpty ? (
                       <div className="w-full h-full bg-gray-800 rounded-sm" />
@@ -315,9 +417,8 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                         )}
                         <div
                           data-testid={`crossword-cell-${r}-${c}`}
-                          className={`w-full h-full flex items-center justify-center text-xl font-bold uppercase rounded-sm ${
-                            isHighlighted ? "!bg-blue-200" : "bg-transparent"
-                          }`}
+                          className={`w-full h-full flex items-center justify-center text-xl font-bold uppercase rounded-sm ${isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                            }`}
                         >
                           {userGrid[r]?.[c] || ""}
                         </div>
@@ -334,11 +435,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
               <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.across")} <ArrowBigRight className="fill-white w-5 h-5" /></h3>
               <ul className="space-y-1">
                 {data.clues?.across?.map((clue, i) => (
-                  <li 
+                  <li
                     key={i}
-                    className={`px-2 py-1 rounded ${
-                      selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
-                    }`}
+                    className={`px-2 py-1 rounded ${selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
+                      }`}
                   >
                     <span className="font-bold">{clue.number}.</span> {clue.clue}
                   </li>
@@ -349,11 +449,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
               <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.down")} <ArrowBigDown className="fill-white w-5 h-5" /></h3>
               <ul className="space-y-1">
                 {data.clues?.down?.map((clue, i) => (
-                  <li 
+                  <li
                     key={i}
-                    className={`px-2 py-1 rounded ${
-                      selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
-                    }`}
+                    className={`px-2 py-1 rounded ${selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
+                      }`}
                   >
                     <span className="font-bold">{clue.number}.</span> {clue.clue}
                   </li>
@@ -395,9 +494,16 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
               return (
                 <div
                   key={`${r}-${c}`}
-                  className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${
-                    isHighlighted ? "!bg-blue-200" : "bg-white"
-                  }`}
+                  className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${isHighlighted ? "!bg-blue-200" : "bg-white"
+                    }`}
+                  onClick={() => {
+                    if (activeClue && !activeClueCells.includes(cellKey)) {
+                      setActiveClue(null);
+                      setActiveClueCells([]);
+                      setHighlightedCells([]);
+                      setSelectedClueIndex(null);
+                    }
+                  }}
                 >
                   {isEmpty ? (
                     <div className="w-full h-full bg-gray-800 rounded-sm" />
@@ -411,9 +517,8 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                       {readOnly ? (
                         <span
                           data-testid={`${testIdPrefix}-crossword-cell-${r}-${c}`}
-                          className={`w-full h-full flex items-center justify-center text-center text-xl font-bold uppercase rounded-sm ${
-                            isHighlighted ? "!bg-blue-200" : "bg-transparent"
-                          }`}
+                          className={`w-full h-full flex items-center justify-center text-center text-xl font-bold uppercase rounded-sm ${isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                            }`}
                         >
                           {userGrid[r]?.[c] || ""}
                         </span>
@@ -422,7 +527,9 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                           type="text"
                           value={userGrid[r][c]}
                           onChange={(e) => handleChange(r, c, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, r, c)}
                           onFocus={() => handleCellFocus(r, c)}
+                          onClick={() => handleCellFocus(r, c)}
                           data-testid={`crossword-cell-${r}-${c}`}
                           ref={(el) => {
                             if (el) {
@@ -431,9 +538,8 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                               inputRefs.current.delete(`${r}-${c}`);
                             }
                           }}
-                          className={`w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm ${
-                            isHighlighted ? "!bg-blue-200" : "bg-transparent"
-                          }`}
+                          className={`w-full h-full text-center text-xl font-bold uppercase outline-none focus:bg-yellow-100 rounded-sm ${isHighlighted ? "!bg-blue-200" : "bg-transparent"
+                            }`}
                         />
                       )}
                     </>
@@ -449,13 +555,12 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.across")} <ArrowBigRight className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.across?.map((clue, i) => (
-                <li 
+                <li
                   key={i}
                   onClick={() => handleClueClick(clue, i)}
                   data-testid={`${testIdPrefix}-crossword-across-${i}`}
-                  className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${
-                    selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
-                  }`}
+                  className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${selectedClueIndex === i ? "bg-blue-200 font-semibold" : ""
+                    }`}
                 >
                   <span className="font-bold">{clue.number}.</span> {clue.clue}
                 </li>
@@ -466,13 +571,12 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
             <h3 className="font-bold text-lg bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.down")} <ArrowBigDown className="fill-white w-5 h-5" /></h3>
             <ul className="space-y-1">
               {data.clues?.down?.map((clue, i) => (
-                <li 
+                <li
                   key={i}
                   onClick={() => handleClueClick(clue, i + (data.clues?.across?.length || 0))}
                   data-testid={`${testIdPrefix}-crossword-down-${i}`}
-                  className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${
-                    selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
-                  }`}
+                  className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-100 transition ${selectedClueIndex === i + (data.clues?.across?.length || 0) ? "bg-blue-200 font-semibold" : ""
+                    }`}
                 >
                   <span className="font-bold">{clue.number}.</span> {clue.clue}
                 </li>

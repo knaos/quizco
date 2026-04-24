@@ -1005,5 +1005,318 @@ describe("GameManager Integration", () => {
       expect(options1).toEqual(options2);
       expect(correctIdx1).toEqual(correctIdx2);
     });
+
+    it("awards +1 bonus for streak 6-8 on MULTIPLE_CHOICE with 2 correct answers in STREAK round", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test", host_pin: "0002" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 3",
+          orderIndex: 1,
+          type: "STREAK",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Which is correct?",
+          type: "MULTIPLE_CHOICE",
+          points: 1,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [0] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 6;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      
+      // Get the shuffled correct index from the session question content
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const correctIndex = mcContent.correctIndices[0];
+
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, [correctIndex], true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(2);
+    });
+
+    it("awards +1 bonus when reaching streak 6 in STREAK round", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test", host_pin: "0002" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 3",
+          orderIndex: 1,
+          type: "STREAK",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Which is correct?",
+          type: "MULTIPLE_CHOICE",
+          points: 1,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [0] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 6;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const correctIndex = mcContent.correctIndices[0];
+
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, [correctIndex], true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(2);
+    });
+
+    it("awards +1 bonus when reaching streak 9 in STREAK round", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test 2", host_pin: "0003" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 3",
+          orderIndex: 1,
+          type: "STREAK",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Which is correct?",
+          type: "MULTIPLE_CHOICE",
+          points: 1,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [0] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team 2", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 9;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const correctIndex = mcContent.correctIndices[0];
+
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, [correctIndex], true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(2);
+    });
+
+    it("awards +1 bonus when reaching streak 12 in STREAK round", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test 3", host_pin: "0004" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 3",
+          orderIndex: 1,
+          type: "STREAK",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Which is correct?",
+          type: "MULTIPLE_CHOICE",
+          points: 1,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [0] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team 3", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 12;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const correctIndex = mcContent.correctIndices[0];
+
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, [correctIndex], true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(2);
+    });
+
+    it("does NOT award bonus for non-MULTIPLE_CHOICE questions in STREAK round", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test 4", host_pin: "0005" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 3",
+          orderIndex: 1,
+          type: "STREAK",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "True or false?",
+          type: "TRUE_FALSE",
+          points: 1,
+          timeLimitSeconds: 30,
+          content: { isTrue: true },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team 4", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 12;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, true, true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(1);
+    });
+
+    it("does NOT award bonus in STANDARD round even with streak", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test 5", host_pin: "0006" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 1",
+          orderIndex: 1,
+          type: "STANDARD",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Which is correct?",
+          type: "MULTIPLE_CHOICE",
+          points: 1,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B"], correctIndices: [0] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team 5", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 12;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const correctIndex = mcContent.correctIndices[0];
+
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, [correctIndex], true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(1);
+    });
+
+    it("does NOT award bonus for MULTIPLE_CHOICE with more than 2 option", async () => {
+      const comp = await prisma.competition.create({
+        data: { title: "Streak Test 6", host_pin: "0007" },
+      });
+
+      const round = await prisma.round.create({
+        data: {
+          competitionId: comp.id,
+          title: "Round 3",
+          orderIndex: 1,
+          type: "STREAK",
+        },
+      });
+
+      const question = await prisma.question.create({
+        data: {
+          roundId: round.id,
+          questionText: "Select 2 correct answers",
+          type: "MULTIPLE_CHOICE",
+          points: 2,
+          timeLimitSeconds: 30,
+          content: { options: ["A", "B", "C"], correctIndices: [0, 2] },
+          grading: "AUTO",
+        },
+      });
+
+      const team = await gameManager.addTeam(comp.id, "Streak Team 6", "#FF0000");
+      const state = gameManager.getState(comp.id);
+      const inMemoryTeam = state.teams.find((t) => t.id === team.id);
+      inMemoryTeam!.streak = 12;
+
+      await gameManager.startQuestion(comp.id, question.id);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+
+      await gameManager.startTimer(comp.id, 30, () => {});
+      await gameManager.submitAnswer(comp.id, team.id, question.id, mcContent.correctIndices, true);
+      vi.advanceTimersByTime(31000);
+      await gameManager.revealAnswer(comp.id);
+
+      const finalState = gameManager.getState(comp.id);
+      const gradedTeam = finalState.teams.find((t) => t.id === team.id);
+      expect(gradedTeam?.score).toBe(2);
+    });
   });
 });

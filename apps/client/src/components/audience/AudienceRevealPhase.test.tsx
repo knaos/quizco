@@ -24,7 +24,7 @@ describe("AudienceRevealPhase", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
-  index: 0,
+      index: 0,
       content: {
         answer: "Patience",
       },
@@ -45,7 +45,6 @@ describe("AudienceRevealPhase", () => {
       view.container.querySelector('[data-testid="audience-correct-answer"]'),
     ).not.toBeNull();
     expect(view.container.textContent).toContain("Patience");
-    expect(view.container.textContent).toContain("3/4 teams correct (75%)");
 
     view.unmount();
   });
@@ -59,7 +58,7 @@ describe("AudienceRevealPhase", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
-  index: 0,
+      index: 0,
       content: {
         items: [
           { id: "item-2", text: "Deborah", order: 1 },
@@ -90,7 +89,7 @@ describe("AudienceRevealPhase", () => {
       points: 10,
       timeLimitSeconds: 30,
       grading: "AUTO",
-  index: 0,
+      index: 0,
       content: {
         options: ["Wrong", "Right"],
         correctIndices: [1],

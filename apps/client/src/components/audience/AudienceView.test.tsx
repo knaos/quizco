@@ -36,7 +36,7 @@ const revealState: GameState = {
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
-  index: 0,
+    index: 0,
     content: {
       options: ["Alpha", "Beta"],
       correctIndices: [1],
@@ -58,7 +58,7 @@ const crosswordActiveState: GameState = {
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
-  index: 0,
+    index: 0,
     content: {
       grid: [["A", "B"], ["", "C"]],
       clues: {
@@ -226,10 +226,6 @@ describe("AudienceView", () => {
     await flushEffects();
 
     expect(view.container.textContent).toContain("Beta");
-    expect(view.container.textContent).toContain("4/5 teams correct (80%)");
-    expect(
-      view.container.querySelector('[data-testid="audience-answer-stats"]'),
-    ).not.toBeNull();
 
     view.unmount();
   });

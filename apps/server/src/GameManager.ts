@@ -346,28 +346,49 @@ export class GameManager {
       );
 
       if (isCorrect !== null) {
-        // Streak logic
+        // Update streak and apply bonus only for questions with points > 0
+        const questions =
+          await this.repository.getQuestionsForCompetition(competitionId);
+        const questionData = questions.find(
+          (q) => q.id === session.currentQuestion!.id,
+        );
+        const round = questionData?.round;
+        const questionPoints = questionData?.points || 0;
+
         if (isCorrect) {
-          team.streak = (team.streak || 0) + 1;
+          // Only count streak for questions with points > 0
+          if (questionPoints > 0) {
+            team.streak = (team.streak || 0) + 1;
+          }
 
-          // Apply bonus if in STREAK round
-          const questions =
-            await this.repository.getQuestionsForCompetition(competitionId);
-          const questionData = questions.find(
-            (q) => q.id === session.currentQuestion!.id,
-          );
-          const round = questionData?.round;
+          // Apply streak bonus for Round 3 (STREAK round) with multiple choice 2-option questions
+          if (
+            round?.type === "STREAK" &&
+            questionData?.type === "MULTIPLE_CHOICE" &&
+            questionData?.content?.options?.length === 2
+          ) {
+            const lastMilestone = team.lastAwardedBonusTier || 0;
+            let newMilestone = 0;
 
-          if (round?.type === "STREAK") {
-            let bonus = 0;
-            if (team.streak >= 10) bonus = 3;
-            else if (team.streak >= 7) bonus = 2;
-            else if (team.streak >= 5) bonus = 1;
+            // Award +1 bonus when reaching milestones: 6, 9, or 12
+            if (team.streak >= 12 && lastMilestone < 12) {
+              newMilestone = 12;
+            } else if (team.streak >= 9 && lastMilestone < 9) {
+              newMilestone = 9;
+            } else if (team.streak >= 6 && lastMilestone < 6) {
+              newMilestone = 6;
+            }
 
-            scoreAwarded += bonus;
+            // Award +1 bonus for each new milestone reached
+            if (newMilestone > 0 && newMilestone > lastMilestone) {
+              team.lastAwardedBonusTier = newMilestone;
+              scoreAwarded += 1;
+            }
           }
         } else {
           team.streak = 0;
+          // Clear streak bonus tracking when streak breaks
+          team.lastAwardedBonusTier = 0;
         }
 
         // Update streak in DB
