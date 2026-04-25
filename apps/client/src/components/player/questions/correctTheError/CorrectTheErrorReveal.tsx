@@ -137,16 +137,7 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
             })}
           </div>
         </div>
-      )}
-
-      {/* No answer submitted message */}
-      {!lastAnswer && (
-        <div className="text-center p-6 bg-gray-50 rounded-xl border-2 border-gray-200">
-          <p className="text-xl font-medium text-gray-500">
-            {t("player.no_answer_submitted")}
-          </p>
-        </div>
-      )}
+)}
     </div>
   );
 };

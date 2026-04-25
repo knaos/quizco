@@ -41,6 +41,14 @@ function getRevealBadge(
   }
 
   if (currentQuestion.type === "CORRECT_THE_ERROR") {
+    if (!currentTeam?.lastAnswer) {
+      return (
+        <Badge variant="red">
+          <Info className="mr-2 h-4 w-4" />
+          {t("player.no_answer_submitted")}
+        </Badge>
+      );
+    }
     const badgeVariant =
       correctTheErrorPartialScore === 2
         ? "green"
@@ -160,7 +168,7 @@ function getRevealBadge(
         )}
         {correctCount}/{placedCount}
         {isIncomplete && (
-          <span className="ml-1.5 text-xs opacity-80">
+          <span className="ml-1.5">
             ({totalItems - placedCount} {t("player.chronology_not_placed")})
           </span>
         )}
