@@ -301,40 +301,33 @@ export class GameManager {
       return;
 
     this.timerService.stop(competitionId);
+
+    if (session.currentQuestion) {
+      await this.gradeAllAnswers(competitionId);
+    }
+
     session.phase = "REVEAL_ANSWER";
 
-    // Refresh team scores when revealing answer - this emits SCORE_UPDATE to clients
     await this.refreshTeamScores(competitionId);
 
     await this.saveState();
   }
 
-  private async endQuestion(competitionId: string) {
+  private async gradeAllAnswers(competitionId: string) {
     const session = this.getOrCreateSession(competitionId);
-    this.timerService.stop(competitionId);
-    session.phase = "GRADING";
-    session.timerPaused = false;
-
-    if (!session.currentQuestion) {
-      await this.saveState();
-      return;
-    }
+    if (!session.currentQuestion) return;
 
     this.logger.info(`Grading all teams for ${competitionId}...`);
 
     for (const team of session.teams) {
-      // Skip if no answer was ever sent for this question
       if (team.lastAnswer === null) {
         this.logger.debug(`Skipping grading for team ${team.name} (no answer)`);
         continue;
       }
 
       const usedJokers = session.metadata?.usedJokers?.includes(team.id) || false;
-
-      // Grade the answer - use team.lastAnswer directly since correctIndices are already displayed indices
       const answerToGrade: AnswerContent = team.lastAnswer;
 
-      // Grade the answer
       const gradingResult = this.gradingService.gradeAnswer(
         session.currentQuestion,
         answerToGrade,
@@ -349,22 +342,16 @@ export class GameManager {
       );
 
       if (isCorrect !== null) {
-        // Update streak and apply bonus only for questions with points > 0
-        const questions =
-          await this.repository.getQuestionsForCompetition(competitionId);
-        const questionData = questions.find(
-          (q) => q.id === session.currentQuestion!.id,
-        );
+        const questions = await this.repository.getQuestionsForCompetition(competitionId);
+        const questionData = questions.find((q) => q.id === session.currentQuestion!.id);
         const round = questionData?.round;
         const questionPoints = questionData?.points || 0;
 
         if (isCorrect) {
-          // Only count streak for questions with points > 0
           if (questionPoints > 0) {
             team.streak = (team.streak || 0) + 1;
           }
 
-          // Apply streak bonus for Round 3 (STREAK round) with multiple choice 2-option questions
           if (
             round?.type === "STREAK" &&
             questionData?.type === "MULTIPLE_CHOICE" &&
@@ -373,7 +360,6 @@ export class GameManager {
             const lastMilestone = team.lastAwardedBonusTier || 0;
             let newMilestone = 0;
 
-            // Award +1 bonus when reaching milestones: 6, 9, or 12
             if (team.streak >= 12 && lastMilestone < 12) {
               newMilestone = 12;
             } else if (team.streak >= 9 && lastMilestone < 9) {
@@ -382,7 +368,6 @@ export class GameManager {
               newMilestone = 6;
             }
 
-            // Award +1 bonus for each new milestone reached
             if (newMilestone > 0 && newMilestone > lastMilestone) {
               team.lastAwardedBonusTier = newMilestone;
               scoreAwarded += 1;
@@ -390,14 +375,11 @@ export class GameManager {
           }
         } else {
           team.streak = 0;
-          // Clear streak bonus tracking when streak breaks
           team.lastAwardedBonusTier = 0;
         }
 
-        // Update streak in DB
         await this.repository.updateTeamStreak(team.id, team.streak);
 
-        // Update answer in DB with final grading
         await this.repository.saveAnswer(
           team.id,
           session.currentQuestion.id,
@@ -414,8 +396,14 @@ export class GameManager {
         );
       }
     }
+  }
 
-    await this.refreshTeamScores(competitionId);
+  private async endQuestion(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    this.timerService.stop(competitionId);
+    session.phase = "GRADING";
+    session.timerPaused = false;
+
     await this.saveState();
   }
 
@@ -457,6 +445,20 @@ export class GameManager {
     team.lastAnswer = answer;
     if (isFinal) {
       team.isExplicitlySubmitted = true;
+    }
+
+    // For AUTO-graded questions, set lastAnswerCorrect immediately without updating score
+    // Scores are only updated during REVEAL_ANSWER phase
+    if (session.currentQuestion?.grading === "AUTO") {
+      const usedJokers = session.metadata?.usedJokers?.includes(teamId) || false;
+      const gradingResult = this.gradingService.gradeAnswer(
+        session.currentQuestion,
+        answer,
+        { usedJokers },
+      );
+      if (gradingResult) {
+        team.lastAnswerCorrect = gradingResult.isCorrect;
+      }
     }
 
     // Store in Repository as partial submission (isCorrect: null, scoreAwarded: 0)
