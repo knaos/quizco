@@ -203,11 +203,14 @@
     "game": {
       "true": "Вярно",
       "false": "Грешно",
-      "request_joker": "Поискай Жокер"
+      "request_joker": "Поискай Жокер",
+      "explanation": "Обяснение"
     },
     "admin": {
       "title": "Quizco Админ",
       "correct_answer": "Правилен Отговор",
+      "explanation": "Обяснение",
+      "explanation_placeholder": "Незадължително обяснение за фазата на разкриване...",
       "true_false_hint": "Изберете дали твърдението по-горе е Истина или Лъжа.",
       "competitions": "Състезания",
       "new_quiz": "Нова Викторина",

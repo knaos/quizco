@@ -21,7 +21,7 @@ export async function seedRound3(competitionId: string): Promise<void> {
         type: "TRUE_FALSE" as QuestionType,
         points: 0,
         timeLimitSeconds: 10,
-        content: { isTrue: true },
+        content: { isTrue: true, explanation: "Според Библията, Исус ходеше по водата в езерото Галилейско (Матей 14:25-33)." },
       },
       {
         roundId: round.id,

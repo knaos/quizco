@@ -203,11 +203,14 @@
     "game": {
       "true": "True",
       "false": "False",
-      "request_joker": "Request Joker"
+      "request_joker": "Request Joker",
+      "explanation": "Explanation"
     },
     "admin": {
       "title": "Quizco Admin",
       "correct_answer": "Correct Answer",
+      "explanation": "Explanation",
+      "explanation_placeholder": "Optional explanation to show during reveal phase...",
       "true_false_hint": "Select whether the statement above is True or False.",
       "competitions": "Competitions",
       "new_quiz": "New Quiz",

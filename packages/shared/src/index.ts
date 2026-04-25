@@ -118,6 +118,7 @@ export interface ChronologyContent {
 
 export interface TrueFalseContent {
   isTrue: boolean;
+  explanation?: string;
 }
 
 export interface TrueFalseRevealProps {
