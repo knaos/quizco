@@ -140,12 +140,21 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("builds grading order from chronology answer payload", () => {
+  it("builds grading order from chronology answer payload (placed items only)", () => {
     const order = buildChronologyOrderForGrading({
       poolIds: ["d", "e"],
       slotIds: ["b", null, "a", "c"],
     });
 
-    expect(order).toEqual(["b", "a", "c", "d", "e"]);
+    expect(order).toEqual(["b", "a", "c"]);
+  });
+
+  it("returns only placed items when some slots are empty", () => {
+    const order = buildChronologyOrderForGrading({
+      poolIds: ["c", "d"],
+      slotIds: ["a", null, "b"],
+    });
+
+    expect(order).toEqual(["a", "b"]);
   });
 });

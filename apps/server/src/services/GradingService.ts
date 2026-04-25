@@ -343,40 +343,26 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    // Reconstruction of correct order based on 'order' property
     const items = [...content.items].sort((a, b) => a.order - b.order);
     const correctOrderIds = items.map((i) => i.id);
-    const knownIds = new Set(correctOrderIds);
+    const totalItems = correctOrderIds.length;
 
-    const uniqueSlotIds = answer.slotIds.filter(
+    const placedIds = answer.slotIds.filter(
       (id, index): id is string =>
         typeof id === "string" &&
-        knownIds.has(id) &&
+        correctOrderIds.includes(id) &&
         answer.slotIds.indexOf(id) === index,
     );
-    const uniquePoolIds = answer.poolIds.filter(
-      (id, index) =>
-        knownIds.has(id) &&
-        answer.poolIds.indexOf(id) === index &&
-        !uniqueSlotIds.includes(id),
-    );
-    const submittedOrderIds = [
-      ...uniqueSlotIds,
-      ...uniquePoolIds,
-    ];
+    const placedCount = placedIds.length;
 
     let correctCount = 0;
-    const n = correctOrderIds.length;
-
-    // Compare submitted IDs against correct IDs at each index
-    for (let i = 0; i < n; i++) {
-      if (submittedOrderIds[i] === correctOrderIds[i]) {
+    for (let i = 0; i < placedCount; i++) {
+      if (placedIds[i] === correctOrderIds[i]) {
         correctCount++;
       }
     }
 
-    const isPerfect = correctCount === n;
-    // Score: +1 per correct index, +3 bonus for perfect match
+    const isPerfect = correctCount === placedCount && placedCount === totalItems;
     const score = correctCount + (isPerfect ? 3 : 0);
 
     return { isCorrect: isPerfect, score };

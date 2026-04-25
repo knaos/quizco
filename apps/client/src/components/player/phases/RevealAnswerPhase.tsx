@@ -129,12 +129,14 @@ function getRevealBadge(
 
   if (currentQuestion.type === "CHRONOLOGY") {
     const content = currentQuestion.content as ChronologyContent;
-    const totalItems = content.items.length;
-    const score = calculateChronologyScore(
+    const result = calculateChronologyScore(
       content,
       currentTeam?.lastAnswer as ChronologyAnswer | null,
     );
-    if (totalItems === 0) {
+    const { correctCount, placedCount, totalItems } = result;
+    const isIncomplete = placedCount < totalItems;
+
+    if (placedCount === 0) {
       return gradingStatus === true ? (
         <Badge variant="green">
           <CheckCircle className="mr-2 h-4 w-4" />
@@ -147,14 +149,21 @@ function getRevealBadge(
         </Badge>
       );
     }
+
+    const badgeVariant = correctCount === totalItems ? "green" : correctCount > 0 ? "yellow" : "red";
     return (
-      <Badge variant={score === totalItems ? "green" : score > 0 ? "yellow" : "red"}>
-        {score > 0 ? (
+      <Badge variant={badgeVariant}>
+        {correctCount > 0 ? (
           <CheckCircle className="mr-2 h-4 w-4" />
         ) : (
           <XCircle className="mr-2 h-4 w-4" />
         )}
-        {score}/{totalItems}
+        {correctCount}/{placedCount}
+        {isIncomplete && (
+          <span className="ml-1.5 text-xs opacity-80">
+            ({totalItems - placedCount} {t("player.chronology_not_placed")})
+          </span>
+        )}
       </Badge>
     );
   }

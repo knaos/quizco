@@ -9,32 +9,39 @@ import { buildChronologyOrderForGrading } from "./chronologyBoard";
  * @param answer - The team's submitted answer
  * @returns The number of correctly positioned items
  */
+export interface ChronologyScoreResult {
+  correctCount: number;
+  placedCount: number;
+  totalItems: number;
+  score: number;
+}
+
 export function calculateChronologyScore(
   content: ChronologyContent,
   answer: ChronologyAnswer | null,
-): number {
+): ChronologyScoreResult {
   if (!answer || !Array.isArray(answer.slotIds) || !Array.isArray(answer.poolIds)) {
-    return 0;
+    return { correctCount: 0, placedCount: 0, totalItems: content.items.length, score: 0 };
   }
 
-  // Get the correct order based on the 'order' property of items
   const items = [...content.items].sort((a, b) => a.order - b.order);
   const correctOrderIds = items.map((item) => item.id);
-
-  // Build the submitted order using the same logic as the grading
-  const submittedOrderIds = buildChronologyOrderForGrading(answer);
-
-  // Count how many items are in the correct position
-  let correctCount = 0;
   const totalItems = correctOrderIds.length;
 
-  for (let i = 0; i < totalItems; i++) {
+  const submittedOrderIds = buildChronologyOrderForGrading(answer);
+  const placedCount = submittedOrderIds.length;
+
+  let correctCount = 0;
+  for (let i = 0; i < placedCount; i++) {
     if (submittedOrderIds[i] === correctOrderIds[i]) {
       correctCount++;
     }
   }
 
-  return correctCount;
+  const isPerfect = correctCount === placedCount && placedCount === totalItems;
+  const score = correctCount + (isPerfect ? 3 : 0);
+
+  return { correctCount, placedCount, totalItems, score };
 }
 
 /**

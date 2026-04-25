@@ -156,9 +156,7 @@ export const buildChronologyAnswer = (
 export const buildChronologyOrderForGrading = (
   answer: ChronologyAnswer,
 ): string[] => {
-  const slottedIds = answer.slotIds.filter(
+  return answer.slotIds.filter(
     (slotId): slotId is string => typeof slotId === "string",
   );
-
-  return [...slottedIds, ...answer.poolIds];
 };
