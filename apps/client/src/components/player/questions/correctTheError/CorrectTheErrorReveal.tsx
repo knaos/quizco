@@ -6,6 +6,7 @@ import type { CorrectTheErrorAnswer, CorrectTheErrorContent } from '@quizco/shar
 interface CorrectTheErrorRevealProps {
   content: CorrectTheErrorContent;
   lastAnswer: CorrectTheErrorAnswer | null;
+  showSelectionLabels?: boolean;
 }
 
 /**
@@ -18,6 +19,7 @@ interface CorrectTheErrorRevealProps {
 export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
   content,
   lastAnswer,
+  showSelectionLabels = true,
 }) => {
   const { t } = useTranslation();
 
@@ -32,13 +34,13 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
 
   // Parse the sentence into words
   const sentenceWords = content.text.trim().split(/\s+/);
-  
+
   // Get word indices that have alternatives
   const wordsWithAlternatives = new Set(content.words.map(w => w.wordIndex));
-  
+
   // Get the correct word (the one with the error)
   const correctWord = content.words.find(w => w.wordIndex === content.errorWordIndex);
-  
+
   // Get alternatives for the correct word
   const correctWordAlternatives = correctWord?.alternatives || [];
 
@@ -92,6 +94,11 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
               {isSelectedWord && !isCorrectWord && (
                 <XCircle className="absolute -top-3 -right-3 text-red-600 w-6 h-6 bg-white rounded-full shadow" />
               )}
+              {showSelectionLabels && isSelectedWord && !isCorrectWord && (
+                <span className="absolute -top-3 -left-3 text-xs font-black uppercase px-2 py-1 rounded bg-red-200 text-red-800">
+                  {t('player.your_choice')}
+                </span>
+              )}
             </div>
           );
         })}
@@ -124,11 +131,21 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
               return (
                 <div key={aIdx} className={altClass}>
                   <span>{alt}</span>
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-2">
+                    {showSelectionLabels && isSelectedAlt && !isCorrectAlt && (
+                      <span className="text-xs font-black uppercase px-2 py-1 rounded bg-red-200 text-red-800">
+                        {t('player.your_choice')}
+                      </span>
+                    )}
+                    {isCorrectAlt && (
+                      <span className="text-xs font-black uppercase px-2 py-1 rounded bg-green-200 text-green-800">
+                        {t('player.correct_answer')}
+                      </span>
+                    )}
                     {isCorrectAlt && (
                       <CheckCircle className="text-white w-6 h-6" />
                     )}
-                    {isSelectedAlt && !isCorrectAlt && (
+                    {showSelectionLabels && isSelectedAlt && !isCorrectAlt && (
                       <XCircle className="text-white w-6 h-6" />
                     )}
                   </div>
@@ -137,7 +154,7 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
             })}
           </div>
         </div>
-)}
+      )}
     </div>
   );
 };
