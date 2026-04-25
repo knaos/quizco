@@ -9,6 +9,7 @@ import {
   FillInTheBlanksContent,
   MatchingContent,
   SessionMetadata,
+  Milestone,
 } from "@quizco/shared";
 import { IGameRepository } from "./repositories/IGameRepository";
 import { GradingService } from "./services/GradingService";
@@ -59,6 +60,8 @@ export class GameManager {
         revealStep: 0,
         timerPaused: false,
         metadata: {},
+        milestones: [],
+        revealedMilestones: [],
       });
     }
     const session = this.sessions.get(competitionId)!;
@@ -608,7 +611,7 @@ export class GameManager {
     await this.saveState();
   }
 
-  public async next(competitionId: string, onTick: (state: GameState) => void) {
+  public async next(competitionId: string, onTick: (state: GameState) => void): Promise<number[]> {
     const session = this.getOrCreateSession(competitionId);
     this.logger.info(
       `Next called for ${competitionId}. Current phase: ${session.phase}`,
@@ -617,6 +620,7 @@ export class GameManager {
       await this.repository.getQuestionsForCompetition(competitionId);
 
     const oldPhase = session.phase;
+    let newlyRevealed: number[] = [];
     switch (session.phase) {
       case "WAITING":
         session.phase = "WELCOME";
@@ -678,6 +682,7 @@ export class GameManager {
         break;
       }
       case "ROUND_END": {
+        newlyRevealed = this.checkAndRevealMilestones(competitionId);
         const currentIndex = questions.findIndex(
           (q) => q.id === session.currentQuestion?.id,
         );
@@ -731,6 +736,7 @@ export class GameManager {
       );
     }
     await this.saveState();
+    return newlyRevealed;
   }
 
   public async getAllQuestions() {
@@ -739,6 +745,39 @@ export class GameManager {
 
   public async getQuestionsForCompetition(competitionId: string) {
     return this.repository.getQuestionsForCompetition(competitionId);
+  }
+
+  public async loadMilestones(competitionId: string) {
+    const session = this.getOrCreateSession(competitionId);
+    const milestones = await this.repository.getCompetitionMilestones(competitionId);
+    session.milestones = milestones;
+    await this.saveState();
+  }
+
+  public getTotalPoints(competitionId: string): number {
+    const session = this.sessions.get(competitionId);
+    if (!session) return 0;
+    return session.teams.reduce((sum, team) => sum + team.score, 0);
+  }
+
+  public checkAndRevealMilestones(competitionId: string): number[] {
+    const session = this.sessions.get(competitionId);
+    if (!session || session.milestones.length === 0) return [];
+
+    const totalPoints = this.getTotalPoints(competitionId);
+    const newlyRevealed: number[] = [];
+
+    session.milestones.forEach((milestone, index) => {
+      if (
+        totalPoints >= milestone.threshold &&
+        !session.revealedMilestones.includes(index)
+      ) {
+        session.revealedMilestones.push(index);
+        newlyRevealed.push(index);
+      }
+    });
+
+    return newlyRevealed;
   }
 
   /**

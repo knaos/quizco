@@ -21,10 +21,22 @@ async function seed() {
       {
         title: "Библейското състезание",
         host_pin: "1111",
+        milestones: [
+          { threshold: 2, icon: "star" },
+          { threshold: 5, icon: "zap" },
+          { threshold: 7, icon: "trophy" },
+          { threshold: 9, icon: "crown" },
+          { threshold: 11, icon: "target" },
+        ],
       },
       {
         title: "Тестово състезание",
         host_pin: "0000",
+        milestones: [
+          { threshold: 30, icon: "star" },
+          { threshold: 80, icon: "zap" },
+          { threshold: 150, icon: "trophy" },
+        ],
       },
     ];
 
@@ -35,6 +47,7 @@ async function seed() {
           title: competitionInfo.title,
           host_pin: competitionInfo.host_pin,
           status: "ACTIVE",
+          milestones: competitionInfo.milestones,
         },
       });
 

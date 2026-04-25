@@ -84,6 +84,8 @@ const state: GameState = {
   timeRemaining: 30,
   revealStep: 2,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
   teams: [
     {
       id: "team-1",

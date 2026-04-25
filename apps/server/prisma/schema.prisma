@@ -14,8 +14,9 @@ model Competition {
   status    CompetitionStatus @default(DRAFT)
   createdAt DateTime          @default(now()) @db.Timestamptz(6)
 
-  rounds Round[]
-  teams  Team[] // Added relation
+  rounds     Round[]
+  teams      Team[]
+  milestones Json?  // Array<Milestone>: [{ threshold: number, icon: string }]
 }
 
 model Round {

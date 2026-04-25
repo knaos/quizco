@@ -49,6 +49,8 @@ const baseState: GameState = {
   ],
   revealStep: 0,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 describe("usePlayerSession", () => {

@@ -50,6 +50,8 @@ const previewState: GameState = {
   teams: [],
   revealStep: 0,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 describe("PlayerView", () => {

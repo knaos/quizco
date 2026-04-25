@@ -1,111 +1,58 @@
 {
-  "test-competition-id": {
+  "e0bf49c6-2870-4a78-ad09-253c19d2aaa6": {
     "phase": "REVEAL_ANSWER",
     "currentQuestion": {
-      "id": "q1",
-      "roundId": "r1",
-      "questionText": "What is 1+1?",
+      "id": "7164d0a1-8adb-49f1-ac52-7a8346783f84",
+      "roundId": "d3d91e99-e4a7-40f0-8abf-66943ae8be49",
+      "questionText": "Select 2 correct answers",
+      "points": 2,
+      "timeLimitSeconds": 30,
+      "grading": "AUTO",
+      "section": null,
+      "index": null,
+      "realIndex": null,
       "type": "MULTIPLE_CHOICE",
-      "points": 10,
-      "timeLimitSeconds": 2,
       "content": {
         "options": [
-          "2",
-          "1"
+          "A",
+          "C",
+          "B"
         ],
         "correctIndices": [
-          0
-        ]
-      },
-      "grading": "AUTO"
-    },
-    "timeRemaining": 0,
-    "teams": [
-      {
-        "id": "5a23ae59-e0bb-40df-b630-9148e72feee2",
-        "name": "Team 1",
-        "color": "red",
-        "score": 1,
-        "streak": 1,
-        "lastAnswerCorrect": true,
-        "lastAnswer": [
-          0
-        ],
-        "isExplicitlySubmitted": false,
-        "isConnected": false
-      },
-      {
-        "id": "8561072f-92b1-45a5-94bf-886cbf4bf2d4",
-        "name": "Team 2",
-        "color": "blue",
-        "score": 1,
-        "streak": 1,
-        "lastAnswerCorrect": true,
-        "lastAnswer": [
-          0
-        ],
-        "isExplicitlySubmitted": false,
-        "isConnected": false
-      }
-    ],
-    "revealStep": 0,
-    "timerPaused": false,
-    "metadata": {
-      "shuffle_q1": {
-        "options": [
-          "2",
-          "1"
-        ],
-        "correctIndices": [
-          0
+          0,
+          1
         ]
       }
-    }
-  },
-  "test-competition-reject": {
-    "phase": "QUESTION_ACTIVE",
-    "currentQuestion": {
-      "id": "q1",
-      "roundId": "r1",
-      "questionText": "What is 1+1?",
-      "type": "MULTIPLE_CHOICE",
-      "points": 10,
-      "timeLimitSeconds": 2,
-      "content": {
-        "options": [
-          "2",
-          "1"
-        ],
-        "correctIndices": [
-          0
-        ]
-      },
-      "grading": "AUTO"
     },
-    "timeRemaining": 2,
+    "timeRemaining": 30,
     "teams": [
       {
-        "id": "d0717f10-e7a9-4c9e-a608-b2b49a98c477",
-        "name": "Team 1",
-        "color": "red",
-        "score": 0,
-        "streak": 0,
-        "lastAnswerCorrect": null,
-        "lastAnswer": null,
-        "isExplicitlySubmitted": false,
+        "id": "eb578351-d794-45c5-ae9d-67fe273dbe3c",
+        "name": "Streak Team 6",
+        "color": "#FF0000",
+        "score": 2,
+        "streak": 13,
+        "lastAnswerCorrect": true,
+        "lastAnswer": [
+          0,
+          1
+        ],
+        "isExplicitlySubmitted": true,
         "isConnected": true
       }
     ],
     "revealStep": 0,
     "timerPaused": false,
     "metadata": {
-      "shuffle_q1": {
+      "shuffle_7164d0a1-8adb-49f1-ac52-7a8346783f84": {
         "options": [
-          "2",
-          "1"
+          "A",
+          "C",
+          "B"
         ],
         "correctIndices": [
-          0
+          0,
+          1
         ]
       }
     }

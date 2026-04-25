@@ -11,6 +11,8 @@ function buildRevealState(question: Question): GameState {
     teams: [],
     revealStep: 0,
     timerPaused: false,
+    milestones: [],
+    revealedMilestones: [],
   };
 }
 

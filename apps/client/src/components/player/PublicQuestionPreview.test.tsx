@@ -25,6 +25,8 @@ const state: GameState = {
   teams: [],
   revealStep: 2,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 describe("PublicQuestionPreview", () => {

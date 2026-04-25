@@ -4,7 +4,7 @@ import {
   RoundType,
   GradingMode,
 } from "@prisma/client";
-import { Question, Team, QuestionContent } from "@quizco/shared";
+import { Question, Team, QuestionContent, Milestone } from "@quizco/shared";
 import prisma from "../db/prisma";
 import { IGameRepository } from "./IGameRepository";
 
@@ -310,5 +310,15 @@ export class PostgresGameRepository implements IGameRepository {
         },
       },
     });
+  }
+
+  async getCompetitionMilestones(competitionId: string): Promise<Milestone[]> {
+    const competition = await prisma.competition.findUnique({
+      where: { id: competitionId },
+      select: { milestones: true },
+    });
+    const raw = competition?.milestones;
+    if (!raw || !Array.isArray(raw)) return [];
+    return raw as unknown as Milestone[];
   }
 }
