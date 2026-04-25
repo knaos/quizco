@@ -31,6 +31,8 @@ export const RoundTransitionPhase: React.FC<RoundTransitionPhaseProps> = ({
   phase,
   currentQuestion,
 }) => {
+  const { t } = useTranslation();
+
   if (phase === "ROUND_START") {
     return (
       <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
@@ -39,13 +41,13 @@ export const RoundTransitionPhase: React.FC<RoundTransitionPhaseProps> = ({
           className="p-16 rounded-[4rem] border-b-8 border-purple-600"
         >
           <span className="text-purple-600 font-black uppercase tracking-[0.3em] text-xl mb-4 block">
-            New Round
+            {t("player.new_round")}
           </span>
           <h2 className="text-6xl font-black text-gray-900 mb-2">
-            {currentQuestion?.roundId ? "Get Ready!" : "Round Start"}
+            {currentQuestion?.roundId ? t("player.get_ready_exclaim") : t("player.round_start")}
           </h2>
           <p className="text-3xl text-gray-500 font-bold italic">
-            Prepare your hearts and minds!
+            {t("player.prepare_minds")}
           </p>
         </Card>
       </div>
@@ -60,12 +62,12 @@ export const RoundTransitionPhase: React.FC<RoundTransitionPhaseProps> = ({
       >
         <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
         <h2 className="text-5xl font-black text-gray-900 mb-4">
-          Round Finished!
+          {t("player.round_finished")}
         </h2>
-        <p className="text-2xl text-gray-500 font-bold">Great job, everyone!</p>
+        <p className="text-2xl text-gray-500 font-bold">{t("player.great_job")}</p>
         <div className="mt-8 p-6 bg-green-50 rounded-3xl inline-block">
           <p className="text-green-800 font-black text-xl">
-            Waiting for the next round...
+            {t("player.waiting_next_round")}
           </p>
         </div>
       </Card>

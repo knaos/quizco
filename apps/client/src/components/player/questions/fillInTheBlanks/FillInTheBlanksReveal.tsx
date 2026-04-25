@@ -55,7 +55,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
             return (
               <span key={i} className={containerClass}>
                 <span className="mr-2">
-                  {userAnswer || "(No answer)"}
+                  {userAnswer || t('player.no_answer')}
                 </span>
                 {isCorrect ? (
                   <CheckCircle className="w-6 h-6 text-green-600" />

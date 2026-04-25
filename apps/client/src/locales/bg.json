@@ -17,7 +17,8 @@
       "no": "Не",
       "ok": "ОК",
       "confirm": "Потвърди",
-      "are_you_sure": "Сигурен ли си?"
+      "are_you_sure": "Сигурен ли си?",
+      "menu": "Меню"
     },
     "host": {
       "dashboard": "Табло на Водещия",
@@ -204,6 +205,7 @@
       "request_joker": "Поискай Жокер"
     },
     "admin": {
+      "title": "Quizco Админ",
       "correct_answer": "Правилен Отговор",
       "true_false_hint": "Изберете дали твърдението по-горе е Истина или Лъжа.",
       "competitions": "Състезания",
@@ -241,7 +243,8 @@
         "time_limit": "Време (сек)",
         "content_settings": "Настройки на Съдържанието",
         "cancel": "Отказ",
-        "save_question": "Запази Въпроса"
+        "save_question": "Запази Въпроса",
+        "question_placeholder": "Въведете въпроса си тук..."
       },
       "question_types": {
         "multiple_choice": "Избор от Множество",
@@ -289,6 +292,10 @@
           "no_items": "Няма добавени елементи. Кликнете \"Добави Елемент\", за да започнете."
         }
       },
+      "openWordEditor": {
+        "correct_answer": "Правилен отговор",
+        "placeholder": "Въведете правилния отговор"
+      },
       "matchingEditor": {
         "heroLabel": "Герой (Ляво)",
         "storyLabel": "История (Дясно)",
@@ -301,6 +308,38 @@
       "round": {
         "pts": "т.",
         "seconds": "сек"
+      },
+      "chronologyEditor": {
+        "instruction": "Подредете елементите в ПРАВИЛНАТА хронологична последователност.",
+        "add_item": "Добави Елемент",
+        "placeholder": "Въведете събитие или елемент...",
+        "no_items": "Няма добавени елементи. Кликнете \"Добави Елемент\", за да започнете."
+      },
+      "crosswordEditor": {
+        "live_preview": "Преглед на Живо",
+        "add_clues": "Добавете подсказки за преглед",
+        "clueEditor": {
+          "add_word": "Добави дума",
+          "x_label": "X",
+          "y_label": "Y",
+          "number_label": "#",
+          "answer_placeholder": "Дума (Отговор)",
+          "clue_placeholder": "Подсказка"
+        }
+      },
+      "fillBlanksEditor": {
+        "text_placeholder_label": "Текст с празнини (напр. \"{0} е {1}.\")",
+        "prefill": "Попълни празнините с първата опция",
+        "blanks_config": "Конфигурация на Празнините",
+        "options_for_blank": "Опции за тази празнина",
+        "placeholder": "Празнина",
+        "option_placeholder": "Опция {{number}}",
+        "add_option": "Добави Опция",
+        "hint": "Добавете празнини като {0} в текста отгоре, за да конфигурирате опции."
+      },
+      "multipleChoiceEditor": {
+        "option_placeholder": "Опция {{number}}",
+        "add_option": "Добави Опция"
       },
       "questions": {
         "correctTheError": {

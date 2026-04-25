@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useImperativeHandle } from 'react';
 import { MoreHorizontal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface MenuProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ export interface MenuRef {
 export const Menu = React.forwardRef<MenuRef, MenuProps>(({ children }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useImperativeHandle(ref, () => ({
     closeMenu: () => setIsOpen(false),
@@ -55,7 +57,7 @@ export const Menu = React.forwardRef<MenuRef, MenuProps>(({ children }, ref) => 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="rounded-2xl border border-gray-200 bg-white p-3 text-gray-500 transition hover:text-gray-700"
-        aria-label="Menu"
+        aria-label={t("common.menu")}
         aria-expanded={isOpen}
       >
         <MoreHorizontal className="h-5 w-5" />

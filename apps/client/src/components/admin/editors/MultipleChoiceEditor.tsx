@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { MultipleChoiceContent } from "@quizco/shared";
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
@@ -13,6 +14,8 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
   content,
   onChange,
 }) => {
+  const { t } = useTranslation();
+
   const addOption = () => {
     onChange({ 
         ...content, 
@@ -62,7 +65,7 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
             type="text"
             value={opt}
             onChange={(e) => updateOption(i, e.target.value)}
-            placeholder={`Option ${i + 1}`}
+            placeholder={t("admin.multipleChoiceEditor.option_placeholder", { number: i + 1 })}
           />
           <Button
             variant="ghost"
@@ -78,7 +81,7 @@ export const MultipleChoiceEditor: React.FC<MultipleChoiceEditorProps> = ({
         onClick={addOption}
         className="text-blue-600 p-0 hover:bg-transparent hover:underline"
       >
-        <Plus className="w-4 h-4 mr-1" /> Add Option
+        <Plus className="w-4 h-4 mr-1" /> {t("admin.multipleChoiceEditor.add_option")}
       </Button>
     </div>
   );
