@@ -55,7 +55,7 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("moves item from pool to occupied slot and returns displaced item to pool", () => {
+  it("moves item from pool to occupied slot and returns displaced item to pool (inserts at source position)", () => {
     const initial = {
       poolIds: ["a", "b"],
       slotIds: ["c", null],
@@ -63,7 +63,20 @@ describe("chronologyBoard", () => {
 
     const next = moveChronologyItem(initial, "a", { type: "slot", index: 0 });
     expect(next).toEqual({
-      poolIds: ["b", "c"],
+      poolIds: ["c", "b"],
+      slotIds: ["a", null],
+    });
+  });
+
+  it("moves item from pool to occupied slot, displaced item inserted at source pool position", () => {
+    const initial = {
+      poolIds: ["x", "a", "y"],
+      slotIds: ["c", null],
+    };
+
+    const next = moveChronologyItem(initial, "a", { type: "slot", index: 0 });
+    expect(next).toEqual({
+      poolIds: ["x", "c", "y"],
       slotIds: ["a", null],
     });
   });

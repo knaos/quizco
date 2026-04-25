@@ -1,10 +1,10 @@
 import type { ChronologyAnswer, ChronologyContent } from "@quizco/shared";
-import { buildChronologyOrderForGrading } from "./chronologyBoard";
 
 /**
  * Calculates the partial score for CHRONOLOGY questions.
- * Returns the number of correctly positioned items (out of total).
- * 
+ * Scores 2 points per item in each correctly placed consecutive run (min 2 items).
+ * +3 bonus for perfect match when all items placed in correct continuous order.
+ *
  * @param content - The chronology question content with items
  * @param answer - The team's submitted answer
  * @returns The number of correctly positioned items
@@ -28,18 +28,52 @@ export function calculateChronologyScore(
   const correctOrderIds = items.map((item) => item.id);
   const totalItems = correctOrderIds.length;
 
-  const submittedOrderIds = buildChronologyOrderForGrading(answer);
-  const placedCount = submittedOrderIds.length;
+  const placedIds = answer.slotIds.filter(
+    (id, index): id is string =>
+      typeof id === "string" &&
+      correctOrderIds.includes(id) &&
+      answer.slotIds.indexOf(id) === index,
+  );
+  const placedCount = placedIds.length;
 
+  if (placedCount < 2) {
+    return { correctCount: 0, placedCount, totalItems, score: 0 };
+  }
+
+  const correctOrderIndex = new Map(correctOrderIds.map((id, idx) => [id, idx]));
+
+  let score = 0;
   let correctCount = 0;
-  for (let i = 0; i < placedCount; i++) {
-    if (submittedOrderIds[i] === correctOrderIds[i]) {
-      correctCount++;
+  let runLength = 1;
+  let runs: number[] = [];
+
+  for (let i = 1; i < placedCount; i++) {
+    const prevId = placedIds[i - 1];
+    const currId = placedIds[i];
+    const prevOrder = correctOrderIndex.get(prevId) ?? -1;
+    const currOrder = correctOrderIndex.get(currId) ?? -1;
+
+    if (currOrder === prevOrder + 1) {
+      runLength++;
+    } else {
+      if (runLength >= 2) {
+        runs.push(runLength);
+        correctCount += runLength;
+        score += runLength * 2;
+      }
+      runLength = 1;
     }
   }
 
-  const isPerfect = correctCount === placedCount && placedCount === totalItems;
-  const score = correctCount + (isPerfect ? 3 : 0);
+  if (runLength >= 2) {
+    runs.push(runLength);
+    correctCount += runLength;
+    score += runLength * 2;
+  }
+
+  const isPerfect =
+    placedCount === totalItems && runs.length === 1 && runs[0] === totalItems;
+  score += isPerfect ? 3 : 0;
 
   return { correctCount, placedCount, totalItems, score };
 }

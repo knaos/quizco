@@ -325,8 +325,8 @@ export class GradingService {
 
   /**
    * Chronology scoring:
-   *  - +1 per correct index
-   *  - +3 perfect-order bonus
+   *  - 2 points per item in each correctly placed consecutive run (min 2 items)
+   *  - +3 perfect-order bonus when all items are placed in correct continuous order
    * Uses slot-first order followed by remaining pool items.
    */
   private gradeChronology(
@@ -355,15 +355,43 @@ export class GradingService {
     );
     const placedCount = placedIds.length;
 
-    let correctCount = 0;
-    for (let i = 0; i < placedCount; i++) {
-      if (placedIds[i] === correctOrderIds[i]) {
-        correctCount++;
+    if (placedCount < 2) {
+      return { isCorrect: false, score: 0 };
+    }
+
+    const correctOrderIndex = new Map(correctOrderIds.map((id, idx) => [id, idx]));
+
+    let totalScore = 0;
+    let runLength = 1;
+    let runs: number[] = [];
+
+    for (let i = 1; i < placedCount; i++) {
+      const prevId = placedIds[i - 1];
+      const currId = placedIds[i];
+      const prevOrder = correctOrderIndex.get(prevId) ?? -1;
+      const currOrder = correctOrderIndex.get(currId) ?? -1;
+
+      if (currOrder === prevOrder + 1) {
+        runLength++;
+      } else {
+        if (runLength >= 2) {
+          runs.push(runLength);
+          totalScore += runLength * 2;
+        }
+        runLength = 1;
       }
     }
 
-    const isPerfect = correctCount === placedCount && placedCount === totalItems;
-    const score = correctCount + (isPerfect ? 3 : 0);
+    if (runLength >= 2) {
+      runs.push(runLength);
+      totalScore += runLength * 2;
+    }
+
+    const isPerfect =
+      placedCount === totalItems &&
+      runs.length === 1 &&
+      runs[0] === totalItems;
+    const score = totalScore + (isPerfect ? 3 : 0);
 
     return { isCorrect: isPerfect, score };
   }

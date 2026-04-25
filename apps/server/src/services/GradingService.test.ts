@@ -319,7 +319,7 @@ describe("GradingService", () => {
     });
   });
 
-  it("grades CHRONOLOGY correctly with partial credit and bonus", () => {
+  it("grades CHRONOLOGY correctly with consecutive run scoring", () => {
     const question: Question = {
       ...baseQuestion,
       type: "CHRONOLOGY",
@@ -332,7 +332,7 @@ describe("GradingService", () => {
       },
     };
 
-    // Perfect match: 3 correct + 3 bonus = 6
+    // Perfect match: 3 items × 2 + 3 bonus = 9
     expect(
       service.gradeAnswer(question, {
         slotIds: ["a", "b", "c"],
@@ -340,10 +340,10 @@ describe("GradingService", () => {
       }),
     ).toEqual({
       isCorrect: true,
-      score: 6,
+      score: 9,
     });
 
-    // Partial match: 1 correct (at index 0) = 1
+    // [a,c,b]: no consecutive correct runs (a→c wrong, c→b wrong) = 0
     expect(
       service.gradeAnswer(question, {
         slotIds: ["a", "c", "b"],
@@ -351,10 +351,10 @@ describe("GradingService", () => {
       }),
     ).toEqual({
       isCorrect: false,
-      score: 1,
+      score: 0,
     });
 
-    // Zero correct: 0
+    // [b,c,a]: run [b,c] only = 2 × 2 = 4
     expect(
       service.gradeAnswer(question, {
         slotIds: ["b", "c", "a"],
@@ -362,11 +362,32 @@ describe("GradingService", () => {
       }),
     ).toEqual({
       isCorrect: false,
+      score: 4,
+    });
+
+    // [c,b,a]: no consecutive runs = 0
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["c", "b", "a"],
+        poolIds: [],
+      }),
+    ).toEqual({
+      isCorrect: false,
       score: 0,
     });
 
-    // All correct but shuffled IDs (this shouldn't happen if IDs are correct)
-    // Testing the logic of index matching
+    // [c,a,b]: run [a,b] only = 2 × 2 = 4
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["c", "a", "b"],
+        poolIds: [],
+      }),
+    ).toEqual({
+      isCorrect: false,
+      score: 4,
+    });
+
+    // [a,b,x]: run [a,b] = 2 × 2 = 4 (x is ignored)
     expect(
       service.gradeAnswer(question, {
         slotIds: ["a", "b", "x"],
@@ -374,7 +395,7 @@ describe("GradingService", () => {
       }),
     ).toEqual({
       isCorrect: false,
-      score: 2,
+      score: 4,
     });
   });
 
@@ -392,26 +413,87 @@ describe("GradingService", () => {
       },
     };
 
-    // Mixed state: two placed, two still in pool -> final order [a, b, c, d]
+    // Mixed state: only 2 items placed in slots -> run [a,b] = 2×2 = 4
+    // isCorrect false because not all items placed
     expect(
       service.gradeAnswer(question, {
         slotIds: ["a", "b", null, null],
         poolIds: ["c", "d"],
       }),
     ).toEqual({
-      isCorrect: true,
-      score: 7,
+      isCorrect: false,
+      score: 4,
     });
 
-    // Duplicates and unknown IDs are ignored in reconstruction.
+    // Duplicates and unknown IDs are ignored (only 2 unique items in slots: a and z)
+    // z is not in correctOrderIds, so only [a] = placedCount 1 < 2, score 0
     expect(
       service.gradeAnswer(question, {
         slotIds: ["a", "a", "z", null],
         poolIds: ["b", "b", "c", "d", "a"],
       }),
     ).toEqual({
+      isCorrect: false,
+      score: 0,
+    });
+  });
+
+  it("grades CHRONOLOGY with multiple separate correct runs", () => {
+    const question: Question = {
+      ...baseQuestion,
+      type: "CHRONOLOGY",
+      content: {
+        items: [
+          { id: "a", text: "First", order: 0 },
+          { id: "b", text: "Second", order: 1 },
+          { id: "c", text: "Third", order: 2 },
+          { id: "d", text: "Fourth", order: 3 },
+        ],
+      },
+    };
+
+    // [a,b,c,d]: all placed perfectly = 4×2 + 3 bonus = 11
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "b", "c", "d"],
+        poolIds: [],
+      }),
+    ).toEqual({
       isCorrect: true,
-      score: 7,
+      score: 11,
+    });
+
+    // [a, b, d, c]: run [a,b]=2 only = 2×2 = 4
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["a", "b", "d", "c"],
+        poolIds: [],
+      }),
+    ).toEqual({
+      isCorrect: false,
+      score: 4,
+    });
+
+    // [c, d, a, b]: run [c,d]=2 and [a,b]=2 -> 2×2 + 2×2 = 8
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["c", "d", "a", "b"],
+        poolIds: [],
+      }),
+    ).toEqual({
+      isCorrect: false,
+      score: 8,
+    });
+
+    // [b, a, c, d]: run [c,d]=2 -> 2×2 = 4
+    expect(
+      service.gradeAnswer(question, {
+        slotIds: ["b", "a", "c", "d"],
+        poolIds: [],
+      }),
+    ).toEqual({
+      isCorrect: false,
+      score: 4,
     });
   });
 
