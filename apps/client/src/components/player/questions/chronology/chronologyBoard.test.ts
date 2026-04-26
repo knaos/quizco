@@ -55,7 +55,7 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("moves item from pool to occupied slot and returns displaced item to pool", () => {
+  it("moves item from pool to occupied slot and returns displaced item to pool (inserts at source position)", () => {
     const initial = {
       poolIds: ["a", "b"],
       slotIds: ["c", null],
@@ -63,7 +63,20 @@ describe("chronologyBoard", () => {
 
     const next = moveChronologyItem(initial, "a", { type: "slot", index: 0 });
     expect(next).toEqual({
-      poolIds: ["b", "c"],
+      poolIds: ["c", "b"],
+      slotIds: ["a", null],
+    });
+  });
+
+  it("moves item from pool to occupied slot, displaced item inserted at source pool position", () => {
+    const initial = {
+      poolIds: ["x", "a", "y"],
+      slotIds: ["c", null],
+    };
+
+    const next = moveChronologyItem(initial, "a", { type: "slot", index: 0 });
+    expect(next).toEqual({
+      poolIds: ["x", "c", "y"],
       slotIds: ["a", null],
     });
   });
@@ -140,12 +153,21 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("builds grading order from chronology answer payload", () => {
+  it("builds grading order from chronology answer payload (placed items only)", () => {
     const order = buildChronologyOrderForGrading({
       poolIds: ["d", "e"],
       slotIds: ["b", null, "a", "c"],
     });
 
-    expect(order).toEqual(["b", "a", "c", "d", "e"]);
+    expect(order).toEqual(["b", "a", "c"]);
+  });
+
+  it("returns only placed items when some slots are empty", () => {
+    const order = buildChronologyOrderForGrading({
+      poolIds: ["c", "d"],
+      slotIds: ["a", null, "b"],
+    });
+
+    expect(order).toEqual(["a", "b"]);
   });
 });

@@ -380,12 +380,18 @@ describe("GameManager Integration", () => {
 
       await gameManager.startQuestion(testCompId, question.id);
       await gameManager.startTimer(testCompId, question.timeLimitSeconds, () => {});
-      await gameManager.submitAnswer(testCompId, team.id, question.id, [0], false);
+
+      const state = gameManager.getState(testCompId);
+      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const displayedCorrectIndex = mcContent.correctIndices[0];
+
+      await gameManager.submitAnswer(testCompId, team.id, question.id, [displayedCorrectIndex], false);
 
       const stateTeam = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
-      expect(stateTeam?.lastAnswer).toEqual([0]);
+      expect(stateTeam?.lastAnswer).toEqual([displayedCorrectIndex]);
       expect(stateTeam?.isExplicitlySubmitted).toBe(false);
-      expect(stateTeam?.lastAnswerCorrect).toBeNull();
+      // lastAnswerCorrect is set immediately for AUTO questions, but score is NOT updated until reveal
+      expect(stateTeam?.lastAnswerCorrect).toBe(true); // Correct answer graded immediately
       expect(stateTeam?.score).toBe(0);
       expect(gameManager.getState(testCompId).phase).toBe("QUESTION_ACTIVE");
 
@@ -393,7 +399,7 @@ describe("GameManager Integration", () => {
         where: { teamId: team.id, questionId: question.id },
       });
       expect(dbAnswer).not.toBeNull();
-      expect(dbAnswer?.submittedContent).toEqual([0]);
+      expect(dbAnswer?.submittedContent).toEqual([displayedCorrectIndex]);
       expect(dbAnswer?.isCorrect).toBeNull();
       expect(dbAnswer?.scoreAwarded).toBe(0);
     });
@@ -434,16 +440,28 @@ describe("GameManager Integration", () => {
       const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const displayedCorrectIndex = mcContent.correctIndices[0];
 
-      await gameManager.submitAnswer(testCompId, team.id, question.id, [0], false);
+      await gameManager.submitAnswer(testCompId, team.id, question.id, [displayedCorrectIndex], false);
       await gameManager.submitAnswer(testCompId, team.id, question.id, [displayedCorrectIndex], false);
 
+      // lastAnswerCorrect is set immediately when submitting (AUTO grading)
+      const stateTeamAfterSubmit = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
+      expect(stateTeamAfterSubmit?.lastAnswerCorrect).toBe(true);
+
+      // next() transitions to GRADING but does NOT grade (scores not updated yet)
       await gameManager.next(testCompId, () => {});
 
-      const stateTeam = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
       expect(gameManager.getState(testCompId).phase).toBe("GRADING");
-      expect(stateTeam?.lastAnswer).toEqual([displayedCorrectIndex]);
+      const stateTeamAfterGrading = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
+      expect(stateTeamAfterGrading?.lastAnswer).toEqual([displayedCorrectIndex]);
+      expect(stateTeamAfterGrading?.lastAnswerCorrect).toBe(true); // Already set from submit
+      expect(stateTeamAfterGrading?.score).toBe(0); // Score not updated until reveal
+
+      // Calling revealAnswer() grades answers and updates scores
+      await gameManager.revealAnswer(testCompId);
+
+      const stateTeam = gameManager.getState(testCompId).teams.find((t) => t.id === team.id);
+      expect(gameManager.getState(testCompId).phase).toBe("REVEAL_ANSWER");
       expect(stateTeam?.lastAnswerCorrect).toBe(true);
-      // MULTIPLE_CHOICE uses per-correct-index scoring (1 point here).
       expect(stateTeam?.score).toBe(1);
 
       const dbAnswers = await prisma.answer.findMany({
@@ -535,13 +553,19 @@ describe("GameManager Integration", () => {
       await gameManager.submitAnswer(testCompId, touchedTeam.id, question.id, true, false);
       await gameManager.next(testCompId, () => {});
 
+      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
+      const touchedBeforeReveal = gameManager.getState(testCompId).teams.find((t) => t.id === touchedTeam.id);
+      expect(touchedBeforeReveal?.lastAnswer).toBe(true);
+      expect(touchedBeforeReveal?.lastAnswerCorrect).toBe(true); // Set immediately on submit
+      expect(touchedBeforeReveal?.score).toBe(0);
+
+      await gameManager.revealAnswer(testCompId);
+
       const touched = gameManager.getState(testCompId).teams.find((t) => t.id === touchedTeam.id);
       const untouched = gameManager.getState(testCompId).teams.find((t) => t.id === untouchedTeam.id);
 
-      expect(gameManager.getState(testCompId).phase).toBe("GRADING");
-      expect(touched?.lastAnswer).toBe(true);
+      expect(gameManager.getState(testCompId).phase).toBe("REVEAL_ANSWER");
       expect(touched?.lastAnswerCorrect).toBe(true);
-      // TRUE_FALSE awards 1 point for a correct answer.
       expect(touched?.score).toBe(1);
 
       expect(untouched?.lastAnswer).toBeNull();

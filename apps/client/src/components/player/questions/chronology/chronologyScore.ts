@@ -1,40 +1,81 @@
 import type { ChronologyAnswer, ChronologyContent } from "@quizco/shared";
-import { buildChronologyOrderForGrading } from "./chronologyBoard";
 
 /**
  * Calculates the partial score for CHRONOLOGY questions.
- * Returns the number of correctly positioned items (out of total).
- * 
+ * Scores 2 points per item in each correctly placed consecutive run (min 2 items).
+ * +3 bonus for perfect match when all items placed in correct continuous order.
+ *
  * @param content - The chronology question content with items
  * @param answer - The team's submitted answer
  * @returns The number of correctly positioned items
  */
+export interface ChronologyScoreResult {
+  correctCount: number;
+  placedCount: number;
+  totalItems: number;
+  score: number;
+}
+
 export function calculateChronologyScore(
   content: ChronologyContent,
   answer: ChronologyAnswer | null,
-): number {
+): ChronologyScoreResult {
   if (!answer || !Array.isArray(answer.slotIds) || !Array.isArray(answer.poolIds)) {
-    return 0;
+    return { correctCount: 0, placedCount: 0, totalItems: content.items.length, score: 0 };
   }
 
-  // Get the correct order based on the 'order' property of items
   const items = [...content.items].sort((a, b) => a.order - b.order);
   const correctOrderIds = items.map((item) => item.id);
-
-  // Build the submitted order using the same logic as the grading
-  const submittedOrderIds = buildChronologyOrderForGrading(answer);
-
-  // Count how many items are in the correct position
-  let correctCount = 0;
   const totalItems = correctOrderIds.length;
 
-  for (let i = 0; i < totalItems; i++) {
-    if (submittedOrderIds[i] === correctOrderIds[i]) {
-      correctCount++;
+  const placedIds = answer.slotIds.filter(
+    (id, index): id is string =>
+      typeof id === "string" &&
+      correctOrderIds.includes(id) &&
+      answer.slotIds.indexOf(id) === index,
+  );
+  const placedCount = placedIds.length;
+
+  if (placedCount < 2) {
+    return { correctCount: 0, placedCount, totalItems, score: 0 };
+  }
+
+  const correctOrderIndex = new Map(correctOrderIds.map((id, idx) => [id, idx]));
+
+  let score = 0;
+  let correctCount = 0;
+  let runLength = 1;
+  const runs: number[] = [];
+
+  for (let i = 1; i < placedCount; i++) {
+    const prevId = placedIds[i - 1];
+    const currId = placedIds[i];
+    const prevOrder = correctOrderIndex.get(prevId) ?? -1;
+    const currOrder = correctOrderIndex.get(currId) ?? -1;
+
+    if (currOrder === prevOrder + 1) {
+      runLength++;
+    } else {
+      if (runLength >= 2) {
+        runs.push(runLength);
+        correctCount += runLength;
+        score += runLength * 2;
+      }
+      runLength = 1;
     }
   }
 
-  return correctCount;
+  if (runLength >= 2) {
+    runs.push(runLength);
+    correctCount += runLength;
+    score += runLength * 2;
+  }
+
+  const isPerfect =
+    placedCount === totalItems && runs.length === 1 && runs[0] === totalItems;
+  score += isPerfect ? 3 : 0;
+
+  return { correctCount, placedCount, totalItems, score };
 }
 
 /**

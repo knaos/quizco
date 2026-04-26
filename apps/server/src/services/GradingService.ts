@@ -325,8 +325,8 @@ export class GradingService {
 
   /**
    * Chronology scoring:
-   *  - +1 per correct index
-   *  - +3 perfect-order bonus
+   *  - 2 points per item in each correctly placed consecutive run (min 2 items)
+   *  - +3 perfect-order bonus when all items are placed in correct continuous order
    * Uses slot-first order followed by remaining pool items.
    */
   private gradeChronology(
@@ -343,41 +343,55 @@ export class GradingService {
       return { isCorrect: false, score: 0 };
     }
 
-    // Reconstruction of correct order based on 'order' property
     const items = [...content.items].sort((a, b) => a.order - b.order);
     const correctOrderIds = items.map((i) => i.id);
-    const knownIds = new Set(correctOrderIds);
+    const totalItems = correctOrderIds.length;
 
-    const uniqueSlotIds = answer.slotIds.filter(
+    const placedIds = answer.slotIds.filter(
       (id, index): id is string =>
         typeof id === "string" &&
-        knownIds.has(id) &&
+        correctOrderIds.includes(id) &&
         answer.slotIds.indexOf(id) === index,
     );
-    const uniquePoolIds = answer.poolIds.filter(
-      (id, index) =>
-        knownIds.has(id) &&
-        answer.poolIds.indexOf(id) === index &&
-        !uniqueSlotIds.includes(id),
-    );
-    const submittedOrderIds = [
-      ...uniqueSlotIds,
-      ...uniquePoolIds,
-    ];
+    const placedCount = placedIds.length;
 
-    let correctCount = 0;
-    const n = correctOrderIds.length;
+    if (placedCount < 2) {
+      return { isCorrect: false, score: 0 };
+    }
 
-    // Compare submitted IDs against correct IDs at each index
-    for (let i = 0; i < n; i++) {
-      if (submittedOrderIds[i] === correctOrderIds[i]) {
-        correctCount++;
+    const correctOrderIndex = new Map(correctOrderIds.map((id, idx) => [id, idx]));
+
+    let totalScore = 0;
+    let runLength = 1;
+    let runs: number[] = [];
+
+    for (let i = 1; i < placedCount; i++) {
+      const prevId = placedIds[i - 1];
+      const currId = placedIds[i];
+      const prevOrder = correctOrderIndex.get(prevId) ?? -1;
+      const currOrder = correctOrderIndex.get(currId) ?? -1;
+
+      if (currOrder === prevOrder + 1) {
+        runLength++;
+      } else {
+        if (runLength >= 2) {
+          runs.push(runLength);
+          totalScore += runLength * 2;
+        }
+        runLength = 1;
       }
     }
 
-    const isPerfect = correctCount === n;
-    // Score: +1 per correct index, +3 bonus for perfect match
-    const score = correctCount + (isPerfect ? 3 : 0);
+    if (runLength >= 2) {
+      runs.push(runLength);
+      totalScore += runLength * 2;
+    }
+
+    const isPerfect =
+      placedCount === totalItems &&
+      runs.length === 1 &&
+      runs[0] === totalItems;
+    const score = totalScore + (isPerfect ? 3 : 0);
 
     return { isCorrect: isPerfect, score };
   }

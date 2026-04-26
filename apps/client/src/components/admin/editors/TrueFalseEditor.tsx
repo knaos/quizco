@@ -2,6 +2,7 @@ import React from "react";
 import type { TrueFalseContent } from "@quizco/shared";
 import { useTranslation } from "react-i18next";
 import Button from "../../ui/Button";
+import { TextArea } from "../../ui/Input";
 
 interface TrueFalseEditorProps {
   content: TrueFalseContent;
@@ -30,6 +31,13 @@ const TrueFalseEditor: React.FC<TrueFalseEditorProps> = ({
           {content.isTrue ? t("game.true") : t("game.false")}
         </Button>
       </div>
+      <TextArea
+        label={t("admin.explanation")}
+        value={content.explanation || ""}
+        onChange={(e) => onChange({ ...content, explanation: e.target.value || undefined })}
+        placeholder={t("admin.explanation_placeholder")}
+        rows={3}
+      />
       <p className="text-sm text-gray-500 italic">
         {t("admin.true_false_hint")}
       </p>

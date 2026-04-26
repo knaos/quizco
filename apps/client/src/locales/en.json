@@ -17,7 +17,8 @@
       "no": "No",
       "ok": "OK",
       "confirm": "Confirm",
-      "are_you_sure": "Are you sure?"
+      "are_you_sure": "Are you sure?",
+      "menu": "Menu"
     },
     "host": {
       "dashboard": "Host Dashboard",
@@ -141,6 +142,7 @@
       "chronology_items_column": "Events",
       "chronology_timeline_column": "Timeline",
       "chronology_drop_here": "Drop an event here",
+      "chronology_not_placed": "not placed",
       "correct_position": "Correct Position",
       "wrong_position": "Wrong Position",
       "no_answer_submitted": "No answer submitted",
@@ -201,10 +203,14 @@
     "game": {
       "true": "True",
       "false": "False",
-      "request_joker": "Request Joker"
+      "request_joker": "Request Joker",
+      "explanation": "Explanation"
     },
     "admin": {
+      "title": "Quizco Admin",
       "correct_answer": "Correct Answer",
+      "explanation": "Explanation",
+      "explanation_placeholder": "Optional explanation to show during reveal phase...",
       "true_false_hint": "Select whether the statement above is True or False.",
       "competitions": "Competitions",
       "new_quiz": "New Quiz",
@@ -241,7 +247,8 @@
         "time_limit": "Time Limit (s)",
         "content_settings": "Content Settings",
         "cancel": "Cancel",
-        "save_question": "Save Question"
+        "save_question": "Save Question",
+        "question_placeholder": "Enter your question here..."
       },
       "question_types": {
         "multiple_choice": "Multiple Choice",
@@ -265,7 +272,15 @@
         },
         "crossword": {
           "live_preview": "Live Preview",
-          "add_clues": "Add clues to see preview"
+          "add_clues": "Add clues to see preview",
+          "clueEditor": {
+            "add_word": "Add Word",
+            "x_label": "X",
+            "y_label": "Y",
+            "number_label": "#",
+            "answer_placeholder": "Word (Answer)",
+            "clue_placeholder": "Clue"
+          }
         },
         "matching": {
           "left_side": "Left Side",
@@ -289,6 +304,10 @@
           "no_items": "No items added yet. Click \"Add Item\" to begin."
         }
       },
+      "openWordEditor": {
+        "correct_answer": "Correct Answer",
+        "placeholder": "Enter the correct answer"
+      },
       "matchingEditor": {
         "heroLabel": "Hero (Left)",
         "storyLabel": "Story (Right)",
@@ -301,6 +320,38 @@
       "round": {
         "pts": "pts",
         "seconds": "s"
+      },
+      "chronologyEditor": {
+        "instruction": "Arrange items in the correct chronological order.",
+        "add_item": "Add Item",
+        "placeholder": "Enter event or item...",
+        "no_items": "No items added yet. Click \"Add Item\" to begin."
+      },
+      "crosswordEditor": {
+        "live_preview": "Live Preview",
+        "add_clues": "Add clues to see preview",
+        "clueEditor": {
+          "add_word": "Add Word",
+          "x_label": "X",
+          "y_label": "Y",
+          "number_label": "#",
+          "answer_placeholder": "Word (Answer)",
+          "clue_placeholder": "Clue"
+        }
+      },
+      "fillBlanksEditor": {
+        "text_placeholder_label": "Text with placeholders (e.g., \"The {0} is {1}.\")",
+        "prefill": "Prefill blanks with first option",
+        "blanks_config": "Blanks Configuration",
+        "options_for_blank": "Options for this blank",
+        "placeholder": "Placeholder",
+        "option_placeholder": "Option {{number}}",
+        "add_option": "Add Option",
+        "hint": "Add placeholders like {0} in the text above to configure options."
+      },
+      "multipleChoiceEditor": {
+        "option_placeholder": "Option {{number}}",
+        "add_option": "Add Option"
       },
       "questions": {
         "correctTheError": {

@@ -162,7 +162,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
 
           {acrossWords.length > 0 && (
             <div className="mb-4">
-              <h3 className="font-bold bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Across <ArrowBigRight className="fill-white w-5 h-5" /></h3>
+              <h3 className="font-bold bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.across")} <ArrowBigRight className="fill-white w-5 h-5" /></h3>
               <div className="flex flex-col gap-2">
                 {acrossWords.map((clue, i) => (
                   <span
@@ -181,7 +181,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
 
           {downWords.length > 0 && (
             <div>
-              <h3 className="font-bold bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">Down <ArrowBigDown className="fill-white w-5 h-5" /></h3>
+              <h3 className="font-bold bg-blue-600 text-white rounded-lg mb-2 p-2 inline-flex items-center gap-1">{t("host.down")} <ArrowBigDown className="fill-white w-5 h-5" /></h3>
               <div className="flex flex-col gap-2">
                 {downWords.map((clue, i) => (
                   <span

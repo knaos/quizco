@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { CrosswordClue, CrosswordContent } from "@quizco/shared";
 import { CrosswordPlayer } from "../../player/questions/crossword/CrosswordPlayer";
 import { CrosswordClueEditor } from "./CrosswordClueEditor";
@@ -13,6 +14,7 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
   content,
   onChange,
 }) => {
+  const { t } = useTranslation();
   // Helper to generate grid from clues
   const crosswordData = useMemo(() => {
     if (!content.clues) return null;
@@ -110,12 +112,12 @@ export const CrosswordEditor: React.FC<CrosswordEditorProps> = ({
         />
       </div>
       <Card variant="flat" className="p-4 flex flex-col items-center justify-center min-h-[300px]">
-        <span className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Live Preview</span>
+        <span className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">{t("admin.crosswordEditor.live_preview")}</span>
         <div className="w-full h-full max-h-[400px] overflow-auto">
           {crosswordData && crosswordData.grid.length > 0 && crosswordData.grid[0].length > 0 ? (
             <CrosswordPlayer key={JSON.stringify(crosswordData.grid)} data={crosswordData} />
           ) : (
-            <p className="text-gray-400 italic text-sm">Add clues to see preview</p>
+            <p className="text-gray-400 italic text-sm">{t("admin.crosswordEditor.add_clues")}</p>
           )}
         </div>
       </Card>

@@ -173,7 +173,7 @@ export const AdminPanel: React.FC = () => {
               <Lock className="text-blue-600 w-10 h-10" />
             </div>
           </div>
-          <h1 className="text-3xl font-black text-center mb-2 text-gray-800 tracking-tight">Quizco Admin</h1>
+          <h1 className="text-3xl font-black text-center mb-2 text-gray-800 tracking-tight">{t("admin.title")}</h1>
           <p className="text-center text-gray-400 mb-8 font-medium">{t("admin.login_hint")}</p>
           <div className="space-y-4">
             <Input

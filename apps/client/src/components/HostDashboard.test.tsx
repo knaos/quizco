@@ -84,6 +84,8 @@ const state: GameState = {
   timeRemaining: 30,
   revealStep: 2,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
   teams: [
     {
       id: "team-1",
@@ -213,7 +215,7 @@ describe("HostDashboard", () => {
 
     const view = render(<HostDashboard />);
 
-    click(view.container.querySelector('button[aria-label="Menu"]') as HTMLElement);
+    click(view.container.querySelector('button[aria-label="common.menu"]') as HTMLElement);
     click(view.container.querySelector('[data-testid="host-open-question-picker"]') as HTMLElement);
     click(view.container.querySelector('[data-testid="host-open-answers-modal"]') as HTMLElement);
 

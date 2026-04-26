@@ -10,6 +10,8 @@ const initialState: GameState = {
   teams: [],
   revealStep: 0,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 function gameReducer(state: GameState, action: GameAction): GameState {

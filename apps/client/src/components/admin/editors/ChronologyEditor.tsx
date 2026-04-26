@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { Plus, Trash2, GripVertical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ChronologyContent, ChronologyItem } from "@quizco/shared";
 import {
   DndContext,
@@ -35,6 +36,7 @@ interface SortableItemProps {
 }
 
 const SortableItem = React.memo<SortableItemProps>(({ id, text, onRemove, onTextChange }) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -71,7 +73,7 @@ const SortableItem = React.memo<SortableItemProps>(({ id, text, onRemove, onText
         type="text"
         value={text}
         onChange={(e) => onTextChange(id, e.target.value)}
-        placeholder="Enter event or item..."
+        placeholder={t("admin.chronologyEditor.placeholder")}
       />
 
       <Button
@@ -88,6 +90,7 @@ const SortableItem = React.memo<SortableItemProps>(({ id, text, onRemove, onText
 SortableItem.displayName = "SortableItem";
 
 export const ChronologyEditor: React.FC<ChronologyEditorProps> = ({ content, onChange }) => {
+  const { t } = useTranslation();
   const items = useMemo(() => content.items ?? [], [content.items]);
 
   const sensors = useSensors(
@@ -147,14 +150,14 @@ export const ChronologyEditor: React.FC<ChronologyEditorProps> = ({ content, onC
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <p className="text-sm font-medium text-gray-500 italic">
-          Arrange items in the CORRECT chronological order.
+          {t("admin.chronologyEditor.instruction")}
         </p>
         <Button
           variant="outline"
           onClick={addItem}
           className="bg-blue-50 text-blue-600 border-none hover:bg-blue-100"
         >
-          <Plus className="w-5 h-5 mr-2" /> Add Item
+          <Plus className="w-5 h-5 mr-2" /> {t("admin.chronologyEditor.add_item")}
         </Button>
       </div>
 
@@ -181,7 +184,7 @@ export const ChronologyEditor: React.FC<ChronologyEditorProps> = ({ content, onC
 
       {items.length === 0 && (
         <div className="text-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-          <p className="text-gray-400 font-medium">No items added yet. Click "Add Item" to begin.</p>
+          <p className="text-gray-400 font-medium">{t("admin.chronologyEditor.no_items")}</p>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, Save } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type {
   ChronologyContent,
   ClosedQuestionContent,
@@ -141,6 +142,7 @@ const toQuestionPayload = (formData: QuestionFormData): Partial<Question> => {
 };
 
 export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCancel }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<QuestionFormData>({
     questionText: "",
     type: "MULTIPLE_CHOICE",
@@ -166,7 +168,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
       <Card variant="elevated" className="w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-none">
         <CardHeader className="flex flex-row justify-between items-center bg-gray-50">
           <CardTitle>
-            {question.id ? "Edit Question" : "New Question"}
+            {question.id ? t("admin.question_editor.edit_question") : t("admin.question_editor.new_question")}
           </CardTitle>
           <Button variant="ghost" onClick={onCancel} className="p-2 rounded-full">
             <X />
@@ -176,62 +178,62 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
         <CardContent className="flex-1 overflow-auto p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-600 uppercase">Question Type</label>
+              <label className="text-sm font-bold text-gray-600 uppercase">{t("admin.question_editor.question_type")}</label>
               <select
                 value={formData.type}
                 onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
                 className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
               >
-                <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-                <option value="CLOSED">Closed (One Answer)</option>
-                <option value="OPEN_WORD">Open Word</option>
-                <option value="CROSSWORD">Crossword</option>
-                <option value="FILL_IN_THE_BLANKS">Fill in the Blanks</option>
-                <option value="MATCHING">Matching</option>
-                <option value="CHRONOLOGY">Chronology</option>
-                <option value="TRUE_FALSE">True / False</option>
-                <option value="CORRECT_THE_ERROR">Correct The Error</option>
+                <option value="MULTIPLE_CHOICE">{t("admin.question_types.multiple_choice")}</option>
+                <option value="CLOSED">{t("admin.question_types.closed")}</option>
+                <option value="OPEN_WORD">{t("admin.question_types.open_word")}</option>
+                <option value="CROSSWORD">{t("admin.question_types.crossword")}</option>
+                <option value="FILL_IN_THE_BLANKS">{t("admin.question_types.fill_blanks")}</option>
+                <option value="MATCHING">{t("admin.question_types.matching")}</option>
+                <option value="CHRONOLOGY">{t("admin.question_types.chronology")}</option>
+                <option value="TRUE_FALSE">{t("admin.question_types.true_false")}</option>
+                <option value="CORRECT_THE_ERROR">{t("admin.question_types.correct_error")}</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-600 uppercase">Grading Mode</label>
+              <label className="text-sm font-bold text-gray-600 uppercase">{t("admin.question_editor.grading_mode")}</label>
               <select
                 value={formData.grading}
                 onChange={(e) => setFormData({ ...formData, grading: e.target.value as GradingMode })}
                 className="w-full p-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition"
               >
-                <option value="AUTO">Automatic</option>
-                <option value="MANUAL">Manual (Host Graded)</option>
+                <option value="AUTO">{t("admin.grading_modes.auto")}</option>
+                <option value="MANUAL">{t("admin.grading_modes.manual")}</option>
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             <TextArea
-              label="Question Text"
+              label={t("admin.question_editor.question_text")}
               value={formData.questionText}
               onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
               className="h-24"
-              placeholder="Enter your question here..."
+              placeholder={t("admin.question_editor.question_placeholder")}
             />
             <Input
-              label="Section (Round 1 only)"
+              label={t("admin.question_editor.section")}
               type="text"
               value={formData.section || ""}
               onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-              placeholder="e.g., Player 1"
+              placeholder={t("admin.question_editor.section_placeholder")}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-6 text-left">
             <Input
-              label="Points"
+              label={t("admin.question_editor.points")}
               type="number"
               value={formData.points}
               onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
             />
             <Input
-              label="Time Limit (s)"
+              label={t("admin.question_editor.time_limit")}
               type="number"
               value={formData.timeLimitSeconds}
               onChange={(e) => setFormData({ ...formData, timeLimitSeconds: parseInt(e.target.value) })}
@@ -239,7 +241,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
           </div>
 
           <div className="pt-6 border-t">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Content Settings</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">{t("admin.question_editor.content_settings")}</h3>
 
             {(formData.type === "MULTIPLE_CHOICE" || formData.type === "CLOSED") && (
               <MultipleChoiceEditor
@@ -290,13 +292,13 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             onClick={onCancel}
             className="px-6"
           >
-            Cancel
+            {t("admin.question_editor.cancel")}
           </Button>
           <Button
             onClick={() => onSave(toQuestionPayload(formData))}
             className="px-8"
           >
-            <Save className="mr-2 w-5 h-5" /> Save Question
+            <Save className="mr-2 w-5 h-5" /> {t("admin.question_editor.save_question")}
           </Button>
         </CardFooter>
       </Card>

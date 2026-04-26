@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import type { OpenWordContent } from "@quizco/shared";
 import Input from "../../ui/Input";
 
@@ -11,13 +12,15 @@ export const OpenWordEditor: React.FC<OpenWordEditorProps> = ({
   content,
   onChange,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Input
-      label="Correct Answer"
+      label={t("admin.openWordEditor.correct_answer")}
       type="text"
       value={content?.answer || ""}
       onChange={(e) => onChange({ ...content, answer: e.target.value })}
-      placeholder="Enter the correct answer"
+      placeholder={t("admin.openWordEditor.placeholder")}
     />
   );
 };

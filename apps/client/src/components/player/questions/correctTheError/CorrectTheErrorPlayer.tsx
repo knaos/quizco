@@ -31,7 +31,7 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
 
   // Parse the sentence into words
   const sentenceWords = content.text.trim().split(/\s+/);
-  
+
   // Get word indices that have alternatives
   const wordsWithAlternatives = new Set(content.words.map(w => w.wordIndex));
 
@@ -39,7 +39,7 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
     if (disabled || previewMode) return;
     // Check if this word has alternatives
     if (!wordsWithAlternatives.has(wordIndex)) return;
-    
+
     onChange({
       ...value,
       selectedWordIndex: wordIndex,
@@ -70,7 +70,7 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
           const hasAlternatives = wordsWithAlternatives.has(index);
           const isSelected = value.selectedWordIndex === index;
           const isClickable = hasAlternatives && !disabled && !previewMode;
-          
+
           if (hasAlternatives) {
             // Render as button
             return (
@@ -82,8 +82,8 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
                 className={`
                   px-4 py-3 rounded-xl font-medium transition-all duration-200 border-2
                   ${isSelected
-                    ? 'bg-red-500 text-white border-red-600 shadow-lg transform scale-105'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-red-400 hover:bg-red-50 cursor-pointer'
+                    ? 'bg-blue-500 text-white border-blue-600 shadow-lg transform scale-105'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
                   }
                   ${!isClickable ? 'opacity-70 cursor-not-allowed' : ''}
                 `}

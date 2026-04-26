@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, Trash2, CheckCircle2, Circle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { FillInTheBlanksContent } from "@quizco/shared";
 import Button from "../../ui/Button";
 import Input, { TextArea } from "../../ui/Input";
@@ -14,6 +15,8 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
   content,
   onChange,
 }) => {
+  const { t } = useTranslation();
+
   const updateText = (text: string) => {
     const placeholderCount = (text.match(/\{(\d+)\}/g) || []).length;
     const newBlanks = [...(content.blanks || [])];
@@ -71,7 +74,7 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
   return (
     <div className="space-y-4">
       <TextArea
-        label='Text with placeholders (e.g., "The {0} is {1}.")'
+        label={t("admin.fillBlanksEditor.text_placeholder_label")}
         value={content.text}
         onChange={(e) => updateText(e.target.value)}
         rows={3}
@@ -86,19 +89,19 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
           className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
         />
         <label htmlFor="prefill" className="text-sm font-medium text-gray-700">
-          Prefill blanks with first option
+          {t("admin.fillBlanksEditor.prefill")}
         </label>
       </div>
 
       <div className="space-y-6">
         <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">
-          Blanks Configuration
+          {t("admin.fillBlanksEditor.blanks_config")}
         </label>
         {content.blanks.map((blank, bIdx) => (
           <Card key={bIdx} variant="flat" className="space-y-3 p-5">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-blue-600 font-black text-lg">{`Placeholder {${bIdx}}`}</span>
-              <span className="text-xs font-bold uppercase text-gray-400">Options for this blank</span>
+              <span className="font-mono text-blue-600 font-black text-lg">{t("admin.fillBlanksEditor.placeholder")} {`{${bIdx}}`}</span>
+              <span className="text-xs font-bold uppercase text-gray-400">{t("admin.fillBlanksEditor.options_for_blank")}</span>
             </div>
             
             <div className="space-y-2">
@@ -117,7 +120,7 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
                     value={option.value}
                     onChange={(e) => updateOption(bIdx, oIdx, e.target.value)}
                     className="flex-1 py-2 text-base"
-                    placeholder={`Option ${oIdx + 1}`}
+                    placeholder={t("admin.fillBlanksEditor.option_placeholder", { number: oIdx + 1 })}
                   />
                   <Button
                     variant="ghost"
@@ -138,14 +141,14 @@ export const FillInTheBlanksEditor: React.FC<FillInTheBlanksEditorProps> = ({
               onClick={() => addOption(bIdx)}
               className="text-blue-600 p-0 hover:bg-transparent hover:underline text-sm mt-2"
             >
-              <Plus className="w-4 h-4 mr-1" /> Add Option
+              <Plus className="w-4 h-4 mr-1" /> {t("admin.fillBlanksEditor.add_option")}
             </Button>
           </Card>
         ))}
 
         {content.blanks.length === 0 && (
           <p className="text-sm text-gray-400 italic">
-            Add placeholders like {"{0}"} in the text above to configure options.
+            {t("admin.fillBlanksEditor.hint")}
           </p>
         )}
       </div>

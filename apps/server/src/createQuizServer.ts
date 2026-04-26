@@ -267,8 +267,7 @@ export function createQuizServer(
       console.log(`Host joined room: ${room}`);
     });
 
-    onSafe(
-      "JOIN_ROOM",
+    onSafe("JOIN_ROOM",
       async (
         { competitionId, teamName, color },
         callback?: (response: {
@@ -294,7 +293,7 @@ export function createQuizServer(
       },
     );
 
-    onSafe(
+onSafe(
       "RECONNECT_TEAM",
       async (
         { competitionId, teamId },
@@ -303,23 +302,23 @@ export function createQuizServer(
           team?: { id: string; name: string; color: string; score: number };
         }) => void,
       ) => {
-      if (!competitionId || !teamId) return callback?.({ success: false });
+        if (!competitionId || !teamId) return callback?.({ success: false });
 
-      const team = await gameManager.reconnectTeam(competitionId, teamId);
-      if (team) {
-        socketToTeam.set(socket.id, { competitionId, teamId: team.id });
-        teamToSocket.set(team.id, socket.id);
+        const team = await gameManager.reconnectTeam(competitionId, teamId);
+        if (team) {
+          socketToTeam.set(socket.id, { competitionId, teamId: team.id });
+          teamToSocket.set(team.id, socket.id);
 
-        const room = `competition_${competitionId}`;
-        socket.join(room);
+          const room = `competition_${competitionId}`;
+          socket.join(room);
 
-        const state = gameManager.getState(competitionId);
-        socket.emit("GAME_STATE_SYNC", state);
-        io.to(room).emit("SCORE_UPDATE", state.teams);
-        if (callback) callback({ success: true, team });
-      } else {
-        if (callback) callback({ success: false });
-      }
+          const state = gameManager.getState(competitionId);
+          socket.emit("GAME_STATE_SYNC", state);
+          io.to(room).emit("SCORE_UPDATE", state.teams);
+          if (callback) callback({ success: true, team });
+        } else {
+          if (callback) callback({ success: false });
+        }
       },
     );
 
@@ -440,7 +439,7 @@ export function createQuizServer(
         return;
       }
       const room = `competition_${competitionId}`;
-      await gameManager.next(competitionId, (state) => {
+      const newlyRevealed = await gameManager.next(competitionId, (state) => {
         try {
           io.to(room).emit("TIMER_SYNC", state.timeRemaining);
           if (state.timeRemaining === 0) {
@@ -451,6 +450,12 @@ export function createQuizServer(
         }
       });
       io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
+      if (newlyRevealed.length > 0) {
+        io.to(room).emit("MILESTONES_REVEALED", {
+          revealedIndices: newlyRevealed,
+          totalPoints: gameManager.getTotalPoints(competitionId),
+        });
+      }
     });
 
     onSafe("HOST_SET_PHASE", async ({ competitionId, phase, authToken }) => {

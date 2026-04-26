@@ -12,7 +12,7 @@ interface ChronologyRevealProps {
 /**
  * Reveal component for CHRONOLOGY questions.
  * Shows items in submitted order with correctness indicators.
- * Green = correct position, Red = incorrect position (shows correct position).
+ * Green = correct consecutive run, Red = not in a correct run.
  */
 export const ChronologyReveal: React.FC<ChronologyRevealProps> = ({
   content,
@@ -30,55 +30,97 @@ export const ChronologyReveal: React.FC<ChronologyRevealProps> = ({
     );
   }
 
-  // Map submitted answer to items with their correctness
-  const submittedItems = buildChronologyOrderForGrading(lastAnswer)
+  const correctOrderIds = [...content.items]
+    .sort((a, b) => a.order - b.order)
+    .map((item) => item.id);
+  const correctOrderIndex = new Map(
+    correctOrderIds.map((id, idx) => [id, idx])
+  );
+
+  const submittedIds = buildChronologyOrderForGrading(lastAnswer).filter(
+    (id) => correctOrderIds.includes(id)
+  );
+
+  const submittedItems = submittedIds
     .map((id) => content.items.find((item) => item.id === id))
     .filter(Boolean) as ChronologyItem[];
 
-  return (
-    <div className="space-y-3">
-      {submittedItems.map((item, index) => {
-        const isCorrectPosition = item.order === index;
+  const runs: Array<{ start: number; end: number }> = [];
+  let runLength = 1;
 
-        let containerClass =
-          "flex items-center space-x-4 p-5 border-2 rounded-2xl transition-all ";
-        if (isCorrectPosition) {
-          containerClass += "border-green-500 bg-green-50 shadow-md";
-        } else {
-          containerClass += "border-red-500 bg-red-50";
-        }
+  for (let i = 1; i < submittedIds.length; i++) {
+    const prevId = submittedIds[i - 1];
+    const currId = submittedIds[i];
+    const prevOrder = correctOrderIndex.get(prevId) ?? -1;
+    const currOrder = correctOrderIndex.get(currId) ?? -1;
 
-        return (
-          <div key={item.id} className={containerClass}>
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-lg ${
-                isCorrectPosition
-                  ? "bg-green-500 text-white"
-                  : "bg-red-500 text-white"
-              }`}
-            >
-              {index + 1}
-            </div>
-            <span
-              className={`flex-1 text-xl font-bold ${
-                isCorrectPosition ? "text-green-900" : "text-red-900"
-              }`}
-            >
-              {item.text}
-            </span>
-            {isCorrectPosition ? (
-              <CheckCircle className="text-green-600 w-8 h-8" />
-            ) : (
-              <div className="text-right">
-                <XCircle className="text-red-600 w-8 h-8" />
-                <span className="text-xs font-medium text-red-700">
-                  {t("player.should_be")} #{item.order + 1}
-                </span>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+    if (currOrder === prevOrder + 1) {
+      runLength++;
+    } else {
+      if (runLength >= 2) {
+        runs.push({ start: i - runLength, end: i - 1 });
+      }
+      runLength = 1;
+    }
+  }
+
+  if (runLength >= 2) {
+    runs.push({ start: submittedIds.length - runLength, end: submittedIds.length - 1 });
+  }
+
+  const renderItem = (item: ChronologyItem, isGreen: boolean) => {
+    const containerClass = "flex items-center space-x-4 p-5 border-2 rounded-2xl transition-all ";
+    if (isGreen) {
+      return (
+        <div
+          key={item.id}
+          className={containerClass + "border-green-500 bg-green-50 shadow-md"}
+        >
+          <span className="flex-1 text-xl font-bold text-green-900">
+            {item.text}
+          </span>
+          <CheckCircle className="text-green-600 w-8 h-8" />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={item.id}
+        className={containerClass + "border-red-500 bg-red-50"}
+      >
+        <span className="flex-1 text-xl font-bold text-red-900">
+          {item.text}
+        </span>
+        <XCircle className="text-red-600 w-8 h-8" />
+      </div>
+    );
+  };
+
+  const elements: React.ReactNode[] = [];
+  let lastEnd = -1;
+
+  for (const run of runs) {
+    if (run.start > lastEnd + 1) {
+      for (let i = lastEnd + 1; i < run.start; i++) {
+        elements.push(renderItem(submittedItems[i], false));
+      }
+    }
+    elements.push(
+      <div key={`run-${run.start}`} className="space-y-3 rounded-xl border-l-4 border-r-4 border-blue-400 p-2">
+        {submittedItems.slice(run.start, run.end + 1).map((item) => {
+          return renderItem(item, true);
+        })}
+      </div>
+    );
+    lastEnd = run.end;
+  }
+
+  if (lastEnd < submittedItems.length - 1) {
+    for (let i = lastEnd + 1; i < submittedItems.length; i++) {
+      elements.push(renderItem(submittedItems[i], false));
+    }
+  }
+
+  return <div className="space-y-3">{elements}</div>;
 };

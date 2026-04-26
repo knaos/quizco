@@ -118,6 +118,7 @@ export interface ChronologyContent {
 
 export interface TrueFalseContent {
   isTrue: boolean;
+  explanation?: string;
 }
 
 export interface TrueFalseRevealProps {
@@ -226,6 +227,11 @@ export interface Competition {
   createdAt: string;
 }
 
+export interface Milestone {
+  threshold: number;
+  icon: string;
+}
+
 export interface Round {
   id: string;
   competitionId: string;
@@ -255,6 +261,8 @@ export interface GameState {
   teams: Team[];
   revealStep: number;
   timerPaused: boolean;
+  milestones: Milestone[];
+  revealedMilestones: number[];
 }
 
 export interface SessionMetadata {
@@ -317,4 +325,5 @@ export interface SocketEvents {
     newScore: number;
   }) => void;
   JOKER_ERROR: (payload: { message: string }) => void;
+  MILESTONES_REVEALED: (payload: { revealedIndices: number[]; totalPoints: number }) => void;
 }

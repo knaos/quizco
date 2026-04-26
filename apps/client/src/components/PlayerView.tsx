@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Clock, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useGame } from "../contexts/useGame";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionSelector } from "./player/lobby/CompetitionSelector";
 import { TeamJoinForm } from "./player/lobby/TeamJoinForm";
 import { WaitingPhase, RoundTransitionPhase, LeaderboardPhase } from "./player/phases/SimplePhases";
@@ -12,6 +11,7 @@ import { QuestionPreviewPhase } from "./player/phases/QuestionPreviewPhase";
 import { RevealAnswerPhase } from "./player/phases/RevealAnswerPhase";
 import { ConfirmDialog } from "./ui/ConfirmDialog";
 import { usePlayerSession } from "../hooks/usePlayerSession";
+import { MilestoneProgressBar } from "./player/ui/MilestoneProgressBar";
 
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
@@ -57,6 +57,8 @@ export const PlayerView: React.FC = () => {
     );
   }
 
+  const totalPoints = state.teams.reduce((sum, team) => sum + team.score, 0);
+
   return (
     <>
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -71,12 +73,13 @@ export const PlayerView: React.FC = () => {
                 {session.currentTeam?.name ?? session.identity.teamName}
               </span>
             </div>
-            <LanguageSwitcher />
           </div>
+          <MilestoneProgressBar
+            milestones={state.milestones}
+            revealedMilestones={state.revealedMilestones}
+            totalPoints={totalPoints}
+          />
           <div className="flex items-center space-x-4">
-            <div className="text-gray-600 font-medium">
-              {t("common.score")}: {session.currentScore}
-            </div>
             <button
               type="button"
               onClick={() => setShowLeaveDialog(true)}
@@ -86,6 +89,7 @@ export const PlayerView: React.FC = () => {
             </button>
           </div>
         </header>
+
 
         <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <div data-testid="player-phase" className="sr-only">

@@ -38,8 +38,6 @@ export async function seedRound2(competitionId: string): Promise<void> {
             { id: "m8", text: "Аарон прави златно теле", order: 7 },
             { id: "m9", text: "Мойсей чупи плочите на завета", order: 8 },
             { id: "m10", text: "Мойсей чука скалата при Мерива и водата потича", order: 9 },
-            { id: "m11", text: "Мойсей издига медна змия в пустинята", order: 10 },
-            { id: "m12", text: "Мойсей умира на планината Нево", order: 11 },
           ],
         },
         grading: "AUTO",
@@ -51,7 +49,7 @@ export async function seedRound2(competitionId: string): Promise<void> {
         realIndex: 1,
         questionText: "Подредете тези събития от живота на Мойсей в правилния хронологичен ред",
         type: "CHRONOLOGY",
-        points: 12,
+        points: 20,
         timeLimitSeconds: 360,
         content: {
           items: [
@@ -65,8 +63,6 @@ export async function seedRound2(competitionId: string): Promise<void> {
             { id: "m8", text: "Аарон прави златно теле", order: 7 },
             { id: "m9", text: "Мойсей чупи плочите на завета", order: 8 },
             { id: "m10", text: "Мойсей чука скалата при Мерива и водата потича", order: 9 },
-            { id: "m11", text: "Мойсей издига медна змия в пустинята", order: 10 },
-            { id: "m12", text: "Мойсей умира на планината Нево", order: 11 },
           ],
         },
         grading: "AUTO",
@@ -78,7 +74,7 @@ export async function seedRound2(competitionId: string): Promise<void> {
         realIndex: 2,
         questionText: "Подредете тези събития от живота на Давид в правилния хронологичен ред",
         type: "CHRONOLOGY",
-        points: 12,
+        points: 20,
         timeLimitSeconds: 360,
         content: {
           items: [
@@ -92,8 +88,6 @@ export async function seedRound2(competitionId: string): Promise<void> {
             { id: "d8", text: "Давид взема Бат-Шева", order: 7 },
             { id: "d9", text: "Пророк Натан обвинява Давид за греха", order: 8 },
             { id: "d10", text: "Синът на Давид Авесалом въстава", order: 9 },
-            { id: "d11", text: "Давид построява жертвеник на Господа", order: 10 },
-            { id: "d12", text: "Соломон, синът на Давид, става цар", order: 11 },
           ],
         },
         grading: "AUTO",

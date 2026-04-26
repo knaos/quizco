@@ -1,4 +1,4 @@
-import { Question, Team } from "@quizco/shared";
+import { Question, Team, Milestone } from "@quizco/shared";
 
 export interface IGameRepository {
   // Teams
@@ -40,4 +40,7 @@ export interface IGameRepository {
 
   // Reset
   deleteAnswersForCompetition(competitionId: string): Promise<void>;
+
+  // Milestones
+  getCompetitionMilestones(competitionId: string): Promise<Milestone[]>;
 }

@@ -24,6 +24,8 @@ const waitingState: GameState = {
   teams: [],
   revealStep: 0,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 const revealState: GameState = {
@@ -46,6 +48,8 @@ const revealState: GameState = {
   teams: [],
   revealStep: 0,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 const crosswordActiveState: GameState = {
@@ -89,6 +93,8 @@ const crosswordActiveState: GameState = {
   teams: [],
   revealStep: 0,
   timerPaused: false,
+  milestones: [],
+  revealedMilestones: [],
 };
 
 const competitions: Competition[] = [

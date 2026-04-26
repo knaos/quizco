@@ -115,6 +115,7 @@ export const moveChronologyItem = (
     return state;
   }
 
+  const activePoolIndex = state.poolIds.indexOf(activeId);
   const nextPoolIds = state.poolIds.filter((id) => id !== activeId);
   const nextSlotIds = [...state.slotIds];
   const displacedId = nextSlotIds[target.index];
@@ -130,8 +131,14 @@ export const moveChronologyItem = (
   }
 
   if (displacedId) {
+    const insertIndex =
+      activePoolIndex === -1
+        ? nextPoolIds.length
+        : Math.min(activePoolIndex, nextPoolIds.length);
+    const newPoolIds = [...nextPoolIds];
+    newPoolIds.splice(insertIndex, 0, displacedId);
     return {
-      poolIds: [...nextPoolIds, displacedId],
+      poolIds: newPoolIds,
       slotIds: nextSlotIds,
     };
   }
@@ -156,9 +163,7 @@ export const buildChronologyAnswer = (
 export const buildChronologyOrderForGrading = (
   answer: ChronologyAnswer,
 ): string[] => {
-  const slottedIds = answer.slotIds.filter(
+  return answer.slotIds.filter(
     (slotId): slotId is string => typeof slotId === "string",
   );
-
-  return [...slottedIds, ...answer.poolIds];
 };
