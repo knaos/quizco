@@ -52,7 +52,9 @@ export interface InteractiveQuestionRendererContext {
   toggleIndex: (index: number) => void;
   submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
   testIdPrefix: string;
-  requestJoker?: () => void;
+  requestJoker?: (x: number, y: number) => void;
+  jokerUsed?: boolean;
+  jokerRevealedCells?: Set<string>;
   t: TFunction;
 }
 
@@ -220,7 +222,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         previewMode
       />
     ),
-    active: ({ question, answer, setAnswer, submitAnswer, requestJoker, testIdPrefix, t }) => (
+    active: ({ question, answer, setAnswer, submitAnswer, requestJoker, testIdPrefix, t, jokerUsed, jokerRevealedCells }) => (
       <CrosswordPlayer
         data={question.content as CrosswordContent}
         value={
@@ -234,6 +236,8 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         requestJokerLabel={t("game.request_joker")}
         submitLabel={t("player.submit_crossword")}
         testIdPrefix={testIdPrefix}
+        jokerUsed={jokerUsed}
+        revealedCells={jokerRevealedCells}
       />
     ),
     readOnly: ({ question, testIdPrefix }) => (

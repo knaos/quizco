@@ -35,10 +35,7 @@ export class GameManager {
     this.logger.info("Initializing GameManager...");
     this.sessions = await this.persistenceService.loadState();
     this.logger.info(`Loaded ${this.sessions.size} sessions from persistence.`);
-    for (const competitionId of this.sessions.keys()) {
-      await this.loadMilestones(competitionId);
-    }
-  }
+ }
 
   private async saveState() {
     try {
@@ -65,6 +62,9 @@ export class GameManager {
         metadata: {},
         milestones: [],
         revealedMilestones: [],
+      });
+      this.loadMilestones(competitionId).catch((err) => {
+        this.logger.error("Failed to load milestones", err);
       });
     }
     const session = this.sessions.get(competitionId)!;
@@ -499,6 +499,8 @@ export class GameManager {
     competitionId: string,
     teamId: string,
     questionId: string,
+    x: number,
+    y: number,
     io: any,
   ) {
     const session = this.getOrCreateSession(competitionId);
@@ -511,7 +513,7 @@ export class GameManager {
 
     // Rule: Joker costs 2 points
     if (team.score < 2) {
-      io.to(competitionId).emit("JOKER_ERROR", {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
         message: "Not enough points for a joker",
       });
       return;
@@ -522,6 +524,35 @@ export class GameManager {
 
     // Ensure metadata for this question's jokers exists
     session.metadata = session.metadata || {};
+    if (!session.metadata.usedJokers) {
+      session.metadata.usedJokers = [];
+    }
+    if (session.metadata.usedJokers.includes(teamId)) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
+        message: "Joker already used for this question",
+      });
+      return;
+    }
+
+    // Validate the selected cell
+    if (
+      y < 0 ||
+      y >= grid.length ||
+      x < 0 ||
+      x >= grid[y].length ||
+      !grid[y][x] ||
+      grid[y][x].trim() === ""
+    ) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
+        message: "Invalid cell selection",
+      });
+      return;
+    }
+
+    const selectedCellChar = grid[y][x];
+    const coord = `${x},${y}`;
+
+    // Initialize revealedCells if not exists
     if (!session.metadata.revealedCells) {
       session.metadata.revealedCells = {};
     }
@@ -529,51 +560,31 @@ export class GameManager {
       session.metadata.revealedCells[teamId] = [];
     }
 
-    const teamRevealed = session.metadata.revealedCells[teamId];
-
-    // Find all valid cells that haven't been revealed to this team yet
-    const availableCells: { x: number; y: number; char: string }[] = [];
-    for (let y = 0; y < grid.length; y++) {
-      for (let x = 0; x < grid[y].length; x++) {
-        const char = grid[y][x];
-        if (char && char !== "") {
-          const coord = `${x},${y}`;
-          if (!teamRevealed.includes(coord)) {
-            availableCells.push({ x, y, char });
-          }
-        }
-      }
-    }
-
-    if (availableCells.length === 0) {
-      io.to(competitionId).emit("JOKER_ERROR", {
-        message: "All cells already revealed",
+    // Check if this cell was already revealed
+    if (session.metadata.revealedCells[teamId].includes(coord)) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
+        message: "Cell already revealed",
       });
       return;
     }
 
-    const randomCell =
-      availableCells[Math.floor(Math.random() * availableCells.length)];
-
     team.score -= 2;
-    teamRevealed.push(`${randomCell.x},${randomCell.y}`);
-
-    if (!session.metadata.usedJokers) session.metadata.usedJokers = [];
+    session.metadata.revealedCells[teamId].push(coord);
     session.metadata.usedJokers.push(teamId);
 
     // Update score in DB
     await this.repository.updateTeamScore(teamId, team.score);
 
-    io.to(competitionId).emit("JOKER_REVEAL", {
+    io.to(`competition_${competitionId}`).emit("JOKER_REVEAL", {
       questionId,
       teamId,
-      letter: randomCell.char,
-      x: randomCell.x,
-      y: randomCell.y,
+      letter: selectedCellChar,
+      x,
+      y,
       newScore: team.score,
     });
 
-    io.to(competitionId).emit("SCORE_UPDATE", session.teams);
+    io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", session.teams);
     await this.saveState();
   }
 
@@ -753,10 +764,9 @@ export class GameManager {
   }
 
   public async loadMilestones(competitionId: string) {
-    const session = this.sessions.get(competitionId);
-    if (!session) return;
-    if (session.milestones.length > 0) return;
-    session.milestones = await this.repository.getCompetitionMilestones(competitionId);
+    const session = this.getOrCreateSession(competitionId);
+    const milestones = await this.repository.getCompetitionMilestones(competitionId);
+    session.milestones = milestones;
     await this.saveState();
   }
 

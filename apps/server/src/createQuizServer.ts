@@ -133,7 +133,6 @@ export function createQuizServer(
       const { id, questionId } = req.params;
       try {
         const formatted = await repository.getQuestionAnswers(id, questionId);
-        console.log(`API Answers for ${questionId}:`, formatted);
         res.json(formatted);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
@@ -286,6 +285,8 @@ export function createQuizServer(
         const room = `competition_${competitionId}`;
         socket.join(room);
 
+        await gameManager.loadMilestones(competitionId);
+
         const state = gameManager.getState(competitionId);
         socket.emit("GAME_STATE_SYNC", state);
         io.to(room).emit("SCORE_UPDATE", state.teams);
@@ -311,6 +312,8 @@ onSafe(
 
           const room = `competition_${competitionId}`;
           socket.join(room);
+
+          await gameManager.loadMilestones(competitionId);
 
           const state = gameManager.getState(competitionId);
           socket.emit("GAME_STATE_SYNC", state);
@@ -368,13 +371,15 @@ onSafe(
 
     onSafe(
       "REQUEST_JOKER",
-      async ({ competitionId, teamId, questionId }) => {
+      async ({ competitionId, teamId, questionId, x, y }) => {
         if (!competitionId) return;
         try {
           await gameManager.handleJokerReveal(
             competitionId,
             teamId,
             questionId,
+            x,
+            y,
             io,
           );
         } catch (err) {

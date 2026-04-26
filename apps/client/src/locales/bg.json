@@ -204,6 +204,9 @@
       "true": "Вярно",
       "false": "Грешно",
       "request_joker": "Поискай Жокер",
+      "joker_select_cell": "Кликнете на клетка, за да разкриете буквата",
+      "joker_cancel": "Отказ",
+      "joker_used": "Жокерът е използван",
       "explanation": "Обяснение"
     },
     "admin": {

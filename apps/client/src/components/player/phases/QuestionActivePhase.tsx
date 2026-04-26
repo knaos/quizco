@@ -14,7 +14,9 @@ interface QuestionActivePhaseProps {
   submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
   submissionStatus: "idle" | "success" | "error";
   currentTeam?: { isExplicitlySubmitted?: boolean };
-  requestJoker?: () => void;
+  requestJoker?: (x: number, y: number) => void;
+  jokerUsed?: boolean;
+  jokerRevealedCells?: Set<string>;
 }
 
 export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
@@ -28,6 +30,8 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
   submissionStatus,
   currentTeam,
   requestJoker,
+  jokerUsed,
+  jokerRevealedCells,
 }) => {
   const { t } = useTranslation();
 
@@ -48,6 +52,8 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
           toggleIndex={toggleIndex}
           submitAnswer={submitAnswer}
           requestJoker={requestJoker}
+          jokerUsed={jokerUsed}
+          jokerRevealedCells={jokerRevealedCells}
         />
       ) : (
         <div

@@ -12,6 +12,15 @@ import {
   isStringGrid,
 } from "../../../utils/answerGuards";
 
+const emptyGridCache = new Map<string, string[][]>();
+
+const getEmptyCrosswordGrid = (questionId: string, gridTemplate: string[][]): string[][] => {
+  if (!emptyGridCache.has(questionId)) {
+    emptyGridCache.set(questionId, gridTemplate.map((row) => row.map(() => "")));
+  }
+  return emptyGridCache.get(questionId)!;
+};
+
 export interface HydratedPlayerAnswerState {
   answer: AnswerContent | null;
   selectedIndices: number[];
@@ -81,9 +90,7 @@ export const getHydratedPlayerAnswerState = (
       }
       // Preserve grid shape so UI stays stable even when no progress was saved.
       return {
-        answer: (question.content as CrosswordContent).grid.map((row) =>
-          row.map(() => ""),
-        ),
+        answer: getEmptyCrosswordGrid(question.id, (question.content as CrosswordContent).grid),
         selectedIndices: [],
       };
 

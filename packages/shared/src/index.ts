@@ -294,6 +294,8 @@ export interface SocketEvents {
     competitionId: string;
     teamId: string;
     questionId: string;
+    x: number;
+    y: number;
   }) => void;
 
   // Host to Server

@@ -204,6 +204,9 @@
       "true": "True",
       "false": "False",
       "request_joker": "Request Joker",
+      "joker_select_cell": "Click a cell to reveal its letter",
+      "joker_cancel": "Cancel",
+      "joker_used": "Joker Used",
       "explanation": "Explanation"
     },
     "admin": {

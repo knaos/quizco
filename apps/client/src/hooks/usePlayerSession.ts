@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import type {
   AnswerContent,
   Competition,
@@ -13,6 +13,7 @@ import { socket, API_URL } from "../socket";
 import { getHydratedPlayerAnswerState } from "../components/player/utils/playerAnswerSync";
 import { useCorrectTheErrorPartialScore } from "../components/player/questions/correctTheError/useCorrectTheErrorPartialScore";
 import { getQuestionCorrectAnswer } from "../components/player/questionText";
+import { isStringGrid, isStringArray } from "../utils/answerGuards";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
@@ -53,7 +54,9 @@ export interface PlayerSessionResult {
     t: TFunction,
   ) => string;
   getGradingStatus: () => boolean | undefined;
-  requestJoker: () => void;
+  requestJoker: (x: number, y: number) => void;
+  jokerUsed: boolean;
+  jokerRevealedCells: Set<string>;
 }
 
 interface DraftAnswerState {
@@ -87,6 +90,19 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     Boolean(savedTeamId && savedCompetitionId),
   );
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [jokerUsed, setJokerUsed] = useState(false);
+  const [jokerRevealedCells, setJokerRevealedCells] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const previousQuestionIdRef = useRef<string | undefined>(undefined);
+  if (state.currentQuestion?.id !== previousQuestionIdRef.current) {
+    previousQuestionIdRef.current = state.currentQuestion?.id;
+    if (state.currentQuestion?.id) {
+      setJokerUsed(false);
+      setJokerRevealedCells(new Set());
+    }
+  }
 
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
 
@@ -176,6 +192,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   }, [currentQuestionId]);
 
   useEffect(() => {
+    startTransition(() => {
+      setJokerUsed(false);
+      setJokerRevealedCells(new Set());
+    });
+  }, [currentQuestionId]);
+
+  useEffect(() => {
     if (!teamId || state.currentQuestion?.type !== "CROSSWORD") {
       return undefined;
     }
@@ -190,6 +213,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       if (payload.teamId !== teamId || payload.questionId !== state.currentQuestion?.id) {
         return;
       }
+
+      setJokerUsed(true);
+      setJokerRevealedCells((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(`${payload.x},${payload.y}`);
+        return newSet;
+      });
 
       setDraftState((previous) => {
         const currentQuestion = state.currentQuestion;
@@ -222,8 +252,15 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     };
 
     socket.on("JOKER_REVEAL", handleJokerReveal);
+
+    const handleJokerError = (payload: { message: string }) => {
+      console.error("Joker error:", payload.message);
+    };
+    socket.on("JOKER_ERROR", handleJokerError);
+
     return () => {
       socket.off("JOKER_REVEAL", handleJokerReveal);
+      socket.off("JOKER_ERROR", handleJokerError);
     };
   }, [hydratedState.answer, hydratedState.selectedIndices, state.currentQuestion, teamId]);
 
@@ -233,7 +270,13 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     }
 
     const timer = window.setTimeout(() => {
-      if (state.currentQuestion?.type !== "MULTIPLE_CHOICE" && answer !== "" && answer !== null && answer !== undefined) {
+      const hasContent = 
+        (typeof answer === "string" && answer !== "") ||
+        (isStringArray(answer) && answer.length > 0 && answer.some(v => v !== "")) ||
+        (isStringGrid(answer) && answer.some(row => row.some(cell => cell !== "")));
+      
+      const shouldSubmit = state.currentQuestion?.type !== "MULTIPLE_CHOICE" && hasContent;
+      if (shouldSubmit) {
         socket.emit("SUBMIT_ANSWER", {
           competitionId: selectedCompId,
           teamId,
@@ -400,7 +443,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     return currentTeam?.lastAnswerCorrect ?? undefined;
   }, [currentTeam]);
 
-  const requestJoker = useCallback(() => {
+  const requestJoker = useCallback((x: number, y: number) => {
     if (!teamId || !selectedCompId || !state.currentQuestion) {
       return;
     }
@@ -409,6 +452,8 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       competitionId: selectedCompId,
       teamId,
       questionId: state.currentQuestion.id,
+      x,
+      y,
     });
   }, [selectedCompId, state.currentQuestion, teamId]);
 
@@ -438,5 +483,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     getCorrectAnswer: getQuestionCorrectAnswer,
     getGradingStatus,
     requestJoker,
+    jokerUsed,
+    jokerRevealedCells,
   };
 }
