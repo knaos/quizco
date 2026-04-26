@@ -124,7 +124,7 @@ export function useHostDashboard(
       return;
     }
 
-    // Debounce: only fetch if at least 500ms have passed since last fetch
+    // Leading-edge throttle: only fetch if at least 500ms have passed since last fetch
     const now = Date.now();
     if (now - lastAnswerFetchRef.current < 500) {
       return;
@@ -201,6 +201,10 @@ export function useHostDashboard(
       fetchCurrentQuestionAnswers();
     }
   }, [fetchCurrentQuestionAnswers, fetchPendingAnswers, state.phase]);
+
+  useEffect(() => {
+    lastAnswerFetchRef.current = 0;
+  }, [state.currentQuestion?.id]);
 
   useEffect(() => {
     const handleGameStateSync = () => {

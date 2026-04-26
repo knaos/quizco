@@ -17,15 +17,13 @@ import { socket } from "../socket";
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const session = usePlayerSession(state);
-  const [revealedMilestones, setRevealedMilestones] = useState<number[]>(state.revealedMilestones);
+  const [revealedMilestones, setRevealedMilestones] = useState<number[]>(
+    state.revealedMilestones,
+  );
 
-   useEffect(() => {
-     setRevealedMilestones(state.revealedMilestones);
-   }, [state.revealedMilestones]);
-
-   useEffect(() => {
+  useEffect(() => {
      const handleMilestonesRevealed = (payload: { revealedIndices: number[] }) => {
        setRevealedMilestones((prev) => {
          const merged = [...prev];

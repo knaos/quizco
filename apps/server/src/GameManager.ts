@@ -661,14 +661,17 @@ export class GameManager {
 
     const teamId = answer.teamId || answer.team_id;
     const team = session.teams.find((t) => t.id === teamId);
-    if (team) {
-      team.lastAnswerCorrect = correct;
-    }
-
     const questionId = answer.questionId || answer.question_id;
     const question = await this.repository.getQuestion(questionId);
     const points = question?.points || 0;
     const scoreAwarded = correct ? points : 0;
+
+    if (team) {
+      team.lastAnswerCorrect = correct;
+      if (correct) {
+        team.score += points;
+      }
+    }
 
     await this.repository.updateAnswerGrading(answerId, correct, scoreAwarded);
     await this.refreshTeamScores(competitionId);

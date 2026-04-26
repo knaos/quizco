@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   AnswerContent,
   Competition,
@@ -91,32 +91,34 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     Boolean(savedTeamId && savedCompetitionId),
   );
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [jokerUsed, setJokerUsed] = useState(false);
   const [jokerCost, setJokerCost] = useState(0);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  const [jokerUsed, setJokerUsed] = useState<boolean>(false);
   const [jokerRevealedCells, setJokerRevealedCells] = useState<Set<string>>(
     new Set(),
   );
 
   const previousQuestionIdRef = useRef<string | undefined>(undefined);
+
+  const questionChangeKey = `${teamId}-${state.currentQuestion?.id}`;
+
   useEffect(() => {
+    if (
+      previousQuestionIdRef.current !== undefined &&
+      state.currentQuestion?.id !== previousQuestionIdRef.current
+    ) {
+      setJokerUsed(false);
+      setJokerRevealedCells(new Set());
+    }
     if (teamId && state.jokerUsedByTeam?.[teamId] !== undefined) {
       setJokerUsed(state.jokerUsedByTeam[teamId]);
     }
     if (teamId && state.jokerRevealedCellsByTeam?.[teamId]) {
       setJokerRevealedCells(new Set(state.jokerRevealedCellsByTeam[teamId]));
     }
-  }, [teamId, state.jokerUsedByTeam, state.jokerRevealedCellsByTeam]);
-
-  if (state.currentQuestion?.id !== previousQuestionIdRef.current) {
-    previousQuestionIdRef.current = state.currentQuestion?.id;
-    if (state.currentQuestion?.id) {
-      setJokerUsed(false);
-      const questionPoints = (state.currentQuestion.points ?? 0);
-      const cost = questionPoints === 0 ? 0 : 2;
-      setJokerCost(cost);
-      setJokerRevealedCells(new Set());
-    }
-  }
+  }, [questionChangeKey, teamId, state.jokerUsedByTeam, state.jokerRevealedCellsByTeam, state.currentQuestion?.id]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const lastPartialSubmissionKeyRef = useRef<string | null>(null);
 
@@ -206,13 +208,6 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   }, [currentQuestionId]);
 
   useEffect(() => {
-    startTransition(() => {
-      setJokerUsed(false);
-      setJokerRevealedCells(new Set());
-    });
-  }, [currentQuestionId]);
-
-  useEffect(() => {
     if (!teamId || state.currentQuestion?.type !== "CROSSWORD") {
       return undefined;
     }
@@ -286,11 +281,11 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     }
 
     const timer = window.setTimeout(() => {
-      const hasContent = 
+      const hasContent =
         (typeof answer === "string" && answer !== "") ||
         (isStringArray(answer) && answer.length > 0 && answer.some(v => v !== "")) ||
         (isStringGrid(answer) && answer.some(row => row.some(cell => cell !== "")));
-      
+
       const shouldSubmit = state.currentQuestion?.type !== "MULTIPLE_CHOICE" && hasContent;
       if (shouldSubmit) {
         socket.emit("SUBMIT_ANSWER", {
