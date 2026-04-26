@@ -20,6 +20,7 @@ CREATE TABLE "Competition" (
     "host_pin" VARCHAR(50) NOT NULL,
     "status" "CompetitionStatus" NOT NULL DEFAULT 'DRAFT',
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "milestones" JSONB,
 
     CONSTRAINT "Competition_pkey" PRIMARY KEY ("id")
 );

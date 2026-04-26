@@ -45,7 +45,7 @@ export function calculateChronologyScore(
   let score = 0;
   let correctCount = 0;
   let runLength = 1;
-  let runs: number[] = [];
+  const runs: number[] = [];
 
   for (let i = 1; i < placedCount; i++) {
     const prevId = placedIds[i - 1];
