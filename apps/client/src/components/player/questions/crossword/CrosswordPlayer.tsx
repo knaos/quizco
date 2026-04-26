@@ -14,9 +14,12 @@ interface CrosswordPlayerProps {
   onSubmit?: (grid: string[][]) => void;
   readOnly?: boolean;
   testIdPrefix?: string;
-  onRequestJoker?: () => void;
+  onRequestJoker?: (x: number, y: number) => void;
   requestJokerLabel?: string;
   submitLabel?: string;
+  jokerUsed?: boolean;
+  jokerCost?: number;
+  revealedCells?: Set<string>;
 }
 
 /**
@@ -78,7 +81,11 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   onRequestJoker,
   requestJokerLabel,
   submitLabel,
+  jokerUsed = false,
+  jokerCost = 2,
+  revealedCells = new Set<string>(),
 }) => {
+  const [jokerSelectionMode, setJokerSelectionMode] = useState(false);
   const { t } = useTranslation();
 
   // Ref to store input elements for auto-focus
@@ -194,6 +201,11 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   }, []);
 
   const handleChange = (r: number, c: number, val: string) => {
+    const cellKey = `${c},${r}`;
+    if (revealedCells.has(cellKey)) {
+      return;
+    }
+
     const newGrid = [...userGrid.map((row) => [...row])];
     const upperVal = val.toUpperCase();
     newGrid[r][c] = upperVal.substring(0, 1);
@@ -280,7 +292,27 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       const currentVal = userGrid[r]?.[c] || "";
 
       if (currentVal === "" && activeClue && activeClueCells.length > 0) {
-        const prevCell = findPrevCellInClue(r, c, activeClueCells);
+        let prevCell: { r: number; c: number } | null = null;
+        let currentR = r;
+        let currentC = c;
+
+        // Find previous non-revealed cell by traversing backwards through clue cells
+        while (true) {
+          const result = findPrevCellInClue(currentR, currentC, activeClueCells);
+          if (!result) break;
+
+          // Check if this cell is revealed by a joker
+          const revealedKey = `${result.c},${result.r}`;
+          if (revealedCells.has(revealedKey)) {
+            // Skip this revealed cell and continue looking
+            currentR = result.r;
+            currentC = result.c;
+            continue;
+          }
+
+          prevCell = result;
+          break;
+        }
 
         if (prevCell) {
           const newGrid = [...userGrid];
@@ -306,7 +338,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         }
       }
     }
-  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress, data.grid]);
+  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress, data.grid, revealedCells]);
 
   const handleSubmit = () => {
     if (!readOnly && onSubmit) {
@@ -468,13 +500,37 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   return (
     <div className="space-y-4" data-testid={`${testIdPrefix}-crossword`}>
       {!readOnly && (
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-2">
+          {jokerSelectionMode && (
+            <span className="text-yellow-700 font-medium">{t("game.joker_select_cell")}</span>
+          )}
           <button
-            onClick={onRequestJoker}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2"
+            onClick={() => {
+              if (jokerUsed) return;
+              if (jokerSelectionMode) {
+                setJokerSelectionMode(false);
+              } else {
+                setJokerSelectionMode(true);
+              }
+            }}
+            disabled={jokerUsed}
+            className={`font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2 ${
+              jokerUsed
+                ? "bg-gray-400 cursor-not-allowed text-gray-600"
+                : jokerSelectionMode
+                ? "bg-yellow-600 hover:bg-yellow-700 text-white"
+                : "bg-yellow-500 hover:bg-yellow-600 text-white"
+            }`}
           >
             <span className="text-xl">🃏</span>
-            <span>{requestJokerLabel ?? t("game.request_joker")} (-2pts)</span>
+            <span>
+              {jokerUsed
+                ? t("game.joker_used")
+                : jokerSelectionMode
+                ? t("game.joker_cancel")
+                : requestJokerLabel ?? t("game.request_joker")}
+              {!jokerUsed && (jokerCost === 0 ? ` (${t("game.joker_free")})` : ` (-${t("game.joker_cost", { points: jokerCost })})`)}
+            </span>
           </button>
         </div>
       )}
@@ -491,12 +547,20 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
               const cellKey = `${r}-${c}`;
               const isHighlighted = highlightedCells.includes(cellKey);
               const isEmpty = data.grid[r][c].trim() === "";
+              const revealedCellKey = `${c},${r}`;
+              const isRevealed = revealedCells.has(revealedCellKey);
+              const isJokerSelectable = jokerSelectionMode && !isEmpty && !isRevealed;
               return (
                 <div
                   key={`${r}-${c}`}
                   className={`w-12 h-12 flex items-center justify-center rounded-sm relative ${isHighlighted ? "!bg-blue-200" : "bg-white"
-                    }`}
+                    } ${isJokerSelectable ? "cursor-pointer hover:ring-2 hover:ring-yellow-400" : ""}`}
                   onClick={() => {
+                    if (jokerSelectionMode && !isEmpty && !isRevealed) {
+                      onRequestJoker?.(c, r);
+                      setJokerSelectionMode(false);
+                      return;
+                    }
                     if (activeClue && !activeClueCells.includes(cellKey)) {
                       setActiveClue(null);
                       setActiveClueCells([]);
@@ -514,11 +578,10 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                           {cellNumber}
                         </span>
                       )}
-                      {readOnly ? (
+                      {readOnly || isRevealed ? (
                         <span
                           data-testid={`${testIdPrefix}-crossword-cell-${r}-${c}`}
-                          className={`w-full h-full flex items-center justify-center text-center text-xl font-bold uppercase rounded-sm ${isHighlighted ? "!bg-blue-200" : "bg-transparent"
-                            }`}
+                          className={`w-full h-full flex items-center justify-center text-center text-xl font-bold uppercase rounded-sm ${isHighlighted ? "!bg-blue-200" : "bg-transparent"} ${isRevealed ? "text-green-600 font-bold" : ""}`}
                         >
                           {userGrid[r]?.[c] || ""}
                         </span>

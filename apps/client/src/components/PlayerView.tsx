@@ -12,12 +12,32 @@ import { RevealAnswerPhase } from "./player/phases/RevealAnswerPhase";
 import { ConfirmDialog } from "./ui/ConfirmDialog";
 import { usePlayerSession } from "../hooks/usePlayerSession";
 import { MilestoneProgressBar } from "./player/ui/MilestoneProgressBar";
+import { socket } from "../socket";
 
 export const PlayerView: React.FC = () => {
   const { t } = useTranslation();
   const { state } = useGame();
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const session = usePlayerSession(state);
+  const [revealedMilestones, setRevealedMilestones] = useState<number[]>(
+    state.revealedMilestones,
+  );
+
+  useEffect(() => {
+     const handleMilestonesRevealed = (payload: { revealedIndices: number[] }) => {
+       setRevealedMilestones((prev) => {
+         const merged = [...prev];
+         for (const idx of payload.revealedIndices) {
+           if (!merged.includes(idx)) merged.push(idx);
+         }
+         return merged;
+       });
+     };
+     socket.on("MILESTONES_REVEALED", handleMilestonesRevealed);
+     return () => {
+       socket.off("MILESTONES_REVEALED", handleMilestonesRevealed);
+     };
+   }, []);
 
   useEffect(() => {
     document.title = "BC Player";
@@ -45,8 +65,6 @@ export const PlayerView: React.FC = () => {
       <TeamJoinForm
         teamName={session.identity.teamName}
         setTeamName={session.setTeamName}
-        color={session.identity.color}
-        setColor={session.setColor}
         onSubmit={(event) => {
           event.preventDefault();
           session.joinTeam();
@@ -76,7 +94,7 @@ export const PlayerView: React.FC = () => {
           </div>
           <MilestoneProgressBar
             milestones={state.milestones}
-            revealedMilestones={state.revealedMilestones}
+            revealedMilestones={revealedMilestones}
             totalPoints={totalPoints}
           />
           <div className="flex items-center space-x-4">
@@ -120,6 +138,9 @@ export const PlayerView: React.FC = () => {
               submissionStatus={session.submissionStatus}
               currentTeam={session.currentTeam}
               requestJoker={session.requestJoker}
+              jokerUsed={session.jokerUsed}
+              jokerCost={session.jokerCost}
+              jokerRevealedCells={session.jokerRevealedCells}
             />
           )}
 

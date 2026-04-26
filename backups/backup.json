@@ -1,9 +1,9 @@
 {
-  "e0bf49c6-2870-4a78-ad09-253c19d2aaa6": {
-    "phase": "REVEAL_ANSWER",
+  "8e46da05-c061-4c3c-b714-d89c8a4c970f": {
+    "phase": "QUESTION_PREVIEW",
     "currentQuestion": {
-      "id": "7164d0a1-8adb-49f1-ac52-7a8346783f84",
-      "roundId": "d3d91e99-e4a7-40f0-8abf-66943ae8be49",
+      "id": "9499ec09-2167-479e-9fe3-6c4056113791",
+      "roundId": "bd018c85-ed5c-40a0-9127-d0d680aea231",
       "questionText": "Select 2 correct answers",
       "points": 2,
       "timeLimitSeconds": 30,
@@ -14,47 +14,47 @@
       "type": "MULTIPLE_CHOICE",
       "content": {
         "options": [
-          "A",
+          "B",
           "C",
-          "B"
+          "A"
         ],
         "correctIndices": [
-          0,
-          1
+          1,
+          2
         ]
       }
     },
     "timeRemaining": 30,
     "teams": [
       {
-        "id": "eb578351-d794-45c5-ae9d-67fe273dbe3c",
+        "id": "7e8ec51f-a1a3-49a9-a4af-e8c0b187fb03",
         "name": "Streak Team 6",
-        "color": "#FF0000",
-        "score": 2,
-        "streak": 13,
-        "lastAnswerCorrect": true,
-        "lastAnswer": [
-          0,
-          1
-        ],
-        "isExplicitlySubmitted": true,
+        "color": "#E53935",
+        "score": 0,
+        "streak": 12,
+        "lastAnswerCorrect": null,
+        "lastAnswer": null,
+        "isExplicitlySubmitted": false,
         "isConnected": true
       }
     ],
     "revealStep": 0,
     "timerPaused": false,
     "metadata": {
-      "shuffle_7164d0a1-8adb-49f1-ac52-7a8346783f84": {
+      "shuffle_9499ec09-2167-479e-9fe3-6c4056113791": {
         "options": [
-          "A",
+          "B",
           "C",
-          "B"
+          "A"
         ],
         "correctIndices": [
-          0,
-          1
+          1,
+          2
         ]
       }
-    }
+    },
+    "milestones": [],
+    "revealedMilestones": [],
+    "usedColors": {}
   }
 }

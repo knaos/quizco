@@ -17,8 +17,17 @@ import { StatePersistenceService } from "./services/StatePersistenceService";
 import { TimerService } from "./services/TimerService";
 import { ILogger } from "./utils/Logger";
 
+const TEAM_COLORS = [
+  "#E53935", "#D81B60", "#8E24AA", "#5E35B1",
+  "#3949AB", "#1E88E5", "#039BE5", "#00ACC1",
+  "#00897B", "#43A047", "#7CB342", "#C0CA33",
+  "#FDD835", "#FFB300", "#FB8C00", "#F4511E",
+  "#6D4C41", "#757575", "#546E7A", "#283593",
+  "#00695C", "#AD1457", "#4527A0", "#1565C0",
+];
+
 export class GameManager {
-  private sessions: Map<string, GameState & { metadata?: SessionMetadata }> = new Map();
+  private sessions: Map<string, GameState & { metadata?: SessionMetadata; usedColors?: Set<string> }> = new Map();
   private gradingService: GradingService;
   private persistenceService: StatePersistenceService;
 
@@ -35,9 +44,6 @@ export class GameManager {
     this.logger.info("Initializing GameManager...");
     this.sessions = await this.persistenceService.loadState();
     this.logger.info(`Loaded ${this.sessions.size} sessions from persistence.`);
-    for (const competitionId of this.sessions.keys()) {
-      await this.loadMilestones(competitionId);
-    }
   }
 
   private async saveState() {
@@ -65,6 +71,10 @@ export class GameManager {
         metadata: {},
         milestones: [],
         revealedMilestones: [],
+        usedColors: new Set<string>(),
+      });
+      this.loadMilestones(competitionId).catch((err) => {
+        this.logger.error("Failed to load milestones", err);
       });
     }
     const session = this.sessions.get(competitionId)!;
@@ -100,13 +110,29 @@ export class GameManager {
   }
 
   public getState(competitionId: string): GameState {
-    return this.getOrCreateSession(competitionId);
+    const session = this.getOrCreateSession(competitionId);
+    const jokerUsedByTeam: Record<string, boolean> = {};
+    const jokerRevealedCellsByTeam: Record<string, string[]> = {};
+
+    const usedJokers = session.metadata?.usedJokers || [];
+    const revealedCells = session.metadata?.revealedCells || {};
+
+    for (const team of session.teams) {
+      jokerUsedByTeam[team.id] = usedJokers.includes(team.id);
+      jokerRevealedCellsByTeam[team.id] = revealedCells[team.id] || [];
+    }
+
+    return {
+      ...session,
+      jokerUsedByTeam,
+      jokerRevealedCellsByTeam,
+    };
   }
 
   public async addTeam(
     competitionId: string,
     name: string,
-    color: string,
+    _color: string,
   ): Promise<Team> {
     this.logger.info(`Adding team ${name} to competition ${competitionId}`);
     const session = this.getOrCreateSession(competitionId);
@@ -117,10 +143,12 @@ export class GameManager {
       return existingTeam;
     }
 
+    const assignedColor = this.getNextAvailableColor(session);
+
     const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
       name,
-      color,
+      assignedColor,
     );
 
     // Double check by ID as well to prevent memory duplicates
@@ -138,6 +166,25 @@ export class GameManager {
     this.logger.info(`Team ${name} added to competition ${competitionId}`);
     await this.saveState();
     return teamWithStatus;
+  }
+
+  private getNextAvailableColor(
+    session: GameState & { metadata?: SessionMetadata; usedColors?: Set<string> },
+  ): string {
+    let usedColors = session.usedColors;
+    if (!usedColors || !(usedColors instanceof Set)) {
+      usedColors = new Set<string>();
+      session.usedColors = usedColors;
+    }
+    for (const color of TEAM_COLORS) {
+      if (!usedColors.has(color)) {
+        usedColors.add(color);
+        session.usedColors = usedColors;
+        return color;
+      }
+    }
+    const index = session.teams.length % TEAM_COLORS.length;
+    return TEAM_COLORS[index];
   }
 
   public async startQuestion(competitionId: string, questionId: string) {
@@ -393,7 +440,7 @@ export class GameManager {
         );
 
         team.lastAnswerCorrect = isCorrect;
-        team.score = await this.repository.getTeamScore(competitionId, team.id);
+        team.score += scoreAwarded;
         this.logger.info(
           `Team ${team.name} graded: ${isCorrect ? "CORRECT" : "INCORRECT"}, score: ${scoreAwarded}`,
         );
@@ -499,7 +546,10 @@ export class GameManager {
     competitionId: string,
     teamId: string,
     questionId: string,
+    x: number,
+    y: number,
     io: any,
+    teamSocketId?: string,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
@@ -509,9 +559,12 @@ export class GameManager {
     const team = session.teams.find((t) => t.id === teamId);
     if (!team) return;
 
-    // Rule: Joker costs 2 points
-    if (team.score < 2) {
-      io.to(competitionId).emit("JOKER_ERROR", {
+    // Joker cost: free for 0-point questions, otherwise 2 points (capped by available score)
+    const questionPoints = session.currentQuestion.points || 0;
+    const jokerCost = questionPoints === 0 ? 0 : 2;
+
+    if (team.score < jokerCost) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
         message: "Not enough points for a joker",
       });
       return;
@@ -522,6 +575,35 @@ export class GameManager {
 
     // Ensure metadata for this question's jokers exists
     session.metadata = session.metadata || {};
+    if (!session.metadata.usedJokers) {
+      session.metadata.usedJokers = [];
+    }
+    if (session.metadata.usedJokers.includes(teamId)) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
+        message: "Joker already used for this question",
+      });
+      return;
+    }
+
+    // Validate the selected cell
+    if (
+      y < 0 ||
+      y >= grid.length ||
+      x < 0 ||
+      x >= grid[y].length ||
+      !grid[y][x] ||
+      grid[y][x].trim() === ""
+    ) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
+        message: "Invalid cell selection",
+      });
+      return;
+    }
+
+    const selectedCellChar = grid[y][x];
+    const coord = `${x},${y}`;
+
+    // Initialize revealedCells if not exists
     if (!session.metadata.revealedCells) {
       session.metadata.revealedCells = {};
     }
@@ -529,51 +611,41 @@ export class GameManager {
       session.metadata.revealedCells[teamId] = [];
     }
 
-    const teamRevealed = session.metadata.revealedCells[teamId];
-
-    // Find all valid cells that haven't been revealed to this team yet
-    const availableCells: { x: number; y: number; char: string }[] = [];
-    for (let y = 0; y < grid.length; y++) {
-      for (let x = 0; x < grid[y].length; x++) {
-        const char = grid[y][x];
-        if (char && char !== "") {
-          const coord = `${x},${y}`;
-          if (!teamRevealed.includes(coord)) {
-            availableCells.push({ x, y, char });
-          }
-        }
-      }
-    }
-
-    if (availableCells.length === 0) {
-      io.to(competitionId).emit("JOKER_ERROR", {
-        message: "All cells already revealed",
+    // Check if this cell was already revealed
+    if (session.metadata.revealedCells[teamId].includes(coord)) {
+      io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
+        message: "Cell already revealed",
       });
       return;
     }
 
-    const randomCell =
-      availableCells[Math.floor(Math.random() * availableCells.length)];
-
-    team.score -= 2;
-    teamRevealed.push(`${randomCell.x},${randomCell.y}`);
-
-    if (!session.metadata.usedJokers) session.metadata.usedJokers = [];
+    team.score -= jokerCost;
+    session.metadata.revealedCells[teamId].push(coord);
     session.metadata.usedJokers.push(teamId);
 
     // Update score in DB
     await this.repository.updateTeamScore(teamId, team.score);
 
-    io.to(competitionId).emit("JOKER_REVEAL", {
-      questionId,
-      teamId,
-      letter: randomCell.char,
-      x: randomCell.x,
-      y: randomCell.y,
-      newScore: team.score,
-    });
+    if (teamSocketId) {
+      const targetSocket = io.sockets.sockets.get(teamSocketId);
+      if (targetSocket) {
+        targetSocket.emit("JOKER_REVEAL", {
+          questionId,
+          teamId,
+          letter: selectedCellChar,
+          x,
+          y,
+          newScore: team.score,
+          cost: jokerCost,
+        });
+      } else {
+        this.logger.warn(`JOKER_REVEAL: socket not found for team ${teamId}`);
+      }
+    } else {
+      this.logger.warn(`JOKER_REVEAL: no socket id provided for team ${teamId}`);
+    }
 
-    io.to(competitionId).emit("SCORE_UPDATE", session.teams);
+    io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", session.teams);
     await this.saveState();
   }
 
@@ -589,14 +661,17 @@ export class GameManager {
 
     const teamId = answer.teamId || answer.team_id;
     const team = session.teams.find((t) => t.id === teamId);
-    if (team) {
-      team.lastAnswerCorrect = correct;
-    }
-
     const questionId = answer.questionId || answer.question_id;
     const question = await this.repository.getQuestion(questionId);
     const points = question?.points || 0;
     const scoreAwarded = correct ? points : 0;
+
+    if (team) {
+      team.lastAnswerCorrect = correct;
+      if (correct) {
+        team.score += points;
+      }
+    }
 
     await this.repository.updateAnswerGrading(answerId, correct, scoreAwarded);
     await this.refreshTeamScores(competitionId);
@@ -604,10 +679,9 @@ export class GameManager {
   }
 
   public async refreshTeamScores(competitionId: string) {
-    const session = this.getOrCreateSession(competitionId);
-    for (const team of session.teams) {
-      team.score = await this.repository.getTeamScore(competitionId, team.id);
-    }
+    // Note: We don't reload from DB because scores include in-memory adjustments
+    // (like joker penalties) that aren't stored in the DB.
+    // The scores are kept in sync via saveState() and socket events.
   }
 
   public async setPhase(competitionId: string, phase: GamePhase) {
@@ -753,10 +827,9 @@ export class GameManager {
   }
 
   public async loadMilestones(competitionId: string) {
-    const session = this.sessions.get(competitionId);
-    if (!session) return;
-    if (session.milestones.length > 0) return;
-    session.milestones = await this.repository.getCompetitionMilestones(competitionId);
+    const session = this.getOrCreateSession(competitionId);
+    const milestones = await this.repository.getCompetitionMilestones(competitionId);
+    session.milestones = milestones;
     await this.saveState();
   }
 

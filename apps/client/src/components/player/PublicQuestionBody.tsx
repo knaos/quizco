@@ -17,7 +17,10 @@ interface InteractivePublicQuestionBodyProps {
   setAnswer: (value: AnswerContent) => void;
   toggleIndex: (index: number) => void;
   submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
-  requestJoker?: () => void;
+  requestJoker?: (x: number, y: number) => void;
+  jokerUsed?: boolean;
+  jokerCost?: number;
+  jokerRevealedCells?: Set<string>;
   testIdPrefix?: string;
 }
 
@@ -87,6 +90,9 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
             toggleIndex: props.toggleIndex,
             submitAnswer: props.submitAnswer,
             requestJoker: props.requestJoker,
+            jokerUsed: props.jokerUsed,
+            jokerCost: props.jokerCost,
+            jokerRevealedCells: props.jokerRevealedCells,
             testIdPrefix,
             t,
           })

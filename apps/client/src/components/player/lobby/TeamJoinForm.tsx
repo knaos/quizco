@@ -9,8 +9,6 @@ import { LanguageSwitcher } from "../../LanguageSwitcher";
 interface TeamJoinFormProps {
   teamName: string;
   setTeamName: (name: string) => void;
-  color: string;
-  setColor: (color: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
   error?: string;
@@ -19,8 +17,6 @@ interface TeamJoinFormProps {
 export const TeamJoinForm: React.FC<TeamJoinFormProps> = ({
   teamName,
   setTeamName,
-  color,
-  setColor,
   onSubmit,
   onBack,
   error,
@@ -61,18 +57,6 @@ export const TeamJoinForm: React.FC<TeamJoinFormProps> = ({
             required
             error={error}
           />
-          <div>
-            <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider ml-1 mb-1.5">
-              {t("player.pick_color")}
-            </label>
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              data-testid="team-color-input"
-              className="w-full h-12 rounded-xl cursor-pointer bg-gray-50 border-2 border-gray-100 p-1"
-            />
-          </div>
           <Button
             type="submit"
             size="xl"

@@ -1062,9 +1062,10 @@ describe("GameManager Integration", () => {
       inMemoryTeam!.streak = 6;
 
       await gameManager.startQuestion(comp.id, question.id);
-      
-      // Get the shuffled correct index from the session question content
-      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+
+      // Get fresh state after starting question
+      const updatedState = gameManager.getState(comp.id);
+      const mcContent = updatedState.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const correctIndex = mcContent.correctIndices[0];
 
       await gameManager.startTimer(comp.id, 30, () => {});
@@ -1109,7 +1110,8 @@ describe("GameManager Integration", () => {
       inMemoryTeam!.streak = 6;
 
       await gameManager.startQuestion(comp.id, question.id);
-      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const updatedState = gameManager.getState(comp.id);
+      const mcContent = updatedState.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const correctIndex = mcContent.correctIndices[0];
 
       await gameManager.startTimer(comp.id, 30, () => {});
@@ -1154,7 +1156,8 @@ describe("GameManager Integration", () => {
       inMemoryTeam!.streak = 9;
 
       await gameManager.startQuestion(comp.id, question.id);
-      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const updatedState = gameManager.getState(comp.id);
+      const mcContent = updatedState.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const correctIndex = mcContent.correctIndices[0];
 
       await gameManager.startTimer(comp.id, 30, () => {});
@@ -1199,7 +1202,8 @@ describe("GameManager Integration", () => {
       inMemoryTeam!.streak = 12;
 
       await gameManager.startQuestion(comp.id, question.id);
-      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const updatedState = gameManager.getState(comp.id);
+      const mcContent = updatedState.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const correctIndex = mcContent.correctIndices[0];
 
       await gameManager.startTimer(comp.id, 30, () => {});
@@ -1286,7 +1290,8 @@ describe("GameManager Integration", () => {
       inMemoryTeam!.streak = 12;
 
       await gameManager.startQuestion(comp.id, question.id);
-      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const updatedState = gameManager.getState(comp.id);
+      const mcContent = updatedState.currentQuestion!.content as { options: string[]; correctIndices: number[] };
       const correctIndex = mcContent.correctIndices[0];
 
       await gameManager.startTimer(comp.id, 30, () => {});
@@ -1331,7 +1336,8 @@ describe("GameManager Integration", () => {
       inMemoryTeam!.streak = 12;
 
       await gameManager.startQuestion(comp.id, question.id);
-      const mcContent = state.currentQuestion!.content as { options: string[]; correctIndices: number[] };
+      const freshState = gameManager.getState(comp.id);
+      const mcContent = freshState.currentQuestion!.content as { options: string[]; correctIndices: number[] };
 
       await gameManager.startTimer(comp.id, 30, () => {});
       await gameManager.submitAnswer(comp.id, team.id, question.id, mcContent.correctIndices, true);
