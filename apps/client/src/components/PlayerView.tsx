@@ -67,8 +67,6 @@ export const PlayerView: React.FC = () => {
       <TeamJoinForm
         teamName={session.identity.teamName}
         setTeamName={session.setTeamName}
-        color={session.identity.color}
-        setColor={session.setColor}
         onSubmit={(event) => {
           event.preventDefault();
           session.joinTeam();

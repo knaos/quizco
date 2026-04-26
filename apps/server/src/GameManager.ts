@@ -17,8 +17,17 @@ import { StatePersistenceService } from "./services/StatePersistenceService";
 import { TimerService } from "./services/TimerService";
 import { ILogger } from "./utils/Logger";
 
+const TEAM_COLORS = [
+  "#E53935", "#D81B60", "#8E24AA", "#5E35B1",
+  "#3949AB", "#1E88E5", "#039BE5", "#00ACC1",
+  "#00897B", "#43A047", "#7CB342", "#C0CA33",
+  "#FDD835", "#FFB300", "#FB8C00", "#F4511E",
+  "#6D4C41", "#757575", "#546E7A", "#283593",
+  "#00695C", "#AD1457", "#4527A0", "#1565C0",
+];
+
 export class GameManager {
-  private sessions: Map<string, GameState & { metadata?: SessionMetadata }> = new Map();
+  private sessions: Map<string, GameState & { metadata?: SessionMetadata; usedColors?: Set<string> }> = new Map();
   private gradingService: GradingService;
   private persistenceService: StatePersistenceService;
 
@@ -35,7 +44,7 @@ export class GameManager {
     this.logger.info("Initializing GameManager...");
     this.sessions = await this.persistenceService.loadState();
     this.logger.info(`Loaded ${this.sessions.size} sessions from persistence.`);
- }
+  }
 
   private async saveState() {
     try {
@@ -62,6 +71,7 @@ export class GameManager {
         metadata: {},
         milestones: [],
         revealedMilestones: [],
+        usedColors: new Set<string>(),
       });
       this.loadMilestones(competitionId).catch((err) => {
         this.logger.error("Failed to load milestones", err);
@@ -103,15 +113,15 @@ export class GameManager {
     const session = this.getOrCreateSession(competitionId);
     const jokerUsedByTeam: Record<string, boolean> = {};
     const jokerRevealedCellsByTeam: Record<string, string[]> = {};
-    
+
     const usedJokers = session.metadata?.usedJokers || [];
     const revealedCells = session.metadata?.revealedCells || {};
-    
+
     for (const team of session.teams) {
       jokerUsedByTeam[team.id] = usedJokers.includes(team.id);
       jokerRevealedCellsByTeam[team.id] = revealedCells[team.id] || [];
     }
-    
+
     return {
       ...session,
       jokerUsedByTeam,
@@ -122,7 +132,7 @@ export class GameManager {
   public async addTeam(
     competitionId: string,
     name: string,
-    color: string,
+    _color: string,
   ): Promise<Team> {
     this.logger.info(`Adding team ${name} to competition ${competitionId}`);
     const session = this.getOrCreateSession(competitionId);
@@ -133,10 +143,12 @@ export class GameManager {
       return existingTeam;
     }
 
+    const assignedColor = this.getNextAvailableColor(session);
+
     const newTeam = await this.repository.getOrCreateTeam(
       competitionId,
       name,
-      color,
+      assignedColor,
     );
 
     // Double check by ID as well to prevent memory duplicates
@@ -154,6 +166,21 @@ export class GameManager {
     this.logger.info(`Team ${name} added to competition ${competitionId}`);
     await this.saveState();
     return teamWithStatus;
+  }
+
+  private getNextAvailableColor(
+    session: GameState & { metadata?: SessionMetadata; usedColors?: Set<string> },
+  ): string {
+    const usedColors = session.usedColors || new Set<string>();
+    for (const color of TEAM_COLORS) {
+      if (!usedColors.has(color)) {
+        usedColors.add(color);
+        session.usedColors = usedColors;
+        return color;
+      }
+    }
+    const index = session.teams.length % TEAM_COLORS.length;
+    return TEAM_COLORS[index];
   }
 
   public async startQuestion(competitionId: string, questionId: string) {

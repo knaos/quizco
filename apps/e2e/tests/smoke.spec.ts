@@ -47,7 +47,6 @@ test.describe("Quizco smoke flows", () => {
 
     await expect(page.getByTestId("join-team-form")).toBeVisible();
     await expect(page.getByTestId("team-name-input")).toBeVisible();
-    await expect(page.getByTestId("team-color-input")).toBeVisible();
     await expect(page.getByTestId("join-team-submit")).toBeVisible();
   });
 });
