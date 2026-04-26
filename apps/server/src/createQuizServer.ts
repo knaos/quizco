@@ -381,6 +381,7 @@ onSafe(
             x,
             y,
             io,
+            socket.id,
           );
         } catch (err) {
           console.error("Error handling joker reveal:", err);

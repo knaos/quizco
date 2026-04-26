@@ -171,7 +171,11 @@ export class GameManager {
   private getNextAvailableColor(
     session: GameState & { metadata?: SessionMetadata; usedColors?: Set<string> },
   ): string {
-    const usedColors = session.usedColors || new Set<string>();
+    let usedColors = session.usedColors;
+    if (!usedColors || !(usedColors instanceof Set)) {
+      usedColors = new Set<string>();
+      session.usedColors = usedColors;
+    }
     for (const color of TEAM_COLORS) {
       if (!usedColors.has(color)) {
         usedColors.add(color);
@@ -545,6 +549,7 @@ export class GameManager {
     x: number,
     y: number,
     io: any,
+    teamSocketId?: string,
   ) {
     const session = this.getOrCreateSession(competitionId);
     if (session.phase !== "QUESTION_ACTIVE") return;
@@ -621,15 +626,24 @@ export class GameManager {
     // Update score in DB
     await this.repository.updateTeamScore(teamId, team.score);
 
-    io.to(`competition_${competitionId}`).emit("JOKER_REVEAL", {
-      questionId,
-      teamId,
-      letter: selectedCellChar,
-      x,
-      y,
-      newScore: team.score,
-      cost: jokerCost,
-    });
+    if (teamSocketId) {
+      const targetSocket = io.sockets.sockets.get(teamSocketId);
+      if (targetSocket) {
+        targetSocket.emit("JOKER_REVEAL", {
+          questionId,
+          teamId,
+          letter: selectedCellChar,
+          x,
+          y,
+          newScore: team.score,
+          cost: jokerCost,
+        });
+      } else {
+        this.logger.warn(`JOKER_REVEAL: socket not found for team ${teamId}`);
+      }
+    } else {
+      this.logger.warn(`JOKER_REVEAL: no socket id provided for team ${teamId}`);
+    }
 
     io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", session.teams);
     await this.saveState();
