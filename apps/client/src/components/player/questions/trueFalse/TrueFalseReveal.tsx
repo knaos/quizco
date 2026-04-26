@@ -24,7 +24,7 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
         </div>
         {content.explanation && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-800">
-            <span className="text-xs font-bold uppercase text-blue-600 block mb-1">
+            <span className="text-base font-bold uppercase text-blue-600 block mb-1">
               {t("game.explanation")}
             </span>
             <p className="text-lg">{content.explanation}</p>
@@ -87,7 +87,7 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
       </div>
       {content.explanation && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-800">
-          <span className="text-xs font-bold uppercase text-blue-600 block mb-1">
+          <span className="text-base font-bold uppercase text-blue-600 block mb-1">
             {t("game.explanation")}
           </span>
           <p className="text-lg">{content.explanation}</p>

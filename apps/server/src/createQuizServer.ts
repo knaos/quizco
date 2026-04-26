@@ -286,8 +286,6 @@ export function createQuizServer(
         const room = `competition_${competitionId}`;
         socket.join(room);
 
-        await gameManager.loadMilestones(competitionId);
-
         const state = gameManager.getState(competitionId);
         socket.emit("GAME_STATE_SYNC", state);
         io.to(room).emit("SCORE_UPDATE", state.teams);
@@ -313,8 +311,6 @@ onSafe(
 
           const room = `competition_${competitionId}`;
           socket.join(room);
-
-          await gameManager.loadMilestones(competitionId);
 
           const state = gameManager.getState(competitionId);
           socket.emit("GAME_STATE_SYNC", state);

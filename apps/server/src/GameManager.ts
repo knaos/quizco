@@ -35,6 +35,9 @@ export class GameManager {
     this.logger.info("Initializing GameManager...");
     this.sessions = await this.persistenceService.loadState();
     this.logger.info(`Loaded ${this.sessions.size} sessions from persistence.`);
+    for (const competitionId of this.sessions.keys()) {
+      await this.loadMilestones(competitionId);
+    }
   }
 
   private async saveState() {
@@ -750,9 +753,10 @@ export class GameManager {
   }
 
   public async loadMilestones(competitionId: string) {
-    const session = this.getOrCreateSession(competitionId);
-    const milestones = await this.repository.getCompetitionMilestones(competitionId);
-    session.milestones = milestones;
+    const session = this.sessions.get(competitionId);
+    if (!session) return;
+    if (session.milestones.length > 0) return;
+    session.milestones = await this.repository.getCompetitionMilestones(competitionId);
     await this.saveState();
   }
 
