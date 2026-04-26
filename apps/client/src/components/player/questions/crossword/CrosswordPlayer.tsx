@@ -292,7 +292,27 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
       const currentVal = userGrid[r]?.[c] || "";
 
       if (currentVal === "" && activeClue && activeClueCells.length > 0) {
-        const prevCell = findPrevCellInClue(r, c, activeClueCells);
+        let prevCell: { r: number; c: number } | null = null;
+        let currentR = r;
+        let currentC = c;
+
+        // Find previous non-revealed cell by traversing backwards through clue cells
+        while (true) {
+          const result = findPrevCellInClue(currentR, currentC, activeClueCells);
+          if (!result) break;
+
+          // Check if this cell is revealed by a joker
+          const revealedKey = `${result.c},${result.r}`;
+          if (revealedCells.has(revealedKey)) {
+            // Skip this revealed cell and continue looking
+            currentR = result.r;
+            currentC = result.c;
+            continue;
+          }
+
+          prevCell = result;
+          break;
+        }
 
         if (prevCell) {
           const newGrid = [...userGrid];
@@ -318,7 +338,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
         }
       }
     }
-  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress, data.grid]);
+  }, [userGrid, activeClue, activeClueCells, findPrevCellInClue, onChange, onProgress, data.grid, revealedCells]);
 
   const handleSubmit = () => {
     if (!readOnly && onSubmit) {
