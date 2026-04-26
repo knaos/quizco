@@ -263,6 +263,8 @@ export interface GameState {
   timerPaused: boolean;
   milestones: Milestone[];
   revealedMilestones: number[];
+  jokerUsedByTeam?: Record<string, boolean>;
+  jokerRevealedCellsByTeam?: Record<string, string[]>;
 }
 
 export interface SessionMetadata {
@@ -325,6 +327,7 @@ export interface SocketEvents {
     x: number;
     y: number;
     newScore: number;
+    cost: number;
   }) => void;
   JOKER_ERROR: (payload: { message: string }) => void;
   MILESTONES_REVEALED: (payload: { revealedIndices: number[]; totalPoints: number }) => void;

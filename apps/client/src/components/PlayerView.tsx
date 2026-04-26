@@ -143,6 +143,7 @@ export const PlayerView: React.FC = () => {
               currentTeam={session.currentTeam}
               requestJoker={session.requestJoker}
               jokerUsed={session.jokerUsed}
+              jokerCost={session.jokerCost}
               jokerRevealedCells={session.jokerRevealedCells}
             />
           )}

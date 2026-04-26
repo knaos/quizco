@@ -165,7 +165,7 @@ export async function seedRound4(competitionId: string): Promise<void> {
                 y: 0,
                 direction: "down",
                 clue: "Сродникът-изкупител на Рут.",
-                answer: "вооз",
+                answer: "аман",
               },
               {
                 number: 3,
@@ -173,7 +173,7 @@ export async function seedRound4(competitionId: string): Promise<void> {
                 y: 2,
                 direction: "down",
                 clue: "Героят от книгата Естир, чието име говори за това колко е неприятен",
-                answer: "аман",
+                answer: "вооз",
               },
             ],
           },

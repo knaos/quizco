@@ -18,6 +18,7 @@ interface CrosswordPlayerProps {
   requestJokerLabel?: string;
   submitLabel?: string;
   jokerUsed?: boolean;
+  jokerCost?: number;
   revealedCells?: Set<string>;
 }
 
@@ -81,6 +82,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
   requestJokerLabel,
   submitLabel,
   jokerUsed = false,
+  jokerCost = 2,
   revealedCells = new Set<string>(),
 }) => {
   const [jokerSelectionMode, setJokerSelectionMode] = useState(false);
@@ -507,7 +509,7 @@ export const CrosswordPlayer: React.FC<CrosswordPlayerProps> = ({
                 : jokerSelectionMode
                 ? t("game.joker_cancel")
                 : requestJokerLabel ?? t("game.request_joker")}
-              {!jokerUsed && " (-2pts)"}
+              {!jokerUsed && (jokerCost === 0 ? ` (${t("game.joker_free")})` : ` (-${t("game.joker_cost", { points: jokerCost })})`)}
             </span>
           </button>
         </div>

@@ -56,6 +56,7 @@ export interface PlayerSessionResult {
   getGradingStatus: () => boolean | undefined;
   requestJoker: (x: number, y: number) => void;
   jokerUsed: boolean;
+  jokerCost: number;
   jokerRevealedCells: Set<string>;
 }
 
@@ -91,15 +92,28 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   );
   const [loginError, setLoginError] = useState<string | null>(null);
   const [jokerUsed, setJokerUsed] = useState(false);
+  const [jokerCost, setJokerCost] = useState(0);
   const [jokerRevealedCells, setJokerRevealedCells] = useState<Set<string>>(
     new Set(),
   );
 
   const previousQuestionIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (teamId && state.jokerUsedByTeam?.[teamId] !== undefined) {
+      setJokerUsed(state.jokerUsedByTeam[teamId]);
+    }
+    if (teamId && state.jokerRevealedCellsByTeam?.[teamId]) {
+      setJokerRevealedCells(new Set(state.jokerRevealedCellsByTeam[teamId]));
+    }
+  }, [teamId, state.jokerUsedByTeam, state.jokerRevealedCellsByTeam]);
+
   if (state.currentQuestion?.id !== previousQuestionIdRef.current) {
     previousQuestionIdRef.current = state.currentQuestion?.id;
     if (state.currentQuestion?.id) {
       setJokerUsed(false);
+      const questionPoints = (state.currentQuestion.points ?? 0);
+      const cost = questionPoints === 0 ? 0 : 2;
+      setJokerCost(cost);
       setJokerRevealedCells(new Set());
     }
   }
@@ -209,12 +223,14 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
       letter: string;
       x: number;
       y: number;
+      cost: number;
     }) => {
       if (payload.teamId !== teamId || payload.questionId !== state.currentQuestion?.id) {
         return;
       }
 
       setJokerUsed(true);
+      setJokerCost(payload.cost);
       setJokerRevealedCells((prev) => {
         const newSet = new Set(prev);
         newSet.add(`${payload.x},${payload.y}`);
@@ -484,6 +500,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     getGradingStatus,
     requestJoker,
     jokerUsed,
+    jokerCost,
     jokerRevealedCells,
   };
 }

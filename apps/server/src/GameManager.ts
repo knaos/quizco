@@ -100,7 +100,23 @@ export class GameManager {
   }
 
   public getState(competitionId: string): GameState {
-    return this.getOrCreateSession(competitionId);
+    const session = this.getOrCreateSession(competitionId);
+    const jokerUsedByTeam: Record<string, boolean> = {};
+    const jokerRevealedCellsByTeam: Record<string, string[]> = {};
+    
+    const usedJokers = session.metadata?.usedJokers || [];
+    const revealedCells = session.metadata?.revealedCells || {};
+    
+    for (const team of session.teams) {
+      jokerUsedByTeam[team.id] = usedJokers.includes(team.id);
+      jokerRevealedCellsByTeam[team.id] = revealedCells[team.id] || [];
+    }
+    
+    return {
+      ...session,
+      jokerUsedByTeam,
+      jokerRevealedCellsByTeam,
+    };
   }
 
   public async addTeam(
@@ -393,7 +409,7 @@ export class GameManager {
         );
 
         team.lastAnswerCorrect = isCorrect;
-        team.score = await this.repository.getTeamScore(competitionId, team.id);
+        team.score += scoreAwarded;
         this.logger.info(
           `Team ${team.name} graded: ${isCorrect ? "CORRECT" : "INCORRECT"}, score: ${scoreAwarded}`,
         );
@@ -511,8 +527,11 @@ export class GameManager {
     const team = session.teams.find((t) => t.id === teamId);
     if (!team) return;
 
-    // Rule: Joker costs 2 points
-    if (team.score < 2) {
+    // Joker cost: free for 0-point questions, otherwise 2 points (capped by available score)
+    const questionPoints = session.currentQuestion.points || 0;
+    const jokerCost = questionPoints === 0 ? 0 : 2;
+
+    if (team.score < jokerCost) {
       io.to(`competition_${competitionId}`).emit("JOKER_ERROR", {
         message: "Not enough points for a joker",
       });
@@ -568,7 +587,7 @@ export class GameManager {
       return;
     }
 
-    team.score -= 2;
+    team.score -= jokerCost;
     session.metadata.revealedCells[teamId].push(coord);
     session.metadata.usedJokers.push(teamId);
 
@@ -582,6 +601,7 @@ export class GameManager {
       x,
       y,
       newScore: team.score,
+      cost: jokerCost,
     });
 
     io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", session.teams);
@@ -615,10 +635,9 @@ export class GameManager {
   }
 
   public async refreshTeamScores(competitionId: string) {
-    const session = this.getOrCreateSession(competitionId);
-    for (const team of session.teams) {
-      team.score = await this.repository.getTeamScore(competitionId, team.id);
-    }
+    // Note: We don't reload from DB because scores include in-memory adjustments
+    // (like joker penalties) that aren't stored in the DB.
+    // The scores are kept in sync via saveState() and socket events.
   }
 
   public async setPhase(competitionId: string, phase: GamePhase) {
