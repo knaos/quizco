@@ -40,7 +40,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   const { t } = useTranslation();
   const { currentQuestion } = props.state;
   const testIdPrefix = props.testIdPrefix ?? "player";
-  const exampleQuestion = currentQuestion?.index === 0;
+  const exampleQuestion = currentQuestion?.points === 0;
   const questionLabel =
     typeof currentQuestion?.index === "number"
       ? currentQuestion.section

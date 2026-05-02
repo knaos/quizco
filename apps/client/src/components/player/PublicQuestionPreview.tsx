@@ -16,7 +16,7 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
   testIdPrefix = "player",
 }) => {
   const { t } = useTranslation();
-  const exampleQuestion = state.currentQuestion?.index === 0;
+  const exampleQuestion = state.currentQuestion?.points === 0;
   const questionLabel =
     typeof state.currentQuestion?.index === "number"
       ? state.currentQuestion.section
