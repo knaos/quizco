@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   AnswerContent,
+  ChronologyAnswer,
   Competition,
   CorrectTheErrorAnswer,
   CorrectTheErrorContent,
   GameState,
   MultipleChoiceContent,
+  Question,
   Team,
 } from "@quizco/shared";
 import type { TFunction } from "i18next";
@@ -13,11 +15,92 @@ import { socket, API_URL } from "../socket";
 import { getHydratedPlayerAnswerState } from "../components/player/utils/playerAnswerSync";
 import { useCorrectTheErrorPartialScore } from "../components/player/questions/correctTheError/useCorrectTheErrorPartialScore";
 import { getQuestionCorrectAnswer } from "../components/player/questionText";
+import {
+  isChronologyAnswer,
+  isCorrectTheErrorAnswer,
+  isNumberArray,
+  isRecordOfStringValues,
+  isStringArray,
+  isStringGrid,
+} from "../utils/answerGuards";
 
 const TEAM_ID_KEY = "quizco_team_id";
 const TEAM_NAME_KEY = "quizco_team_name";
 const TEAM_COLOR_KEY = "quizco_team_color";
 const SELECTED_COMP_ID_KEY = "quizco_selected_competition_id";
+
+export type PlayerDraftAnswer = AnswerContent | null;
+
+interface StoredPlayerSession {
+  competitionId: string | null;
+  teamId: string | null;
+  teamName: string;
+  teamColor: string;
+}
+
+function readStoredPlayerSession(): StoredPlayerSession {
+  return {
+    competitionId: localStorage.getItem(SELECTED_COMP_ID_KEY),
+    teamId: localStorage.getItem(TEAM_ID_KEY),
+    teamName: localStorage.getItem(TEAM_NAME_KEY) || "",
+    teamColor: localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6",
+  };
+}
+
+function isDefaultChronologyAnswer(
+  question: Extract<Question, { type: "CHRONOLOGY" }>,
+  answer: ChronologyAnswer,
+): boolean {
+  const initialPoolIds = question.content.items.map((item) => item.id);
+
+  return (
+    answer.slotIds.every((slotId) => slotId === null) &&
+    answer.poolIds.length === initialPoolIds.length &&
+    answer.poolIds.every((poolId, index) => poolId === initialPoolIds[index])
+  );
+}
+
+function shouldAutosaveDraftAnswer(
+  question: Question,
+  value: PlayerDraftAnswer,
+): value is AnswerContent {
+  if (value === null || value === undefined) {
+    return false;
+  }
+
+  switch (question.type) {
+    case "MULTIPLE_CHOICE":
+      return isNumberArray(value) && value.length > 0;
+    case "CLOSED":
+    case "OPEN_WORD":
+      return typeof value === "string" && value.trim().length > 0;
+    case "CROSSWORD":
+      return (
+        isStringGrid(value) &&
+        value.some((row) => row.some((cell) => cell.trim().length > 0))
+      );
+    case "FILL_IN_THE_BLANKS":
+      return isStringArray(value) && value.some((entry) => entry.trim().length > 0);
+    case "MATCHING":
+      return (
+        isRecordOfStringValues(value) &&
+        Object.values(value).some((entry) => entry.trim().length > 0)
+      );
+    case "CHRONOLOGY":
+      return isChronologyAnswer(value) && !isDefaultChronologyAnswer(question, value);
+    case "TRUE_FALSE":
+      return typeof value === "boolean";
+    case "CORRECT_THE_ERROR":
+      return (
+        isCorrectTheErrorAnswer(value) &&
+        (value.selectedWordIndex >= 0 || value.correction.trim().length > 0)
+      );
+  }
+}
+
+function isSocketAnswer(value: PlayerDraftAnswer): value is AnswerContent {
+  return value !== null && value !== undefined;
+}
 
 export interface PlayerIdentity {
   teamId: string | null;
@@ -31,7 +114,7 @@ export interface PlayerSessionResult {
   joined: boolean;
   isReconnecting: boolean;
   identity: PlayerIdentity;
-  answer: AnswerContent;
+  answer: PlayerDraftAnswer;
   selectedIndices: number[];
   submissionStatus: "idle" | "success" | "error";
   currentTeam: Team | undefined;
@@ -41,13 +124,13 @@ export interface PlayerSessionResult {
   currentScore: number;
   setTeamName: (teamName: string) => void;
   setColor: (color: string) => void;
-  setAnswer: (value: AnswerContent) => void;
+  setAnswer: (value: PlayerDraftAnswer) => void;
   selectCompetition: (competitionId: string) => void;
   clearSelectedCompetition: () => void;
   joinTeam: () => void;
   leaveSession: () => void;
   toggleIndex: (index: number) => void;
-  submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
+  submitAnswer: (value: PlayerDraftAnswer, isFinal?: boolean) => void;
   getCorrectAnswer: (
     question: NonNullable<GameState["currentQuestion"]>,
     t: TFunction,
@@ -58,24 +141,21 @@ export interface PlayerSessionResult {
 
 interface DraftAnswerState {
   questionId: string | null;
-  answer: AnswerContent;
+  answer: PlayerDraftAnswer;
   selectedIndices: number[];
   submissionStatus: "idle" | "success" | "error";
 }
 
 export function usePlayerSession(state: GameState): PlayerSessionResult {
-  const savedCompetitionId = localStorage.getItem(SELECTED_COMP_ID_KEY);
-  const savedTeamId = localStorage.getItem(TEAM_ID_KEY);
-  const savedTeamName = localStorage.getItem(TEAM_NAME_KEY) || "";
-  const savedTeamColor = localStorage.getItem(TEAM_COLOR_KEY) || "#3B82F6";
+  const [initialSession] = useState(readStoredPlayerSession);
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(
-    savedCompetitionId,
+    initialSession.competitionId,
   );
-  const [teamId, setTeamId] = useState<string | null>(savedTeamId);
-  const [teamName, setTeamName] = useState(savedTeamName);
-  const [color, setColor] = useState(savedTeamColor);
+  const [teamId, setTeamId] = useState<string | null>(initialSession.teamId);
+  const [teamName, setTeamName] = useState(initialSession.teamName);
+  const [color, setColor] = useState(initialSession.teamColor);
   const [joined, setJoined] = useState(false);
   const [draftState, setDraftState] = useState<DraftAnswerState>({
     questionId: null,
@@ -84,7 +164,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     submissionStatus: "idle",
   });
   const [isReconnecting, setIsReconnecting] = useState(
-    Boolean(savedTeamId && savedCompetitionId),
+    Boolean(initialSession.teamId && initialSession.competitionId),
   );
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -123,7 +203,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
 
     return {
       questionId: state.currentQuestion.id,
-      answer: hydrated.answer as AnswerContent,
+      answer: hydrated.answer,
       selectedIndices: hydrated.selectedIndices,
       submissionStatus: "idle",
     };
@@ -146,16 +226,22 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   }, [selectedCompId]);
 
   useEffect(() => {
-    if (!savedTeamId || !savedCompetitionId) {
+    const persistedTeamId = initialSession.teamId;
+    const persistedCompetitionId = initialSession.competitionId;
+
+    if (!persistedTeamId || !persistedCompetitionId) {
       return;
     }
 
     socket.emit(
       "RECONNECT_TEAM",
-      { competitionId: savedCompetitionId, teamId: savedTeamId },
+      {
+        competitionId: persistedCompetitionId,
+        teamId: persistedTeamId,
+      },
       (response: { success: boolean; team: { id?: string; name: string; color: string } }) => {
         if (response.success) {
-          const resolvedTeamId = response.team.id ?? savedTeamId;
+          const resolvedTeamId = response.team.id ?? persistedTeamId;
           setTeamId(resolvedTeamId);
           setTeamName(response.team.name);
           setColor(response.team.color);
@@ -169,7 +255,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
         setIsReconnecting(false);
       },
     );
-  }, [savedCompetitionId, savedTeamId]);
+  }, [initialSession.competitionId, initialSession.teamId]);
 
   useEffect(() => {
     lastPartialSubmissionKeyRef.current = null;
@@ -227,34 +313,6 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     };
   }, [hydratedState.answer, hydratedState.selectedIndices, state.currentQuestion, teamId]);
 
-  useEffect(() => {
-    if (!joined || !teamId || state.phase !== "QUESTION_ACTIVE" || currentTeam?.isExplicitlySubmitted) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      if (state.currentQuestion?.type !== "MULTIPLE_CHOICE" && answer !== "" && answer !== null && answer !== undefined) {
-        socket.emit("SUBMIT_ANSWER", {
-          competitionId: selectedCompId,
-          teamId,
-          questionId: state.currentQuestion?.id,
-          answer,
-          isFinal: false,
-        });
-      }
-    }, 500);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    answer,
-    currentTeam?.isExplicitlySubmitted,
-    joined,
-    selectedCompId,
-    state.currentQuestion,
-    state.phase,
-    teamId,
-  ]);
-
   const selectCompetition = useCallback((competitionId: string) => {
     setSelectedCompId(competitionId);
     localStorage.setItem(SELECTED_COMP_ID_KEY, competitionId);
@@ -308,10 +366,22 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   }, []);
 
   const submitAnswer = useCallback(
-    (value: AnswerContent, isFinal = false) => {
+    (value: PlayerDraftAnswer, isFinal = false) => {
       if (!state.currentQuestion || !selectedCompId || !teamId) {
         setLoginError("player.session_lost_rejoin");
         setJoined(false);
+        return;
+      }
+
+      if (!isSocketAnswer(value)) {
+        if (isFinal) {
+          setDraftState((previous) => ({
+            questionId: state.currentQuestion?.id ?? previous.questionId,
+            answer: value,
+            selectedIndices: previous.selectedIndices,
+            submissionStatus: "error",
+          }));
+        }
         return;
       }
 
@@ -350,6 +420,32 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     [selectedCompId, state.currentQuestion, teamId],
   );
 
+  useEffect(() => {
+    if (!joined || !teamId || state.phase !== "QUESTION_ACTIVE" || currentTeam?.isExplicitlySubmitted) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (
+        state.currentQuestion &&
+        state.currentQuestion.type !== "MULTIPLE_CHOICE" &&
+        shouldAutosaveDraftAnswer(state.currentQuestion, answer)
+      ) {
+        submitAnswer(answer, false);
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    answer,
+    currentTeam?.isExplicitlySubmitted,
+    joined,
+    state.currentQuestion,
+    state.phase,
+    submitAnswer,
+    teamId,
+  ]);
+
   const toggleIndex = useCallback(
     (index: number) => {
       if (currentTeam?.isExplicitlySubmitted) {
@@ -382,7 +478,7 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
   );
 
   const updateAnswer = useCallback(
-    (value: AnswerContent) => {
+    (value: PlayerDraftAnswer) => {
       setDraftState((previous) => ({
         questionId: currentQuestionId,
         answer: value,

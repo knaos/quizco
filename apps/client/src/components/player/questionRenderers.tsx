@@ -36,6 +36,8 @@ import { DefaultReveal } from "./questions/DefaultReveal";
 import { isChronologyAnswer, isStringGrid } from "../../utils/answerGuards";
 import { getQuestionCorrectAnswer } from "./questionText";
 
+type PlayerDraftAnswer = AnswerContent | null;
+
 export interface QuestionPreviewRendererContext {
   question: Question;
   revealStep: number;
@@ -45,12 +47,12 @@ export interface QuestionPreviewRendererContext {
 
 export interface InteractiveQuestionRendererContext {
   question: Question;
-  answer: AnswerContent;
+  answer: PlayerDraftAnswer;
   selectedIndices: number[];
   hasSubmitted: boolean;
-  setAnswer: (value: AnswerContent) => void;
+  setAnswer: (value: PlayerDraftAnswer) => void;
   toggleIndex: (index: number) => void;
-  submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
+  submitAnswer: (value: PlayerDraftAnswer, isFinal?: boolean) => void;
   testIdPrefix: string;
   requestJoker?: () => void;
   t: TFunction;
@@ -519,7 +521,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
       <div className="flex flex-col space-y-4">
         <Input
           type="text"
-          value={String(answer)}
+          value={typeof answer === "string" ? answer : ""}
           onChange={(event) => setAnswer(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && submitAnswer(answer, true)}
           className="text-2xl"
@@ -565,7 +567,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
       <div className="flex flex-col space-y-4">
         <Input
           type="text"
-          value={String(answer)}
+          value={typeof answer === "string" ? answer : ""}
           onChange={(event) => setAnswer(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && submitAnswer(answer, true)}
           className="text-2xl"

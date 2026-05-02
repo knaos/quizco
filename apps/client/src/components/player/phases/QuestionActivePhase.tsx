@@ -4,14 +4,16 @@ import type { AnswerContent, GameState } from "@quizco/shared";
 import { useTranslation } from "react-i18next";
 import { PublicQuestionBody } from "../PublicQuestionBody";
 
+type PlayerDraftAnswer = AnswerContent | null;
+
 interface QuestionActivePhaseProps {
   state: GameState;
   hasSubmitted: boolean;
   selectedIndices: number[];
-  answer: AnswerContent;
-  setAnswer: (val: AnswerContent) => void;
+  answer: PlayerDraftAnswer;
+  setAnswer: (val: PlayerDraftAnswer) => void;
   toggleIndex: (index: number) => void;
-  submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
+  submitAnswer: (value: PlayerDraftAnswer, isFinal?: boolean) => void;
   submissionStatus: "idle" | "success" | "error";
   currentTeam?: { isExplicitlySubmitted?: boolean };
   requestJoker?: () => void;

@@ -20,10 +20,15 @@ export function renderHook<T>(useHook: () => T, options?: RenderHookOptions) {
   }
 
   const hookUi = <Harness />;
-  const view = render(options?.wrapper ? options.wrapper({ children: hookUi }) : hookUi);
+  const buildHookUi = () =>
+    options?.wrapper ? options.wrapper({ children: hookUi }) : hookUi;
+  const view = render(buildHookUi());
 
   return {
     ...view,
+    rerender() {
+      view.rerender(buildHookUi());
+    },
     get result(): T {
       return resultRef.current!;
     },

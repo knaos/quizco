@@ -8,15 +8,17 @@ import {
 } from "./questionRenderers";
 import { AnalogueTimer } from "./AnalogueTimer";
 
+type PlayerDraftAnswer = AnswerContent | null;
+
 interface InteractivePublicQuestionBodyProps {
   mode: "interactive";
   state: GameState;
   hasSubmitted: boolean;
   selectedIndices: number[];
-  answer: AnswerContent;
-  setAnswer: (value: AnswerContent) => void;
+  answer: PlayerDraftAnswer;
+  setAnswer: (value: PlayerDraftAnswer) => void;
   toggleIndex: (index: number) => void;
-  submitAnswer: (value: AnswerContent, isFinal?: boolean) => void;
+  submitAnswer: (value: PlayerDraftAnswer, isFinal?: boolean) => void;
   requestJoker?: () => void;
   testIdPrefix?: string;
 }
