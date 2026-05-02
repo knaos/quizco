@@ -83,7 +83,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Битие 11:2-4"
         },
         {
           "section": "1",
@@ -158,7 +159,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Йоан 4:10, 14"
         },
         {
           "section": "1",
@@ -233,7 +235,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Д.А. 1:7-8"
         },
         {
           "section": "1",
@@ -282,7 +285,8 @@
                 "correspondsTo": "stephen"
               }
             ]
-          }
+          },
+          "source": "Д.А. 2:14, 41"
         },
         {
           "section": "1",
@@ -331,7 +335,8 @@
                 "correspondsTo": "shem"
               }
             ]
-          }
+          },
+          "source": "Битие 5:24"
         },
         {
           "section": "1",
@@ -380,7 +385,8 @@
                 "correspondsTo": "hadassa"
               }
             ]
-          }
+          },
+          "source": "Естир 2:3"
         },
         {
           "section": "1",
@@ -401,7 +407,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Естир 3:2"
         },
         {
           "section": "1",
@@ -422,7 +429,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Битие 8:20"
         },
         {
           "section": "1",
@@ -443,7 +451,8 @@
             "correctIndices": [
               3
             ]
-          }
+          },
+          "source": "Йона 4:6"
         },
         {
           "section": "2",
@@ -518,7 +527,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Битие 19:17"
         },
         {
           "section": "2",
@@ -593,7 +603,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Битие 22:12"
         },
         {
           "section": "2",
@@ -668,7 +679,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Исус Навиев 1:2"
         },
         {
           "section": "2",
@@ -717,7 +729,8 @@
                 "correspondsTo": "ketura"
               }
             ]
-          }
+          },
+          "source": "Битие 16:1-4, 15"
         },
         {
           "section": "2",
@@ -766,7 +779,8 @@
                 "correspondsTo": "abednego"
               }
             ]
-          }
+          },
+          "source": "Даниил 2:14-15"
         },
         {
           "section": "2",
@@ -815,7 +829,8 @@
                 "correspondsTo": "laban"
               }
             ]
-          }
+          },
+          "source": "Исус Навиев 7:1"
         },
         {
           "section": "2",
@@ -836,7 +851,8 @@
             "correctIndices": [
               2
             ]
-          }
+          },
+          "source": "Исус Навиев 1:9"
         },
         {
           "section": "2",
@@ -857,7 +873,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Йоан 5:8"
         },
         {
           "section": "2",
@@ -878,7 +895,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Даниил 6:16"
         },
         {
           "section": "3",
@@ -953,7 +971,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Рут 4:5-6, 9-10"
         },
         {
           "section": "3",
@@ -1028,7 +1047,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Числа 12:1"
         },
         {
           "section": "3",
@@ -1103,7 +1123,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "1 Царе 17:33"
         },
         {
           "section": "3",
@@ -1152,7 +1173,8 @@
                 "correspondsTo": "naomi"
               }
             ]
-          }
+          },
+          "source": "Изход 15:20"
         },
         {
           "section": "3",
@@ -1201,7 +1223,8 @@
                 "correspondsTo": "blind-siloam"
               }
             ]
-          }
+          },
+          "source": "Марк 1:41"
         },
         {
           "section": "3",
@@ -1250,7 +1273,8 @@
                 "correspondsTo": "saul"
               }
             ]
-          }
+          },
+          "source": "1 Царе 21:6"
         },
         {
           "section": "3",
@@ -1271,7 +1295,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Йоан 5:16"
         },
         {
           "section": "3",
@@ -1292,7 +1317,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Д.А. 19:11-12"
         },
         {
           "section": "3",
@@ -1313,7 +1339,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Естир 4:15-16"
         },
         {
           "section": "4",
@@ -1388,7 +1415,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "1 Царе 19:12-14"
         },
         {
           "section": "4",
@@ -1463,7 +1491,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Даниил 3:1, 4"
         },
         {
           "section": "4",
@@ -1538,7 +1567,8 @@
                 ]
               }
             ]
-          }
+          },
+          "source": "Йоан 9:22"
         },
         {
           "section": "4",
@@ -1587,7 +1617,8 @@
                 "correspondsTo": "paul-philippi"
               }
             ]
-          }
+          },
+          "source": "Д.А. 18:6"
         },
         {
           "section": "4",
@@ -1636,7 +1667,8 @@
                 "correspondsTo": "thorns-seeds"
               }
             ]
-          }
+          },
+          "source": "Йоан 4:11"
         },
         {
           "section": "4",
@@ -1685,7 +1717,8 @@
                 "correspondsTo": "pearl"
               }
             ]
-          }
+          },
+          "source": "Д.А. 21:10-11"
         },
         {
           "section": "4",
@@ -1706,7 +1739,8 @@
             "correctIndices": [
               2
             ]
-          }
+          },
+          "source": "1 Царе 30:1-2, 6"
         },
         {
           "section": "4",
@@ -1727,7 +1761,8 @@
             "correctIndices": [
               3
             ]
-          }
+          },
+          "source": "Битие 20:3"
         },
         {
           "section": "4",
@@ -1748,7 +1783,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Д.А. 3:1-6"
         }
       ]
     },
@@ -1817,7 +1853,8 @@
                 "order": 9
               }
             ]
-          }
+          },
+          "source": "Йона 1:3-17; Йона 3:3-10"
         },
         {
           "realIndex": 1,
@@ -1879,7 +1916,8 @@
                 "order": 9
               }
             ]
-          }
+          },
+          "source": "Исус Навиев 1:1-2; 2:1, 4-6; 3:1, 15-17; 4:1-3; 5:3-5; 6:14-20"
         },
         {
           "realIndex": 2,
@@ -1941,7 +1979,8 @@
                 "order": 9
               }
             ]
-          }
+          },
+          "source": "Съдии 14:5-6, 19; 15:4-5, 15; 16:3, 12-14, 19, 21, 23, 30"
         },
         {
           "realIndex": 3,
@@ -2003,7 +2042,8 @@
                 "order": 9
               }
             ]
-          }
+          },
+          "source": "Д.А. 9:3, 8, 17; 13:11; 14:8-10; 15:37-40; 16:1-3, 25; 17:22; 19:6; 20:9-10"
         }
       ]
     },
@@ -2021,7 +2061,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": true
-          }
+          },
+          "source": "Битие 11:2-4"
         },
         {
           "realIndex": 1,
@@ -2032,7 +2073,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Йоан 4:10, 14"
         },
         {
           "realIndex": 2,
@@ -2043,7 +2085,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Д.А. 1:7-8"
         },
         {
           "realIndex": 3,
@@ -2054,7 +2097,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": true
-          }
+          },
+          "source": "Д.А. 2:14, 41"
         },
         {
           "realIndex": 4,
@@ -2065,7 +2109,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": true
-          }
+          },
+          "source": "Битие 5:24"
         },
         {
           "realIndex": 5,
@@ -2076,7 +2121,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Естир 2:3"
         },
         {
           "realIndex": 6,
@@ -2087,7 +2133,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Естир 3:2"
         },
         {
           "realIndex": 7,
@@ -2098,7 +2145,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Битие 8:20"
         },
         {
           "realIndex": 8,
@@ -2109,7 +2157,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Йона 4:6"
         },
         {
           "realIndex": 9,
@@ -2120,7 +2169,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Битие 19:17"
         },
         {
           "realIndex": 10,
@@ -2131,7 +2181,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": false
-          }
+          },
+          "source": "Битие 22:12"
         },
         {
           "realIndex": 11,
@@ -2142,7 +2193,8 @@
           "grading": "AUTO",
           "content": {
             "isTrue": true
-          }
+          },
+          "source": "Исус Навиев 1:2"
         },
         {
           "realIndex": 12,
@@ -2159,7 +2211,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Битие 16:1-4, 15"
         },
         {
           "realIndex": 13,
@@ -2176,7 +2229,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Даниил 2:14-15"
         },
         {
           "realIndex": 14,
@@ -2193,7 +2247,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Исус Навиев 7:1"
         },
         {
           "realIndex": 15,
@@ -2210,7 +2265,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Исус Навиев 1:9"
         },
         {
           "realIndex": 16,
@@ -2227,7 +2283,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "Йоан 5:8"
         },
         {
           "realIndex": 17,
@@ -2244,7 +2301,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Даниил 6:16"
         },
         {
           "realIndex": 18,
@@ -2261,7 +2319,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Рут 4:5-6, 9-10"
         },
         {
           "realIndex": 19,
@@ -2278,7 +2337,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Числа 12:1"
         },
         {
           "realIndex": 20,
@@ -2295,7 +2355,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "1 Царе 17:33"
         },
         {
           "realIndex": 21,
@@ -2312,7 +2373,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Изход 15:20"
         },
         {
           "realIndex": 22,
@@ -2329,7 +2391,8 @@
             "correctIndices": [
               0
             ]
-          }
+          },
+          "source": "Марк 1:41"
         },
         {
           "realIndex": 23,
@@ -2346,7 +2409,8 @@
             "correctIndices": [
               1
             ]
-          }
+          },
+          "source": "1 Царе 21:6"
         },
         {
           "realIndex": 24,
@@ -2368,7 +2432,8 @@
             ],
             "errorWordIndex": 11,
             "correctReplacement": "гонят, за да го убият"
-          }
+          },
+          "source": "Йоан 5:16"
         },
         {
           "realIndex": 25,
@@ -2390,7 +2455,8 @@
             ],
             "errorWordIndex": 19,
             "correctReplacement": "гонят зли духове"
-          }
+          },
+          "source": "Д.А. 19:11-12"
         },
         {
           "realIndex": 26,
@@ -2412,7 +2478,8 @@
             ],
             "errorWordIndex": 9,
             "correctReplacement": "постят"
-          }
+          },
+          "source": "Естир 4:15-16"
         },
         {
           "realIndex": 27,
@@ -2434,7 +2501,8 @@
             ],
             "errorWordIndex": 26,
             "correctReplacement": "болен"
-          }
+          },
+          "source": "1 Царе 19:12-14"
         },
         {
           "realIndex": 28,
@@ -2456,7 +2524,8 @@
             ],
             "errorWordIndex": 1,
             "correctReplacement": "Навуходоносор"
-          }
+          },
+          "source": "Даниил 3:1, 4"
         },
         {
           "realIndex": 29,
@@ -2478,7 +2547,8 @@
             ],
             "errorWordIndex": 13,
             "correctReplacement": "отлъчат от синагогата"
-          }
+          },
+          "source": "Йоан 9:22"
         },
         {
           "realIndex": 30,
@@ -2500,7 +2570,8 @@
             ],
             "errorWordIndex": 3,
             "correctReplacement": "отърсва"
-          }
+          },
+          "source": "Д.А. 18:6"
         },
         {
           "realIndex": 31,
@@ -2522,7 +2593,8 @@
             ],
             "errorWordIndex": 15,
             "correctReplacement": "Той няма почерпало/съд"
-          }
+          },
+          "source": "Йоан 4:11"
         },
         {
           "realIndex": 32,
@@ -2544,7 +2616,8 @@
             ],
             "errorWordIndex": 13,
             "correctReplacement": "неговия пояс"
-          }
+          },
+          "source": "Д.А. 21:10-11"
         },
         {
           "realIndex": 33,
@@ -2566,7 +2639,8 @@
             ],
             "errorWordIndex": 34,
             "correctReplacement": "да убият Давид с камъни"
-          }
+          },
+          "source": "1 Царе 30:1-2, 6"
         },
         {
           "realIndex": 34,
@@ -2588,7 +2662,8 @@
             ],
             "errorWordIndex": 3,
             "correctReplacement": "Авимелех"
-          }
+          },
+          "source": "Битие 20:3"
         },
         {
           "realIndex": 35,
@@ -2610,7 +2685,8 @@
             ],
             "errorWordIndex": 0,
             "correctReplacement": "Куцият"
-          }
+          },
+          "source": "Д.А. 3:1-6"
         }
       ]
     },
@@ -2819,7 +2895,8 @@
                 }
               ]
             }
-          }
+          },
+          "source": "Йона 4:7; Естир 2:4; Битие 12:4; Даниил 1:6-7; 1 Царе 24:14; 26:20; Числа 20:1-2; Д.А. 28:3; Д.А. 23:8"
         }
       ]
     }
