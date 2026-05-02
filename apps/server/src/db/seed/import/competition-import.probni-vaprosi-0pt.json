@@ -1,0 +1,834 @@
+{
+  "competition": {
+    "title": "Пробни въпроси - 0 точки",
+    "host_pin": "1234",
+    "status": "DRAFT"
+  },
+  "rounds": [
+    {
+      "title": "кръг 1: Индивидуална игра - Раздел 1",
+      "type": "STANDARD",
+      "orderIndex": 1,
+      "questions": [
+        {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
+          "section": "1",
+          "index": 0,
+          "realIndex": 0,
+          "content": {
+            "text": "Конете са {0} животни, които хората яздят {1}, и живеят в {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "бързи",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "морски",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "хищни",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "измислени",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "с възглавница",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "с кормило",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "със седло",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "с дистанционно",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "Антарктида",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "църква",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "аквариум",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "конюшня",
+                    "isCorrect": true
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Свържи животните с мястото, където живеят",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "section": "1",
+          "index": 1,
+          "realIndex": 1,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Акула",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Маймуна",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Куче",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "В морето",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "В джунглата",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "В къща/апартамент",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Кое животно има черни и бели ивици?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "section": "1",
+          "index": 2,
+          "realIndex": 2,
+          "content": {
+            "options": [
+              "лешояд",
+              "тигър",
+              "зебра",
+              "заек"
+            ],
+            "correctIndices": [
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "кръг 1: Индивидуална игра - Раздел 2",
+      "type": "STANDARD",
+      "orderIndex": 2,
+      "questions": [
+        {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
+          "section": "2",
+          "index": 0,
+          "realIndex": 0,
+          "content": {
+            "text": "Боулингът е {0}, в която плъзгаш {1} по коридор и трябва да събориш възможно най-много {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "наука",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "храна",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "игра",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "професия",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "топка",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "съотборник",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "фризби",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "джапанка",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "чаши",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "хора",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "кегли",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "бутилки",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Свържи спорта със сезона, в който се спортува",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "section": "2",
+          "index": 1,
+          "realIndex": 1,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Плажен волейбол",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Ски",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Шах",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "Лято",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "Зима",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "Когато е дъждовно",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Какво се появява в небето след обилен дъжд, което ни напомня за Божия завет с хората?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "section": "2",
+          "index": 2,
+          "realIndex": 2,
+          "content": {
+            "options": [
+              "дъга",
+              "кюфтета",
+              "самолет",
+              "НЛО"
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "кръг 1: Индивидуална игра - Раздел 3",
+      "type": "STANDARD",
+      "orderIndex": 3,
+      "questions": [
+        {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
+          "section": "3",
+          "index": 0,
+          "realIndex": 0,
+          "content": {
+            "text": "Когато стана {0}, винаги си мия {1} и отивам на {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "голям",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "вечер",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "следобед",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "сутрин",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "краката",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "зъбите",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "леглото",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "пижамата",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "кино",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "танци",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "училище",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "олимпиада",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Свържи храната с времето, когато най-често се яде",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "section": "3",
+          "index": 1,
+          "realIndex": 1,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Закуска",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Обяд",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Вечеря",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "7-8 ч (сутринта)",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "12 ч",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "6-7 ч (вечерта)",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Кое от изброените НЕ съдържа домати?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "section": "3",
+          "index": 2,
+          "realIndex": 2,
+          "content": {
+            "options": [
+              "кетчуп",
+              "лютеница",
+              "айвар",
+              "течен шоколад"
+            ],
+            "correctIndices": [
+              3
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "кръг 1: Индивидуална игра - Раздел 4",
+      "type": "STANDARD",
+      "orderIndex": 4,
+      "questions": [
+        {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
+          "section": "4",
+          "index": 0,
+          "realIndex": 0,
+          "content": {
+            "text": "В началото на учебната година, което е {0}, всички ученици подаряват на своите {1} букет от {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "15 септември",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "24 май",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "31 януари",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "никога",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "родители",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "приятели",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "учители",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "домашни любимци",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "химикали",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "цветя",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "шоколади",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "люти чушки",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Свържи плода с цвета му",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "section": "4",
+          "index": 1,
+          "realIndex": 1,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Мандарина",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Домат",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Лимон",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "Оранжев",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "Червен",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "Жълт",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Какво се получава, когато смесиш син и жълт цвят?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "section": "4",
+          "index": 2,
+          "realIndex": 2,
+          "content": {
+            "options": [
+              "бъркотия",
+              "зелен цвят",
+              "картина на папагал",
+              "розово сърце"
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "кръг 2: Хронология",
+      "type": "STANDARD",
+      "orderIndex": 5,
+      "questions": [
+        {
+          "questionText": "Подредете дните от седмицата",
+          "type": "CHRONOLOGY",
+          "points": 0,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "d1",
+                "text": "Понеделник",
+                "order": 0
+              },
+              {
+                "id": "d2",
+                "text": "Вторник",
+                "order": 1
+              },
+              {
+                "id": "d3",
+                "text": "Сряда",
+                "order": 2
+              },
+              {
+                "id": "d4",
+                "text": "Четвъртък",
+                "order": 3
+              },
+              {
+                "id": "d5",
+                "text": "Петък",
+                "order": 4
+              },
+              {
+                "id": "d6",
+                "text": "Събота",
+                "order": 5
+              },
+              {
+                "id": "d7",
+                "text": "Неделя",
+                "order": 6
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "кръг 3: Вярно или невярно",
+      "type": "STREAK",
+      "orderIndex": 6,
+      "questions": [
+        {
+          "questionText": "Според Библията стените на Ерусалим са построени от ЛЕГО тухли.",
+          "type": "TRUE_FALSE",
+          "points": 0,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "questionText": "Кое е вярното твърдение за маймуните?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Те ядат само банани",
+              "Те могат да ядат различни плодове, ядки, растения и дори дребни животни"
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Старшият конструктор учи Младшия конструктор как се строи с нова кирка.",
+            "words": [
+              {
+                "wordIndex": 8,
+                "text": "кирка",
+                "alternatives": [
+                  "тухли",
+                  "каска"
+                ]
+              }
+            ],
+            "errorWordIndex": 8,
+            "correctReplacement": "тухли"
+          }
+        }
+      ]
+    },
+    {
+      "title": "кръг 4: Кръстословица",
+      "type": "CROSSWORD",
+      "orderIndex": 7,
+      "questions": [
+        {
+          "questionText": "Попълнете кръстословицата",
+          "type": "CROSSWORD",
+          "points": 0,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "grid": [
+              [
+                "д",
+                "о",
+                "м",
+                "а",
+                "т",
+                " ",
+                " "
+              ],
+              [
+                "м",
+                "а",
+                "й",
+                "с",
+                "т",
+                "о",
+                "р"
+              ],
+              [
+                "м",
+                "а",
+                "й",
+                "м",
+                "у",
+                "н",
+                "а"
+              ],
+              [
+                "з",
+                "а",
+                "к",
+                "у",
+                "с",
+                "к",
+                "а"
+              ],
+              [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+              ],
+              [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+              ]
+            ],
+            "clues": {
+              "across": [
+                {
+                  "number": 1,
+                  "x": 0,
+                  "y": 0,
+                  "direction": "across",
+                  "clue": "Червен плод, който всички слагат в зеленчукова салата (и от който се прави кетчуп).",
+                  "answer": "домат"
+                },
+                {
+                  "number": 2,
+                  "x": 0,
+                  "y": 1,
+                  "direction": "across",
+                  "clue": "Разбирач, който носи каска и може да поправи всичко.",
+                  "answer": "майстор"
+                },
+                {
+                  "number": 3,
+                  "x": 0,
+                  "y": 2,
+                  "direction": "across",
+                  "clue": "Животно, което може да живее в джунглата и яде банани (но не само).",
+                  "answer": "маймуна"
+                },
+                {
+                  "number": 4,
+                  "x": 0,
+                  "y": 3,
+                  "direction": "across",
+                  "clue": "Това, което ядем сутрин.",
+                  "answer": "закуска"
+                }
+              ],
+              "down": []
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
