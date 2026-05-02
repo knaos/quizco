@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Competition, Question, Round } from "@quizco/shared";
+import type {
+  Competition,
+  Question,
+  Round,
+  AdminAnswerHistoryRecord,
+  AdminUpdateAnswerScoreResponse,
+} from "@quizco/shared";
 import { API_URL } from "../socket";
 import { createAuthHeaders } from "../auth";
 
@@ -22,6 +28,12 @@ export interface AdminDataResult {
   deleteRound: (roundId: string) => Promise<void>;
   saveQuestion: (roundId: string, questionData: Partial<Question>) => Promise<void>;
   deleteQuestion: (questionId: string, roundId: string) => Promise<void>;
+  fetchAnswerHistory: (competitionId: string) => Promise<AdminAnswerHistoryRecord[]>;
+  updateAnswerScore: (
+    competitionId: string,
+    answerId: string,
+    scoreAwarded: number,
+  ) => Promise<AdminUpdateAnswerScoreResponse | null>;
 }
 
 export function useAdminData(
@@ -210,6 +222,40 @@ export function useAdminData(
       if (response.ok) {
         await fetchQuestions(roundId);
       }
+    },
+    fetchAnswerHistory: async (competitionId: string) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/answer-history`,
+        {
+          headers: createHeaders(),
+        },
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return [];
+      }
+      const data = await response.json() as { records?: AdminAnswerHistoryRecord[] };
+      return Array.isArray(data.records) ? data.records : [];
+    },
+    updateAnswerScore: async (
+      competitionId: string,
+      answerId: string,
+      scoreAwarded: number,
+    ) => {
+      const response = await fetch(`${API_BASE}/answers/${answerId}/score`, {
+        method: "PATCH",
+        headers: createHeaders(true),
+        body: JSON.stringify({ competitionId, scoreAwarded }),
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return null;
+      }
+      return await response.json() as AdminUpdateAnswerScoreResponse;
     },
   };
 }

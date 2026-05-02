@@ -10,6 +10,7 @@ import {
   MatchingContent,
   SessionMetadata,
   Milestone,
+  ActorRole,
 } from "@quizco/shared";
 import { IGameRepository } from "./repositories/IGameRepository";
 import { GradingService } from "./services/GradingService";
@@ -430,7 +431,7 @@ export class GameManager {
 
         await this.repository.updateTeamStreak(team.id, team.streak);
 
-        await this.repository.saveAnswer(
+        const savedAnswer = await this.repository.saveAnswer(
           team.id,
           session.currentQuestion.id,
           session.currentQuestion.roundId,
@@ -438,6 +439,18 @@ export class GameManager {
           isCorrect,
           scoreAwarded,
         );
+        await this.repository.createAnswerSnapshot({
+          answerId: savedAnswer.id,
+          competitionId,
+          teamId: team.id,
+          questionId: session.currentQuestion.id,
+          roundId: session.currentQuestion.roundId,
+          snapshotType: "GRADING_UPDATE",
+          actorRole: "SYSTEM",
+          submittedContent: team.lastAnswer,
+          isCorrect,
+          scoreAwarded,
+        });
 
         team.lastAnswerCorrect = isCorrect;
         team.score += scoreAwarded;
@@ -512,7 +525,7 @@ export class GameManager {
     }
 
     // Store in Repository as partial submission (isCorrect: null, scoreAwarded: 0)
-    await this.repository.saveAnswer(
+    const savedAnswer = await this.repository.saveAnswer(
       teamId,
       questionId,
       session.currentQuestion.roundId,
@@ -520,6 +533,18 @@ export class GameManager {
       null,
       0,
     );
+    await this.repository.createAnswerSnapshot({
+      answerId: savedAnswer.id,
+      competitionId,
+      teamId,
+      questionId,
+      roundId: session.currentQuestion.roundId,
+      snapshotType: "SUBMISSION_UPDATE",
+      actorRole: "SYSTEM",
+      submittedContent: answer,
+      isCorrect: null,
+      scoreAwarded: 0,
+    });
 
     await this.saveState();
 
@@ -653,6 +678,7 @@ export class GameManager {
     competitionId: string,
     answerId: string,
     correct: boolean,
+    actorRole: ActorRole = "HOST",
   ) {
     const session = this.getOrCreateSession(competitionId);
 
@@ -674,8 +700,59 @@ export class GameManager {
     }
 
     await this.repository.updateAnswerGrading(answerId, correct, scoreAwarded);
+    await this.repository.createAnswerSnapshot({
+      answerId,
+      competitionId,
+      teamId,
+      questionId,
+      roundId: answer.roundId || answer.round_id,
+      snapshotType: "GRADING_UPDATE",
+      actorRole,
+      submittedContent: answer.submittedContent,
+      isCorrect: correct,
+      scoreAwarded,
+    });
     await this.refreshTeamScores(competitionId);
     await this.saveState();
+  }
+
+  public async adjustAnswerScore(
+    competitionId: string,
+    answerId: string,
+    scoreAwarded: number,
+    actorRole: ActorRole = "ADMIN",
+  ) {
+    const answer = await this.repository.getAnswer(answerId);
+    if (!answer) {
+      return null;
+    }
+
+    const questionId = answer.questionId || answer.question_id;
+    const teamId = answer.teamId || answer.team_id;
+    const roundId = answer.roundId || answer.round_id;
+    const updatedIsCorrect = answer.isCorrect ?? null;
+
+    await this.repository.updateAnswerScore(answerId, scoreAwarded, actorRole);
+    await this.repository.createAnswerSnapshot({
+      answerId,
+      competitionId,
+      teamId,
+      questionId,
+      roundId,
+      snapshotType: "SCORE_ADJUSTMENT",
+      actorRole,
+      submittedContent: answer.submittedContent,
+      isCorrect: updatedIsCorrect,
+      scoreAwarded,
+    });
+
+    const session = this.getOrCreateSession(competitionId);
+    for (const team of session.teams) {
+      team.score = await this.repository.getTeamScore(competitionId, team.id);
+    }
+    await this.saveState();
+
+    return { answerId, scoreAwarded };
   }
 
   public async refreshTeamScores(competitionId: string) {

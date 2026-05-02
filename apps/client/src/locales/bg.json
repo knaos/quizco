@@ -240,6 +240,19 @@
       "confirm_delete_competition": "Да се изтрие ли това състезание?",
       "deactivate": "Деактивирай",
       "publish_quiz": "Публикувай викторината",
+      "answer_history": {
+        "title": "История на отговорите",
+        "refresh": "Обнови",
+        "empty": "Все още няма изпратени отговори.",
+        "current_answer": "Текущ отговор",
+        "current_status": "Текущ статус",
+        "save_points": "Запази точки",
+        "show_timeline": "Покажи хронология",
+        "hide_timeline": "Скрий хронология",
+        "snapshot_answer": "Отговор",
+        "snapshot_correct": "Верен",
+        "snapshot_points": "Точки"
+      },
       "question_editor": {
         "edit_question": "Редактирай Въпрос",
         "new_question": "Нов Въпрос",

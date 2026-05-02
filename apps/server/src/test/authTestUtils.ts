@@ -6,3 +6,7 @@ export function createHostTestToken(): string {
   return issueAuthToken("host", config.tokenSecret, config.tokenTtlSeconds);
 }
 
+export function createAdminTestToken(): string {
+  const config = getSecurityConfig(process.env);
+  return issueAuthToken("admin", config.tokenSecret, config.tokenTtlSeconds);
+}

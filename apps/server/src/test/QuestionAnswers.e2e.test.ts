@@ -6,7 +6,7 @@ import { TimerService } from "../services/TimerService";
 import { Logger } from "../utils/Logger";
 import { Server } from "http";
 import { AddressInfo } from "net";
-import { createHostTestToken } from "./authTestUtils";
+import { createHostTestToken, createAdminTestToken } from "./authTestUtils";
 
 describe("Question Answers API E2E", () => {
   let httpServer: Server;
@@ -15,6 +15,7 @@ describe("Question Answers API E2E", () => {
   let port: number;
   let baseUrl: string;
   let hostAuthToken: string;
+  let adminAuthToken: string;
 
   const competitionId = "test-comp-id";
 
@@ -24,6 +25,7 @@ describe("Question Answers API E2E", () => {
     const logger = new Logger("QuestionAnswersTest");
     gameManager = new GameManager(mockRepository, timerService, logger);
     hostAuthToken = createHostTestToken();
+    adminAuthToken = createAdminTestToken();
     const serverSetup = createQuizServer(gameManager, mockRepository);
     httpServer = serverSetup.httpServer;
 
@@ -44,6 +46,7 @@ describe("Question Answers API E2E", () => {
     mockRepository.teams = [];
     mockRepository.questions = [];
     mockRepository.answers = [];
+    mockRepository.answerSnapshots = [];
   });
 
   it("should return formatted answers for a question", async () => {
@@ -113,5 +116,73 @@ describe("Question Answers API E2E", () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data).toEqual([]);
+  });
+
+  it("updates answer score and exposes history snapshots", async () => {
+    const questionId = "q3";
+    const roundId = "r3";
+
+    mockRepository.questions.push({
+      id: questionId,
+      roundId,
+      questionText: "History Question",
+      type: "OPEN_WORD",
+      points: 5,
+      content: { answer: "Faith" },
+      grading: "AUTO",
+    } as any);
+
+    const team = await mockRepository.getOrCreateTeam(
+      competitionId,
+      "Team History",
+      "blue",
+    );
+    const answer = await mockRepository.saveAnswer(
+      team.id,
+      questionId,
+      roundId,
+      "Faith",
+      true,
+      5,
+    );
+
+    const patchResponse = await fetch(
+      `${baseUrl}/api/admin/answers/${answer.id}/score`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${adminAuthToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          competitionId,
+          scoreAwarded: 3,
+        }),
+      },
+    );
+
+    expect(patchResponse.status).toBe(200);
+    const patchData = await patchResponse.json();
+    expect(patchData).toMatchObject({
+      answerId: answer.id,
+      scoreAwarded: 3,
+    });
+
+    const historyResponse = await fetch(
+      `${baseUrl}/api/admin/competitions/${competitionId}/answer-history`,
+      {
+        headers: {
+          Authorization: `Bearer ${adminAuthToken}`,
+        },
+      },
+    );
+
+    expect(historyResponse.status).toBe(200);
+    const historyData = await historyResponse.json();
+    expect(Array.isArray(historyData.records)).toBe(true);
+    expect(historyData.records).toHaveLength(1);
+    expect(historyData.records[0].latestScoreAwarded).toBe(3);
+    expect(historyData.records[0].snapshots).toHaveLength(1);
+    expect(historyData.records[0].snapshots[0].snapshotType).toBe("SCORE_ADJUSTMENT");
   });
 });

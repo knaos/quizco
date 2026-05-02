@@ -16,6 +16,7 @@ model Competition {
 
   rounds     Round[]
   teams      Team[]
+  answerSnapshots AnswerSnapshot[]
   milestones Json?  // Array<Milestone>: [{ threshold: number, icon: string }]
 }
 
@@ -30,6 +31,7 @@ model Round {
   competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   questions   Question[]
   answers     Answer[]
+  answerSnapshots AnswerSnapshot[]
 }
 
 model Question {
@@ -48,6 +50,7 @@ model Question {
 
   round   Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
   answers Answer[]
+  answerSnapshots AnswerSnapshot[]
 
   @@index([content], type: Gin)
 }
@@ -62,6 +65,7 @@ model Team {
 
   competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   answers     Answer[]
+  answerSnapshots AnswerSnapshot[]
 
   @@unique([competitionId, name]) // Name unique ONLY within one competition
 }
@@ -79,8 +83,33 @@ model Answer {
   team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   round    Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  snapshots AnswerSnapshot[]
 
   @@unique([teamId, questionId]) // Prevents duplicate submissions
+}
+
+model AnswerSnapshot {
+  id               String             @id @default(uuid()) @db.Uuid
+  answerId         String             @db.Uuid
+  competitionId    String             @db.Uuid
+  teamId           String             @db.Uuid
+  questionId       String             @db.Uuid
+  roundId          String             @db.Uuid
+  snapshotType     AnswerSnapshotType
+  actorRole        ActorRole
+  submittedContent Json
+  isCorrect        Boolean?
+  scoreAwarded     Int                @default(0)
+  createdAt        DateTime           @default(now()) @db.Timestamptz(6)
+
+  answer      Answer      @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  round       Round       @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([competitionId, questionId, teamId, createdAt])
+  @@index([answerId, createdAt])
 }
 
 enum CompetitionStatus {
@@ -111,4 +140,16 @@ enum RoundType {
   CROSSWORD
   SPEED_RUN
   STREAK
+}
+
+enum AnswerSnapshotType {
+  SUBMISSION_UPDATE
+  GRADING_UPDATE
+  SCORE_ADJUSTMENT
+}
+
+enum ActorRole {
+  SYSTEM
+  HOST
+  ADMIN
 }

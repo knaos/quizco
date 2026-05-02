@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
+import { AnswerHistoryView } from "./admin/AnswerHistoryView";
 import { QuestionEditor } from "./admin/QuestionEditor";
 import { useAuth } from "../contexts/useAuth";
 import { useAdminData } from "../hooks/useAdminData";
@@ -324,6 +325,13 @@ export const AdminPanel: React.FC = () => {
                   return;
                 }}
               />
+              {selectedComp ? (
+                <AnswerHistoryView
+                  competitionId={selectedComp.id}
+                  fetchAnswerHistory={adminData.fetchAnswerHistory}
+                  updateAnswerScore={adminData.updateAnswerScore}
+                />
+              ) : null}
             </div>
           )}
 
