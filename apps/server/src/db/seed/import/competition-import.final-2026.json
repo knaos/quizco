@@ -245,7 +245,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -295,7 +295,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -345,7 +345,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -689,7 +689,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -739,7 +739,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -789,7 +789,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -1133,7 +1133,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -1183,7 +1183,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -1233,7 +1233,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -1577,7 +1577,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -1627,7 +1627,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
@@ -1677,7 +1677,7 @@
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "heroes": [
