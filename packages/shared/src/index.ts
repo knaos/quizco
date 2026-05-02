@@ -242,6 +242,36 @@ export interface Round {
   createdAt: string;
 }
 
+export interface CompetitionImportQuestion {
+  questionText: string;
+  source?: string | null;
+  type: QuestionType;
+  points: number;
+  timeLimitSeconds: number;
+  grading: GradingMode;
+  section?: string;
+  index?: number;
+  realIndex?: number;
+  content: QuestionContent;
+}
+
+export interface CompetitionImportRound {
+  title: string;
+  type: Round["type"];
+  orderIndex: number;
+  questions: CompetitionImportQuestion[];
+}
+
+export interface CompetitionImportDocument {
+  competition: {
+    title: string;
+    host_pin?: string;
+    status?: Competition["status"];
+    milestones?: Milestone[];
+  };
+  rounds: CompetitionImportRound[];
+}
+
 export interface Team {
   id: string;
   name: string;

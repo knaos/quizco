@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Plus, ChevronRight, Trash2, Edit2 } from "lucide-react";
 import type { Competition } from "@quizco/shared";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,8 @@ interface CompetitionListProps {
   competitions: Competition[];
   onSelect: (comp: Competition) => void;
   onCreate: () => void;
+  onImport: (file: File) => void | Promise<void>;
+  importStatus?: { type: "success" | "error"; message: string } | null;
   onEdit: (comp: Competition) => void;
   onDelete: (id: string) => void;
 }
@@ -18,19 +20,58 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
   competitions,
   onSelect,
   onCreate,
+  onImport,
+  importStatus,
   onEdit,
   onDelete,
 }) => {
   const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-black text-gray-800 tracking-tight">{t("admin.competitions")}</h1>
-        <Button onClick={onCreate}>
-          <Plus className="mr-2 w-5 h-5" /> {t("admin.new_quiz")}
-        </Button>
+        <div className="flex items-center gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            data-testid="admin-import-file-input"
+            onChange={(event) => {
+              const selectedFile = event.target.files?.[0];
+              if (!selectedFile) {
+                return;
+              }
+              void onImport(selectedFile);
+              event.currentTarget.value = "";
+            }}
+          />
+          <Button
+            variant="secondary"
+            onClick={() => fileInputRef.current?.click()}
+            data-testid="admin-import-competition-trigger"
+          >
+            {t("admin.import_competition")}
+          </Button>
+          <Button onClick={onCreate}>
+            <Plus className="mr-2 w-5 h-5" /> {t("admin.new_quiz")}
+          </Button>
+        </div>
       </div>
+      {importStatus ? (
+        <div
+          className={`mb-4 rounded-xl px-4 py-3 text-sm font-semibold ${
+            importStatus.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          }`}
+          data-testid="admin-import-status"
+        >
+          {importStatus.message}
+        </div>
+      ) : null}
 
       <div className="grid gap-4">
         {competitions.map((comp) => (

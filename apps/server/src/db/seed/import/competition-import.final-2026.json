@@ -1,0 +1,2827 @@
+{
+  "competition": {
+    "title": "ФИНАЛ - Въпроси Детско Състезание 2026",
+    "host_pin": "2026",
+    "status": "DRAFT"
+  },
+  "rounds": [
+    {
+      "title": "Кръг 1 – Индивидуална игра",
+      "type": "STANDARD",
+      "orderIndex": 1,
+      "questions": [
+        {
+          "section": "1",
+          "index": 0,
+          "realIndex": 0,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Хората тръгват да строят кула от тухли и {0} в {1}, която да стига до небето, за да {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "камъни",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "смола",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "кал",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "пясък",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "Сенаарската земя",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "равнината на Дура",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Сидон",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Хеврон",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "прославят Господ",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "си спечелят име",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "се защитават",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "се обединят",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 1,
+          "realIndex": 1,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Когато Исус среща самарянката при кладенеца, Той ѝ казва, че ако познава {0} на Бог и кой е Онзи, Който ѝ говори, тя би поискала и Той би ѝ дал {1} вода, която става извор на вода, извираща за {2} живот.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "закона",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "дара",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "обещанието",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "пророчеството",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "чиста",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "вечна",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "жива",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "свята",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "вечен",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "небесен",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "бъдещ",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "праведен",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 2,
+          "realIndex": 2,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Преди {0}, Христос казва на учениците: „Не е за вас да знаете {1}, които Отец е положил в собствената си {2}; но ще приемете сила, когато дойде върху вас Святия Дух…“",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "залавянето Му",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "да се възнесе",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "да се съмне",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "разпъването Му",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "години или времена",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "неща",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "пророчества",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "дела",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "ръка",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "воля",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "власт",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "промисъл",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 3,
+          "realIndex": 3,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "peter",
+                "text": "Петър",
+                "type": "hero"
+              },
+              {
+                "id": "matthias",
+                "text": "Матия",
+                "type": "hero"
+              },
+              {
+                "id": "stephen",
+                "text": "Стефан",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-peter",
+                "text": "Проповядва на Петдесятница, а след това около три хиляди души биват кръстени.",
+                "type": "story",
+                "correspondsTo": "peter"
+              },
+              {
+                "id": "s-matthias",
+                "text": "Избран чрез жребий, за да замести Юда сред дванадесетте ученици.",
+                "type": "story",
+                "correspondsTo": "matthias"
+              },
+              {
+                "id": "s-stephen",
+                "text": "Произнася реч пред юдейския синедрион и по-късно е убит с камъни.",
+                "type": "story",
+                "correspondsTo": "stephen"
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 4,
+          "realIndex": 4,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "enoch",
+                "text": "Енох",
+                "type": "hero"
+              },
+              {
+                "id": "cain",
+                "text": "Каин",
+                "type": "hero"
+              },
+              {
+                "id": "shem",
+                "text": "Сим",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-enoch",
+                "text": "Ходи вярно с Бог и след това не се намира вече, защото Бог го взима.",
+                "type": "story",
+                "correspondsTo": "enoch"
+              },
+              {
+                "id": "s-cain",
+                "text": "Построява град и го нарича на името на сина си.",
+                "type": "story",
+                "correspondsTo": "cain"
+              },
+              {
+                "id": "s-shem",
+                "text": "Става родоначалник на линия, която по-късно води до Аврам.",
+                "type": "story",
+                "correspondsTo": "shem"
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 5,
+          "realIndex": 5,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "igay",
+                "text": "Игай",
+                "type": "hero"
+              },
+              {
+                "id": "zeresha",
+                "text": "Зереса",
+                "type": "hero"
+              },
+              {
+                "id": "hadassa",
+                "text": "Адаса",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-igay",
+                "text": "Царският скопец, пазач на жените",
+                "type": "story",
+                "correspondsTo": "igay"
+              },
+              {
+                "id": "s-zeresha",
+                "text": "Жената на Аман",
+                "type": "story",
+                "correspondsTo": "zeresha"
+              },
+              {
+                "id": "s-hadassa",
+                "text": "Дъщеря на чичото на Мардохей",
+                "type": "story",
+                "correspondsTo": "hadassa"
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 6,
+          "realIndex": 6,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "принасят дарове на Аман",
+              "се кланят на Аман",
+              "правят път на Аман",
+              "поздравяват Аман"
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 7,
+          "realIndex": 7,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Ной издига олтар на Господа.",
+              "Ной отправя молитва към Господа.",
+              "Ной започва да си строи дом.",
+              "Ной се разкайва за греховете на човеците."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 8,
+          "realIndex": 8,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "назидание",
+              "прехрана",
+              "завет с Бога",
+              "да го избави от огорчението"
+            ],
+            "correctIndices": [
+              3
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 0,
+          "realIndex": 9,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Когато Лот бяга от Содом, единият от мъжете, които му помагат, му заповядва следното: „Бягай за {0} си! Не поглеждай {1} и не спирай никъде в тази долина! Бягай на {2}, за да не погинеш!“",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "жена",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "живота",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "спасението",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "приятелите",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "настрани",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "напред",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "назад",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "към останалите",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "планината",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "хълма",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "долу",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "полето",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 1,
+          "realIndex": 10,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Бог заповядва на Авраам да принесе {0} в жертва, но Ангелът го спира в последния момент, понеже вижда, че Авраам {1} Бога и е готов да пожертва дори {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "едно агне",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "слугата си",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Исмаил",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Исаак",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "се надява на",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "се бои от",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "се моли на",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "не се отрича от",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "първородния си син",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "единствения си син",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "любимото си агне",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "най-верния си слуга",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 2,
+          "realIndex": 11,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "След като Мойсей {0}, Бог заповядва на Исус Навиев да прекоси {1} с {2}, за да влязат в земята, която Той им дава.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "умира",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "се изморява",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "настоява",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "се отказва",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "пустинята Ливан",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "реката Ефрат",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "реката Йордан",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "планината Хорив",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "добитъка си",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "синовете и дъщерите си",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "избягалите роби",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "целия народ",
+                    "isCorrect": true
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 3,
+          "realIndex": 12,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "agar",
+                "text": "Агар",
+                "type": "hero"
+              },
+              {
+                "id": "rahab",
+                "text": "Раав",
+                "type": "hero"
+              },
+              {
+                "id": "ketura",
+                "text": "Хетура",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-agar",
+                "text": "Слугиня на Сара и майка на Исмаил",
+                "type": "story",
+                "correspondsTo": "agar"
+              },
+              {
+                "id": "s-rahab",
+                "text": "Блудница от Йерихон, която спасява съгледвачите",
+                "type": "story",
+                "correspondsTo": "rahab"
+              },
+              {
+                "id": "s-ketura",
+                "text": "Втората жена на Авраам",
+                "type": "story",
+                "correspondsTo": "ketura"
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 4,
+          "realIndex": 13,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "arioch",
+                "text": "Ариох",
+                "type": "hero"
+              },
+              {
+                "id": "darius",
+                "text": "Дарий",
+                "type": "hero"
+              },
+              {
+                "id": "abednego",
+                "text": "Авденаго",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-arioch",
+                "text": "Началник на телохранителите на вавилонския цар Навуходоносор",
+                "type": "story",
+                "correspondsTo": "arioch"
+              },
+              {
+                "id": "s-darius",
+                "text": "Мидийският цар, който превзема Вавилон",
+                "type": "story",
+                "correspondsTo": "darius"
+              },
+              {
+                "id": "s-abednego",
+                "text": "Един от тримата приятели на пророк Даниил, които оцеляват в огнената пещ",
+                "type": "story",
+                "correspondsTo": "abednego"
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 5,
+          "realIndex": 14,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "achan",
+                "text": "Ахан",
+                "type": "hero"
+              },
+              {
+                "id": "ishmael",
+                "text": "Исмаил",
+                "type": "hero"
+              },
+              {
+                "id": "laban",
+                "text": "Лаван",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-achan",
+                "text": "Извършва престъпление, като взема от обреченото след победата над Йерихон",
+                "type": "story",
+                "correspondsTo": "achan"
+              },
+              {
+                "id": "s-ishmael",
+                "text": "Първородният син на Авраам",
+                "type": "story",
+                "correspondsTo": "ishmael"
+              },
+              {
+                "id": "s-laban",
+                "text": "Брат на Ревека",
+                "type": "story",
+                "correspondsTo": "laban"
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 6,
+          "realIndex": 15,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "смирен и благороден",
+              "силен и мощен",
+              "силен и смел",
+              "добър и кротък"
+            ],
+            "correctIndices": [
+              2
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 7,
+          "realIndex": 16,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "да разкаже за чудото на старейшините",
+              "да вдигне постелката си и да ходи",
+              "да пази чудото в тайна",
+              "да принесе жертва на хвала"
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 8,
+          "realIndex": 17,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "хвърлен в яма с лъвове",
+              "хвърлен в огнена пещ",
+              "изгонен от Вавилон",
+              "наказан да не яде изрядните ястия на царя"
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 0,
+          "realIndex": 18,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "След като по-близкият {0} на Ноемин отказва да изпълни длъжността си, Вооз откупува {1} на Елимелех и придобива Рут за жена, за да възстанови името на умрелия над {2} му.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "събрат",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "съгражданин",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "сродник",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "приятел",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "нивата",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "къщата",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "заплатата",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "слугите",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "дома",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "наследството",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "семейството",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "имота",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 1,
+          "realIndex": 19,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Мариам и {0} говорят против Мойсей, заради {1}, която е {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "Аарон",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "Исус Навиев",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Йотор",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Сепфора",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "филистимката",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "египтянката",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "ханаанката",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "етиопянката",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "въвел вътре в шатъра",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "пощадил с ръката си",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "взел за жена",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "проклел пред Господа",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 2,
+          "realIndex": 20,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "{0} казва на Давид, че не може да се бие с Голиат, понеже Давид е {1}, а Голиат е {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "Йонатан",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Есей",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Елиав",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Саул",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "горд",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "овчар",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "невъоръжен",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "момче",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "силен като мечка и лъв",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "воин още от младостта си",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "висок като исполин",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "кръвожаден филистимец",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 3,
+          "realIndex": 21,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "miriam",
+                "text": "Мариам",
+                "type": "hero"
+              },
+              {
+                "id": "abigail",
+                "text": "Авигея",
+                "type": "hero"
+              },
+              {
+                "id": "naomi",
+                "text": "Ноемин",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-miriam",
+                "text": "Пророчица",
+                "type": "story",
+                "correspondsTo": "miriam"
+              },
+              {
+                "id": "s-abigail",
+                "text": "Жената на Навал, която възпира Давид да си отмъсти",
+                "type": "story",
+                "correspondsTo": "abigail"
+              },
+              {
+                "id": "s-naomi",
+                "text": "Променя името си на “Мара”, защото е огорчена",
+                "type": "story",
+                "correspondsTo": "naomi"
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 4,
+          "realIndex": 22,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "leper-galilee",
+                "text": "Прокаженият в Галилея",
+                "type": "hero"
+              },
+              {
+                "id": "leper-samaritan",
+                "text": "Единственият от 10-те прокажени, който се връща да благодари",
+                "type": "hero"
+              },
+              {
+                "id": "blind-siloam",
+                "text": "Слепороденият човек при къпалнята Силоам",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-leper-galilee",
+                "text": "Исус му казва: “Искам, бъди очистен.”",
+                "type": "story",
+                "correspondsTo": "leper-galilee"
+              },
+              {
+                "id": "s-leper-samaritan",
+                "text": "Исус му казва: “Стани и си иди; твоята вяра те изцели”",
+                "type": "story",
+                "correspondsTo": "leper-samaritan"
+              },
+              {
+                "id": "s-blind-siloam",
+                "text": "Исус му казва: “Ти вярваш ли в Божия Син?”",
+                "type": "story",
+                "correspondsTo": "blind-siloam"
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 5,
+          "realIndex": 23,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "ahimelech",
+                "text": "Ахимелех",
+                "type": "hero"
+              },
+              {
+                "id": "jonathan",
+                "text": "Йонатан",
+                "type": "hero"
+              },
+              {
+                "id": "saul",
+                "text": "Саул",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-ahimelech",
+                "text": "Дава на Давид от присъствените хлябове",
+                "type": "story",
+                "correspondsTo": "ahimelech"
+              },
+              {
+                "id": "s-jonathan",
+                "text": "Отива да насърчи Давид, когато той се крие в пустинята Зиф",
+                "type": "story",
+                "correspondsTo": "jonathan"
+              },
+              {
+                "id": "s-saul",
+                "text": "Иска Давид да се закълне, че няма да изтреби потомството му",
+                "type": "story",
+                "correspondsTo": "saul"
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 6,
+          "realIndex": 24,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "пръст от земята колкото товар за две мулета",
+              "две чувалчета сребро и две премени дрехи",
+              "две стомни вода от река Йордан",
+              "два таланта златни жълтици"
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 7,
+          "realIndex": 25,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Преструва се на луд.",
+              "Взима ефод и се допитва до Господа.",
+              "Навлиза в гората Арет и се крие там с мъжете си.",
+              "Подготвя се да направи засада и да нападне Саул."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 8,
+          "realIndex": 26,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Докосва се до него и го изцелява.",
+              "Хваща го за ръка и го извежда извън селото.",
+              "Прави кал с плюнката Си и му намазва очите с калта.",
+              "Пита го какво иска от Него."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 0,
+          "realIndex": 27,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Първия път, когато {0} се явява на {1}, той чука жито {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "пророкът",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "мадиамецът",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "ангелът Господен",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "свещеникът",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "Исус",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Павел",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Гидеон",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "Анания",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "в хамбара",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "в лина",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "навън",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "в пещерата",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 1,
+          "realIndex": 28,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Мъжете на Гидеон са въоръжени с {0}, {1} и {2}, когато нападат стана на мадиамците.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "усмивки",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "мечове",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "доспехи",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "тръби",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "празни водоноси",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "лъкове",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "препарати",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "прашки",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "стрели",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "факли",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "камъни",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "спрейове",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 2,
+          "realIndex": 29,
+          "questionText": "Попълване на празни места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 1,
+          "timeLimitSeconds": 30,
+          "grading": "AUTO",
+          "content": {
+            "text": "Злият дух казва на Исус в синагогата в Капернаум „Остави ни! Какво имаш Ти с нас, Исусе {0}? Нима си дошъл да ни {1}? Познавам Те Кой си, {2} Божий.“",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "Наставниче",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Назарянине",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "Дърводелецо",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Спасителю",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "изселиш",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "отхвърлиш",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "изгониш",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "погубиш",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "Духът",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Синът",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "Святият",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "Избраният",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 3,
+          "realIndex": 30,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "jesus-demon",
+                "text": "Исус",
+                "type": "hero"
+              },
+              {
+                "id": "gideon-efod",
+                "text": "Гидеон",
+                "type": "hero"
+              },
+              {
+                "id": "paul-philippi",
+                "text": "Павел",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-jesus-demon",
+                "text": "Изгонва зъл дух от дъщерята на чужденка",
+                "type": "story",
+                "correspondsTo": "jesus-demon"
+              },
+              {
+                "id": "s-gideon-efod",
+                "text": "Прави златен ефод",
+                "type": "story",
+                "correspondsTo": "gideon-efod"
+              },
+              {
+                "id": "s-paul-philippi",
+                "text": "Изгонва дух от жена във Филипи",
+                "type": "story",
+                "correspondsTo": "paul-philippi"
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 4,
+          "realIndex": 31,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "sower-soil",
+                "text": "Семената на каменистата почва",
+                "type": "hero"
+              },
+              {
+                "id": "path-seeds",
+                "text": "Семената на пътя",
+                "type": "hero"
+              },
+              {
+                "id": "thorns-seeds",
+                "text": "Семената между тръните",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-sower-soil",
+                "text": "Нямат много пръст и изсъхват без корен",
+                "type": "story",
+                "correspondsTo": "sower-soil"
+              },
+              {
+                "id": "s-path-seeds",
+                "text": "Изядени са от птиците",
+                "type": "story",
+                "correspondsTo": "path-seeds"
+              },
+              {
+                "id": "s-thorns-seeds",
+                "text": "Заглушени са",
+                "type": "story",
+                "correspondsTo": "thorns-seeds"
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 5,
+          "realIndex": 32,
+          "questionText": "Свързване на герои към история",
+          "type": "MATCHING",
+          "points": 1,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "heroes": [
+              {
+                "id": "mustard",
+                "text": "Синаповото зърно",
+                "type": "hero"
+              },
+              {
+                "id": "leaven",
+                "text": "Квасът",
+                "type": "hero"
+              },
+              {
+                "id": "pearl",
+                "text": "Скъпоценният бисер",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s-mustard",
+                "text": "Най-малкото от всички семена",
+                "type": "story",
+                "correspondsTo": "mustard"
+              },
+              {
+                "id": "s-leaven",
+                "text": "Замесва се в три мери брашно",
+                "type": "story",
+                "correspondsTo": "leaven"
+              },
+              {
+                "id": "s-pearl",
+                "text": "Струва всичко, което човек има",
+                "type": "story",
+                "correspondsTo": "pearl"
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 6,
+          "realIndex": 33,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Веднага ги убива.",
+              "Подиграва се с тях.",
+              "Връща се в Сокхот и Фануил.",
+              "Скарва им се и ги пуска."
+            ],
+            "correctIndices": [
+              2
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 7,
+          "realIndex": 34,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "На юдеите",
+              "На Йоан Марк",
+              "На Варнава",
+              "На ефеските църковни презвитери"
+            ],
+            "correctIndices": [
+              3
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 8,
+          "realIndex": 35,
+          "questionText": "Довършване на история",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Да нямат окови като него.",
+              "Да не си бръснат главите като него.",
+              "Да не ядат толкова месо.",
+              "Да виждат по-добре от него."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Кръг 2 – Хронология",
+      "type": "STANDARD",
+      "orderIndex": 2,
+      "questions": [
+        {
+          "realIndex": 0,
+          "questionText": "Хронология - 1 Раздел (Йона)",
+          "type": "CHRONOLOGY",
+          "points": 1,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "jonah-1",
+                "text": "Йона бяга в Тарсис.",
+                "order": 0
+              },
+              {
+                "id": "jonah-2",
+                "text": "Настава голяма буря.",
+                "order": 1
+              },
+              {
+                "id": "jonah-3",
+                "text": "Моряците хвърлят жребий.",
+                "order": 2
+              },
+              {
+                "id": "jonah-4",
+                "text": "Моряците се молят на Бог да не загинат заради Йона.",
+                "order": 3
+              },
+              {
+                "id": "jonah-5",
+                "text": "Екипажът изхвърля Йона в морето.",
+                "order": 4
+              },
+              {
+                "id": "jonah-6",
+                "text": "Моряците принасят жертва на Господ.",
+                "order": 5
+              },
+              {
+                "id": "jonah-7",
+                "text": "Голяма риба поглъща Йона.",
+                "order": 6
+              },
+              {
+                "id": "jonah-8",
+                "text": "Йона прогласява предстоящата гибел на Ниневия.",
+                "order": 7
+              },
+              {
+                "id": "jonah-9",
+                "text": "Царят и народът му се обръщат към Господ.",
+                "order": 8
+              },
+              {
+                "id": "jonah-10",
+                "text": "Бог се разкайва и променя мнението си.",
+                "order": 9
+              }
+            ]
+          }
+        },
+        {
+          "realIndex": 1,
+          "questionText": "Хронология - 2 Раздел (Исус Навиев 1-6)",
+          "type": "CHRONOLOGY",
+          "points": 1,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "joshua-1",
+                "text": "Моисей умира и Бог заповядва на Исус Навиев да води народа към Обещаната земя.",
+                "order": 0
+              },
+              {
+                "id": "joshua-2",
+                "text": "Исус Навиев изпраща съгледвачи в Ерихон.",
+                "order": 1
+              },
+              {
+                "id": "joshua-3",
+                "text": "Раав скрива двама мъже в ленените кълчища на покрива си.",
+                "order": 2
+              },
+              {
+                "id": "joshua-4",
+                "text": "Всички израилтяни тръгват от Ситим.",
+                "order": 3
+              },
+              {
+                "id": "joshua-5",
+                "text": "Водата на река Йордан се разделя, за да премине израилевият народ.",
+                "order": 4
+              },
+              {
+                "id": "joshua-6",
+                "text": "По един човек от всяко от дванадесетте израилеви племена взема по един камък от Йордан.",
+                "order": 5
+              },
+              {
+                "id": "joshua-7",
+                "text": "Исус Навиев обрязва всички израилеви мъже, родени в пустинята.",
+                "order": 6
+              },
+              {
+                "id": "joshua-8",
+                "text": "Израилевите военни мъже обикалят град Ерихон по веднъж шест дни подред.",
+                "order": 7
+              },
+              {
+                "id": "joshua-9",
+                "text": "Израилевите военни мъже обикалят град Ерихон седем пъти за един ден.",
+                "order": 8
+              },
+              {
+                "id": "joshua-10",
+                "text": "Целият израилев народ извиква и стената на град Ерихон пада.",
+                "order": 9
+              }
+            ]
+          }
+        },
+        {
+          "realIndex": 2,
+          "questionText": "Хронология - 3 Раздел (Самсон – Съдии 14-16)",
+          "type": "CHRONOLOGY",
+          "points": 1,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "samson-1",
+                "text": "Самсон разкъсва млад лъв в Тамнатските лозя.",
+                "order": 0
+              },
+              {
+                "id": "samson-2",
+                "text": "Самсон избива 30 мъже в Ашкелон и взима облеклата им.",
+                "order": 1
+              },
+              {
+                "id": "samson-3",
+                "text": "Самсон подпалва посевите на филистимците.",
+                "order": 2
+              },
+              {
+                "id": "samson-4",
+                "text": "Самсон убива 1 000 мъже с оселова челюст.",
+                "order": 3
+              },
+              {
+                "id": "samson-5",
+                "text": "Самсон изнася на раменете си вратите на градската порта в Газа.",
+                "order": 4
+              },
+              {
+                "id": "samson-6",
+                "text": "Далила завързва Самсон с нови въжета, още неупотребявани.",
+                "order": 5
+              },
+              {
+                "id": "samson-7",
+                "text": "Далила втъкава и заковава плитките на Самсон в платното на стана.",
+                "order": 6
+              },
+              {
+                "id": "samson-8",
+                "text": "Далила вика човек да отреже плитките на Самсон.",
+                "order": 7
+              },
+              {
+                "id": "samson-9",
+                "text": "Филистимците пленяват Самсон и избождат очите му.",
+                "order": 8
+              },
+              {
+                "id": "samson-10",
+                "text": "Самсон събаря храма на филистимския бог Дагон.",
+                "order": 9
+              }
+            ]
+          }
+        },
+        {
+          "realIndex": 3,
+          "questionText": "Хронология - 4 Раздел (Павел - Деяния 9-20)",
+          "type": "CHRONOLOGY",
+          "points": 1,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "paul-1",
+                "text": "Павел е заслепен от Исус по пътя към Дамаск.",
+                "order": 0
+              },
+              {
+                "id": "paul-2",
+                "text": "Анания полага ръце на Павел.",
+                "order": 1
+              },
+              {
+                "id": "paul-3",
+                "text": "Павел заслепява магьосника Варисус.",
+                "order": 2
+              },
+              {
+                "id": "paul-4",
+                "text": "Павел изцелява куц по рождение човек в Листра.",
+                "order": 3
+              },
+              {
+                "id": "paul-5",
+                "text": "Павел се кара с Варнава относно Йоан Марк.",
+                "order": 4
+              },
+              {
+                "id": "paul-6",
+                "text": "Павел взима Тимотей със себе си.",
+                "order": 5
+              },
+              {
+                "id": "paul-7",
+                "text": "Павел и Сила пеят в затвора.",
+                "order": 6
+              },
+              {
+                "id": "paul-8",
+                "text": "Павел говори на ареопага в Атина.",
+                "order": 7
+              },
+              {
+                "id": "paul-9",
+                "text": "Павел полага ръце на ефесяните и те приемат Святия Дух.",
+                "order": 8
+              },
+              {
+                "id": "paul-10",
+                "text": "Павел възкресява Евтих в Троада.",
+                "order": 9
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Кръг 3",
+      "type": "STREAK",
+      "orderIndex": 3,
+      "questions": [
+        {
+          "realIndex": 0,
+          "questionText": "На четвъртия ден от сътворението Бог създава небесните светила, за да служат за знаци и за показване на времената, дните и годините.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": true
+          }
+        },
+        {
+          "realIndex": 1,
+          "questionText": "Когато содомските мъже обграждат къщата на Лот, ангелите ги поразяват с проказа.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 2,
+          "questionText": "Добрите и лошите риби са прибрани заедно в съдове.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 3,
+          "questionText": "Цар Валтасар организира пир със свещените съдове от храма на Божия дом и в същата нощ бива убит.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": true
+          }
+        },
+        {
+          "realIndex": 4,
+          "questionText": "Единственият от 10-те прокажени, който се връща да благодари на Исус, е самарянин.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": true
+          }
+        },
+        {
+          "realIndex": 5,
+          "questionText": "Когато учениците виждат Исус и самарянката при кладенеца, те се учудват, че той разговаря с жена и затова се намесват.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 6,
+          "questionText": "Сирийският цар изпраща до Елисей писмо, в което го моли той да изцели проказата на Нееман.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 7,
+          "questionText": "Петър разговаря първо със Сапфира и тя е поразена, а след това и с Анания, който също пада и издъхва заради измамата с нивата.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 8,
+          "questionText": "Човекът с нечист дух в гробищата се казва Легион.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 9,
+          "questionText": "Седрах, Мисах и Авденаго са хвърлени в огнената пещ, понеже отказват да служат в царството на Навуходоносор.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 10,
+          "questionText": "В старо време според обичая в Израил се дава ленена риза като свидетелство при всяко дело по откупуване и размяна.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
+          "realIndex": 11,
+          "questionText": "Исус разказва притча, според която Божието царство прилича на синапово зърно, което човек посява в градината си и то расте и става дърво, и небесните птици се подслоняват по клончетата му.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": true
+          }
+        },
+        {
+          "realIndex": 12,
+          "questionText": "Кое твърдение за Павел е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Павел работи, като прави шатри.",
+              "Павел е бит публично пред коринтския управител Галион."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 13,
+          "questionText": "Кое твърдение за Вартимей е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Исус изцелява Вартимей в град Ерусалим.",
+              "Вартимей е просяк."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "realIndex": 14,
+          "questionText": "Кое твърдение за Адам и Ева е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Преди сътворението на Адам и Ева Господ изпраща дъжд, който да напоява земята.",
+              "Преди сътворението на Адам и Ева пара се издига и напоява земята."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "realIndex": 15,
+          "questionText": "Кое твърдение за Самуил е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Самуил тъгува, когато Бог отхвърля Саул за цар на Израил.",
+              "Самуил повече не среща Давид, след като го помазва за цар."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 16,
+          "questionText": "Кое твърдение за Агар е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "След като забременява, Агар започва да презира господарката си и Сарая я изгонва в пустинята.",
+              "След раждането на Исаак Авраам изпраща Агар и Исмаил вън от дома си."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "realIndex": 17,
+          "questionText": "Кое твърдение за Даниил е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Пророк Даниил тълкува съня на цар Навуходоносор и е поставен за управител над цялата Вавилонска област.",
+              "Даниил и приятелите му предпочитат да ядат от изрядните ястия на царя, за да станат по-здрави."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 18,
+          "questionText": "Кое твърдение за Павел е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Павел продължава да говори, след като е възкресил умрялото момче Евтих.",
+              "По време на бунта в Ефес Павел е заведен в театъра заедно с другите Христови ученици."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 19,
+          "questionText": "Кое твърдение за Варнава е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Името Варнава означава „Син на увещание“.",
+              "Името Варнава означава „Почитащ Бога“."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 20,
+          "questionText": "Кое твърдение за цар Ябин е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Цар Ябин сключва мир с израилтяните, след като вижда поражението на аморейските царе.",
+              "Исус Навиев убива цар Ябин с меч."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "realIndex": 21,
+          "questionText": "Кое твърдение за Маноах е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Маноах е от племето Дан.",
+              "Маноах посвещава сина си като назирей, защото прави оброк с Господа."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 22,
+          "questionText": "Кое твърдение за Ниневийския цар е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Ниневийският цар издава указ, според който хората и животните не трябва да се хранят и да пият вода.",
+              "Ниневийският цар издава указ, според който хората и животните не трябва да вършат работа и да излизат навън."
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "realIndex": 23,
+          "questionText": "Кое твърдение за Павел е вярно?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Стотникът на кораба от самото начало се доверява повече на думите на Павел, отколкото на кормчията и стопанина на кораба.",
+              "Павел е роден като римски гражданин."
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "realIndex": 24,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "След като Исус изцелява болния във Витезда в събота, юдеите Го хвалят за доброто дело.",
+            "words": [
+              {
+                "wordIndex": 11,
+                "text": "хвалят",
+                "alternatives": [
+                  "гонят, за да го убият"
+                ]
+              }
+            ],
+            "errorWordIndex": 11,
+            "correctReplacement": "гонят, за да го убият"
+          }
+        },
+        {
+          "realIndex": 25,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "В Ефес хората носят кърпи или престилки, до които се е докосвал Павел, за да изцеляват болни и носят щастие.",
+            "words": [
+              {
+                "wordIndex": 19,
+                "text": "щастие",
+                "alternatives": [
+                  "гонят зли духове"
+                ]
+              }
+            ],
+            "errorWordIndex": 19,
+            "correctReplacement": "гонят зли духове"
+          }
+        },
+        {
+          "realIndex": 26,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Естир заръчва на Мардохей и всички юдеи да се покрият с вретище три дни преди тя да влезе при царя.",
+            "words": [
+              {
+                "wordIndex": 9,
+                "text": "покрият",
+                "alternatives": [
+                  "постят"
+                ]
+              }
+            ],
+            "errorWordIndex": 9,
+            "correctReplacement": "постят"
+          }
+        },
+        {
+          "realIndex": 27,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Когато Саул изпраща мъже в дома на Давид, за да го убият, Михала го спуска през прозореца, слага идол в леглото му и казва, че е нечист.",
+            "words": [
+              {
+                "wordIndex": 26,
+                "text": "нечист",
+                "alternatives": [
+                  "болен"
+                ]
+              }
+            ],
+            "errorWordIndex": 26,
+            "correctReplacement": "болен"
+          }
+        },
+        {
+          "realIndex": 28,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Цар Дарий прави златен образ и го поставя на полето Дура, като заповядва на всички племена във вавилонската област да се поклонят на образа.",
+            "words": [
+              {
+                "wordIndex": 1,
+                "text": "Дарий",
+                "alternatives": [
+                  "Навуходоносор"
+                ]
+              }
+            ],
+            "errorWordIndex": 1,
+            "correctReplacement": "Навуходоносор"
+          }
+        },
+        {
+          "realIndex": 29,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Родителите на слепородения се боят от юдеите, защото те са се споразумели да хвърлят в тъмница всеки, който признава, че Исус е Помазаникът.",
+            "words": [
+              {
+                "wordIndex": 13,
+                "text": "хвърлят",
+                "alternatives": [
+                  "отлъчат от синагогата"
+                ]
+              }
+            ],
+            "errorWordIndex": 13,
+            "correctReplacement": "отлъчат от синагогата"
+          }
+        },
+        {
+          "realIndex": 30,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "В Коринт Павел раздира дрехите си и казва на юдеите, че отсега ще ходи между езичниците.",
+            "words": [
+              {
+                "wordIndex": 3,
+                "text": "раздира",
+                "alternatives": [
+                  "отърсва"
+                ]
+              }
+            ],
+            "errorWordIndex": 3,
+            "correctReplacement": "отърсва"
+          }
+        },
+        {
+          "realIndex": 31,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Самарянката се чуди откъде Исус има вода, защото кладенецът е дълбок, а и Той е юдеин.",
+            "words": [
+              {
+                "wordIndex": 15,
+                "text": "юдеин",
+                "alternatives": [
+                  "Той няма почерпало/съд"
+                ]
+              }
+            ],
+            "errorWordIndex": 15,
+            "correctReplacement": "Той няма почерпало/съд"
+          }
+        },
+        {
+          "realIndex": 32,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Пророк Агав показва как Павел ще бъде вързан в Ерусалим, като взима неговата храна.",
+            "words": [
+              {
+                "wordIndex": 13,
+                "text": "храна",
+                "alternatives": [
+                  "неговия пояс"
+                ]
+              }
+            ],
+            "errorWordIndex": 13,
+            "correctReplacement": "неговия пояс"
+          }
+        },
+        {
+          "realIndex": 33,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Когато Давид и мъжете му се прибират в град Сиклаг и виждат, че градът е изгорен с огън и жените и децата им са пленени, душата на людете е преогорчена и те искат да отмъстят на амаликчаните с ръката си.",
+            "words": [
+              {
+                "wordIndex": 34,
+                "text": "отмъстят",
+                "alternatives": [
+                  "да убият Давид с камъни"
+                ]
+              }
+            ],
+            "errorWordIndex": 34,
+            "correctReplacement": "да убият Давид с камъни"
+          }
+        },
+        {
+          "realIndex": 34,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Бог говори на фараона насън и му казва, че ще умре, защото е взел Сара, жената на Авраам.",
+            "words": [
+              {
+                "wordIndex": 3,
+                "text": "фараона",
+                "alternatives": [
+                  "Авимелех"
+                ]
+              }
+            ],
+            "errorWordIndex": 3,
+            "correctReplacement": "Авимелех"
+          }
+        },
+        {
+          "realIndex": 35,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Прокаженият пред Красната врата проси милостиня, но вместо да получи подаяние от Петър и Йоан, бива изцелен.",
+            "words": [
+              {
+                "wordIndex": 0,
+                "text": "Прокаженият",
+                "alternatives": [
+                  "Куцият"
+                ]
+              }
+            ],
+            "errorWordIndex": 0,
+            "correctReplacement": "Куцият"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Кръг 4 – Кръстословица",
+      "type": "CROSSWORD",
+      "orderIndex": 4,
+      "questions": [
+        {
+          "realIndex": 0,
+          "questionText": "Попълнете кръстословицата",
+          "type": "CROSSWORD",
+          "points": 10,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "grid": [
+              [
+                "Ч",
+                "",
+                "",
+                "",
+                "Х",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ],
+              [
+                "Е",
+                "",
+                "Б",
+                "",
+                "А",
+                "С",
+                "Т",
+                "И",
+                "Н",
+                ""
+              ],
+              [
+                "Р",
+                "",
+                "Ъ",
+                "",
+                "Р",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ],
+              [
+                "В",
+                "А",
+                "Л",
+                "Т",
+                "А",
+                "С",
+                "А",
+                "С",
+                "А",
+                "Р"
+              ],
+              [
+                "Е",
+                "",
+                "Х",
+                "",
+                "Н",
+                "",
+                "",
+                "А",
+                "",
+                ""
+              ],
+              [
+                "Й",
+                "",
+                "А",
+                "",
+                "",
+                "К",
+                "А",
+                "Д",
+                "Е",
+                "Ш"
+              ],
+              [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "У",
+                "",
+                ""
+              ],
+              [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "К",
+                "",
+                ""
+              ],
+              [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Е",
+                "",
+                ""
+              ],
+              [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "З",
+                "М",
+                "И",
+                "Я",
+                ""
+              ]
+            ],
+            "clues": {
+              "across": [
+                {
+                  "number": 2,
+                  "x": 4,
+                  "y": 1,
+                  "direction": "across",
+                  "clue": "Естир заема мястото на тази царица.",
+                  "answer": "АСТИН"
+                },
+                {
+                  "number": 4,
+                  "x": 0,
+                  "y": 3,
+                  "direction": "across",
+                  "clue": "Вавилонското име на Даниил",
+                  "answer": "ВАЛТАСАСАР"
+                },
+                {
+                  "number": 6,
+                  "x": 5,
+                  "y": 5,
+                  "direction": "across",
+                  "clue": "Мястото, където е погребана Мариам.",
+                  "answer": "КАДЕШ"
+                },
+                {
+                  "number": 7,
+                  "x": 5,
+                  "y": 9,
+                  "direction": "across",
+                  "clue": "Животното, което ухапва Павел на остров Малта.",
+                  "answer": "ЗМИЯ"
+                }
+              ],
+              "down": [
+                {
+                  "number": 1,
+                  "x": 0,
+                  "y": 0,
+                  "direction": "down",
+                  "clue": "Това поразява тиквата, която пази сянка на Йона.",
+                  "answer": "ЧЕРВЕЙ"
+                },
+                {
+                  "number": 3,
+                  "x": 4,
+                  "y": 0,
+                  "direction": "down",
+                  "clue": "Земята, от която Аврам излиза, когато Бог го призовава.",
+                  "answer": "ХАРАН"
+                },
+                {
+                  "number": 5,
+                  "x": 2,
+                  "y": 1,
+                  "direction": "down",
+                  "clue": "И двата пъти, когато Давид пощадява живота на Саул (в пещерата и в стана), Давид оприличава себе си на това животно.",
+                  "answer": "БЪЛХА"
+                },
+                {
+                  "number": 8,
+                  "x": 7,
+                  "y": 3,
+                  "direction": "down",
+                  "clue": "Тези хора казват, че няма възкресение, нито ангел, нито дух.",
+                  "answer": "САДУКЕИ"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

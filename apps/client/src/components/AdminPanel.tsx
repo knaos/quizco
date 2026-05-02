@@ -36,6 +36,8 @@ type ConfirmState =
   | { mode: "deleteQuestion"; questionId: string; roundId: string }
   | null;
 
+type ImportStatus = { type: "success" | "error"; message: string } | null;
+
 export const AdminPanel: React.FC = () => {
   const { t } = useTranslation();
   const { adminToken, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
@@ -48,6 +50,7 @@ export const AdminPanel: React.FC = () => {
   } | null>(null);
   const [promptState, setPromptState] = useState<PromptState>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
+  const [importStatus, setImportStatus] = useState<ImportStatus>(null);
 
   const adminData = useAdminData(adminToken, logoutAdmin);
 
@@ -137,9 +140,33 @@ export const AdminPanel: React.FC = () => {
   };
 
   const handleSelectCompetition = async (competition: Competition) => {
+    setImportStatus(null);
     adminData.setSelectedComp(competition);
     setView("EDITOR");
     await adminData.fetchRounds(competition.id);
+  };
+
+  const handleImportCompetition = async (file: File) => {
+    const result = await adminData.importCompetitionFromFile(file);
+    if (result.ok) {
+      setImportStatus({ type: "success", message: t("admin.import_success") });
+      return;
+    }
+
+    if (!result.message) {
+      setImportStatus({ type: "error", message: t("admin.import_failed") });
+      return;
+    }
+
+    if (result.message.startsWith("admin.")) {
+      setImportStatus({ type: "error", message: t(result.message) });
+      return;
+    }
+
+    setImportStatus({
+      type: "error",
+      message: t("admin.import_validation_failed", { message: result.message }),
+    });
   };
 
   const handleReorderRound = async (roundId: string, direction: "up" | "down") => {
@@ -243,6 +270,8 @@ export const AdminPanel: React.FC = () => {
               competitions={adminData.competitions}
               onSelect={handleSelectCompetition}
               onCreate={() => setPromptState({ mode: "createCompetition", value: "" })}
+              onImport={handleImportCompetition}
+              importStatus={importStatus}
               onEdit={(competition) =>
                 setPromptState({
                   mode: "renameCompetition",

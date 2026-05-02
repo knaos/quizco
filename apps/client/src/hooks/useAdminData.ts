@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Competition, Question, Round } from "@quizco/shared";
+import type { Competition, CompetitionImportDocument, Question, Round } from "@quizco/shared";
 import { API_URL } from "../socket";
 import { createAuthHeaders } from "../auth";
 
@@ -15,6 +15,9 @@ export interface AdminDataResult {
   fetchCompetitions: () => Promise<void>;
   fetchRounds: (competitionId: string) => Promise<void>;
   createCompetition: (title: string) => Promise<void>;
+  importCompetitionFromFile: (
+    file: File,
+  ) => Promise<{ ok: boolean; message?: string }>;
   updateCompetition: (competitionId: string, data: Partial<Competition>) => Promise<void>;
   deleteCompetition: (competitionId: string) => Promise<void>;
   createRound: (competitionId: string, title: string, orderIndex: number) => Promise<void>;
@@ -32,7 +35,7 @@ export function useAdminData(
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [questionsByRound, setQuestionsByRound] = useState<Record<string, Question[]>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const createHeaders = useCallback(
     (includeJson = false) => createAuthHeaders(adminToken, includeJson),
@@ -96,8 +99,10 @@ export function useAdminData(
 
   useEffect(() => {
     if (!adminToken) {
+      setIsLoading(false);
       return;
     }
+    setIsLoading(true);
     fetch(`${API_BASE}/competitions`, { headers: createHeaders() })
       .then((res) => {
         if (res.ok) return res.json();
@@ -127,6 +132,44 @@ export function useAdminData(
       if (response.ok) {
         await fetchCompetitions();
       }
+    },
+    importCompetitionFromFile: async (file: File) => {
+      let parsed: CompetitionImportDocument;
+      try {
+        const text = await file.text();
+        parsed = JSON.parse(text) as CompetitionImportDocument;
+      } catch {
+        return {
+          ok: false,
+          message: "admin.import_invalid_json",
+        };
+      }
+
+      const response = await fetch(`${API_BASE}/competitions/import`, {
+        method: "POST",
+        headers: createHeaders(true),
+        body: JSON.stringify(parsed),
+      });
+
+      if (response.status === 401) {
+        onUnauthorized();
+        return { ok: false, message: "admin.import_failed" };
+      }
+
+      if (!response.ok) {
+        try {
+          const payload = (await response.json()) as { message?: string };
+          return {
+            ok: false,
+            message: payload.message ?? "admin.import_failed",
+          };
+        } catch {
+          return { ok: false, message: "admin.import_failed" };
+        }
+      }
+
+      await fetchCompetitions();
+      return { ok: true };
     },
     updateCompetition: async (competitionId: string, data: Partial<Competition>) => {
       const response = await fetch(`${API_BASE}/competitions/${competitionId}`, {
