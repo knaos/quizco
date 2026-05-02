@@ -73,7 +73,6 @@ describe("useAdminData", () => {
             {
               title: "Round 1",
               type: "STANDARD",
-              orderIndex: 1,
               questions: [
                 {
                   questionText: "Q1",

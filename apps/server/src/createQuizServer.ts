@@ -84,8 +84,8 @@ export function createQuizServer(
         include: {
           questions: {
             orderBy: [
-              { section: "asc" },
               { realIndex: "asc" },
+              { index: "asc" },
               { createdAt: "asc" },
             ],
             include: {

@@ -79,7 +79,6 @@ describe("admin competition import route", () => {
           {
             title: "Round A",
             type: "STANDARD",
-            orderIndex: 1,
             questions: [
               {
                 questionText: "Q1",
@@ -101,7 +100,6 @@ describe("admin competition import route", () => {
                 grading: "AUTO",
                 section: "1",
                 index: 4,
-                realIndex: 8,
                 content: {
                   answer: "test",
                 },
@@ -134,7 +132,7 @@ describe("admin competition import route", () => {
     expect(firstQuestion.index).toBe(0);
     expect(firstQuestion.realIndex).toBe(0);
     expect(secondQuestion.index).toBe(4);
-    expect(secondQuestion.realIndex).toBe(8);
+    expect(secondQuestion.realIndex).toBe(1);
   });
 
   it("returns 400 for malformed JSON request payload", async () => {

@@ -106,9 +106,6 @@ function validateImportQuestion(
   if (question.index !== undefined && !isFiniteNumber(question.index)) {
     return `rounds[${roundIndex}].questions[${questionIndex}].index must be a number`;
   }
-  if (question.realIndex !== undefined && !isFiniteNumber(question.realIndex)) {
-    return `rounds[${roundIndex}].questions[${questionIndex}].realIndex must be a number`;
-  }
   return null;
 }
 
@@ -121,9 +118,6 @@ function validateImportRound(
   }
   if (!ROUND_TYPES.has(round.type)) {
     return `rounds[${roundIndex}].type is invalid`;
-  }
-  if (!isFiniteNumber(round.orderIndex)) {
-    return `rounds[${roundIndex}].orderIndex must be a number`;
   }
   if (!Array.isArray(round.questions) || round.questions.length === 0) {
     return `rounds[${roundIndex}].questions must be a non-empty array`;
@@ -232,21 +226,22 @@ router.post("/competitions/import", async (req, res) => {
       let createdRounds = 0;
       let createdQuestions = 0;
 
-      for (const roundImport of importDocument.rounds) {
+      for (let roundOrder = 0; roundOrder < importDocument.rounds.length; roundOrder += 1) {
+        const roundImport = importDocument.rounds[roundOrder];
         const createdRound = await transaction.round.create({
           data: {
             competitionId: createdCompetition.id,
             title: roundImport.title.trim(),
             type: roundImport.type as RoundType,
-            orderIndex: roundImport.orderIndex,
+            orderIndex: roundOrder + 1,
           },
         });
         createdRounds += 1;
 
-        let nextRealIndex = 0;
         const nextIndexBySection = new Map<string, number>();
 
-        for (const questionImport of roundImport.questions) {
+        for (let questionOrder = 0; questionOrder < roundImport.questions.length; questionOrder += 1) {
+          const questionImport = roundImport.questions[questionOrder];
           const normalizedSection =
             typeof questionImport.section === "string" && questionImport.section.trim()
               ? questionImport.section.trim()
@@ -255,10 +250,6 @@ router.post("/competitions/import", async (req, res) => {
           const fallbackSectionIndex = nextIndexBySection.get(sectionKey) ?? 0;
           const resolvedIndex =
             typeof questionImport.index === "number" ? questionImport.index : fallbackSectionIndex;
-          const resolvedRealIndex =
-            typeof questionImport.realIndex === "number"
-              ? questionImport.realIndex
-              : nextRealIndex;
 
           await transaction.question.create({
             data: {
@@ -275,12 +266,11 @@ router.post("/competitions/import", async (req, res) => {
               grading: questionImport.grading as GradingMode,
               section: normalizedSection,
               index: resolvedIndex,
-              realIndex: resolvedRealIndex,
+              realIndex: questionOrder,
             },
           });
 
           nextIndexBySection.set(sectionKey, resolvedIndex + 1);
-          nextRealIndex = Math.max(nextRealIndex, resolvedRealIndex + 1);
           createdQuestions += 1;
         }
       }
@@ -328,8 +318,8 @@ router.get("/competitions/:id", async (req, res) => {
           include: {
             questions: {
               orderBy: [
-                { section: "asc" },
                 { realIndex: "asc" },
+                { index: "asc" },
                 { createdAt: "asc" },
               ],
             },
@@ -423,8 +413,8 @@ router.get("/rounds/:id/questions", async (req, res) => {
     const questions = await prisma.question.findMany({
       where: { roundId: id },
       orderBy: [
-        { section: "asc" },
         { realIndex: "asc" },
+        { index: "asc" },
         { createdAt: "asc" },
       ],
     });

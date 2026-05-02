@@ -133,8 +133,13 @@ export class PostgresGameRepository implements IGameRepository {
   async getAllQuestions(): Promise<any[]> {
     return prisma.question.findMany({
       orderBy: [
-        { section: "asc" },
+        {
+          round: {
+            orderIndex: "asc",
+          },
+        },
         { realIndex: "asc" },
+        { index: "asc" },
         { createdAt: "asc" },
       ],
     });
@@ -154,10 +159,10 @@ export class PostgresGameRepository implements IGameRepository {
           },
         },
         {
-          section: "asc",
+          realIndex: "asc",
         },
         {
-          realIndex: "asc",
+          index: "asc",
         },
         {
           createdAt: "asc",

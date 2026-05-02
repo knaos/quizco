@@ -4,15 +4,20 @@
     "host_pin": "2468",
     "status": "DRAFT",
     "milestones": [
-      { "threshold": 2, "icon": "star" },
-      { "threshold": 5, "icon": "zap" }
+      {
+        "threshold": 2,
+        "icon": "star"
+      },
+      {
+        "threshold": 5,
+        "icon": "zap"
+      }
     ]
   },
   "rounds": [
     {
       "title": "Рунд 1: Индивидуална игра",
       "type": "STANDARD",
-      "orderIndex": 1,
       "questions": [
         {
           "questionText": "Попълни празните места",
@@ -22,14 +27,19 @@
           "grading": "AUTO",
           "section": "1",
           "index": 0,
-          "realIndex": 0,
           "content": {
             "text": "Небето е {0}.",
             "blanks": [
               {
                 "options": [
-                  { "value": "синьо", "isCorrect": true },
-                  { "value": "зелено", "isCorrect": false }
+                  {
+                    "value": "синьо",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "зелено",
+                    "isCorrect": false
+                  }
                 ]
               }
             ]
@@ -44,8 +54,15 @@
           "grading": "AUTO",
           "section": "1",
           "content": {
-            "options": ["Ной", "Авраам", "Йосиф", "Давид"],
-            "correctIndices": [0]
+            "options": [
+              "Ной",
+              "Авраам",
+              "Йосиф",
+              "Давид"
+            ],
+            "correctIndices": [
+              0
+            ]
           }
         },
         {
@@ -56,7 +73,9 @@
           "grading": "AUTO",
           "section": "2",
           "content": {
-            "options": ["Бог"]
+            "options": [
+              "Бог"
+            ]
           }
         }
       ]
@@ -64,7 +83,6 @@
     {
       "title": "Рунд 2: Хронология",
       "type": "STANDARD",
-      "orderIndex": 2,
       "questions": [
         {
           "questionText": "Подреди дните от седмицата",
@@ -74,9 +92,21 @@
           "grading": "AUTO",
           "content": {
             "items": [
-              { "id": "d1", "text": "Понеделник", "order": 0 },
-              { "id": "d2", "text": "Вторник", "order": 1 },
-              { "id": "d3", "text": "Сряда", "order": 2 }
+              {
+                "id": "d1",
+                "text": "Понеделник",
+                "order": 0
+              },
+              {
+                "id": "d2",
+                "text": "Вторник",
+                "order": 1
+              },
+              {
+                "id": "d3",
+                "text": "Сряда",
+                "order": 2
+              }
             ]
           }
         }
@@ -85,7 +115,6 @@
     {
       "title": "Рунд 3: Вярно или невярно",
       "type": "STREAK",
-      "orderIndex": 3,
       "questions": [
         {
           "questionText": "Йона беше в рибата три дни.",
@@ -107,7 +136,14 @@
           "content": {
             "text": "Ной построи самолет.",
             "words": [
-              { "wordIndex": 2, "text": "самолет", "alternatives": ["ковчег", "мост"] }
+              {
+                "wordIndex": 2,
+                "text": "самолет",
+                "alternatives": [
+                  "ковчег",
+                  "мост"
+                ]
+              }
             ],
             "errorWordIndex": 2,
             "correctReplacement": "ковчег"
@@ -118,7 +154,6 @@
     {
       "title": "Рунд 4: Кръстословица",
       "type": "CROSSWORD",
-      "orderIndex": 4,
       "questions": [
         {
           "questionText": "Попълнете кръстословицата",
@@ -128,9 +163,21 @@
           "grading": "AUTO",
           "content": {
             "grid": [
-              ["н", "о", "й"],
-              [" ", " ", " "],
-              ["а", "р", "к"]
+              [
+                "н",
+                "о",
+                "й"
+              ],
+              [
+                " ",
+                " ",
+                " "
+              ],
+              [
+                "а",
+                "р",
+                "к"
+              ]
             ],
             "clues": {
               "across": [

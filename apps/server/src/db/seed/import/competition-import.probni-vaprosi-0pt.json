@@ -8,7 +8,6 @@
     {
       "title": "кръг 1: Индивидуална игра - Раздел 1",
       "type": "STANDARD",
-      "orderIndex": 1,
       "questions": [
         {
           "questionText": "Попълни празните места",
@@ -18,7 +17,6 @@
           "grading": "AUTO",
           "section": "1",
           "index": 0,
-          "realIndex": 0,
           "content": {
             "text": "Конете са {0} животни, които хората яздят {1}, и живеят в {2}.",
             "blanks": [
@@ -93,7 +91,6 @@
           "grading": "AUTO",
           "section": "1",
           "index": 1,
-          "realIndex": 1,
           "content": {
             "heroes": [
               {
@@ -142,7 +139,6 @@
           "grading": "AUTO",
           "section": "1",
           "index": 2,
-          "realIndex": 2,
           "content": {
             "options": [
               "лешояд",
@@ -160,7 +156,6 @@
     {
       "title": "кръг 1: Индивидуална игра - Раздел 2",
       "type": "STANDARD",
-      "orderIndex": 2,
       "questions": [
         {
           "questionText": "Попълни празните места",
@@ -170,7 +165,6 @@
           "grading": "AUTO",
           "section": "2",
           "index": 0,
-          "realIndex": 0,
           "content": {
             "text": "Боулингът е {0}, в която плъзгаш {1} по коридор и трябва да събориш възможно най-много {2}.",
             "blanks": [
@@ -245,7 +239,6 @@
           "grading": "AUTO",
           "section": "2",
           "index": 1,
-          "realIndex": 1,
           "content": {
             "heroes": [
               {
@@ -294,7 +287,6 @@
           "grading": "AUTO",
           "section": "2",
           "index": 2,
-          "realIndex": 2,
           "content": {
             "options": [
               "дъга",
@@ -312,7 +304,6 @@
     {
       "title": "кръг 1: Индивидуална игра - Раздел 3",
       "type": "STANDARD",
-      "orderIndex": 3,
       "questions": [
         {
           "questionText": "Попълни празните места",
@@ -322,7 +313,6 @@
           "grading": "AUTO",
           "section": "3",
           "index": 0,
-          "realIndex": 0,
           "content": {
             "text": "Когато стана {0}, винаги си мия {1} и отивам на {2}.",
             "blanks": [
@@ -397,7 +387,6 @@
           "grading": "AUTO",
           "section": "3",
           "index": 1,
-          "realIndex": 1,
           "content": {
             "heroes": [
               {
@@ -446,7 +435,6 @@
           "grading": "AUTO",
           "section": "3",
           "index": 2,
-          "realIndex": 2,
           "content": {
             "options": [
               "кетчуп",
@@ -464,7 +452,6 @@
     {
       "title": "кръг 1: Индивидуална игра - Раздел 4",
       "type": "STANDARD",
-      "orderIndex": 4,
       "questions": [
         {
           "questionText": "Попълни празните места",
@@ -474,7 +461,6 @@
           "grading": "AUTO",
           "section": "4",
           "index": 0,
-          "realIndex": 0,
           "content": {
             "text": "В началото на учебната година, което е {0}, всички ученици подаряват на своите {1} букет от {2}.",
             "blanks": [
@@ -549,7 +535,6 @@
           "grading": "AUTO",
           "section": "4",
           "index": 1,
-          "realIndex": 1,
           "content": {
             "heroes": [
               {
@@ -598,7 +583,6 @@
           "grading": "AUTO",
           "section": "4",
           "index": 2,
-          "realIndex": 2,
           "content": {
             "options": [
               "бъркотия",
@@ -616,7 +600,6 @@
     {
       "title": "кръг 2: Хронология",
       "type": "STANDARD",
-      "orderIndex": 5,
       "questions": [
         {
           "questionText": "Подредете дните от седмицата",
@@ -669,7 +652,6 @@
     {
       "title": "кръг 3: Вярно или невярно",
       "type": "STREAK",
-      "orderIndex": 6,
       "questions": [
         {
           "questionText": "Според Библията стените на Ерусалим са построени от ЛЕГО тухли.",
@@ -724,7 +706,6 @@
     {
       "title": "кръг 4: Кръстословица",
       "type": "CROSSWORD",
-      "orderIndex": 7,
       "questions": [
         {
           "questionText": "Попълнете кръстословицата",

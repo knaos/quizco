@@ -251,14 +251,12 @@ export interface CompetitionImportQuestion {
   grading: GradingMode;
   section?: string;
   index?: number;
-  realIndex?: number;
   content: QuestionContent;
 }
 
 export interface CompetitionImportRound {
   title: string;
   type: Round["type"];
-  orderIndex: number;
   questions: CompetitionImportQuestion[];
 }
 

@@ -8,12 +8,84 @@
     {
       "title": "Кръг 1 – Индивидуална игра - Раздел 1",
       "type": "STANDARD",
-      "orderIndex": 1,
       "questions": [
         {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
           "section": "1",
           "index": 0,
-          "realIndex": 0,
+          "content": {
+            "text": "Конете са {0} животни, които хората яздят {1}, и живеят в {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "бързи",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "морски",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "хищни",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "измислени",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "с възглавница",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "с кормило",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "със седло",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "с дистанционно",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "Антарктида",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "църква",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "аквариум",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "конюшня",
+                    "isCorrect": true
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 1,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -88,8 +160,7 @@
         },
         {
           "section": "1",
-          "index": 1,
-          "realIndex": 1,
+          "index": 2,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -164,8 +235,7 @@
         },
         {
           "section": "1",
-          "index": 2,
-          "realIndex": 2,
+          "index": 3,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -239,9 +309,56 @@
           "source": "Д.А. 1:7-8"
         },
         {
+          "questionText": "Свържи животните с мястото, където живеят",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
           "section": "1",
-          "index": 3,
-          "realIndex": 3,
+          "index": 4,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Акула",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Маймуна",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Куче",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "В морето",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "В джунглата",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "В къща/апартамент",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 5,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -290,8 +407,7 @@
         },
         {
           "section": "1",
-          "index": 4,
-          "realIndex": 4,
+          "index": 6,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -340,8 +456,7 @@
         },
         {
           "section": "1",
-          "index": 5,
-          "realIndex": 5,
+          "index": 7,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -389,9 +504,28 @@
           "source": "Естир 2:3"
         },
         {
+          "questionText": "Кое животно има черни и бели ивици?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
           "section": "1",
-          "index": 6,
-          "realIndex": 6,
+          "index": 8,
+          "content": {
+            "options": [
+              "лешояд",
+              "тигър",
+              "зебра",
+              "заек"
+            ],
+            "correctIndices": [
+              2
+            ]
+          }
+        },
+        {
+          "section": "1",
+          "index": 9,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -412,8 +546,7 @@
         },
         {
           "section": "1",
-          "index": 7,
-          "realIndex": 7,
+          "index": 10,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -434,8 +567,7 @@
         },
         {
           "section": "1",
-          "index": 8,
-          "realIndex": 8,
+          "index": 11,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -459,12 +591,84 @@
     {
       "title": "Кръг 1 – Индивидуална игра - Раздел 2",
       "type": "STANDARD",
-      "orderIndex": 2,
       "questions": [
         {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
           "section": "2",
           "index": 0,
-          "realIndex": 9,
+          "content": {
+            "text": "Боулингът е {0}, в която плъзгаш {1} по коридор и трябва да събориш възможно най-много {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "наука",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "храна",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "игра",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "професия",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "топка",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "съотборник",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "фризби",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "джапанка",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "чаши",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "хора",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "кегли",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "бутилки",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 1,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -539,8 +743,7 @@
         },
         {
           "section": "2",
-          "index": 1,
-          "realIndex": 10,
+          "index": 2,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -615,8 +818,7 @@
         },
         {
           "section": "2",
-          "index": 2,
-          "realIndex": 11,
+          "index": 3,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -690,9 +892,56 @@
           "source": "Исус Навиев 1:2"
         },
         {
+          "questionText": "Свържи спорта със сезона, в който се спортува",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
           "section": "2",
-          "index": 3,
-          "realIndex": 12,
+          "index": 4,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Плажен волейбол",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Ски",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Шах",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "Лято",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "Зима",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "Когато е дъждовно",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 5,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -741,8 +990,7 @@
         },
         {
           "section": "2",
-          "index": 4,
-          "realIndex": 13,
+          "index": 6,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -791,8 +1039,7 @@
         },
         {
           "section": "2",
-          "index": 5,
-          "realIndex": 14,
+          "index": 7,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -840,9 +1087,28 @@
           "source": "Исус Навиев 7:1"
         },
         {
+          "questionText": "Какво се появява в небето след обилен дъжд, което ни напомня за Божия завет с хората?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
           "section": "2",
-          "index": 6,
-          "realIndex": 15,
+          "index": 8,
+          "content": {
+            "options": [
+              "дъга",
+              "кюфтета",
+              "самолет",
+              "НЛО"
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "section": "2",
+          "index": 9,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -863,8 +1129,7 @@
         },
         {
           "section": "2",
-          "index": 7,
-          "realIndex": 16,
+          "index": 10,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -885,8 +1150,7 @@
         },
         {
           "section": "2",
-          "index": 8,
-          "realIndex": 17,
+          "index": 11,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -910,12 +1174,84 @@
     {
       "title": "Кръг 1 – Индивидуална игра - Раздел 3",
       "type": "STANDARD",
-      "orderIndex": 3,
       "questions": [
         {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
           "section": "3",
           "index": 0,
-          "realIndex": 18,
+          "content": {
+            "text": "Когато стана {0}, винаги си мия {1} и отивам на {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "голям",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "вечер",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "следобед",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "сутрин",
+                    "isCorrect": true
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "краката",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "зъбите",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "леглото",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "пижамата",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "кино",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "танци",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "училище",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "олимпиада",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 1,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -990,8 +1326,7 @@
         },
         {
           "section": "3",
-          "index": 1,
-          "realIndex": 19,
+          "index": 2,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -1066,8 +1401,7 @@
         },
         {
           "section": "3",
-          "index": 2,
-          "realIndex": 20,
+          "index": 3,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -1141,9 +1475,56 @@
           "source": "1 Царе 17:33"
         },
         {
+          "questionText": "Свържи храната с времето, когато най-често се яде",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
           "section": "3",
-          "index": 3,
-          "realIndex": 21,
+          "index": 4,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Закуска",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Обяд",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Вечеря",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "7-8 ч (сутринта)",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "12 ч",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "6-7 ч (вечерта)",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 5,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -1192,8 +1573,7 @@
         },
         {
           "section": "3",
-          "index": 4,
-          "realIndex": 22,
+          "index": 6,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -1242,8 +1622,7 @@
         },
         {
           "section": "3",
-          "index": 5,
-          "realIndex": 23,
+          "index": 7,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -1291,9 +1670,28 @@
           "source": "1 Царе 21:6"
         },
         {
+          "questionText": "Кое от изброените НЕ съдържа домати?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
           "section": "3",
-          "index": 6,
-          "realIndex": 24,
+          "index": 8,
+          "content": {
+            "options": [
+              "кетчуп",
+              "лютеница",
+              "айвар",
+              "течен шоколад"
+            ],
+            "correctIndices": [
+              3
+            ]
+          }
+        },
+        {
+          "section": "3",
+          "index": 9,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -1314,8 +1712,7 @@
         },
         {
           "section": "3",
-          "index": 7,
-          "realIndex": 25,
+          "index": 10,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -1336,8 +1733,7 @@
         },
         {
           "section": "3",
-          "index": 8,
-          "realIndex": 26,
+          "index": 11,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -1361,12 +1757,84 @@
     {
       "title": "Кръг 1 – Индивидуална игра - Раздел 4",
       "type": "STANDARD",
-      "orderIndex": 4,
       "questions": [
         {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
           "section": "4",
           "index": 0,
-          "realIndex": 27,
+          "content": {
+            "text": "В началото на учебната година, което е {0}, всички ученици подаряват на своите {1} букет от {2}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "15 септември",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "24 май",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "31 януари",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "никога",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "родители",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "приятели",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "учители",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "домашни любимци",
+                    "isCorrect": false
+                  }
+                ]
+              },
+              {
+                "options": [
+                  {
+                    "value": "химикали",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "цветя",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "шоколади",
+                    "isCorrect": false
+                  },
+                  {
+                    "value": "люти чушки",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 1,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -1441,8 +1909,7 @@
         },
         {
           "section": "4",
-          "index": 1,
-          "realIndex": 28,
+          "index": 2,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -1517,8 +1984,7 @@
         },
         {
           "section": "4",
-          "index": 2,
-          "realIndex": 29,
+          "index": 3,
           "questionText": "Попълване на празни места",
           "type": "FILL_IN_THE_BLANKS",
           "points": 1,
@@ -1592,9 +2058,56 @@
           "source": "Йоан 9:22"
         },
         {
+          "questionText": "Свържи плода с цвета му",
+          "type": "MATCHING",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
           "section": "4",
-          "index": 3,
-          "realIndex": 30,
+          "index": 4,
+          "content": {
+            "heroes": [
+              {
+                "id": "h1",
+                "text": "Мандарина",
+                "type": "hero"
+              },
+              {
+                "id": "h2",
+                "text": "Домат",
+                "type": "hero"
+              },
+              {
+                "id": "h3",
+                "text": "Лимон",
+                "type": "hero"
+              }
+            ],
+            "stories": [
+              {
+                "id": "s1",
+                "text": "Оранжев",
+                "type": "story",
+                "correspondsTo": "h1"
+              },
+              {
+                "id": "s2",
+                "text": "Червен",
+                "type": "story",
+                "correspondsTo": "h2"
+              },
+              {
+                "id": "s3",
+                "text": "Жълт",
+                "type": "story",
+                "correspondsTo": "h3"
+              }
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 5,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -1643,8 +2156,7 @@
         },
         {
           "section": "4",
-          "index": 4,
-          "realIndex": 31,
+          "index": 6,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -1693,8 +2205,7 @@
         },
         {
           "section": "4",
-          "index": 5,
-          "realIndex": 32,
+          "index": 7,
           "questionText": "Свързване на герои към история",
           "type": "MATCHING",
           "points": 1,
@@ -1742,9 +2253,28 @@
           "source": "Д.А. 21:10-11"
         },
         {
+          "questionText": "Какво се получава, когато смесиш син и жълт цвят?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
           "section": "4",
-          "index": 6,
-          "realIndex": 33,
+          "index": 8,
+          "content": {
+            "options": [
+              "бъркотия",
+              "зелен цвят",
+              "картина на папагал",
+              "розово сърце"
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
+          "section": "4",
+          "index": 9,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -1765,8 +2295,7 @@
         },
         {
           "section": "4",
-          "index": 7,
-          "realIndex": 34,
+          "index": 10,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -1787,8 +2316,7 @@
         },
         {
           "section": "4",
-          "index": 8,
-          "realIndex": 35,
+          "index": 11,
           "questionText": "Довършване на история",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -1812,10 +2340,54 @@
     {
       "title": "Кръг 2 – Хронология",
       "type": "STANDARD",
-      "orderIndex": 5,
       "questions": [
         {
-          "realIndex": 0,
+          "questionText": "Подредете дните от седмицата",
+          "type": "CHRONOLOGY",
+          "points": 0,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "d1",
+                "text": "Понеделник",
+                "order": 0
+              },
+              {
+                "id": "d2",
+                "text": "Вторник",
+                "order": 1
+              },
+              {
+                "id": "d3",
+                "text": "Сряда",
+                "order": 2
+              },
+              {
+                "id": "d4",
+                "text": "Четвъртък",
+                "order": 3
+              },
+              {
+                "id": "d5",
+                "text": "Петък",
+                "order": 4
+              },
+              {
+                "id": "d6",
+                "text": "Събота",
+                "order": 5
+              },
+              {
+                "id": "d7",
+                "text": "Неделя",
+                "order": 6
+              }
+            ]
+          }
+        },
+        {
           "questionText": "Хронология - 1 Раздел (Йона)",
           "type": "CHRONOLOGY",
           "points": 1,
@@ -1879,7 +2451,6 @@
           "section": "1"
         },
         {
-          "realIndex": 1,
           "questionText": "Хронология - 2 Раздел (Исус Навиев 1-6)",
           "type": "CHRONOLOGY",
           "points": 1,
@@ -1943,7 +2514,6 @@
           "section": "2"
         },
         {
-          "realIndex": 2,
           "questionText": "Хронология - 3 Раздел (Самсон – Съдии 14-16)",
           "type": "CHRONOLOGY",
           "points": 1,
@@ -2007,7 +2577,6 @@
           "section": "3"
         },
         {
-          "realIndex": 3,
           "questionText": "Хронология - 4 Раздел (Павел - Деяния 9-20)",
           "type": "CHRONOLOGY",
           "points": 1,
@@ -2075,10 +2644,18 @@
     {
       "title": "Кръг 3",
       "type": "STREAK",
-      "orderIndex": 6,
       "questions": [
         {
-          "realIndex": 0,
+          "questionText": "Според Библията стените на Ерусалим са построени от ЛЕГО тухли.",
+          "type": "TRUE_FALSE",
+          "points": 0,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": false
+          }
+        },
+        {
           "questionText": "На четвъртия ден от сътворението Бог създава небесните светила, за да служат за знаци и за показване на времената, дните и годините.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2090,7 +2667,6 @@
           "source": "Битие 11:2-4"
         },
         {
-          "realIndex": 1,
           "questionText": "Когато содомските мъже обграждат къщата на Лот, ангелите ги поразяват с проказа.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2102,7 +2678,6 @@
           "source": "Йоан 4:10, 14"
         },
         {
-          "realIndex": 2,
           "questionText": "Добрите и лошите риби са прибрани заедно в съдове.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2114,7 +2689,6 @@
           "source": "Д.А. 1:7-8"
         },
         {
-          "realIndex": 3,
           "questionText": "Цар Валтасар организира пир със свещените съдове от храма на Божия дом и в същата нощ бива убит.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2126,7 +2700,6 @@
           "source": "Д.А. 2:14, 41"
         },
         {
-          "realIndex": 4,
           "questionText": "Единственият от 10-те прокажени, който се връща да благодари на Исус, е самарянин.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2138,7 +2711,6 @@
           "source": "Битие 5:24"
         },
         {
-          "realIndex": 5,
           "questionText": "Когато учениците виждат Исус и самарянката при кладенеца, те се учудват, че той разговаря с жена и затова се намесват.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2150,7 +2722,6 @@
           "source": "Естир 2:3"
         },
         {
-          "realIndex": 6,
           "questionText": "Сирийският цар изпраща до Елисей писмо, в което го моли той да изцели проказата на Нееман.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2162,7 +2733,6 @@
           "source": "Естир 3:2"
         },
         {
-          "realIndex": 7,
           "questionText": "Петър разговаря първо със Сапфира и тя е поразена, а след това и с Анания, който също пада и издъхва заради измамата с нивата.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2174,7 +2744,6 @@
           "source": "Битие 8:20"
         },
         {
-          "realIndex": 8,
           "questionText": "Човекът с нечист дух в гробищата се казва Легион.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2186,7 +2755,6 @@
           "source": "Йона 4:6"
         },
         {
-          "realIndex": 9,
           "questionText": "Седрах, Мисах и Авденаго са хвърлени в огнената пещ, понеже отказват да служат в царството на Навуходоносор.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2198,7 +2766,6 @@
           "source": "Битие 19:17"
         },
         {
-          "realIndex": 10,
           "questionText": "В старо време според обичая в Израил се дава ленена риза като свидетелство при всяко дело по откупуване и размяна.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2210,7 +2777,6 @@
           "source": "Битие 22:12"
         },
         {
-          "realIndex": 11,
           "questionText": "Исус разказва притча, според която Божието царство прилича на синапово зърно, което човек посява в градината си и то расте и става дърво, и небесните птици се подслоняват по клончетата му.",
           "type": "TRUE_FALSE",
           "points": 1,
@@ -2222,7 +2788,22 @@
           "source": "Исус Навиев 1:2"
         },
         {
-          "realIndex": 12,
+          "questionText": "Кое е вярното твърдение за маймуните?",
+          "type": "MULTIPLE_CHOICE",
+          "points": 0,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "content": {
+            "options": [
+              "Те ядат само банани",
+              "Те могат да ядат различни плодове, ядки, растения и дори дребни животни"
+            ],
+            "correctIndices": [
+              1
+            ]
+          }
+        },
+        {
           "questionText": "Кое твърдение за Павел е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2240,7 +2821,6 @@
           "source": "Битие 16:1-4, 15"
         },
         {
-          "realIndex": 13,
           "questionText": "Кое твърдение за Вартимей е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2258,7 +2838,6 @@
           "source": "Даниил 2:14-15"
         },
         {
-          "realIndex": 14,
           "questionText": "Кое твърдение за Адам и Ева е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2276,7 +2855,6 @@
           "source": "Исус Навиев 7:1"
         },
         {
-          "realIndex": 15,
           "questionText": "Кое твърдение за Самуил е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2294,7 +2872,6 @@
           "source": "Исус Навиев 1:9"
         },
         {
-          "realIndex": 16,
           "questionText": "Кое твърдение за Агар е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2312,7 +2889,6 @@
           "source": "Йоан 5:8"
         },
         {
-          "realIndex": 17,
           "questionText": "Кое твърдение за Даниил е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2330,7 +2906,6 @@
           "source": "Даниил 6:16"
         },
         {
-          "realIndex": 18,
           "questionText": "Кое твърдение за Павел е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2348,7 +2923,6 @@
           "source": "Рут 4:5-6, 9-10"
         },
         {
-          "realIndex": 19,
           "questionText": "Кое твърдение за Варнава е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2366,7 +2940,6 @@
           "source": "Числа 12:1"
         },
         {
-          "realIndex": 20,
           "questionText": "Кое твърдение за цар Ябин е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2384,7 +2957,6 @@
           "source": "1 Царе 17:33"
         },
         {
-          "realIndex": 21,
           "questionText": "Кое твърдение за Маноах е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2402,7 +2974,6 @@
           "source": "Изход 15:20"
         },
         {
-          "realIndex": 22,
           "questionText": "Кое твърдение за Ниневийския цар е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2420,7 +2991,6 @@
           "source": "Марк 1:41"
         },
         {
-          "realIndex": 23,
           "questionText": "Кое твърдение за Павел е вярно?",
           "type": "MULTIPLE_CHOICE",
           "points": 1,
@@ -2438,7 +3008,28 @@
           "source": "1 Царе 21:6"
         },
         {
-          "realIndex": 24,
+          "questionText": "Поправете грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 0,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Старшият конструктор учи Младшия конструктор как се строи с нова кирка.",
+            "words": [
+              {
+                "wordIndex": 8,
+                "text": "кирка",
+                "alternatives": [
+                  "тухли",
+                  "каска"
+                ]
+              }
+            ],
+            "errorWordIndex": 8,
+            "correctReplacement": "тухли"
+          }
+        },
+        {
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2461,7 +3052,6 @@
           "source": "Йоан 5:16"
         },
         {
-          "realIndex": 25,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2484,7 +3074,6 @@
           "source": "Д.А. 19:11-12"
         },
         {
-          "realIndex": 26,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2507,7 +3096,6 @@
           "source": "Естир 4:15-16"
         },
         {
-          "realIndex": 27,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2530,7 +3118,6 @@
           "source": "1 Царе 19:12-14"
         },
         {
-          "realIndex": 28,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2553,7 +3140,6 @@
           "source": "Даниил 3:1, 4"
         },
         {
-          "realIndex": 29,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2576,7 +3162,6 @@
           "source": "Йоан 9:22"
         },
         {
-          "realIndex": 30,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2599,7 +3184,6 @@
           "source": "Д.А. 18:6"
         },
         {
-          "realIndex": 31,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2622,7 +3206,6 @@
           "source": "Йоан 4:11"
         },
         {
-          "realIndex": 32,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2645,7 +3228,6 @@
           "source": "Д.А. 21:10-11"
         },
         {
-          "realIndex": 33,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2668,7 +3250,6 @@
           "source": "1 Царе 30:1-2, 6"
         },
         {
-          "realIndex": 34,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2691,7 +3272,6 @@
           "source": "Битие 20:3"
         },
         {
-          "realIndex": 35,
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
@@ -2718,10 +3298,110 @@
     {
       "title": "Кръг 4 – Кръстословица",
       "type": "CROSSWORD",
-      "orderIndex": 7,
       "questions": [
         {
-          "realIndex": 0,
+          "questionText": "Попълнете кръстословицата",
+          "type": "CROSSWORD",
+          "points": 0,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "grid": [
+              [
+                "д",
+                "о",
+                "м",
+                "а",
+                "т",
+                " ",
+                " "
+              ],
+              [
+                "м",
+                "а",
+                "й",
+                "с",
+                "т",
+                "о",
+                "р"
+              ],
+              [
+                "м",
+                "а",
+                "й",
+                "м",
+                "у",
+                "н",
+                "а"
+              ],
+              [
+                "з",
+                "а",
+                "к",
+                "у",
+                "с",
+                "к",
+                "а"
+              ],
+              [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+              ],
+              [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+              ]
+            ],
+            "clues": {
+              "across": [
+                {
+                  "number": 1,
+                  "x": 0,
+                  "y": 0,
+                  "direction": "across",
+                  "clue": "Червен плод, който всички слагат в зеленчукова салата (и от който се прави кетчуп).",
+                  "answer": "домат"
+                },
+                {
+                  "number": 2,
+                  "x": 0,
+                  "y": 1,
+                  "direction": "across",
+                  "clue": "Разбирач, който носи каска и може да поправи всичко.",
+                  "answer": "майстор"
+                },
+                {
+                  "number": 3,
+                  "x": 0,
+                  "y": 2,
+                  "direction": "across",
+                  "clue": "Животно, което може да живее в джунглата и яде банани (но не само).",
+                  "answer": "маймуна"
+                },
+                {
+                  "number": 4,
+                  "x": 0,
+                  "y": 3,
+                  "direction": "across",
+                  "clue": "Това, което ядем сутрин.",
+                  "answer": "закуска"
+                }
+              ],
+              "down": []
+            }
+          }
+        },
+        {
           "questionText": "Попълнете кръстословицата",
           "type": "CROSSWORD",
           "points": 10,

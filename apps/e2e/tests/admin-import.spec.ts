@@ -18,7 +18,6 @@ test.describe("admin competition import", () => {
         {
           title: "Round 1",
           type: "STANDARD",
-          orderIndex: 1,
           questions: [
             {
               questionText: "Imported Q1",
