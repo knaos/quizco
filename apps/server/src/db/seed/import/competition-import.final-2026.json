@@ -2417,7 +2417,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "След като Исус изцелява болния във Витезда в събота, юдеите Го хвалят за доброто дело.",
@@ -2440,7 +2440,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "В Ефес хората носят кърпи или престилки, до които се е докосвал Павел, за да изцеляват болни и носят щастие.",
@@ -2463,7 +2463,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Естир заръчва на Мардохей и всички юдеи да се покрият с вретище три дни преди тя да влезе при царя.",
@@ -2486,7 +2486,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Когато Саул изпраща мъже в дома на Давид, за да го убият, Михала го спуска през прозореца, слага идол в леглото му и казва, че е нечист.",
@@ -2509,7 +2509,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Цар Дарий прави златен образ и го поставя на полето Дура, като заповядва на всички племена във вавилонската област да се поклонят на образа.",
@@ -2532,7 +2532,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Родителите на слепородения се боят от юдеите, защото те са се споразумели да хвърлят в тъмница всеки, който признава, че Исус е Помазаникът.",
@@ -2555,7 +2555,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "В Коринт Павел раздира дрехите си и казва на юдеите, че отсега ще ходи между езичниците.",
@@ -2578,7 +2578,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Самарянката се чуди откъде Исус има вода, защото кладенецът е дълбок, а и Той е юдеин.",
@@ -2601,7 +2601,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Пророк Агав показва как Павел ще бъде вързан в Ерусалим, като взима неговата храна.",
@@ -2624,7 +2624,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Когато Давид и мъжете му се прибират в град Сиклаг и виждат, че градът е изгорен с огън и жените и децата им са пленени, душата на людете е преогорчена и те искат да отмъстят на амаликчаните с ръката си.",
@@ -2647,7 +2647,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Бог говори на фараона насън и му казва, че ще умре, защото е взел Сара, жената на Авраам.",
@@ -2670,7 +2670,7 @@
           "questionText": "Поправете грешката",
           "type": "CORRECT_THE_ERROR",
           "points": 2,
-          "timeLimitSeconds": 25,
+          "timeLimitSeconds": 30,
           "grading": "AUTO",
           "content": {
             "text": "Прокаженият пред Красната врата проси милостиня, но вместо да получи подаяние от Петър и Йоан, бива изцелен.",
@@ -2700,7 +2700,7 @@
           "questionText": "Попълнете кръстословицата",
           "type": "CROSSWORD",
           "points": 10,
-          "timeLimitSeconds": 120,
+          "timeLimitSeconds": 240,
           "grading": "AUTO",
           "content": {
             "grid": [
