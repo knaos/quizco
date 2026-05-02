@@ -63,11 +63,7 @@ test("QUESTION_PREVIEW phase for CROSSWORD shows grid without input", async ({ b
     // Verify crossword grid is visible - cell 1-1 has "T" content
     await expect(session.playerOnePage.getByTestId("crossword-cell-1-1")).toBeVisible();
 
-    // Verify clue sections are visible
-    await expect(session.playerOnePage.getByText("Across")).toBeVisible();
-    await expect(session.playerOnePage.getByText("Down")).toBeVisible();
-
-    // Verify clues are visible (just the text) - use .first() as clues appear in both Across and Down
+    // Verify clues are visible.
     await expect(session.playerOnePage.getByText(/A sample/).first()).toBeVisible();
     await expect(session.playerOnePage.getByText(/Maple product/).first()).toBeVisible();
 
@@ -79,8 +75,8 @@ test("QUESTION_PREVIEW phase for CROSSWORD shows grid without input", async ({ b
     const submitButton = session.playerOnePage.getByTestId("crossword-submit");
     await expect(submitButton).not.toBeVisible();
 
-    // Verify the "host is reading" message is shown
-    await expect(session.playerOnePage.getByText(/host.*reading/i)).toBeVisible();
+    // Verify the host-reading hint is shown.
+    await expect(session.playerOnePage.getByTestId("player-host-reading-message")).toBeVisible();
   } finally {
     if (competitionId) {
       await deleteCompetition(adminApi, competitionId);

@@ -206,6 +206,7 @@ router.post("/questions", async (req, res) => {
   const {
     roundId,
     questionText,
+    source,
     type,
     points,
     timeLimitSeconds,
@@ -228,6 +229,7 @@ router.post("/questions", async (req, res) => {
       data: {
         roundId,
         questionText,
+        source: typeof source === "string" && source.trim() ? source.trim() : null,
         type: type as QuestionType,
         points,
         timeLimitSeconds,
@@ -248,6 +250,7 @@ router.put("/questions/:id", async (req, res) => {
   const { id } = req.params;
   const {
     questionText,
+    source,
     type,
     points,
     timeLimitSeconds,
@@ -264,6 +267,7 @@ router.put("/questions/:id", async (req, res) => {
       select: {
         roundId: true,
         section: true,
+        source: true,
         index: true,
         realIndex: true,
       },
@@ -287,6 +291,10 @@ router.put("/questions/:id", async (req, res) => {
       where: { id },
       data: {
         questionText,
+        source:
+          typeof source === "string"
+            ? source.trim() || null
+            : existingQuestion.source,
         type: type as QuestionType,
         points,
         timeLimitSeconds,

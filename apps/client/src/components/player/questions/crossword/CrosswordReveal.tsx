@@ -2,10 +2,12 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { CrosswordContent, CrosswordClue } from "@quizco/shared";
 import { ArrowBigDown, ArrowBigRight } from "lucide-react";
+import { QuestionSource } from "../../QuestionSource";
 
 interface CrosswordRevealProps {
   content: CrosswordContent;
   lastAnswer: string[][] | null;
+  source?: string | null;
 }
 
 /**
@@ -48,6 +50,7 @@ const calculateCellNumbers = (
 export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
   content,
   lastAnswer,
+  source,
 }) => {
   const { t } = useTranslation();
 
@@ -199,6 +202,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
           )}
         </div>
       </div>
+      <QuestionSource source={source} />
     </div>
   );
 };

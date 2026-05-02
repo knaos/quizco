@@ -2,10 +2,12 @@ import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { FillInTheBlanksContent } from "@quizco/shared";
+import { QuestionSource } from "../../QuestionSource";
 
 interface FillInTheBlanksRevealProps {
   content: FillInTheBlanksContent;
   lastAnswer: string[] | null;
+  source?: string | null;
 }
 
 /**
@@ -16,6 +18,7 @@ interface FillInTheBlanksRevealProps {
 export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
   content,
   lastAnswer,
+  source,
 }) => {
   const { t } = useTranslation();
 
@@ -88,6 +91,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
           })}
         </div>
       </div>
+      <QuestionSource source={source} />
     </div>
   );
 };

@@ -38,6 +38,7 @@ model Question {
   index            Int?
   realIndex        Int?
   questionText     String
+  source           String?
   type             QuestionType
   points           Int          @default(10)
   timeLimitSeconds Int          @default(30)

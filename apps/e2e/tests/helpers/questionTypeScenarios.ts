@@ -70,11 +70,19 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
       },
     ],
     submitPlayerOne: async (page, questionIndex) => {
-      await page.getByTestId(`player-choice-${questionIndex === 0 ? 1 : 0}`).click();
+      const correctLabel = questionIndex === 0 ? "Correct" : "Correct";
+      await page
+        .locator('[data-testid^="player-choice-"]', { hasText: correctLabel })
+        .first()
+        .click();
       await page.getByTestId("player-submit-answer").click();
     },
-    submitPlayerTwo: async (page, questionIndex) => {
-      await page.getByTestId(`player-choice-${questionIndex === 0 ? 0 : 1}`).click();
+    submitPlayerTwo: async (page, _questionIndex) => {
+      const wrongLabel = "Wrong";
+      await page
+        .locator('[data-testid^="player-choice-"]', { hasText: wrongLabel })
+        .first()
+        .click();
       await page.getByTestId("player-submit-answer").click();
     },
     multipleChoiceOptions: 2,
@@ -136,11 +144,11 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
     ],
     submitPlayerOne: async (page, questionIndex) => {
       await page.getByTestId("crossword-cell-0-0").fill(questionIndex === 0 ? "A" : "B");
-      await page.getByTestId("player-submit-answer").click();
+      await page.getByTestId("crossword-submit").click();
     },
     submitPlayerTwo: async (page) => {
       await page.getByTestId("crossword-cell-0-0").fill("Z");
-      await page.getByTestId("player-submit-answer").click();
+      await page.getByTestId("crossword-submit").click();
     },
     expectTeamOneLeads: true,
   },
@@ -364,13 +372,17 @@ export const QUESTION_TYPE_SCENARIOS: Record<string, QuestionTypeScenario> = {
         },
       },
     ],
-    submitPlayerOne: async (page) => {
-      await page.getByTestId("cte-word-2").click();
+    submitPlayerOne: async (page, questionIndex) => {
+      await page
+        .getByTestId(questionIndex === 0 ? "cte-word-3" : "cte-word-2")
+        .click();
       await page.getByTestId("cte-alternative-0").click();
       await page.getByTestId("player-submit-answer").click();
     },
-    submitPlayerTwo: async (page) => {
-      await page.getByTestId("cte-word-1").click();
+    submitPlayerTwo: async (page, questionIndex) => {
+      await page
+        .getByTestId(questionIndex === 0 ? "cte-word-1" : "cte-word-0")
+        .click();
       await page.getByTestId("cte-alternative-1").click();
       await page.getByTestId("player-submit-answer").click();
     },

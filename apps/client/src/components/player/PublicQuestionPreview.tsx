@@ -49,6 +49,7 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
         <AnalogueTimer
           timeRemaining={state.timeRemaining}
           totalTime={state.currentQuestion.timeLimitSeconds}
+          testId={`${testIdPrefix}-time-remaining`}
         />
       </Card>
 
@@ -63,7 +64,10 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
 
       <div className="space-y-4">
         <Clock className="w-16 h-16 text-yellow-500 animate-spin-slow mx-auto" />
-        <p className="text-2xl font-black text-gray-500 uppercase tracking-widest">
+        <p
+          className="text-2xl font-black text-gray-500 uppercase tracking-widest"
+          data-testid={`${testIdPrefix}-host-reading-message`}
+        >
           {t("player.host_reading")}
         </p>
       </div>

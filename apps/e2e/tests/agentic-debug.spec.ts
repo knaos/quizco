@@ -1,7 +1,8 @@
-import { expect, request, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 import { io } from "socket.io-client";
-
-const ADMIN_AUTH_HEADER = { "x-admin-auth": "admin123" };
+import { createAdminApi } from "./helpers/gameHarness";
 
 interface CompetitionFixture {
   id: string;
@@ -16,6 +17,18 @@ interface QuestionConfig {
 interface PendingAnswer {
   id: string;
   team_name?: string;
+}
+
+async function createHostSocketToken(api: APIRequestContext): Promise<string> {
+  const loginRes = await api.post("/api/auth/login", {
+    data: {
+      role: "host",
+      password: HOST_PASSWORD,
+    },
+  });
+  expect(loginRes.ok()).toBeTruthy();
+  const body = (await loginRes.json()) as { token: string };
+  return body.token;
 }
 
 async function createOpenWordCompetition(
@@ -68,8 +81,11 @@ async function createOpenWordCompetition(
 
 async function loginHostAndSelectCompetition(hostPage: Page, competitionId: string): Promise<void> {
   await hostPage.goto("/host");
-  await hostPage.getByTestId("host-password-input").fill("host123");
+  await hostPage.getByTestId("host-password-input").fill(HOST_PASSWORD);
   await hostPage.getByTestId("host-login-submit").click();
+  await expect(hostPage.getByTestId(`host-competition-option-${competitionId}`)).toBeVisible({
+    timeout: 20_000,
+  });
   await hostPage.getByTestId(`host-competition-option-${competitionId}`).click();
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
 }
@@ -109,6 +125,7 @@ test.describe("Agentic debugging scenarios", () => {
     competitionId: string,
     answerId: string,
     correct: boolean,
+    authToken: string,
   ): Promise<void> => {
     await new Promise<void>((resolve, reject) => {
       const client = io("http://127.0.0.1:4000", {
@@ -116,9 +133,11 @@ test.describe("Agentic debugging scenarios", () => {
       });
 
       client.on("connect", () => {
-        client.emit("HOST_GRADE_DECISION", { competitionId, answerId, correct });
-        client.disconnect();
-        resolve();
+        client.emit("HOST_GRADE_DECISION", { competitionId, answerId, correct, authToken });
+        setTimeout(() => {
+          client.disconnect();
+          resolve();
+        }, 150);
       });
 
       client.on("connect_error", (err) => {
@@ -153,10 +172,7 @@ test.describe("Agentic debugging scenarios", () => {
   };
 
   test("timeout ends question when not all teams submit", async ({ browser }) => {
-    const adminApi = await request.newContext({
-      baseURL: "http://127.0.0.1:4000",
-      extraHTTPHeaders: ADMIN_AUTH_HEADER,
-    });
+    const adminApi = await createAdminApi();
 
     let competitionId = "";
     const hostContext = await browser.newContext();
@@ -201,10 +217,7 @@ test.describe("Agentic debugging scenarios", () => {
   });
 
   test("reconnect sync keeps real remaining time during active question", async ({ browser }) => {
-    const adminApi = await request.newContext({
-      baseURL: "http://127.0.0.1:4000",
-      extraHTTPHeaders: ADMIN_AUTH_HEADER,
-    });
+    const adminApi = await createAdminApi();
 
     let competitionId = "";
     const hostContext = await browser.newContext();
@@ -260,10 +273,7 @@ test.describe("Agentic debugging scenarios", () => {
   });
 
   test("manual grading decisions determine final leaderboard order", async ({ browser }) => {
-    const adminApi = await request.newContext({
-      baseURL: "http://127.0.0.1:4000",
-      extraHTTPHeaders: ADMIN_AUTH_HEADER,
-    });
+    const adminApi = await createAdminApi();
 
     let competitionId = "";
     const hostContext = await browser.newContext();
@@ -271,6 +281,7 @@ test.describe("Agentic debugging scenarios", () => {
     const playerTwoContext = await browser.newContext();
 
     try {
+      const hostToken = await createHostSocketToken(adminApi);
       const fixture = await createOpenWordCompetition(adminApi, {
         grading: "MANUAL",
         timeLimitSeconds: 30,
@@ -300,8 +311,8 @@ test.describe("Agentic debugging scenarios", () => {
       expect(pending.length).toBeGreaterThanOrEqual(2);
       const [firstPending, secondPending] = pending;
 
-      await submitManualGradeDecision(competitionId, firstPending.id, true);
-      await submitManualGradeDecision(competitionId, secondPending.id, false);
+      await submitManualGradeDecision(competitionId, firstPending.id, true, hostToken);
+      await submitManualGradeDecision(competitionId, secondPending.id, false, hostToken);
 
       await expect.poll(
         async () => {
@@ -335,3 +346,20 @@ test.describe("Agentic debugging scenarios", () => {
     }
   });
 });
+function readServerEnvValue(key: string): string | null {
+  const envPath = path.resolve(process.cwd(), "../server/.env");
+  if (!fs.existsSync(envPath)) {
+    return null;
+  }
+  const line = fs
+    .readFileSync(envPath, "utf8")
+    .split(/\r?\n/)
+    .find((entry) => entry.trim().startsWith(`${key}=`));
+  return line?.slice(key.length + 1).trim() || null;
+}
+
+const HOST_PASSWORD =
+  process.env.E2E_HOST_PASSWORD ??
+  process.env.HOST_PASSWORD ??
+  readServerEnvValue("HOST_PASSWORD") ??
+  "host123";

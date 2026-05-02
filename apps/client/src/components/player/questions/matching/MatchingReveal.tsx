@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { MatchingContent } from "@quizco/shared";
+import { QuestionSource } from "../../QuestionSource";
 
 interface CardPosition {
   left: number;
@@ -14,6 +15,7 @@ interface CardPosition {
 interface MatchingRevealProps {
   content: MatchingContent;
   lastAnswer: Record<string, string> | null;
+  source?: string | null;
 }
 
 /**
@@ -25,6 +27,7 @@ interface MatchingRevealProps {
 export const MatchingReveal: React.FC<MatchingRevealProps> = ({
   content,
   lastAnswer,
+  source,
 }) => {
   const { t } = useTranslation();
 
@@ -125,7 +128,7 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
   const rightItems = content.stories.map((s) => ({ id: s.id, text: s.text }));
 
   return (
-    <div className="w-full" ref={containerRef}>
+    <div className="space-y-6 w-full" ref={containerRef}>
       <div className="relative">
         {/* SVG layer for arrows - positioned behind cards */}
         <svg
@@ -286,6 +289,7 @@ export const MatchingReveal: React.FC<MatchingRevealProps> = ({
           </div>
         </div>
       </div>
+      <QuestionSource source={source} />
     </div>
   );
 };

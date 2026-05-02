@@ -5,6 +5,26 @@ import { seedRound2 } from "./seed/round2";
 import { seedRound3 } from "./seed/round3";
 import { seedRound4 } from "./seed/round4";
 
+const BIBLE_SOURCES = [
+  "Битие 1:1",
+  "Псалм 23:1",
+  "Притчи 3:5",
+  "Исая 40:31",
+  "Матей 5:14",
+  "Матей 6:33",
+  "Йоан 3:16",
+  "Йоан 14:6",
+  "Римляни 8:28",
+  "1 Коринтяни 13:4",
+  "Филипяни 4:13",
+  "2 Тимотей 3:16",
+];
+
+function getRandomBibleSource(): string {
+  const randomIndex = Math.floor(Math.random() * BIBLE_SOURCES.length);
+  return BIBLE_SOURCES[randomIndex];
+}
+
 async function seed() {
   console.log("Seeding database...");
 
@@ -57,6 +77,26 @@ async function seed() {
       await seedRound2(competition.id);
       await seedRound3(competition.id);
       await seedRound4(competition.id);
+
+      const competitionQuestions = await prisma.question.findMany({
+        where: {
+          round: {
+            competitionId: competition.id,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      await Promise.all(
+        competitionQuestions.map((question) =>
+          prisma.question.update({
+            where: { id: question.id },
+            data: { source: getRandomBibleSource() },
+          }),
+        ),
+      );
     }
 
     console.log("Seeding completed successfully.");

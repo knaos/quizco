@@ -155,6 +155,7 @@ interface BaseQuestion {
   id: string;
   roundId: string;
   questionText: string;
+  source?: string | null;
   points: number;
   timeLimitSeconds: number;
   grading: GradingMode;

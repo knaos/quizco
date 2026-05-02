@@ -1,6 +1,24 @@
-import { expect, request, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
+import { createAdminApi } from "./helpers/gameHarness";
+function readServerEnvValue(key: string): string | null {
+  const envPath = path.resolve(process.cwd(), "../server/.env");
+  if (!fs.existsSync(envPath)) {
+    return null;
+  }
+  const line = fs
+    .readFileSync(envPath, "utf8")
+    .split(/\r?\n/)
+    .find((entry) => entry.trim().startsWith(`${key}=`));
+  return line?.slice(key.length + 1).trim() || null;
+}
 
-const ADMIN_AUTH_HEADER = { "x-admin-auth": "admin123" };
+const HOST_PASSWORD =
+  process.env.E2E_HOST_PASSWORD ??
+  process.env.HOST_PASSWORD ??
+  readServerEnvValue("HOST_PASSWORD") ??
+  "host123";
 
 let adminApi: APIRequestContext;
 let competitionId = "";
@@ -66,10 +84,7 @@ async function clickHostNextAndExpectPhase(hostPage: Page, expectedPhase: string
 }
 
 test.beforeAll(async () => {
-  adminApi = await request.newContext({
-    baseURL: "http://127.0.0.1:4000",
-    extraHTTPHeaders: ADMIN_AUTH_HEADER,
-  });
+  adminApi = await createAdminApi();
   competitionId = await createCompetitionFixture(adminApi);
 });
 
@@ -90,8 +105,11 @@ test("host plus two players complete a full competition cycle", async ({ browser
   const playerTwoPage = await playerTwoContext.newPage();
 
   await hostPage.goto("/host");
-  await hostPage.getByTestId("host-password-input").fill("host123");
+  await hostPage.getByTestId("host-password-input").fill(HOST_PASSWORD);
   await hostPage.getByTestId("host-login-submit").click();
+  await expect(hostPage.getByTestId(`host-competition-option-${competitionId}`)).toBeVisible({
+    timeout: 20_000,
+  });
   await hostPage.getByTestId(`host-competition-option-${competitionId}`).click();
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
 
@@ -123,10 +141,16 @@ test("host plus two players complete a full competition cycle", async ({ browser
     timeout: 20_000,
   });
 
-  await playerOnePage.getByTestId("player-choice-1").click();
+  await playerOnePage
+    .locator('[data-testid^="player-choice-"]', { hasText: "Correct answer" })
+    .first()
+    .click();
   await playerOnePage.getByTestId("player-submit-answer").click();
 
-  await playerTwoPage.getByTestId("player-choice-0").click();
+  await playerTwoPage
+    .locator('[data-testid^="player-choice-"]', { hasText: "Wrong answer" })
+    .first()
+    .click();
   await playerTwoPage.getByTestId("player-submit-answer").click();
 
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("GRADING", {

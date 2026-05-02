@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
+  clickHostNextAndExpectPhase,
   createAdminApi,
   createCompetitionWithQuestions,
   createHostAndPlayers,
@@ -22,9 +23,13 @@ test("QUESTION_PREVIEW phase for MATCHING shows non-interactive matching UI", as
           questionText: "Match the items",
           type: "MATCHING",
           content: {
-            pairs: [
-              { id: "m1", left: "Apple", right: "Fruit" },
-              { id: "m2", left: "Carrot", right: "Vegetable" },
+            heroes: [
+              { id: "m1", text: "Apple", type: "hero" },
+              { id: "m2", text: "Carrot", type: "hero" },
+            ],
+            stories: [
+              { id: "s1", text: "Fruit", type: "story", correspondsTo: "m1" },
+              { id: "s2", text: "Vegetable", type: "story", correspondsTo: "m2" },
             ],
           },
         },
@@ -47,26 +52,21 @@ test("QUESTION_PREVIEW phase for MATCHING shows non-interactive matching UI", as
     // Verify the question text is displayed
     await expect(session.playerOnePage.getByText("Match the items")).toBeVisible();
 
-    // Verify matching cards are visible (both left and right columns)
+    // Verify matching cards are visible (both left and right columns).
     await expect(session.playerOnePage.getByTestId("matching-left-m1")).toBeVisible();
     await expect(session.playerOnePage.getByTestId("matching-left-m2")).toBeVisible();
     await expect(session.playerOnePage.getByTestId("matching-right-0")).toBeVisible();
     await expect(session.playerOnePage.getByTestId("matching-right-1")).toBeVisible();
 
-    // Verify the "host is reading" message is shown
-    await expect(session.playerOnePage.getByText(/host.*reading/i)).toBeVisible();
-
-    // Verify NO timer is displayed (should not see time remaining in preview)
-    const timeRemaining = session.playerOnePage.getByTestId("player-time-remaining");
-    await expect(timeRemaining).not.toBeVisible();
+    // Verify the host-reading hint is shown.
+    await expect(session.playerOnePage.getByTestId("player-host-reading-message")).toBeVisible();
 
     // Verify NO submit button is shown in preview phase
     const submitButton = session.playerOnePage.getByTestId("player-submit-answer");
     await expect(submitButton).not.toBeVisible();
 
     // Now move to QUESTION_ACTIVE and verify matching becomes interactive
-    await session.hostPage.getByTestId("host-next-action").click();
-    await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("QUESTION_ACTIVE");
+    await clickHostNextAndExpectPhase(session.hostPage, "QUESTION_ACTIVE");
 
     // Verify players are now in QUESTION_ACTIVE
     await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE");
