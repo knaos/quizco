@@ -309,8 +309,8 @@ export const JerusalemWallDemo: React.FC = () => {
       className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7e6_0%,_#f4ead7_40%,_#e9dcc0_100%)] text-slate-900"
       data-testid="demo-route"
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
-        <header className="flex flex-col gap-3 rounded-[2rem] border border-white/70 bg-white/70 p-4 shadow-[0_20px_80px_rgba(120,92,40,0.12)] backdrop-blur sm:flex-row sm:items-end sm:justify-between sm:p-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+        <header className="flex flex-col gap-3 rounded-[2rem] border border-white/70 bg-white/70 p-4 shadow-[0_20px_80px_rgba(120,92,40,0.12)] backdrop-blur sm:flex-row sm:items-end sm:justify-between sm:p-4">
           <div className="space-y-2">
             <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.35em] text-amber-700">
               <Sparkles className="h-4 w-4" />
@@ -330,7 +330,7 @@ export const JerusalemWallDemo: React.FC = () => {
           </div>
         </header>
 
-        <main className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.85fr)]">
+        <main className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.85fr)]">
           <section className="relative min-h-[560px] overflow-hidden rounded-[2.5rem] border border-white/70 bg-[#f6eddc] shadow-[0_30px_100px_rgba(120,92,40,0.18)]">
             <div ref={mountRef} className="h-[560px] w-full" data-testid="demo-canvas-mount" />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#d8c7a6] via-[#d8c7a6]/90 to-transparent" />

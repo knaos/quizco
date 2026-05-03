@@ -65,7 +65,7 @@ export const RoundTransitionPhase: React.FC<RoundTransitionPhaseProps> = ({
           {t("player.round_finished")}
         </h2>
         <p className="text-2xl text-gray-500 font-bold">{t("player.great_job")}</p>
-        <div className="mt-8 p-6 bg-green-50 rounded-3xl inline-block">
+        <div className="mt-8 p-4 bg-green-50 rounded-3xl inline-block">
           <p className="text-green-800 font-black text-xl">
             {t("player.waiting_next_round")}
           </p>
@@ -103,7 +103,7 @@ export const LeaderboardPhase: React.FC<LeaderboardPhaseProps> = ({ teams }) => 
               <div
                 key={team.id}
                 data-testid={`leaderboard-team-${team.name}`}
-                className={`flex items-center justify-between p-6 rounded-3xl ${
+                className={`flex items-center justify-between p-4 rounded-3xl ${
                   idx === 0
                     ? "bg-yellow-50 border-4 border-yellow-200"
                     : "bg-gray-50 border-4 border-transparent"

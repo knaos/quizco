@@ -178,7 +178,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
         </CardHeader>
 
         <CardContent className="flex-1 overflow-auto p-4 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-bold text-gray-600 uppercase">{t("admin.question_editor.question_type")}</label>
               <select
@@ -210,7 +210,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
             <TextArea
               label={t("admin.question_editor.question_text")}
               value={formData.questionText}
@@ -235,7 +235,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             placeholder={t("admin.question_editor.source_placeholder")}
           />
 
-          <div className="grid grid-cols-2 gap-6 text-left">
+          <div className="grid grid-cols-2 gap-4 text-left">
             <Input
               label={t("admin.question_editor.points")}
               type="number"

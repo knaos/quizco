@@ -62,7 +62,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
   // If no answer submitted
   if (!lastAnswer || !Array.isArray(lastAnswer) || lastAnswer.length === 0) {
     return (
-      <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
+      <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-200">
         <p className="text-gray-500 text-center font-medium">
           {t("player.crossword_no_answer")}
         </p>
@@ -106,7 +106,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
       {/* Side-by-side layout: Grid and Correct Answers */}
       <div className="flex flex-col md:flex-row gap-8">
         {/* Left: User's grid with color coding */}
-        <div className="bg-white p-6 rounded-3xl shadow-xl border-b-8 border-blue-500 flex-1">
+        <div className="bg-white p-4 rounded-3xl shadow-xl border-b-8 border-blue-500 flex-1">
           <h3 className="text-lg font-bold text-gray-700 mb-4">
             {t("player.crossword_your_grid")}
           </h3>
@@ -158,7 +158,7 @@ export const CrosswordReveal: React.FC<CrosswordRevealProps> = ({
         </div>
 
         {/* Right: Correct answers */}
-        <div className="bg-gray-50 p-6 rounded-2xl flex-1">
+        <div className="bg-gray-50 p-4 rounded-2xl flex-1">
           <p className="text-sm font-bold text-gray-600 mb-3">
             {t("player.crossword_correct_words")}:
           </p>

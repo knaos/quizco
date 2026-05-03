@@ -51,8 +51,8 @@ export const DefaultReveal: React.FC<DefaultRevealProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-green-50 p-4 rounded-2xl border-2 border-green-200">
           <span className="text-green-600 text-xs font-bold uppercase">
             {t("player.correct_answer")}
           </span>
@@ -67,7 +67,7 @@ export const DefaultReveal: React.FC<DefaultRevealProps> = ({
               : gradingStatus === false
               ? "bg-red-50 border-red-200"
               : "bg-gray-50 border-gray-200"
-          } p-6 rounded-2xl border-2`}
+          } p-4 rounded-2xl border-2`}
         >
           <span
             className={`${

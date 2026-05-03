@@ -73,7 +73,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
       </div>
 
       {/* Show correct answers summary */}
-      <div className="p-6 bg-gray-50 rounded-2xl">
+      <div className="p-4 bg-gray-50 rounded-2xl">
         <p className="text-sm font-bold text-gray-600 mb-3">
           {t("player.correct_answer")}:
         </p>

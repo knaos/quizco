@@ -251,7 +251,7 @@ function renderPresenterAnswerContent(
   return (
     <div data-testid="host-question-options">
       {question.type === "CROSSWORD" ? (
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 text-lg font-semibold text-gray-700">
+        <div className="rounded-3xl border border-gray-200 bg-white p-4 text-lg font-semibold text-gray-700">
           {t("host.crossword_presenter_placeholder")}
         </div>
       ) : (
@@ -316,7 +316,7 @@ export const HostDashboard: React.FC = () => {
           <h1 className="text-4xl font-black tracking-tight text-gray-900">{t("host.select_quiz")}</h1>
           <LanguageSwitcher />
         </header>
-        <div className="grid w-full  grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid w-full  grid-cols-1 gap-4 md:grid-cols-2">
           {competitions.map((comp) => (
             <Card
               key={comp.id}
@@ -418,7 +418,7 @@ export const HostDashboard: React.FC = () => {
           </div>
         </header>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="space-y-6">
             <Card className="overflow-hidden border border-blue-100 bg-white/90 p-0 shadow-xl shadow-blue-100/40">
               <div className="border-b border-blue-100 bg-[linear-gradient(135deg,_#eff6ff,_#ffffff_55%,_#eef2ff)] px-6 py-5 md:px-8">
@@ -505,7 +505,7 @@ export const HostDashboard: React.FC = () => {
                     </div>
 
                     {state.phase === "REVEAL_ANSWER" ? (
-                      <div className="rounded-[2rem] border border-green-200 bg-green-50 p-6" data-testid="host-correct-answer-panel">
+                      <div className="rounded-[2rem] border border-green-200 bg-green-50 p-4" data-testid="host-correct-answer-panel">
                         <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-green-600">
                           {t("player.correct_answer")}
                         </p>
@@ -534,7 +534,7 @@ export const HostDashboard: React.FC = () => {
             </Card>
 
             {state.phase === "GRADING" && pendingAnswers.length > 0 ? (
-              <Card className="border-2 border-yellow-300 bg-yellow-50/80 p-6">
+              <Card className="border-2 border-yellow-300 bg-yellow-50/80 p-4">
                 <div className="mb-5 flex items-center gap-3">
                   <Clock className="h-6 w-6 text-yellow-700" />
                   <h3 className="text-xl font-black uppercase tracking-[0.25em] text-yellow-800">
@@ -581,7 +581,7 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="border border-white/60 bg-white/90 p-6 shadow-lg">
+            <Card className="border border-white/60 bg-white/90 p-4 shadow-lg">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-400">
@@ -629,7 +629,7 @@ export const HostDashboard: React.FC = () => {
               )}
             </Card>
 
-            <Card className="border border-white/60 bg-white/90 p-6 shadow-lg">
+            <Card className="border border-white/60 bg-white/90 p-4 shadow-lg">
               <div className="mb-4 flex items-center gap-3">
                 <Trophy className="h-6 w-6 text-yellow-500" />
                 <h3 className="text-lg font-black uppercase tracking-[0.25em] text-slate-900">{t("host.leaderboard")}</h3>

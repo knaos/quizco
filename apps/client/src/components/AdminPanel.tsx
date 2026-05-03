@@ -230,7 +230,7 @@ export const AdminPanel: React.FC = () => {
             </h2>
             <LanguageSwitcher />
           </div>
-          <nav className="flex-1 p-6 space-y-3">
+          <nav className="flex-1 p-4 space-y-3">
             <Button
               variant={view === "COMPETITIONS" ? "primary" : "ghost"}
               onClick={() => {
@@ -252,7 +252,7 @@ export const AdminPanel: React.FC = () => {
               <Monitor className="mr-4 w-6 h-6" /> {t("host.dashboard")}
             </a>
           </nav>
-          <div className="p-6 border-t border-gray-800">
+          <div className="p-4 border-t border-gray-800">
             <Button
               variant="ghost"
               onClick={logoutAdmin}

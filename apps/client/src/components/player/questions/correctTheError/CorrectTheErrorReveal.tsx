@@ -109,7 +109,7 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
 
       {/* Alternatives for the correct word */}
       {correctWordAlternatives.length > 0 && (
-        <div className="bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-200">
+        <div className="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-200">
           <p className="text-center text-lg font-semibold text-indigo-900 mb-4">
             {t('player.questions.correctTheError.selectCorrection')}
           </p>

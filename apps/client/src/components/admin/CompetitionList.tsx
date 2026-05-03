@@ -77,7 +77,7 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
         {competitions.map((comp) => (
           <Card
             key={comp.id}
-            className="p-6 flex justify-between items-center hover:shadow-md cursor-pointer group"
+            className="p-4 flex justify-between items-center hover:shadow-md cursor-pointer group"
             onClick={() => onSelect(comp)}
           >
             <div className="flex-1 text-left">

@@ -145,7 +145,7 @@ function renderSimpleCorrectAnswer(
   return (
     <div className="space-y-6">
       <div
-        className="bg-green-50 p-6 rounded-2xl border-2 border-green-200"
+        className="bg-green-50 p-4 rounded-2xl border-2 border-green-200"
         data-testid={variant === "audience" ? "audience-correct-answer" : undefined}
       >
         <span className="text-green-600 text-xs font-bold uppercase">

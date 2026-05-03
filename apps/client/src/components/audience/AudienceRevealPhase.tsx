@@ -60,7 +60,7 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
         ) : null}
       </Card>
 
-      <div className="mx-auto inline-block rounded-2xl bg-blue-600 p-6 text-white shadow-lg animate-pulse">
+      <div className="mx-auto inline-block rounded-2xl bg-blue-600 p-4 text-white shadow-lg animate-pulse">
         <p className="flex items-center text-xl font-bold">
           <Clock className="mr-2" /> {t("player.next_soon")}
         </p>
