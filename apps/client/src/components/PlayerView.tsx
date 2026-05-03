@@ -109,7 +109,7 @@ const [showLeaveDialog, setShowLeaveDialog] = useState(false);
         </header>
 
 
-        <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+        <main className="flex-1 flex flex-col items-center p-4 text-center">
           <div data-testid="player-phase" className="sr-only">
             {state.phase}
           </div>
