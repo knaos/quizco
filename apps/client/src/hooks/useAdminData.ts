@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Competition, CompetitionImportDocument, Question, Round } from "@quizco/shared";
+import type {
+  Competition,
+  CompetitionImportDocument,
+  Question,
+  Round,
+} from "@quizco/shared";
 import { API_URL } from "../socket";
 import { createAuthHeaders } from "../auth";
 
@@ -18,12 +23,22 @@ export interface AdminDataResult {
   importCompetitionFromFile: (
     file: File,
   ) => Promise<{ ok: boolean; message?: string }>;
-  updateCompetition: (competitionId: string, data: Partial<Competition>) => Promise<void>;
+  updateCompetition: (
+    competitionId: string,
+    data: Partial<Competition>,
+  ) => Promise<void>;
   deleteCompetition: (competitionId: string) => Promise<void>;
-  createRound: (competitionId: string, title: string, orderIndex: number) => Promise<void>;
+  createRound: (
+    competitionId: string,
+    title: string,
+    orderIndex: number,
+  ) => Promise<void>;
   updateRound: (roundId: string, data: Partial<Round>) => Promise<void>;
   deleteRound: (roundId: string) => Promise<void>;
-  saveQuestion: (roundId: string, questionData: Partial<Question>) => Promise<void>;
+  saveQuestion: (
+    roundId: string,
+    questionData: Partial<Question>,
+  ) => Promise<void>;
   deleteQuestion: (questionId: string, roundId: string) => Promise<void>;
 }
 
@@ -34,8 +49,10 @@ export function useAdminData(
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
-  const [questionsByRound, setQuestionsByRound] = useState<Record<string, Question[]>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [questionsByRound, setQuestionsByRound] = useState<
+    Record<string, Question[]>
+  >({});
+  const [isLoading, setIsLoading] = useState(() => Boolean(adminToken));
 
   const createHeaders = useCallback(
     (includeJson = false) => createAuthHeaders(adminToken, includeJson),
@@ -58,9 +75,12 @@ export function useAdminData(
 
   const fetchRounds = useCallback(
     async (competitionId: string) => {
-      const response = await fetch(`${API_BASE}/competitions/${competitionId}/rounds`, {
-        headers: createHeaders(),
-      });
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/rounds`,
+        {
+          headers: createHeaders(),
+        },
+      );
       if (!response.ok) {
         if (response.status === 401) {
           onUnauthorized();
@@ -75,11 +95,10 @@ export function useAdminData(
     [createHeaders, fetchQuestions, onUnauthorized],
   );
 
-  const fetchCompetitions = useCallback(async () => {
+  const loadCompetitions = useCallback(async () => {
     if (!adminToken) {
       return;
     }
-    setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE}/competitions`, {
         headers: createHeaders(),
@@ -97,22 +116,14 @@ export function useAdminData(
     }
   }, [adminToken, createHeaders, onUnauthorized]);
 
-  useEffect(() => {
-    if (!adminToken) {
-      setIsLoading(false);
-      return;
-    }
+  const fetchCompetitions = useCallback(async () => {
     setIsLoading(true);
-    fetch(`${API_BASE}/competitions`, { headers: createHeaders() })
-      .then((res) => {
-        if (res.ok) return res.json();
-        if (res.status === 401) onUnauthorized();
-      })
-      .then((data) => {
-        if (data) setCompetitions(data);
-      })
-      .finally(() => setIsLoading(false));
-  }, [adminToken, createHeaders, onUnauthorized]);
+    await loadCompetitions();
+  }, [loadCompetitions]);
+
+  useEffect(() => {
+    void loadCompetitions();
+  }, [loadCompetitions]);
 
   return {
     competitions,
@@ -171,12 +182,18 @@ export function useAdminData(
       await fetchCompetitions();
       return { ok: true };
     },
-    updateCompetition: async (competitionId: string, data: Partial<Competition>) => {
-      const response = await fetch(`${API_BASE}/competitions/${competitionId}`, {
-        method: "PUT",
-        headers: createHeaders(true),
-        body: JSON.stringify(data),
-      });
+    updateCompetition: async (
+      competitionId: string,
+      data: Partial<Competition>,
+    ) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}`,
+        {
+          method: "PUT",
+          headers: createHeaders(true),
+          body: JSON.stringify(data),
+        },
+      );
       if (!response.ok) {
         return;
       }
@@ -187,15 +204,22 @@ export function useAdminData(
       }
     },
     deleteCompetition: async (competitionId: string) => {
-      const response = await fetch(`${API_BASE}/competitions/${competitionId}`, {
-        method: "DELETE",
-        headers: createHeaders(),
-      });
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}`,
+        {
+          method: "DELETE",
+          headers: createHeaders(),
+        },
+      );
       if (response.ok) {
         await fetchCompetitions();
       }
     },
-    createRound: async (competitionId: string, title: string, orderIndex: number) => {
+    createRound: async (
+      competitionId: string,
+      title: string,
+      orderIndex: number,
+    ) => {
       const response = await fetch(`${API_BASE}/rounds`, {
         method: "POST",
         headers: createHeaders(true),
@@ -232,7 +256,9 @@ export function useAdminData(
     saveQuestion: async (roundId: string, questionData: Partial<Question>) => {
       const isNewQuestion = !questionData.id;
       const response = await fetch(
-        isNewQuestion ? `${API_BASE}/questions` : `${API_BASE}/questions/${questionData.id}`,
+        isNewQuestion
+          ? `${API_BASE}/questions`
+          : `${API_BASE}/questions/${questionData.id}`,
         {
           method: isNewQuestion ? "POST" : "PUT",
           headers: createHeaders(true),
