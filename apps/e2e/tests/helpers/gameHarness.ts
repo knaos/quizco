@@ -190,21 +190,9 @@ export async function createHostAndPlayers(
 export async function clickHostNextAndExpectPhase(hostPage: Page, expectedPhase: string): Promise<void> {
   const phase = hostPage.getByTestId("host-current-phase");
   const nextButton = hostPage.getByTestId("host-next-action");
-  const deadline = Date.now() + 20_000;
-
-  while (Date.now() < deadline) {
-    await expect(nextButton).toBeEnabled({ timeout: 5_000 });
-    await nextButton.click();
-
-    try {
-      await expect(phase).toHaveText(expectedPhase, { timeout: 3_000 });
-      return;
-    } catch {
-      // Retry until the phase transition is observed.
-    }
-  }
-
-  await expect(phase).toHaveText(expectedPhase, { timeout: 1 });
+  await expect(nextButton).toBeEnabled({ timeout: 20_000 });
+  await nextButton.click();
+  await expect(phase).toHaveText(expectedPhase, { timeout: 20_000 });
 }
 
 export async function moveToQuestionPreview(hostPage: Page): Promise<void> {

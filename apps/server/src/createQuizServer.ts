@@ -478,9 +478,18 @@ onSafe(
 
     onSafe(
       "HOST_GRADE_DECISION",
-      async ({ competitionId, answerId, correct, authToken }) => {
+      async (
+        {
+          competitionId,
+          answerId,
+          correct,
+          authToken,
+        }: { competitionId: string; answerId: string; correct: boolean; authToken?: string },
+        ack?: (result: { ok: boolean; error?: string }) => void,
+      ) => {
         if (!competitionId || !hasHostAccess(authToken)) {
           socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+          ack?.({ ok: false, error: "Unauthorized" });
           return;
         }
         await gameManager.handleGradeDecision(competitionId, answerId, correct);
@@ -488,6 +497,7 @@ onSafe(
         const room = `competition_${competitionId}`;
         io.to(room).emit("SCORE_UPDATE", state.teams);
         io.to(room).emit("GAME_STATE_SYNC", state);
+        ack?.({ ok: true });
       },
     );
 

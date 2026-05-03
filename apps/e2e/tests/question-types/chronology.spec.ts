@@ -95,15 +95,16 @@ test("Chronology allows moving an item back to left pool after pool is empty", a
     ).toHaveCount(0);
 
     await dragByItem(session.playerOnePage, "chronology-item-c1", "chronology-pool-dropzone");
-    const c1InPool = await session.playerOnePage
-      .getByTestId("chronology-pool-dropzone")
-      .getByTestId("chronology-item-c1")
-      .count();
-    const c1InSlotZero = await session.playerOnePage
-      .getByTestId("chronology-slot-0")
-      .getByTestId("chronology-item-c1")
-      .count();
-    expect(c1InPool + c1InSlotZero).toBeGreaterThan(0);
+    await expect(
+      session.playerOnePage
+        .getByTestId("chronology-pool-dropzone")
+        .getByTestId("chronology-item-c1"),
+    ).toHaveCount(1);
+    await expect(
+      session.playerOnePage
+        .getByTestId("chronology-slot-0")
+        .getByTestId("chronology-item-c1"),
+    ).toHaveCount(0);
   } finally {
     if (competitionId) {
       await deleteCompetition(adminApi, competitionId);

@@ -133,16 +133,33 @@ test.describe("Agentic debugging scenarios", () => {
       });
 
       client.on("connect", () => {
-        client.emit("HOST_GRADE_DECISION", { competitionId, answerId, correct, authToken });
-        setTimeout(() => {
-          client.disconnect();
-          resolve();
-        }, 150);
+        client.emit(
+          "HOST_GRADE_DECISION",
+          { competitionId, answerId, correct, authToken },
+          (ack: { ok: boolean; error?: string }) => {
+            if (!ack?.ok) {
+              client.disconnect();
+              reject(new Error(ack?.error ?? "HOST_GRADE_DECISION failed"));
+              return;
+            }
+            client.disconnect();
+            resolve();
+          },
+        );
+      });
+
+      client.on("AUTH_ERROR", (payload: { message?: string }) => {
+        client.disconnect();
+        reject(new Error(payload.message ?? "Unauthorized"));
       });
 
       client.on("connect_error", (err) => {
         client.disconnect();
         reject(err);
+      });
+
+      client.on("disconnect", () => {
+        // no-op; resolution handled by ack/auth/connect_error paths
       });
     });
   };

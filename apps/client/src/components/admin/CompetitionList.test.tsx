@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, click } from "../../test/render";
+import { render, click, change } from "../../test/render";
 import { CompetitionList } from "./CompetitionList";
 
 describe("CompetitionList", () => {
@@ -26,21 +26,16 @@ describe("CompetitionList", () => {
     expect(trigger).not.toBeNull();
     expect(input).not.toBeNull();
 
-    if (!input) {
-      view.unmount();
-      return;
-    }
-
-    click(trigger as HTMLButtonElement);
+    click(trigger!);
 
     const file = new File(["{}"], "competition.json", {
       type: "application/json",
     });
-    Object.defineProperty(input, "files", {
+    Object.defineProperty(input!, "files", {
       configurable: true,
       value: [file],
     });
-    input.dispatchEvent(new Event("change", { bubbles: true }));
+    change(input!);
 
     expect(onImport).toHaveBeenCalledTimes(1);
     expect(onImport).toHaveBeenCalledWith(file);

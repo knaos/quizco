@@ -139,8 +139,12 @@ test.describe("question ordering and zero-point grading", () => {
 
       await clickHostNextAndExpectPhase(session.hostPage, "REVEAL_ANSWER");
 
-      await expect(session.playerOnePage.locator(".border-green-400").first()).toBeVisible();
-      await expect(session.playerTwoPage.locator(".border-red-500").first()).toBeVisible();
+      await expect(
+        session.playerOnePage.getByTestId("reveal-option-correct").first(),
+      ).toBeVisible();
+      await expect(
+        session.playerTwoPage.getByTestId("reveal-option-incorrect-selected").first(),
+      ).toBeVisible();
     } finally {
       if (session) {
         await session.close();

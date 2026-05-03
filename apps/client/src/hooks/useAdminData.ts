@@ -156,31 +156,35 @@ export function useAdminData(
         };
       }
 
-      const response = await fetch(`${API_BASE}/competitions/import`, {
-        method: "POST",
-        headers: createHeaders(true),
-        body: JSON.stringify(parsed),
-      });
+      try {
+        const response = await fetch(`${API_BASE}/competitions/import`, {
+          method: "POST",
+          headers: createHeaders(true),
+          body: JSON.stringify(parsed),
+        });
 
-      if (response.status === 401) {
-        onUnauthorized();
-        return { ok: false, message: "admin.import_failed" };
-      }
-
-      if (!response.ok) {
-        try {
-          const payload = (await response.json()) as { message?: string };
-          return {
-            ok: false,
-            message: payload.message ?? "admin.import_failed",
-          };
-        } catch {
+        if (response.status === 401) {
+          onUnauthorized();
           return { ok: false, message: "admin.import_failed" };
         }
-      }
 
-      await fetchCompetitions();
-      return { ok: true };
+        if (!response.ok) {
+          try {
+            const payload = (await response.json()) as { message?: string };
+            return {
+              ok: false,
+              message: payload.message ?? "admin.import_failed",
+            };
+          } catch {
+            return { ok: false, message: "admin.import_failed" };
+          }
+        }
+
+        await fetchCompetitions();
+        return { ok: true };
+      } catch {
+        return { ok: false, message: "admin.import_failed" };
+      }
     },
     updateCompetition: async (
       competitionId: string,

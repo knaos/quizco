@@ -132,4 +132,53 @@ describe("useAdminData", () => {
     });
     hook.unmount();
   });
+
+  it("returns import_failed when import request rejects", async () => {
+    const onUnauthorized = vi.fn();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => [],
+      } as Response)
+      .mockRejectedValueOnce(new Error("network down"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const hook = renderHook(() => useAdminData("secret-token", onUnauthorized));
+    await flushEffects();
+
+    const file = new File(
+      [
+        JSON.stringify({
+          competition: { title: "Imported" },
+          rounds: [
+            {
+              title: "Round 1",
+              type: "STANDARD",
+              questions: [
+                {
+                  questionText: "Q1",
+                  type: "OPEN_WORD",
+                  points: 1,
+                  timeLimitSeconds: 30,
+                  grading: "AUTO",
+                  content: { answer: "A" },
+                },
+              ],
+            },
+          ],
+        }),
+      ],
+      "competition.json",
+      { type: "application/json" },
+    );
+
+    const result = await act(async () => hook.result.importCompetitionFromFile(file));
+    expect(result).toEqual({
+      ok: false,
+      message: "admin.import_failed",
+    });
+    hook.unmount();
+  });
 });

@@ -70,64 +70,75 @@ async function getNextRealIndex(roundId: string): Promise<number> {
   return (aggregate._max.realIndex ?? -1) + 1;
 }
 
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
 function validateImportQuestion(
-  question: CompetitionImportQuestion,
+  question: unknown,
   roundIndex: number,
   questionIndex: number,
 ): string | null {
-  if (typeof question.questionText !== "string" || !question.questionText.trim()) {
+  if (typeof question !== "object" || question === null) {
+    return `rounds[${roundIndex}].questions[${questionIndex}] must be an object`;
+  }
+
+  const candidate = question as CompetitionImportQuestion;
+
+  if (typeof candidate.questionText !== "string" || !candidate.questionText.trim()) {
     return `rounds[${roundIndex}].questions[${questionIndex}].questionText is required`;
   }
-  if (!QUESTION_TYPES.has(question.type)) {
+  if (!QUESTION_TYPES.has(candidate.type)) {
     return `rounds[${roundIndex}].questions[${questionIndex}].type is invalid`;
   }
-  if (!isFiniteNumber(question.points)) {
-    return `rounds[${roundIndex}].questions[${questionIndex}].points must be a number`;
+  if (!Number.isInteger(candidate.points) || candidate.points < 0) {
+    return `rounds[${roundIndex}].questions[${questionIndex}].points must be an integer >= 0`;
   }
-  if (!isFiniteNumber(question.timeLimitSeconds)) {
-    return `rounds[${roundIndex}].questions[${questionIndex}].timeLimitSeconds must be a number`;
+  if (!Number.isInteger(candidate.timeLimitSeconds) || candidate.timeLimitSeconds < 1) {
+    return `rounds[${roundIndex}].questions[${questionIndex}].timeLimitSeconds must be an integer >= 1`;
   }
-  if (question.grading !== "AUTO" && question.grading !== "MANUAL") {
+  if (candidate.grading !== "AUTO" && candidate.grading !== "MANUAL") {
     return `rounds[${roundIndex}].questions[${questionIndex}].grading is invalid`;
   }
-  if (typeof question.content !== "object" || question.content === null) {
+  if (typeof candidate.content !== "object" || candidate.content === null) {
     return `rounds[${roundIndex}].questions[${questionIndex}].content is required`;
   }
-  if (question.source !== undefined && question.source !== null && typeof question.source !== "string") {
+  if (candidate.source !== undefined && candidate.source !== null && typeof candidate.source !== "string") {
     return `rounds[${roundIndex}].questions[${questionIndex}].source must be a string`;
   }
-  if (question.section !== undefined && typeof question.section !== "string") {
+  if (candidate.section !== undefined && typeof candidate.section !== "string") {
     return `rounds[${roundIndex}].questions[${questionIndex}].section must be a string`;
   }
-  if (question.index !== undefined && !isFiniteNumber(question.index)) {
-    return `rounds[${roundIndex}].questions[${questionIndex}].index must be a number`;
+  if (
+    candidate.index !== undefined &&
+    (!Number.isInteger(candidate.index) || candidate.index < 0)
+  ) {
+    return `rounds[${roundIndex}].questions[${questionIndex}].index must be an integer >= 0`;
   }
   return null;
 }
 
 function validateImportRound(
-  round: CompetitionImportRound,
+  round: unknown,
   roundIndex: number,
 ): string | null {
-  if (typeof round.title !== "string" || !round.title.trim()) {
+  if (typeof round !== "object" || round === null) {
+    return `rounds[${roundIndex}] must be an object`;
+  }
+
+  const candidate = round as CompetitionImportRound;
+
+  if (typeof candidate.title !== "string" || !candidate.title.trim()) {
     return `rounds[${roundIndex}].title is required`;
   }
-  if (!ROUND_TYPES.has(round.type)) {
+  if (!ROUND_TYPES.has(candidate.type)) {
     return `rounds[${roundIndex}].type is invalid`;
   }
-  if (!Array.isArray(round.questions) || round.questions.length === 0) {
+  if (!Array.isArray(candidate.questions) || candidate.questions.length === 0) {
     return `rounds[${roundIndex}].questions must be a non-empty array`;
   }
-  for (let questionIndex = 0; questionIndex < round.questions.length; questionIndex += 1) {
-    const error = validateImportQuestion(round.questions[questionIndex], roundIndex, questionIndex);
+  for (let questionIndex = 0; questionIndex < candidate.questions.length; questionIndex += 1) {
+    const error = validateImportQuestion(candidate.questions[questionIndex], roundIndex, questionIndex);
     if (error) {
       return error;
     }

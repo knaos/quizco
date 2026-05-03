@@ -45,7 +45,17 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
         }
 
           return (
-            <div key={i} className={containerClass}>
+            <div
+              key={i}
+              className={containerClass}
+              data-testid={
+                isOptionCorrect
+                  ? "reveal-option-correct"
+                  : isSelected && !isOptionCorrect
+                    ? "reveal-option-incorrect-selected"
+                    : undefined
+              }
+            >
               <span
                 className={`${isOptionCorrect
                   ? "text-green-800"

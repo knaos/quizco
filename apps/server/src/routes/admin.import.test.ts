@@ -87,6 +87,7 @@ describe("admin competition import route", () => {
                 timeLimitSeconds: 20,
                 grading: "AUTO",
                 section: "1",
+                source: "imported:roundA:q1",
                 content: {
                   options: ["A", "B"],
                   correctIndices: [0],
@@ -100,6 +101,7 @@ describe("admin competition import route", () => {
                 grading: "AUTO",
                 section: "1",
                 index: 4,
+                source: "imported:roundA:q2",
                 content: {
                   answer: "test",
                 },
@@ -131,8 +133,10 @@ describe("admin competition import route", () => {
     );
     expect(firstQuestion.index).toBe(0);
     expect(firstQuestion.realIndex).toBe(0);
+    expect(firstQuestion.source).toBe("imported:roundA:q1");
     expect(secondQuestion.index).toBe(4);
     expect(secondQuestion.realIndex).toBe(1);
+    expect(secondQuestion.source).toBe("imported:roundA:q2");
   });
 
   it("returns 400 for malformed JSON request payload", async () => {
@@ -167,5 +171,59 @@ describe("admin competition import route", () => {
     const payload = (await response.json()) as { error: string; message: string };
     expect(payload.error).toBe("INVALID_IMPORT_DOCUMENT");
     expect(payload.message).toContain("rounds");
+  });
+
+  it("returns 400 when rounds include null entries", async () => {
+    const response = await fetch(`${baseUrl}/api/admin/competitions/import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        competition: { title: "Null rounds" },
+        rounds: [null],
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    const payload = (await response.json()) as { error: string; message: string };
+    expect(payload.error).toBe("INVALID_IMPORT_DOCUMENT");
+    expect(payload.message).toContain("rounds[0]");
+  });
+
+  it("returns 400 for invalid numeric question values", async () => {
+    const response = await fetch(`${baseUrl}/api/admin/competitions/import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        competition: { title: "Invalid numeric payload" },
+        rounds: [
+          {
+            title: "Round A",
+            type: "STANDARD",
+            questions: [
+              {
+                questionText: "Q1",
+                type: "OPEN_WORD",
+                points: 1.5,
+                timeLimitSeconds: 0,
+                grading: "AUTO",
+                index: -1,
+                content: { answer: "test" },
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    const payload = (await response.json()) as { error: string; message: string };
+    expect(payload.error).toBe("INVALID_IMPORT_DOCUMENT");
+    expect(payload.message).toContain("points");
   });
 });
