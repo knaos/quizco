@@ -127,7 +127,7 @@ function buildCorrectTheErrorAnswer(
 function renderDefaultReadOnlyAnswer(question: Question, t: TFunction, testIdPrefix: string) {
   return (
     <div
-      className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800"
+      className="bg-white p-4 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800"
       data-testid={`${testIdPrefix}-passive-answer-placeholder`}
     >
       {question.type === "CLOSED"

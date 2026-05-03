@@ -28,7 +28,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
   return (
     <div className="space-y-6">
       {/* Main text with filled blanks */}
-      <div className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
+      <div className="bg-white p-4 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
         {parts.map((part, i) => {
           const match = part.match(/\{?(\d+)\}?/);
           if (match) {

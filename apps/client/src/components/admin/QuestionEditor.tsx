@@ -177,7 +177,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
           </Button>
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-auto p-8 space-y-8">
+        <CardContent className="flex-1 overflow-auto p-4 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-gray-600 uppercase">{t("admin.question_editor.question_type")}</label>

@@ -311,7 +311,7 @@ export const HostDashboard: React.FC = () => {
 
   if (!selectedComp) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+      <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
         <header className="mb-12 flex w-full  items-center justify-between">
           <h1 className="text-4xl font-black tracking-tight text-gray-900">{t("host.select_quiz")}</h1>
           <LanguageSwitcher />
@@ -323,7 +323,7 @@ export const HostDashboard: React.FC = () => {
               variant="default"
               onClick={() => selectCompetition(comp)}
               data-testid={`host-competition-option-${comp.id}`}
-              className="cursor-pointer p-8 hover:border-blue-500"
+              className="cursor-pointer p-4 hover:border-blue-500"
             >
               <div className="mb-4 flex items-start justify-between">
                 <div className="rounded-2xl bg-blue-100 p-3">

@@ -58,7 +58,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
     <div className="w-full  space-y-8 animate-in fade-in duration-500">
       <Card
         variant="elevated"
-        className={`p-10 rounded-3xl border-b-8 flex justify-between items-center gap-6 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}
+        className={`p-4 rounded-3xl border-b-8 flex justify-between items-center gap-6 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}
       >
         <div className="flex-1 text-left">
           <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-blue-600"}`}>
@@ -80,7 +80,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
         />
       </Card>
 
-      <div className={`space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}>
+      <div className={`space-y-6 w-full bg-white p-4 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}>
         {props.mode === "interactive"
           ? getQuestionActiveRenderer({
             question: currentQuestion,

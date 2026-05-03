@@ -194,7 +194,7 @@ export const AdminPanel: React.FC = () => {
           void loginAdmin(passwordInput).then((success) => {
             setLoginError(success ? null : "host.invalid_password");
           });
-        }} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
+        }} className="bg-white p-4 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
           <div className="flex justify-center mb-6">
             <div className="bg-blue-100 p-4 rounded-full shadow-inner">
               <Lock className="text-blue-600 w-10 h-10" />
@@ -264,7 +264,7 @@ export const AdminPanel: React.FC = () => {
           </div>
         </aside>
 
-        <main className="flex-1 p-10 overflow-auto relative">
+        <main className="flex-1 p-4 overflow-auto relative">
           {view === "COMPETITIONS" ? (
             <CompetitionList
               competitions={adminData.competitions}

@@ -216,7 +216,7 @@ export const RevealAnswerPhase: React.FC<RevealAnswerPhaseProps> = ({
 
   return (
     <div className="w-full space-y-8 animate-in fade-in zoom-in duration-500">
-      <Card className="p-8 border-t-8 border-blue-500 text-left">
+      <Card className="p-4 border-t-8 border-blue-500 text-left">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-2 text-blue-600">
             <Info className="h-6 w-6" />
