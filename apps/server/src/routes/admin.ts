@@ -74,6 +74,10 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function toPrismaJson(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
+
 function validateImportQuestion(
   question: CompetitionImportQuestion,
   roundIndex: number,
@@ -219,7 +223,9 @@ router.post("/competitions/import", async (req, res) => {
               ? importDocument.competition.host_pin.trim()
               : "1234",
           status: (importDocument.competition.status ?? "DRAFT") as CompetitionStatus,
-          milestones: importDocument.competition.milestones ?? undefined,
+          milestones: importDocument.competition.milestones
+            ? toPrismaJson(importDocument.competition.milestones)
+            : undefined,
         },
       });
 
@@ -262,7 +268,7 @@ router.post("/competitions/import", async (req, res) => {
               type: questionImport.type as QuestionType,
               points: questionImport.points,
               timeLimitSeconds: questionImport.timeLimitSeconds,
-              content: questionImport.content as Prisma.InputJsonValue,
+              content: toPrismaJson(questionImport.content),
               grading: questionImport.grading as GradingMode,
               section: normalizedSection,
               index: resolvedIndex,
