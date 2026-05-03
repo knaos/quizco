@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, click } from "../../test/render";
 import { CompetitionList } from "./CompetitionList";
