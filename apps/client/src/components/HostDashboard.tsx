@@ -312,11 +312,11 @@ export const HostDashboard: React.FC = () => {
   if (!selectedComp) {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
-        <header className="mb-12 flex w-full max-w-4xl items-center justify-between">
+        <header className="mb-12 flex w-full  items-center justify-between">
           <h1 className="text-4xl font-black tracking-tight text-gray-900">{t("host.select_quiz")}</h1>
           <LanguageSwitcher />
         </header>
-        <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid w-full  grid-cols-1 gap-6 md:grid-cols-2">
           {competitions.map((comp) => (
             <Card
               key={comp.id}
@@ -442,7 +442,7 @@ export const HostDashboard: React.FC = () => {
                     </div>
                     <div>
                       <h2
-                        className="max-w-4xl text-3xl font-black leading-tight text-slate-950"
+                        className=" text-3xl font-black leading-tight text-slate-950"
                         data-testid="host-presenter-question"
                       >
                         {currentQuestionText}
@@ -739,7 +739,7 @@ export const HostDashboard: React.FC = () => {
               {t("host.close")}
             </Button>
           }
-          className="max-w-4xl"
+          className=""
         >
           <div className="overflow-x-auto">
             <table className="w-full">

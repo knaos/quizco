@@ -84,7 +84,7 @@ export const LeaderboardPhase: React.FC<LeaderboardPhaseProps> = ({ teams }) => 
 
   return (
     <div
-      className="w-full max-w-4xl space-y-8 animate-in zoom-in duration-700"
+      className="w-full  space-y-8 animate-in zoom-in duration-700"
       data-testid="player-leaderboard"
     >
       <Card

@@ -167,7 +167,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-auto">
-      <Card variant="elevated" className="w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-none">
+      <Card variant="elevated" className="w-full  max-h-[90vh] flex flex-col overflow-hidden border-none">
         <CardHeader className="flex flex-row justify-between items-center bg-gray-50">
           <CardTitle>
             {question.id ? t("admin.question_editor.edit_question") : t("admin.question_editor.new_question")}

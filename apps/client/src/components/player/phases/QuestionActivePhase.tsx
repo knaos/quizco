@@ -42,7 +42,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl space-y-8">
+    <div className="w-full  space-y-8">
       {!hasSubmitted ? (
         <PublicQuestionBody
           mode="interactive"

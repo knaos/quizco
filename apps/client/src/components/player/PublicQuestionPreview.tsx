@@ -31,7 +31,7 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
+    <div className="w-full  space-y-8 animate-in fade-in duration-500">
       <Card
         variant="elevated"
         className={`p-10 rounded-3xl border-b-8 flex justify-between items-center gap-6 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}

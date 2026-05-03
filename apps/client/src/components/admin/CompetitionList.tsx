@@ -29,7 +29,7 @@ export const CompetitionList: React.FC<CompetitionListProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className=" mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-black text-gray-800 tracking-tight">{t("admin.competitions")}</h1>
         <div className="flex items-center gap-3">
