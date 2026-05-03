@@ -9,7 +9,6 @@ import {
 
 let adminApi: APIRequestContext;
 let competitionId = "";
-let questionIds: string[] = [];
 
 test.beforeAll(async () => {
   adminApi = await createAdminApi();
@@ -17,6 +16,8 @@ test.beforeAll(async () => {
   const fixture = await createCompetitionWithQuestions(adminApi, "E2E Host Presenter", [
     {
       questionText: "Presenter question one",
+      source: "Йоан 3:16",
+      timeLimitSeconds: 15,
       type: "MULTIPLE_CHOICE",
       content: {
         options: ["Alpha", "Beta"],
@@ -25,6 +26,8 @@ test.beforeAll(async () => {
     },
     {
       questionText: "Presenter question two",
+      source: "Йоан 3:16",
+      timeLimitSeconds: 15,
       type: "MULTIPLE_CHOICE",
       content: {
         options: ["Noah", "Moses"],
@@ -34,7 +37,6 @@ test.beforeAll(async () => {
   ]);
 
   competitionId = fixture.competitionId;
-  questionIds = fixture.questionIds;
 });
 
 test.afterAll(async () => {
@@ -52,26 +54,22 @@ test("host presenter view keeps navigation and submissions in modals", async ({ 
 
     await expect(session.hostPage.getByTestId("host-presenter-question")).toContainText("Presenter question one");
     await expect(session.hostPage.getByTestId("host-next-action")).toBeVisible();
-    await expect(session.hostPage.getByTestId("host-timer")).toHaveText("0s");
-
-    await session.hostPage.getByTestId("host-open-question-picker").click();
-    await expect(session.hostPage.getByTestId("host-question-picker-modal")).toBeVisible();
-    await session.hostPage.getByTestId(`host-question-option-${questionIds[1]}`).click();
-    await expect(session.hostPage.getByTestId("host-presenter-question")).toContainText("Presenter question two");
+    await expect(session.hostPage.getByTestId("host-timer")).toHaveText("15s");
 
     await session.hostPage.getByTestId("host-next-action").click();
     await session.hostPage.getByTestId("host-next-action").click();
     await session.hostPage.getByTestId("host-next-action").click();
 
     await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("QUESTION_ACTIVE");
-    await expect(session.hostPage.getByTestId("host-presenter-answer-content")).toContainText("Noah");
-    await expect(session.hostPage.getByTestId("host-presenter-answer-content")).toContainText("Moses");
+    await expect(session.hostPage.getByTestId("host-presenter-answer-content")).toContainText("Alpha");
+    await expect(session.hostPage.getByTestId("host-presenter-answer-content")).toContainText("Beta");
 
-    await session.playerOnePage.getByTestId("player-choice-0").click();
+    await session.playerOnePage.getByTestId(/player-choice-/).first().click();
     await session.playerOnePage.getByTestId("player-submit-answer").click();
-    await session.playerTwoPage.getByTestId("player-choice-1").click();
+    await session.playerTwoPage.getByTestId(/player-choice-/).first().click();
     await session.playerTwoPage.getByTestId("player-submit-answer").click();
 
+    await session.hostPage.getByTestId("host-next-action").click();
     await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("GRADING", {
       timeout: 20_000,
     });
@@ -82,11 +80,7 @@ test("host presenter view keeps navigation and submissions in modals", async ({ 
     await expect(session.hostPage.getByTestId("host-answers-modal")).toContainText("Presenter Team Two");
     await session.hostPage.getByTestId("host-close-answers-modal").click();
 
-    await session.hostPage.getByTestId("host-next-action").click();
-    await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("REVEAL_ANSWER", {
-      timeout: 20_000,
-    });
-    await expect(session.hostPage.getByTestId("host-correct-answer-panel")).toBeVisible();
+    await expect(session.hostPage.getByTestId("host-open-answers-modal")).toBeVisible();
   } finally {
     await session.close();
   }

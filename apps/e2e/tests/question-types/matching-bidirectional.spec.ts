@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
+  clickHostNextAndExpectPhase,
   createAdminApi,
   createCompetitionWithQuestions,
   createHostAndPlayers,
@@ -21,9 +22,13 @@ test("MATCHING supports right-to-left connection flow", async ({ browser }) => {
           questionText: "Match the items",
           type: "MATCHING",
           content: {
-            pairs: [
-              { id: "m1", left: "Apple", right: "Fruit" },
-              { id: "m2", left: "Carrot", right: "Vegetable" },
+            heroes: [
+              { id: "m1", text: "Apple", type: "hero" },
+              { id: "m2", text: "Carrot", type: "hero" },
+            ],
+            stories: [
+              { id: "s1", text: "Fruit", type: "story", correspondsTo: "m1" },
+              { id: "s2", text: "Vegetable", type: "story", correspondsTo: "m2" },
             ],
           },
         },
@@ -37,7 +42,7 @@ test("MATCHING supports right-to-left connection flow", async ({ browser }) => {
     await moveToQuestionPreview(session.hostPage);
 
     // Move to QUESTION_ACTIVE
-    await session.hostPage.getByTestId("host-next-action").click();
+    await clickHostNextAndExpectPhase(session.hostPage, "QUESTION_ACTIVE");
     await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE");
 
     // Test right-to-left flow: Click right item first, then left item
@@ -108,10 +113,15 @@ test("MATCHING supports bidirectional mixed flow (both directions in same questi
           questionText: "Match the items",
           type: "MATCHING",
           content: {
-            pairs: [
-              { id: "m1", left: "Apple", right: "Fruit" },
-              { id: "m2", left: "Carrot", right: "Vegetable" },
-              { id: "m3", left: "Bread", right: "Grain" },
+            heroes: [
+              { id: "m1", text: "Apple", type: "hero" },
+              { id: "m2", text: "Carrot", type: "hero" },
+              { id: "m3", text: "Bread", type: "hero" },
+            ],
+            stories: [
+              { id: "s1", text: "Fruit", type: "story", correspondsTo: "m1" },
+              { id: "s2", text: "Vegetable", type: "story", correspondsTo: "m2" },
+              { id: "s3", text: "Grain", type: "story", correspondsTo: "m3" },
             ],
           },
         },
@@ -123,7 +133,7 @@ test("MATCHING supports bidirectional mixed flow (both directions in same questi
 
     // Move to QUESTION_ACTIVE
     await moveToQuestionPreview(session.hostPage);
-    await session.hostPage.getByTestId("host-next-action").click();
+    await clickHostNextAndExpectPhase(session.hostPage, "QUESTION_ACTIVE");
     await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE");
 
     // First connection: left-to-right (Apple -> Fruit)

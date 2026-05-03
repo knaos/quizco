@@ -13,6 +13,7 @@ const question: MultipleChoiceQuestion = {
   id: "question-1",
   roundId: "round-1",
   questionText: "Choose one",
+  source: "John 3:16",
   type: "MULTIPLE_CHOICE",
   points: 10,
   timeLimitSeconds: 30,

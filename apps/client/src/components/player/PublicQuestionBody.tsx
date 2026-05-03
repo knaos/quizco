@@ -40,7 +40,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   const { t } = useTranslation();
   const { currentQuestion } = props.state;
   const testIdPrefix = props.testIdPrefix ?? "player";
-  const exampleQuestion = currentQuestion?.index === 0;
+  const exampleQuestion = currentQuestion?.points === 0;
   const questionLabel =
     typeof currentQuestion?.index === "number"
       ? currentQuestion.section
@@ -76,6 +76,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
         <AnalogueTimer
           timeRemaining={props.state.timeRemaining}
           totalTime={props.state.currentQuestion?.timeLimitSeconds || 30}
+          testId={`${testIdPrefix}-time-remaining`}
         />
       </Card>
 

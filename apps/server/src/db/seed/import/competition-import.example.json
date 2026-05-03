@@ -1,0 +1,208 @@
+{
+  "competition": {
+    "title": "Импорт: Примерно състезание",
+    "host_pin": "2468",
+    "status": "DRAFT",
+    "milestones": [
+      {
+        "threshold": 2,
+        "icon": "star"
+      },
+      {
+        "threshold": 5,
+        "icon": "zap"
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "title": "Рунд 1: Индивидуална игра",
+      "type": "STANDARD",
+      "questions": [
+        {
+          "questionText": "Попълни празните места",
+          "type": "FILL_IN_THE_BLANKS",
+          "points": 0,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
+          "section": "1",
+          "index": 0,
+          "content": {
+            "text": "Небето е {0}.",
+            "blanks": [
+              {
+                "options": [
+                  {
+                    "value": "синьо",
+                    "isCorrect": true
+                  },
+                  {
+                    "value": "зелено",
+                    "isCorrect": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "questionText": "Кой построи ковчега?",
+          "source": "Битие 6:14",
+          "type": "MULTIPLE_CHOICE",
+          "points": 1,
+          "timeLimitSeconds": 15,
+          "grading": "AUTO",
+          "section": "1",
+          "content": {
+            "options": [
+              "Ной",
+              "Авраам",
+              "Йосиф",
+              "Давид"
+            ],
+            "correctIndices": [
+              0
+            ]
+          }
+        },
+        {
+          "questionText": "Кой създаде света?",
+          "type": "CLOSED",
+          "points": 2,
+          "timeLimitSeconds": 20,
+          "grading": "AUTO",
+          "section": "2",
+          "content": {
+            "options": [
+              "Бог"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Рунд 2: Хронология",
+      "type": "STANDARD",
+      "questions": [
+        {
+          "questionText": "Подреди дните от седмицата",
+          "type": "CHRONOLOGY",
+          "points": 0,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "items": [
+              {
+                "id": "d1",
+                "text": "Понеделник",
+                "order": 0
+              },
+              {
+                "id": "d2",
+                "text": "Вторник",
+                "order": 1
+              },
+              {
+                "id": "d3",
+                "text": "Сряда",
+                "order": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Рунд 3: Вярно или невярно",
+      "type": "STREAK",
+      "questions": [
+        {
+          "questionText": "Йона беше в рибата три дни.",
+          "type": "TRUE_FALSE",
+          "points": 1,
+          "timeLimitSeconds": 10,
+          "grading": "AUTO",
+          "content": {
+            "isTrue": true,
+            "explanation": "Историята е описана в книгата Йона."
+          }
+        },
+        {
+          "questionText": "Поправи грешката",
+          "type": "CORRECT_THE_ERROR",
+          "points": 2,
+          "timeLimitSeconds": 25,
+          "grading": "AUTO",
+          "content": {
+            "text": "Ной построи самолет.",
+            "words": [
+              {
+                "wordIndex": 2,
+                "text": "самолет",
+                "alternatives": [
+                  "ковчег",
+                  "мост"
+                ]
+              }
+            ],
+            "errorWordIndex": 2,
+            "correctReplacement": "ковчег"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Рунд 4: Кръстословица",
+      "type": "CROSSWORD",
+      "questions": [
+        {
+          "questionText": "Попълнете кръстословицата",
+          "type": "CROSSWORD",
+          "points": 10,
+          "timeLimitSeconds": 120,
+          "grading": "AUTO",
+          "content": {
+            "grid": [
+              [
+                "н",
+                "о",
+                "й"
+              ],
+              [
+                " ",
+                " ",
+                " "
+              ],
+              [
+                "а",
+                "р",
+                "к"
+              ]
+            ],
+            "clues": {
+              "across": [
+                {
+                  "number": 1,
+                  "x": 0,
+                  "y": 0,
+                  "direction": "across",
+                  "clue": "Построи ковчега.",
+                  "answer": "ной"
+                },
+                {
+                  "number": 2,
+                  "x": 0,
+                  "y": 2,
+                  "direction": "across",
+                  "clue": "Ковчег на английски.",
+                  "answer": "арк"
+                }
+              ],
+              "down": []
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -51,6 +51,7 @@ interface QuestionFormData extends Omit<Partial<Question>, "content" | "type" | 
   grading: GradingMode;
   section: string;
   content: EditorContent;
+  source: string;
 }
 
 const getDefaultContentForType = (type: QuestionType): EditorContent => {
@@ -149,6 +150,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
+    source: "",
     content: { options: ["", ""], correctIndices: [] },
     section: "",
     ...question,
@@ -224,6 +226,14 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
               placeholder={t("admin.question_editor.section_placeholder")}
             />
           </div>
+
+          <TextArea
+            label={t("admin.question_editor.source")}
+            value={formData.source || ""}
+            onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+            className="h-20"
+            placeholder={t("admin.question_editor.source_placeholder")}
+          />
 
           <div className="grid grid-cols-2 gap-6 text-left">
             <Input

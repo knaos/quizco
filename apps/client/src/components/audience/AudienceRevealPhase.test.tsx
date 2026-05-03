@@ -47,6 +47,10 @@ describe("AudienceRevealPhase", () => {
       view.container.querySelector('[data-testid="audience-correct-answer"]'),
     ).not.toBeNull();
     expect(view.container.textContent).toContain("Patience");
+    expect(
+      view.container.querySelector('[data-testid="audience-answer-stats"]'),
+    ).not.toBeNull();
+    expect(view.container.textContent).toContain("3/4 teams correct (75%)");
 
     view.unmount();
   });

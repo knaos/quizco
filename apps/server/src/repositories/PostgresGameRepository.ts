@@ -113,6 +113,7 @@ export class PostgresGameRepository implements IGameRepository {
       id: dbQuestion.id,
       roundId: dbQuestion.roundId,
       questionText: dbQuestion.questionText,
+      source: dbQuestion.source,
       points: dbQuestion.points,
       timeLimitSeconds: dbQuestion.timeLimitSeconds,
       grading: dbQuestion.grading as GradingMode,
@@ -132,8 +133,13 @@ export class PostgresGameRepository implements IGameRepository {
   async getAllQuestions(): Promise<any[]> {
     return prisma.question.findMany({
       orderBy: [
-        { section: "asc" },
+        {
+          round: {
+            orderIndex: "asc",
+          },
+        },
         { realIndex: "asc" },
+        { index: "asc" },
         { createdAt: "asc" },
       ],
     });
@@ -153,10 +159,10 @@ export class PostgresGameRepository implements IGameRepository {
           },
         },
         {
-          section: "asc",
+          realIndex: "asc",
         },
         {
-          realIndex: "asc",
+          index: "asc",
         },
         {
           createdAt: "asc",
@@ -171,6 +177,7 @@ export class PostgresGameRepository implements IGameRepository {
       id: q.id,
       roundId: q.roundId,
       questionText: q.questionText,
+      source: q.source,
       type: q.type,
       points: q.points,
       timeLimitSeconds: q.timeLimitSeconds,

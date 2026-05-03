@@ -2,11 +2,17 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TrueFalseRevealProps } from '@quizco/shared';
 import { Check, X } from 'lucide-react';
+import { QuestionSource } from "../../QuestionSource";
 
-export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
+interface TrueFalseRevealWithSourceProps extends TrueFalseRevealProps {
+  source?: string | null;
+}
+
+export const TrueFalseReveal: React.FC<TrueFalseRevealWithSourceProps> = ({
   content,
   lastAnswer,
   variant = "player",
+  source,
 }) => {
   const { t } = useTranslation();
 
@@ -30,6 +36,7 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
             <p className="text-lg">{content.explanation}</p>
           </div>
         )}
+        <QuestionSource source={source} />
       </div>
     );
   }
@@ -93,6 +100,7 @@ export const TrueFalseReveal: React.FC<TrueFalseRevealProps> = ({
           <p className="text-lg">{content.explanation}</p>
         </div>
       )}
+      <QuestionSource source={source} />
     </div>
   );
 };

@@ -2,11 +2,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle } from 'lucide-react';
 import type { CorrectTheErrorAnswer, CorrectTheErrorContent } from '@quizco/shared';
+import { QuestionSource } from "../../QuestionSource";
 
 interface CorrectTheErrorRevealProps {
   content: CorrectTheErrorContent;
   lastAnswer: CorrectTheErrorAnswer | null;
   showSelectionLabels?: boolean;
+  source?: string | null;
 }
 
 /**
@@ -20,6 +22,7 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
   content,
   lastAnswer,
   showSelectionLabels = true,
+  source,
 }) => {
   const { t } = useTranslation();
 
@@ -155,6 +158,7 @@ export const CorrectTheErrorReveal: React.FC<CorrectTheErrorRevealProps> = ({
           </div>
         </div>
       )}
+      <QuestionSource source={source} />
     </div>
   );
 };

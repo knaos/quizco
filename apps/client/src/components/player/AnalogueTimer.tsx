@@ -3,11 +3,13 @@ import React from "react";
 interface AnalogueTimerProps {
   timeRemaining: number;
   totalTime: number;
+  testId?: string;
 }
 
 export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
   timeRemaining,
   totalTime,
+  testId,
 }) => {
   const displayTime = timeRemaining;
 
@@ -77,6 +79,11 @@ export const AnalogueTimer: React.FC<AnalogueTimerProps> = ({
       <div className={`absolute inset-0 flex items-center justify-center font-black text-slate-900 drop-shadow-sm text-3xl`}>
         {displayText}
       </div>
+      {testId ? (
+        <span className="sr-only" data-testid={testId}>
+          {Math.ceil(displayTime)}s
+        </span>
+      ) : null}
     </div>
   );
 };

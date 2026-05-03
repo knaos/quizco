@@ -121,10 +121,16 @@ test.describe("question ordering and zero-point grading", () => {
       await clickHostNextAndExpectPhase(session.hostPage, "QUESTION_PREVIEW");
       await clickHostNextAndExpectPhase(session.hostPage, "QUESTION_ACTIVE");
 
-      await session.playerOnePage.getByTestId("player-choice-1").click();
+      await session.playerOnePage
+        .locator('[data-testid^="player-choice-"]', { hasText: "Right" })
+        .first()
+        .click();
       await session.playerOnePage.getByTestId("player-submit-answer").click();
 
-      await session.playerTwoPage.getByTestId("player-choice-0").click();
+      await session.playerTwoPage
+        .locator('[data-testid^="player-choice-"]', { hasText: "Wrong" })
+        .first()
+        .click();
       await session.playerTwoPage.getByTestId("player-submit-answer").click();
 
       await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("GRADING", {
@@ -133,8 +139,12 @@ test.describe("question ordering and zero-point grading", () => {
 
       await clickHostNextAndExpectPhase(session.hostPage, "REVEAL_ANSWER");
 
-      await expect(session.playerOnePage.getByText("CORRECT")).toBeVisible();
-      await expect(session.playerTwoPage.getByText("INCORRECT")).toBeVisible();
+      await expect(
+        session.playerOnePage.getByTestId("reveal-option-correct").first(),
+      ).toBeVisible();
+      await expect(
+        session.playerTwoPage.getByTestId("reveal-option-incorrect-selected").first(),
+      ).toBeVisible();
     } finally {
       if (session) {
         await session.close();
