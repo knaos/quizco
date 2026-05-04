@@ -3,10 +3,12 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ChronologyAnswer, ChronologyContent, ChronologyItem } from "@quizco/shared";
 import { buildChronologyOrderForGrading } from "./chronologyBoard";
+import { QuestionSource } from "../../QuestionSource";
 
 interface ChronologyRevealProps {
   content: ChronologyContent;
   lastAnswer: ChronologyAnswer | null;
+  source?: string | null;
 }
 
 /**
@@ -17,12 +19,13 @@ interface ChronologyRevealProps {
 export const ChronologyReveal: React.FC<ChronologyRevealProps> = ({
   content,
   lastAnswer,
+  source,
 }) => {
   const { t } = useTranslation();
 
   if (!lastAnswer) {
     return (
-      <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
+      <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-200">
         <p className="text-gray-500 text-center font-medium">
           {t("player.no_answer_submitted")}
         </p>
@@ -122,5 +125,10 @@ export const ChronologyReveal: React.FC<ChronologyRevealProps> = ({
     }
   }
 
-  return <div className="space-y-3">{elements}</div>;
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3">{elements}</div>
+      <QuestionSource source={source} />
+    </div>
+  );
 };

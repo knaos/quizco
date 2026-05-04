@@ -48,7 +48,7 @@ export const MultipleChoicePlayer: React.FC<MultipleChoicePlayerProps> = ({
               disabled={disabled || previewMode}
               data-testid={previewMode ? `${testIdPrefix}-preview-option-${i}` : `${testIdPrefix}-choice-${i}`}
               data-revealed={previewMode ? String(isRevealed) : undefined}
-              className={`border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex flex-col items-center justify-center gap-2 ${previewMode
+              className={`border-4 p-4 rounded-2xl text-xl font-black transition-all transform flex flex-col items-center justify-center gap-2 ${previewMode
                 ? isRevealed
                   ? "bg-white border-blue-100 shadow-lg text-gray-800 cursor-default"
                   : "bg-gray-100 border-transparent text-gray-400 cursor-default"

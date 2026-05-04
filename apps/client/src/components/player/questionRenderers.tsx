@@ -33,6 +33,7 @@ import { CrosswordReveal } from "./questions/crossword/CrosswordReveal";
 import { CorrectTheErrorReveal } from "./questions/correctTheError/CorrectTheErrorReveal";
 import { TrueFalseReveal } from "./questions/trueFalse/TrueFalseReveal";
 import { DefaultReveal } from "./questions/DefaultReveal";
+import { QuestionSource } from "./QuestionSource";
 import { isChronologyAnswer, isStringGrid } from "../../utils/answerGuards";
 import { getQuestionCorrectAnswer } from "./questionText";
 
@@ -126,7 +127,7 @@ function buildCorrectTheErrorAnswer(
 function renderDefaultReadOnlyAnswer(question: Question, t: TFunction, testIdPrefix: string) {
   return (
     <div
-      className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800"
+      className="bg-white p-4 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800"
       data-testid={`${testIdPrefix}-passive-answer-placeholder`}
     >
       {question.type === "CLOSED"
@@ -136,18 +137,25 @@ function renderDefaultReadOnlyAnswer(question: Question, t: TFunction, testIdPre
   );
 }
 
-function renderSimpleCorrectAnswer(question: Question, t: TFunction, variant: "audience" | "host") {
+function renderSimpleCorrectAnswer(
+  question: Question,
+  t: TFunction,
+  variant: "audience" | "host"
+) {
   return (
-    <div
-      className="bg-green-50 p-6 rounded-2xl border-2 border-green-200"
-      data-testid={variant === "audience" ? "audience-correct-answer" : undefined}
-    >
-      <span className="text-green-600 text-xs font-bold uppercase">
-        {t("player.correct_answer")}
-      </span>
-      <p className="text-2xl font-black text-green-900 mt-1">
-        {getQuestionCorrectAnswer(question, t)}
-      </p>
+    <div className="space-y-6">
+      <div
+        className="bg-green-50 p-4 rounded-2xl border-2 border-green-200"
+        data-testid={variant === "audience" ? "audience-correct-answer" : undefined}
+      >
+        <span className="text-green-600 text-xs font-bold uppercase">
+          {t("player.correct_answer")}
+        </span>
+        <p className="text-2xl font-black text-green-900 mt-1">
+          {getQuestionCorrectAnswer(question, t)}
+        </p>
+      </div>
+      <QuestionSource source={question.source} />
     </div>
   );
 }
@@ -207,6 +215,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <MultipleChoiceReveal
         question={question as MultipleChoiceQuestion}
+        source={question.source}
         lastAnswer={
           variant === "audience"
             ? (question.content as MultipleChoiceContent).correctIndices
@@ -253,6 +262,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <CrosswordReveal
         content={question.content as CrosswordContent}
+        source={question.source}
         lastAnswer={
           variant === "audience" || variant === "host"
             ? (question.content as CrosswordContent).grid
@@ -297,6 +307,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <FillInTheBlanksReveal
         content={question.content as FillInTheBlanksContent}
+        source={question.source}
         lastAnswer={
           variant === "audience" || variant === "host"
             ? buildFillInTheBlanksAnswer(question.content as FillInTheBlanksContent)
@@ -345,6 +356,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <MatchingReveal
         content={question.content as MatchingContent}
+        source={question.source}
         lastAnswer={
           variant === "audience" || variant === "host"
             ? buildMatchingAnswer(question.content as MatchingContent)
@@ -399,6 +411,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <ChronologyReveal
         content={question.content as ChronologyContent}
+        source={question.source}
         lastAnswer={
           variant === "audience" || variant === "host"
             ? buildCorrectChronologyAnswer(question.content as ChronologyContent)
@@ -441,6 +454,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <TrueFalseReveal
         content={question.content as TrueFalseContent}
+        source={question.source}
         lastAnswer={
           variant === "audience" || variant === "host"
             ? (question.content as TrueFalseContent).isTrue
@@ -501,6 +515,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
     reveal: ({ question, lastAnswer, variant }) => (
       <CorrectTheErrorReveal
         content={question.content as CorrectTheErrorContent}
+        source={question.source}
         lastAnswer={
           variant === "audience" || variant === "host"
             ? buildCorrectTheErrorAnswer(question.content as CorrectTheErrorContent)
@@ -551,6 +566,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         <DefaultReveal
           lastAnswer={lastAnswer as AnswerContent}
           gradingStatus={gradingStatus}
+          source={question.source}
           getCorrectAnswer={() => getQuestionCorrectAnswer(question, t)}
         />
       ),
@@ -597,6 +613,7 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         <DefaultReveal
           lastAnswer={lastAnswer as AnswerContent}
           gradingStatus={gradingStatus}
+          source={question.source}
           getCorrectAnswer={() => getQuestionCorrectAnswer(question, t)}
         />
       ),

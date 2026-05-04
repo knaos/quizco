@@ -37,6 +37,8 @@ type ConfirmState =
   | { mode: "deleteQuestion"; questionId: string; roundId: string }
   | null;
 
+type ImportStatus = { type: "success" | "error"; message: string } | null;
+
 export const AdminPanel: React.FC = () => {
   const { t } = useTranslation();
   const { adminToken, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
@@ -49,6 +51,7 @@ export const AdminPanel: React.FC = () => {
   } | null>(null);
   const [promptState, setPromptState] = useState<PromptState>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState>(null);
+  const [importStatus, setImportStatus] = useState<ImportStatus>(null);
 
   const adminData = useAdminData(adminToken, logoutAdmin);
 
@@ -138,9 +141,33 @@ export const AdminPanel: React.FC = () => {
   };
 
   const handleSelectCompetition = async (competition: Competition) => {
+    setImportStatus(null);
     adminData.setSelectedComp(competition);
     setView("EDITOR");
     await adminData.fetchRounds(competition.id);
+  };
+
+  const handleImportCompetition = async (file: File) => {
+    const result = await adminData.importCompetitionFromFile(file);
+    if (result.ok) {
+      setImportStatus({ type: "success", message: t("admin.import_success") });
+      return;
+    }
+
+    if (!result.message) {
+      setImportStatus({ type: "error", message: t("admin.import_failed") });
+      return;
+    }
+
+    if (result.message.startsWith("admin.")) {
+      setImportStatus({ type: "error", message: t(result.message) });
+      return;
+    }
+
+    setImportStatus({
+      type: "error",
+      message: t("admin.import_validation_failed", { message: result.message }),
+    });
   };
 
   const handleReorderRound = async (roundId: string, direction: "up" | "down") => {
@@ -168,7 +195,7 @@ export const AdminPanel: React.FC = () => {
           void loginAdmin(passwordInput).then((success) => {
             setLoginError(success ? null : "host.invalid_password");
           });
-        }} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
+        }} className="bg-white p-4 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
           <div className="flex justify-center mb-6">
             <div className="bg-blue-100 p-4 rounded-full shadow-inner">
               <Lock className="text-blue-600 w-10 h-10" />
@@ -204,7 +231,7 @@ export const AdminPanel: React.FC = () => {
             </h2>
             <LanguageSwitcher />
           </div>
-          <nav className="flex-1 p-6 space-y-3">
+          <nav className="flex-1 p-4 space-y-3">
             <Button
               variant={view === "COMPETITIONS" ? "primary" : "ghost"}
               onClick={() => {
@@ -226,7 +253,7 @@ export const AdminPanel: React.FC = () => {
               <Monitor className="mr-4 w-6 h-6" /> {t("host.dashboard")}
             </a>
           </nav>
-          <div className="p-6 border-t border-gray-800">
+          <div className="p-4 border-t border-gray-800">
             <Button
               variant="ghost"
               onClick={logoutAdmin}
@@ -238,12 +265,14 @@ export const AdminPanel: React.FC = () => {
           </div>
         </aside>
 
-        <main className="flex-1 p-10 overflow-auto relative">
+        <main className="flex-1 p-4 overflow-auto relative">
           {view === "COMPETITIONS" ? (
             <CompetitionList
               competitions={adminData.competitions}
               onSelect={handleSelectCompetition}
               onCreate={() => setPromptState({ mode: "createCompetition", value: "" })}
+              onImport={handleImportCompetition}
+              importStatus={importStatus}
               onEdit={(competition) =>
                 setPromptState({
                   mode: "renameCompetition",

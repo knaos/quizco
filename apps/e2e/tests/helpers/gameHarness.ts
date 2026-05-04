@@ -1,9 +1,29 @@
 import { expect, request, type APIRequestContext, type Browser, type Page } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 
 export const ADMIN_AUTH_HEADER = {};
 
+function readServerEnvValue(key: string): string | null {
+  const envPath = path.resolve(process.cwd(), "../server/.env");
+
+  if (!fs.existsSync(envPath)) {
+    return null;
+  }
+
+  const line = fs
+    .readFileSync(envPath, "utf8")
+    .split(/\r?\n/)
+    .find((entry) => entry.trim().startsWith(`${key}=`));
+
+  return line?.slice(key.length + 1).trim() || null;
+}
+
+const HOST_PASSWORD = process.env.E2E_HOST_PASSWORD ?? process.env.HOST_PASSWORD ?? readServerEnvValue("HOST_PASSWORD") ?? "host123";
+
 export interface QuestionDraft {
   questionText: string;
+  source?: string;
   type:
     | "CLOSED"
     | "MULTIPLE_CHOICE"
@@ -93,6 +113,7 @@ export async function createCompetitionWithQuestions(
       data: {
         roundId: round.id,
         questionText: question.questionText,
+        source: question.source,
         type: question.type,
         points: question.points ?? 10,
         timeLimitSeconds: question.timeLimitSeconds ?? 30,
@@ -135,7 +156,7 @@ export async function createHostAndPlayers(
   const playerTwoPage = await playerTwoContext.newPage();
 
   await hostPage.goto("/host");
-  await hostPage.getByTestId("host-password-input").fill("host123");
+  await hostPage.getByTestId("host-password-input").fill(HOST_PASSWORD);
   await hostPage.getByTestId("host-login-submit").click();
   await hostPage.getByTestId(`host-competition-option-${competitionId}`).click();
   await expect(hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
@@ -157,18 +178,21 @@ export async function createHostAndPlayers(
     playerOnePage,
     playerTwoPage,
     close: async () => {
-      await hostContext.close();
-      await playerOneContext.close();
-      await playerTwoContext.close();
+      await Promise.allSettled([
+        hostContext.close(),
+        playerOneContext.close(),
+        playerTwoContext.close(),
+      ]);
     },
   };
 }
 
 export async function clickHostNextAndExpectPhase(hostPage: Page, expectedPhase: string): Promise<void> {
-  await hostPage.getByTestId("host-next-action").click();
-  await expect(hostPage.getByTestId("host-current-phase")).toHaveText(expectedPhase, {
-    timeout: 20_000,
-  });
+  const phase = hostPage.getByTestId("host-current-phase");
+  const nextButton = hostPage.getByTestId("host-next-action");
+  await expect(nextButton).toBeEnabled({ timeout: 20_000 });
+  await nextButton.click();
+  await expect(phase).toHaveText(expectedPhase, { timeout: 20_000 });
 }
 
 export async function moveToQuestionPreview(hostPage: Page): Promise<void> {

@@ -40,7 +40,7 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   const { t } = useTranslation();
   const { currentQuestion } = props.state;
   const testIdPrefix = props.testIdPrefix ?? "player";
-  const exampleQuestion = currentQuestion?.index === 0;
+  const exampleQuestion = currentQuestion?.points === 0;
   const questionLabel =
     typeof currentQuestion?.index === "number"
       ? currentQuestion.section
@@ -55,10 +55,10 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
   }
 
   return (
-    <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
+    <div className="w-full  space-y-8 animate-in fade-in duration-500">
       <Card
         variant="elevated"
-        className={`p-10 rounded-3xl border-b-8 flex justify-between items-center gap-6 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}
+        className={`p-4 rounded-3xl border-b-8 flex justify-between items-center gap-4 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}
       >
         <div className="flex-1 text-left">
           <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-blue-600"}`}>
@@ -76,10 +76,11 @@ export const PublicQuestionBody: React.FC<PublicQuestionBodyProps> = (props) => 
         <AnalogueTimer
           timeRemaining={props.state.timeRemaining}
           totalTime={props.state.currentQuestion?.timeLimitSeconds || 30}
+          testId={`${testIdPrefix}-time-remaining`}
         />
       </Card>
 
-      <div className={`space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}>
+      <div className={`space-y-6 w-full bg-white p-4 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-blue-500"}`}>
         {props.mode === "interactive"
           ? getQuestionActiveRenderer({
             question: currentQuestion,

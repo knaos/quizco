@@ -160,6 +160,7 @@ interface BaseQuestion {
   id: string;
   roundId: string;
   questionText: string;
+  source?: string | null;
   points: number;
   timeLimitSeconds: number;
   grading: GradingMode;
@@ -244,6 +245,34 @@ export interface Round {
   type: "STANDARD" | "CROSSWORD" | "SPEED_RUN" | "STREAK";
   title: string;
   createdAt: string;
+}
+
+export interface CompetitionImportQuestion {
+  questionText: string;
+  source?: string | null;
+  type: QuestionType;
+  points: number;
+  timeLimitSeconds: number;
+  grading: GradingMode;
+  section?: string;
+  index?: number;
+  content: QuestionContent;
+}
+
+export interface CompetitionImportRound {
+  title: string;
+  type: Round["type"];
+  questions: CompetitionImportQuestion[];
+}
+
+export interface CompetitionImportDocument {
+  competition: {
+    title: string;
+    host_pin?: string;
+    status?: Competition["status"];
+    milestones?: Milestone[];
+  };
+  rounds: CompetitionImportRound[];
 }
 
 export interface Team {

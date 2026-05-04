@@ -13,6 +13,7 @@ interface AudienceRevealPhaseProps {
 
 export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
   state,
+  stats,
 }) => {
   const { t } = useTranslation();
 
@@ -21,8 +22,8 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl space-y-8 animate-in fade-in zoom-in duration-500">
-      <Card className="p-8 border-t-8 border-blue-500 text-left">
+    <div className="w-full  space-y-8 animate-in fade-in zoom-in duration-500">
+      <Card className="p-4 border-t-8 border-blue-500 text-left">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-2 text-blue-600">
             <Info className="h-6 w-6" />
@@ -44,9 +45,22 @@ export const AudienceRevealPhase: React.FC<AudienceRevealPhaseProps> = ({
             variant: "audience",
           })}
         </div>
+
+        {stats ? (
+          <div
+            className="mt-8 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-lg font-black text-blue-950"
+            data-testid="audience-answer-stats"
+          >
+            {t("audience.correct_count", {
+              correct: stats.totalCorrect,
+              total: stats.totalSubmitted,
+              percentage: stats.correctPercentage,
+            })}
+          </div>
+        ) : null}
       </Card>
 
-      <div className="mx-auto inline-block rounded-2xl bg-blue-600 p-6 text-white shadow-lg animate-pulse">
+      <div className="mx-auto inline-block rounded-2xl bg-blue-600 p-4 text-white shadow-lg animate-pulse">
         <p className="flex items-center text-xl font-bold">
           <Clock className="mr-2" /> {t("player.next_soon")}
         </p>

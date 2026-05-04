@@ -2,6 +2,24 @@
 
 ## Data Structures
 
+### Question Metadata
+
+All question types share these metadata fields in `packages/shared/src/index.ts` and `apps/server/prisma/schema.prisma`.
+
+```typescript
+interface BaseQuestion {
+  id: string;
+  roundId: string;
+  questionText: string;
+  source?: string | null; // Bible reference shown to host, players, and audience
+  points: number;
+  timeLimitSeconds: number;
+}
+```
+
+`source` stores the Bible reference for the question, for example `Йоан 3:16`.
+It is optional for backwards compatibility and must be rendered only when present.
+
 ### Question Content Schemas
 
 #### 1. Fill in the Blanks (Round 1)

@@ -42,7 +42,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl space-y-8">
+    <div className="w-full  space-y-8">
       {!hasSubmitted ? (
         <PublicQuestionBody
           mode="interactive"
@@ -60,7 +60,7 @@ export const QuestionActivePhase: React.FC<QuestionActivePhaseProps> = ({
         />
       ) : (
         <div
-          className={`rounded-2xl border-2 p-8 ${submissionStatus === "error"
+          className={`rounded-2xl border-2 p-4 ${submissionStatus === "error"
               ? "border-red-500 bg-red-100"
               : submissionStatus === "success" || currentTeam?.isExplicitlySubmitted
                 ? "border-green-500 bg-green-100"

@@ -1,7 +1,7 @@
 import { Pool } from "pg";
-import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import { execFileSync } from "child_process";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env.test") });
 
@@ -33,20 +33,27 @@ export async function setup() {
   await adminPool.query(`CREATE DATABASE ${testDbName}`);
   await adminPool.end();
 
-  // Now connect to the new test db and run schema
-  const testPool = new Pool({
-    user: process.env.DB_USER || "quizuser",
-    host: process.env.DB_HOST || "localhost",
-    database: testDbName,
-    password: process.env.DB_PASSWORD || "quizpassword",
-    port: parseInt(process.env.DB_PORT || "5433"),
-  });
+  // Apply Prisma migrations to keep test schema aligned with schema.prisma.
+  const dbUser = process.env.DB_USER || "quizuser";
+  const dbHost = process.env.DB_HOST || "localhost";
+  const dbPassword = process.env.DB_PASSWORD || "quizpassword";
+  const dbPort = process.env.DB_PORT || "5433";
+  const testDatabaseUrl = `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${testDbName}`;
+  const serverRoot = path.resolve(__dirname, "../..");
 
-  console.log("Applying schema to test database...");
-  const schemaPath = path.join(__dirname, "../db/schema.sql");
-  const schema = fs.readFileSync(schemaPath, "utf8");
-  await testPool.query(schema);
-  await testPool.end();
+  console.log("Applying Prisma migrations to test database...");
+  execFileSync(
+    "npx",
+    ["prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"],
+    {
+      cwd: serverRoot,
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        DATABASE_URL: testDatabaseUrl,
+      },
+    },
+  );
 
   console.log("Test database setup complete.");
 }

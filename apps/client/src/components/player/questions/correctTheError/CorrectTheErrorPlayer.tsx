@@ -107,7 +107,7 @@ const CorrectTheErrorPlayer: React.FC<CorrectTheErrorPlayerProps> = ({
 
       {/* Show alternatives only when a word with alternatives is selected and NOT in preview mode */}
       {!previewMode && value.selectedWordIndex !== -1 && wordsWithAlternatives.has(value.selectedWordIndex) && (
-        <div className="animate-fade-in bg-blue-50 p-6 rounded-2xl border-2 border-blue-200 mt-8">
+        <div className="animate-fade-in bg-blue-50 p-4 rounded-2xl border-2 border-blue-200 mt-8">
           <p className="text-center text-lg font-semibold text-blue-900 mb-4">
             {t('player.questions.correctTheError.selectCorrection')}
           </p>

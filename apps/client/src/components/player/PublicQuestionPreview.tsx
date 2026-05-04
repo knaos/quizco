@@ -16,7 +16,7 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
   testIdPrefix = "player",
 }) => {
   const { t } = useTranslation();
-  const exampleQuestion = state.currentQuestion?.index === 0;
+  const exampleQuestion = state.currentQuestion?.points === 0;
   const questionLabel =
     typeof state.currentQuestion?.index === "number"
       ? state.currentQuestion.section
@@ -31,10 +31,10 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl space-y-8 animate-in fade-in duration-500">
+    <div className="w-full  space-y-8 animate-in fade-in duration-500">
       <Card
         variant="elevated"
-        className={`p-10 rounded-3xl border-b-8 flex justify-between items-center gap-6 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}
+        className={`p-4 rounded-3xl border-b-8 flex justify-between items-center gap-4 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}
       >
         <div className="flex-1 text-left">
           <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-yellow-600"}`}>
@@ -49,10 +49,11 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
         <AnalogueTimer
           timeRemaining={state.timeRemaining}
           totalTime={state.currentQuestion.timeLimitSeconds}
+          testId={`${testIdPrefix}-time-remaining`}
         />
       </Card>
 
-      <div className={`space-y-6 w-full bg-white p-8 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}>
+      <div className={`space-y-6 w-full bg-white p-4 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}>
         {getQuestionPreviewRenderer({
           question: state.currentQuestion,
           revealStep: state.revealStep,
@@ -63,7 +64,10 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
 
       <div className="space-y-4">
         <Clock className="w-16 h-16 text-yellow-500 animate-spin-slow mx-auto" />
-        <p className="text-2xl font-black text-gray-500 uppercase tracking-widest">
+        <p
+          className="text-2xl font-black text-gray-500 uppercase tracking-widest"
+          data-testid={`${testIdPrefix}-host-reading-message`}
+        >
           {t("player.host_reading")}
         </p>
       </div>

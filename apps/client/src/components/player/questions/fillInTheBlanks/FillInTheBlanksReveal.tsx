@@ -2,10 +2,12 @@ import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { FillInTheBlanksContent } from "@quizco/shared";
+import { QuestionSource } from "../../QuestionSource";
 
 interface FillInTheBlanksRevealProps {
   content: FillInTheBlanksContent;
   lastAnswer: string[] | null;
+  source?: string | null;
 }
 
 /**
@@ -16,6 +18,7 @@ interface FillInTheBlanksRevealProps {
 export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
   content,
   lastAnswer,
+  source,
 }) => {
   const { t } = useTranslation();
 
@@ -25,7 +28,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
   return (
     <div className="space-y-6">
       {/* Main text with filled blanks */}
-      <div className="bg-white p-8 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
+      <div className="bg-white p-4 rounded-3xl shadow-xl border-b-8 border-blue-500 text-left leading-loose text-2xl font-medium text-gray-800">
         {parts.map((part, i) => {
           const match = part.match(/\{?(\d+)\}?/);
           if (match) {
@@ -70,7 +73,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
       </div>
 
       {/* Show correct answers summary */}
-      <div className="p-6 bg-gray-50 rounded-2xl">
+      <div className="p-4 bg-gray-50 rounded-2xl">
         <p className="text-sm font-bold text-gray-600 mb-3">
           {t("player.correct_answer")}:
         </p>
@@ -88,6 +91,7 @@ export const FillInTheBlanksReveal: React.FC<FillInTheBlanksRevealProps> = ({
           })}
         </div>
       </div>
+      <QuestionSource source={source} />
     </div>
   );
 };

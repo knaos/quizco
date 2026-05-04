@@ -51,6 +51,7 @@ interface QuestionFormData extends Omit<Partial<Question>, "content" | "type" | 
   grading: GradingMode;
   section: string;
   content: EditorContent;
+  source: string;
 }
 
 const getDefaultContentForType = (type: QuestionType): EditorContent => {
@@ -149,6 +150,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
     points: 10,
     timeLimitSeconds: 30,
     grading: "AUTO",
+    source: "",
     content: { options: ["", ""], correctIndices: [] },
     section: "",
     ...question,
@@ -165,7 +167,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-auto">
-      <Card variant="elevated" className="w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-none">
+      <Card variant="elevated" className="w-full  max-h-[90vh] flex flex-col overflow-hidden border-none">
         <CardHeader className="flex flex-row justify-between items-center bg-gray-50">
           <CardTitle>
             {question.id ? t("admin.question_editor.edit_question") : t("admin.question_editor.new_question")}
@@ -175,8 +177,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
           </Button>
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-auto p-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="flex-1 overflow-auto p-4 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-bold text-gray-600 uppercase">{t("admin.question_editor.question_type")}</label>
               <select
@@ -208,7 +210,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
             <TextArea
               label={t("admin.question_editor.question_text")}
               value={formData.questionText}
@@ -225,7 +227,15 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6 text-left">
+          <TextArea
+            label={t("admin.question_editor.source")}
+            value={formData.source || ""}
+            onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+            className="h-20"
+            placeholder={t("admin.question_editor.source_placeholder")}
+          />
+
+          <div className="grid grid-cols-2 gap-4 text-left">
             <Input
               label={t("admin.question_editor.points")}
               type="number"

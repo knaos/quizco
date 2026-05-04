@@ -2,11 +2,13 @@ import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { MultipleChoiceQuestion } from "@quizco/shared";
+import { QuestionSource } from "../../QuestionSource";
 
 interface MultipleChoiceRevealProps {
   question: MultipleChoiceQuestion;
   lastAnswer: number[] | null;
   showSelectionLabels?: boolean;
+  source?: string | null;
 }
 
 /**
@@ -20,18 +22,20 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
   question,
   lastAnswer,
   showSelectionLabels = true,
+  source,
 }) => {
   const { t } = useTranslation();
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-fr">
-      {question.content.options.map((opt: string, i: number) => {
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-fr">
+        {question.content.options.map((opt: string, i: number) => {
         const isOptionCorrect = question.content.correctIndices.includes(i);
         const isSelected = Array.isArray(lastAnswer) && lastAnswer.includes(i);
 
-        // Match active phase styling: border-4, p-6, rounded-2xl, text-xl, font-black
+        // Match active phase styling: border-4, p-4, rounded-2xl, text-xl, font-black
         // Add visual prominence for correct answers (translate-y, shadow)
-        let containerClass = "h-full min-h-32 border-4 p-6 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ";
+        let containerClass = "h-full min-h-32 border-4 p-4 rounded-2xl text-xl font-black transition-all transform flex items-center justify-between ";
         if (isOptionCorrect) {
           containerClass += "border-green-400 bg-green-50 shadow-lg translate-y-[-2px]";
         } else if (isSelected && !isOptionCorrect) {
@@ -40,38 +44,50 @@ export const MultipleChoiceReveal: React.FC<MultipleChoiceRevealProps> = ({
           containerClass += "border-gray-100 bg-gray-50 text-gray-400 opacity-50";
         }
 
-        return (
-          <div key={i} className={containerClass}>
-            <span
-              className={`${isOptionCorrect
+          return (
+            <div
+              key={i}
+              className={containerClass}
+              data-testid={
+                isOptionCorrect
+                  ? "reveal-option-correct"
+                  : isSelected && !isOptionCorrect
+                    ? "reveal-option-incorrect-selected"
+                    : undefined
+              }
+            >
+              <span
+                className={`${isOptionCorrect
                   ? "text-green-800"
                   : isSelected
                     ? "text-red-800"
                     : "text-gray-500"
-                }`}
-            >
-              {opt}
-            </span>
-            <div className="flex items-center space-x-3">
-              {showSelectionLabels && isSelected && (
-                <span
-                  className={`text-xs font-black uppercase px-2 py-1 rounded ${
-                    isOptionCorrect
-                      ? "bg-green-200 text-green-800"
-                      : "bg-red-200 text-red-800"
                   }`}
-                >
-                  {t("player.your_choice")}
-                </span>
-              )}
-              {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
-              {showSelectionLabels && isSelected && !isOptionCorrect && (
-                <XCircle className="text-red-600 w-8 h-8" />
-              )}
+              >
+                {opt}
+              </span>
+              <div className="flex items-center space-x-3">
+                {showSelectionLabels && isSelected && (
+                  <span
+                    className={`text-xs font-black uppercase px-2 py-1 rounded ${
+                      isOptionCorrect
+                        ? "bg-green-200 text-green-800"
+                        : "bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {t("player.your_choice")}
+                  </span>
+                )}
+                {isOptionCorrect && <CheckCircle className="text-green-600 w-8 h-8" />}
+                {showSelectionLabels && isSelected && !isOptionCorrect && (
+                  <XCircle className="text-red-600 w-8 h-8" />
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      <QuestionSource source={source} />
     </div>
   );
 };

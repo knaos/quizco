@@ -45,3 +45,9 @@ export function click(element: HTMLElement): void {
     element.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
 }
+
+export function change(element: HTMLElement, eventInit: EventInit = { bubbles: true }): void {
+  act(() => {
+    element.dispatchEvent(new Event("change", eventInit));
+  });
+}

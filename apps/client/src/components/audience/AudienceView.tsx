@@ -35,7 +35,7 @@ export const AudienceView: React.FC = () => {
         <LanguageSwitcher />
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
         <div data-testid="audience-phase" className="sr-only">
           {state.phase}
         </div>

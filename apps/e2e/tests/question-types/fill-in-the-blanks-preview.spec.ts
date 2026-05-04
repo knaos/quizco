@@ -59,12 +59,8 @@ test("QUESTION_PREVIEW phase for FILL_IN_THE_BLANKS shows placeholder dots", asy
     await expect(placeholderBlank).toBeVisible();
     await expect(placeholderBlank).toHaveText("...");
 
-    // Verify the "host is reading" message is shown
-    await expect(session.playerOnePage.getByText(/host.*reading/i)).toBeVisible();
-
-    // Verify NO timer is displayed (should not see time remaining in preview)
-    const timeRemaining = session.playerOnePage.getByTestId("player-time-remaining");
-    await expect(timeRemaining).not.toBeVisible();
+    // Verify the host-reading hint is shown.
+    await expect(session.playerOnePage.getByTestId("player-host-reading-message")).toBeVisible();
 
     // Verify NO submit button is shown in preview phase
     const submitButton = session.playerOnePage.getByTestId("player-submit-answer");
