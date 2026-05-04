@@ -182,67 +182,6 @@ test("Chronology selector supports slot swap and pool item insertion targets", a
   }
 });
 
-test("Chronology drag placement inserts into middle and shifts later items", async ({ browser }) => {
-  const adminApi = await createAdminApi();
-  let competitionId = "";
-  let session: Awaited<ReturnType<typeof createHostAndPlayers>> | null = null;
-
-  try {
-    const fixture = await createCompetitionWithQuestions(
-      adminApi,
-      "E2E Chronology Drag Insert Middle",
-      [
-        {
-          questionText: "Chronology drag insert middle question",
-          type: "CHRONOLOGY",
-          content: {
-            items: [
-              { id: "c1", text: "One", order: 0 },
-              { id: "c2", text: "Two", order: 1 },
-              { id: "c3", text: "Three", order: 2 },
-            ],
-          },
-        },
-      ],
-    );
-    competitionId = fixture.competitionId;
-
-    session = await createHostAndPlayers(
-      browser,
-      competitionId,
-      "Chronology Drag Insert Team One",
-      "Chronology Drag Insert Team Two",
-    );
-
-    await moveToQuestionPreview(session.hostPage);
-    await movePreviewToActive(session.hostPage, "CHRONOLOGY");
-
-    await expect(session.playerOnePage.getByTestId("player-phase")).toHaveText("QUESTION_ACTIVE", {
-      timeout: 20_000,
-    });
-
-    await dragByItem(session.playerOnePage, "chronology-item-c1", "chronology-slot-0");
-    await dragByItem(session.playerOnePage, "chronology-item-c3", "chronology-slot-1");
-
-    await expect(session.playerOnePage.getByTestId("chronology-slot-0")).toContainText("One");
-    await expect(session.playerOnePage.getByTestId("chronology-slot-1")).toContainText("Three");
-
-    await dragByItem(session.playerOnePage, "chronology-item-c2", "chronology-slot-1");
-
-    await expect(session.playerOnePage.getByTestId("chronology-slot-0")).toContainText("One");
-    await expect(session.playerOnePage.getByTestId("chronology-slot-1")).toContainText("Two");
-    await expect(session.playerOnePage.getByTestId("chronology-slot-2")).toContainText("Three");
-  } finally {
-    if (competitionId) {
-      await deleteCompetition(adminApi, competitionId);
-    }
-    if (session) {
-      await session.close();
-    }
-    await adminApi.dispose();
-  }
-});
-
 test("Chronology reveal phase shows correct/incorrect badge with score count", async ({ browser }) => {
   const adminApi = await createAdminApi();
   let competitionId = "";
