@@ -111,41 +111,55 @@ export const moveChronologyItem = (
     return state;
   }
 
-  if (sourceSlotIndex === target.index) {
-    return state;
-  }
-
   const activePoolIndex = state.poolIds.indexOf(activeId);
   const nextPoolIds = state.poolIds.filter((id) => id !== activeId);
-  const nextSlotIds = [...state.slotIds];
-  const displacedId = nextSlotIds[target.index];
-
-  nextSlotIds[target.index] = activeId;
-
   if (sourceSlotIndex !== -1) {
-    nextSlotIds[sourceSlotIndex] = displacedId;
+    if (sourceSlotIndex === target.index) {
+      return state;
+    }
+
+    const slotIdsWithoutSource = state.slotIds.filter(
+      (_, index) => index !== sourceSlotIndex,
+    );
+    const insertIndex = Math.max(0, Math.min(target.index, slotIdsWithoutSource.length));
+    slotIdsWithoutSource.splice(insertIndex, 0, activeId);
+
     return {
       poolIds: nextPoolIds,
-      slotIds: nextSlotIds,
+      slotIds: slotIdsWithoutSource,
     };
   }
 
-  if (displacedId) {
-    const insertIndex =
-      activePoolIndex === -1
-        ? nextPoolIds.length
-        : Math.min(activePoolIndex, nextPoolIds.length);
-    const newPoolIds = [...nextPoolIds];
-    newPoolIds.splice(insertIndex, 0, displacedId);
+  const slotIdsWithInsertion = [...state.slotIds];
+  const insertIndex = Math.max(0, Math.min(target.index, slotIdsWithInsertion.length));
+  slotIdsWithInsertion.splice(insertIndex, 0, activeId);
+
+  const removableNullIndex = slotIdsWithInsertion.lastIndexOf(null);
+  let overflowId: string | null = null;
+
+  if (removableNullIndex !== -1) {
+    slotIdsWithInsertion.splice(removableNullIndex, 1);
+  } else {
+    overflowId = slotIdsWithInsertion.pop() ?? null;
+  }
+
+  if (!overflowId || overflowId === activeId) {
     return {
-      poolIds: newPoolIds,
-      slotIds: nextSlotIds,
+      poolIds: nextPoolIds,
+      slotIds: slotIdsWithInsertion,
     };
   }
+
+  const displacedInsertIndex =
+    activePoolIndex === -1
+      ? nextPoolIds.length
+      : Math.min(activePoolIndex, nextPoolIds.length);
+  const newPoolIds = [...nextPoolIds];
+  newPoolIds.splice(displacedInsertIndex, 0, overflowId);
 
   return {
-    poolIds: nextPoolIds,
-    slotIds: nextSlotIds,
+    poolIds: newPoolIds,
+    slotIds: slotIdsWithInsertion,
   };
 };
 
