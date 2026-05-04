@@ -34,6 +34,10 @@ export interface IGameRepository {
     scoreAwarded: number,
   ): Promise<any>;
   getAnswer(answerId: string): Promise<any>;
+  answerBelongsToCompetition(
+    answerId: string,
+    competitionId: string,
+  ): Promise<boolean>;
   updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,

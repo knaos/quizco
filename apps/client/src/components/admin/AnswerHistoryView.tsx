@@ -110,7 +110,10 @@ export const AnswerHistoryView: React.FC<AnswerHistoryViewProps> = ({
             : record,
         ),
       );
-      await loadHistory();
+      setScoreDrafts((prev) => ({
+        ...prev,
+        [answerId]: String(updated.scoreAwarded),
+      }));
     } finally {
       setSaving((prev) => ({ ...prev, [answerId]: false }));
     }

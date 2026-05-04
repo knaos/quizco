@@ -238,6 +238,21 @@ export class PostgresGameRepository implements IGameRepository {
     });
   }
 
+  async answerBelongsToCompetition(
+    answerId: string,
+    competitionId: string,
+  ): Promise<boolean> {
+    const count = await prisma.answer.count({
+      where: {
+        id: answerId,
+        round: {
+          competitionId,
+        },
+      },
+    });
+    return count > 0;
+  }
+
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,

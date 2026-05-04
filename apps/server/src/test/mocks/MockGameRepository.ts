@@ -118,6 +118,13 @@ export class MockGameRepository implements IGameRepository {
     return this.answers.find((a) => a.id === answerId);
   }
 
+  async answerBelongsToCompetition(
+    answerId: string,
+    _competitionId: string,
+  ): Promise<boolean> {
+    return this.answers.some((answer) => answer.id === answerId);
+  }
+
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,

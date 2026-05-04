@@ -722,6 +722,14 @@ export class GameManager {
     scoreAwarded: number,
     actorRole: ActorRole = "ADMIN",
   ) {
+    const belongsToCompetition = await this.repository.answerBelongsToCompetition(
+      answerId,
+      competitionId,
+    );
+    if (!belongsToCompetition) {
+      return null;
+    }
+
     const answer = await this.repository.getAnswer(answerId);
     if (!answer) {
       return null;
@@ -732,6 +740,8 @@ export class GameManager {
     const roundId = answer.roundId || answer.round_id;
     const updatedIsCorrect = answer.isCorrect ?? null;
 
+    const previousScoreAwarded =
+      typeof answer.scoreAwarded === "number" ? answer.scoreAwarded : 0;
     await this.repository.updateAnswerScore(answerId, scoreAwarded, actorRole);
     await this.repository.createAnswerSnapshot({
       answerId,
@@ -747,8 +757,9 @@ export class GameManager {
     });
 
     const session = this.getOrCreateSession(competitionId);
-    for (const team of session.teams) {
-      team.score = await this.repository.getTeamScore(competitionId, team.id);
+    const team = session.teams.find((sessionTeam) => sessionTeam.id === teamId);
+    if (team) {
+      team.score += scoreAwarded - previousScoreAwarded;
     }
     await this.saveState();
 
