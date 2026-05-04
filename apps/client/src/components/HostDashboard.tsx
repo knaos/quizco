@@ -27,7 +27,10 @@ import { useGame } from "../contexts/useGame";
 import { useAuth } from "../contexts/useAuth";
 import { useHostDashboard } from "../hooks/useHostDashboard";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { getQuestionReadOnlyRenderer, getQuestionRevealRenderer } from "./player/questionRenderers";
+import {
+  getQuestionReadOnlyRenderer,
+  getQuestionRevealRenderer,
+} from "./player/questionRenderers";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import { Card } from "./ui/Card";
@@ -79,19 +82,25 @@ function renderPresenterAnswerContent(
     const { options } = question.content as MultipleChoiceContent;
 
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="host-question-options">
+      <div
+        className="grid grid-cols-1 gap-4 md:grid-cols-2"
+        data-testid="host-question-options"
+      >
         {options.map((option, index) => {
           const isHidden = revealStep <= index;
           return (
             <div
               key={`${question.id}-option-${index}`}
-              className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black transition-all ${isHidden
-                ? "border-dashed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-blue-100 bg-white text-gray-900 shadow-sm"
-                }`}
+              className={`rounded-3xl border-2 px-6 py-5 text-2xl font-black transition-all ${
+                isHidden
+                  ? "border-dashed border-gray-200 bg-gray-100 text-gray-400"
+                  : "border-blue-100 bg-white text-gray-900 shadow-sm"
+              }`}
             >
               <div className="mb-2 text-xs uppercase tracking-[0.3em] text-gray-400">
-                {t("host.option_label", { label: String.fromCharCode(65 + index) })}
+                {t("host.option_label", {
+                  label: String.fromCharCode(65 + index),
+                })}
               </div>
               <div>{isHidden ? t("host.option_hidden") : option}</div>
             </div>
@@ -103,7 +112,10 @@ function renderPresenterAnswerContent(
 
   if (question.type === "CLOSED") {
     return (
-      <div className="rounded-3xl border-2 border-slate-200 bg-white px-6 py-5 text-2xl font-bold text-slate-900" data-testid="host-question-options">
+      <div
+        className="rounded-3xl border-2 border-slate-200 bg-white px-6 py-5 text-2xl font-bold text-slate-900"
+        data-testid="host-question-options"
+      >
         {t("host.free_response_placeholder")}
       </div>
     );
@@ -111,17 +123,25 @@ function renderPresenterAnswerContent(
 
   if (question.type === "OPEN_WORD") {
     return (
-      <div className="rounded-3xl border-2 border-slate-200 bg-white px-6 py-5 text-2xl font-bold text-slate-900" data-testid="host-question-options">
+      <div
+        className="rounded-3xl border-2 border-slate-200 bg-white px-6 py-5 text-2xl font-bold text-slate-900"
+        data-testid="host-question-options"
+      >
         {t("host.free_response_placeholder")}
       </div>
     );
   }
 
   if (question.type === "TRUE_FALSE") {
-    const correctAnswer = question.content.isTrue ? t("game.true") : t("game.false");
+    const correctAnswer = question.content.isTrue
+      ? t("game.true")
+      : t("game.false");
     if (phase === "REVEAL_ANSWER") {
       return (
-        <div className="grid grid-cols-1 gap-4" data-testid="host-question-options">
+        <div
+          className="grid grid-cols-1 gap-4"
+          data-testid="host-question-options"
+        >
           <div className="rounded-3xl border-2 border-green-200 bg-green-50 px-6 py-5 text-2xl font-black text-green-900">
             {correctAnswer}
           </div>
@@ -129,7 +149,10 @@ function renderPresenterAnswerContent(
       );
     }
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="host-question-options">
+      <div
+        className="grid grid-cols-1 gap-4 md:grid-cols-2"
+        data-testid="host-question-options"
+      >
         {[t("game.true"), t("game.false")].map((label) => (
           <div
             key={label}
@@ -151,7 +174,10 @@ function renderPresenterAnswerContent(
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {content.blanks.map((blank, index) => (
-            <div key={`${question.id}-blank-${index}`} className="rounded-3xl border border-gray-200 bg-white p-5">
+            <div
+              key={`${question.id}-blank-${index}`}
+              className="rounded-3xl border border-gray-200 bg-white p-5"
+            >
               <div className="mb-3 text-xs font-black uppercase tracking-[0.3em] text-gray-400">
                 {t("host.blank_label", { number: index + 1 })}
               </div>
@@ -175,14 +201,20 @@ function renderPresenterAnswerContent(
   if (question.type === "MATCHING") {
     const content = question.content as MatchingContent;
     return (
-      <div className="grid gap-4 md:grid-cols-2" data-testid="host-question-options">
+      <div
+        className="grid gap-4 md:grid-cols-2"
+        data-testid="host-question-options"
+      >
         <div className="rounded-3xl border border-gray-200 bg-white p-5">
           <div className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-gray-400">
             {t("host.matching_left_column")}
           </div>
           <div className="space-y-2">
             {content.heroes.map((hero) => (
-              <div key={`${hero.id}-left`} className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700">
+              <div
+                key={`${hero.id}-left`}
+                className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700"
+              >
                 {hero.text}
               </div>
             ))}
@@ -194,7 +226,10 @@ function renderPresenterAnswerContent(
           </div>
           <div className="space-y-2">
             {content.stories.map((story) => (
-              <div key={`${story.id}-right`} className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700">
+              <div
+                key={`${story.id}-right`}
+                className="rounded-2xl bg-gray-50 px-4 py-3 text-lg font-bold text-gray-700"
+              >
                 {story.text}
               </div>
             ))}
@@ -209,7 +244,10 @@ function renderPresenterAnswerContent(
     return (
       <div className="space-y-3" data-testid="host-question-options">
         {content.items.map((item, index) => (
-          <div key={item.id} className="flex items-center gap-4 rounded-3xl border border-gray-200 bg-white px-5 py-4">
+          <div
+            key={item.id}
+            className="flex items-center gap-4 rounded-3xl border border-gray-200 bg-white px-5 py-4"
+          >
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-black text-white">
               {index + 1}
             </div>
@@ -229,8 +267,13 @@ function renderPresenterAnswerContent(
         </div>
         <div className="space-y-4">
           {content.words.map((word: CorrectTheErrorWord, index: number) => (
-            <div key={`${question.id}-word-${index}`} className="rounded-3xl border border-gray-200 bg-white p-5">
-              <div className="mb-3 text-lg font-black text-slate-900">{word.text}</div>
+            <div
+              key={`${question.id}-word-${index}`}
+              className="rounded-3xl border border-gray-200 bg-white p-5"
+            >
+              <div className="mb-3 text-lg font-black text-slate-900">
+                {word.text}
+              </div>
               <div className="space-y-2">
                 {word.alternatives.map((alternative: string) => (
                   <div
@@ -298,12 +341,25 @@ export const HostDashboard: React.FC = () => {
   const menuRef = useRef<MenuRef>(null);
 
   const visibleCollectedAnswers =
-    state.phase === "QUESTION_ACTIVE" || state.phase === "GRADING" || state.phase === "REVEAL_ANSWER"
+    state.phase === "QUESTION_ACTIVE" ||
+    state.phase === "GRADING" ||
+    state.phase === "REVEAL_ANSWER"
       ? collectedAnswers
       : [];
 
   const currentQuestion = state.currentQuestion;
-  const currentQuestionText = currentQuestion?.questionText ?? t("host.no_question_active");
+  const currentQuestionText =
+    currentQuestion?.questionText ?? t("host.no_question_active");
+  const currentRound = currentQuestion
+    ? (compData?.rounds.find((round) => round.id === currentQuestion.roundId) ??
+      null)
+    : null;
+  const currentRoundQuestionIndex =
+    currentRound && currentQuestion
+      ? currentRound.questions.findIndex(
+          (question) => question.id === currentQuestion.id,
+        )
+      : -1;
 
   useEffect(() => {
     document.title = "Host dashboard";
@@ -313,7 +369,9 @@ export const HostDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
         <header className="mb-12 flex w-full  items-center justify-between">
-          <h1 className="text-4xl font-black tracking-tight text-gray-900">{t("host.select_quiz")}</h1>
+          <h1 className="text-4xl font-black tracking-tight text-gray-900">
+            {t("host.select_quiz")}
+          </h1>
           <LanguageSwitcher />
         </header>
         <div className="grid w-full  grid-cols-1 gap-4 md:grid-cols-2">
@@ -329,10 +387,16 @@ export const HostDashboard: React.FC = () => {
                 <div className="rounded-2xl bg-blue-100 p-3">
                   <Trophy className="h-6 w-6 text-blue-600" />
                 </div>
-                <Badge variant={comp.status === "ACTIVE" ? "green" : "yellow"}>{comp.status}</Badge>
+                <Badge variant={comp.status === "ACTIVE" ? "green" : "yellow"}>
+                  {comp.status}
+                </Badge>
               </div>
-              <h3 className="mb-2 text-2xl font-bold text-gray-800">{comp.title}</h3>
-              <p className="font-medium text-gray-500">{t("host.open_dashboard")}</p>
+              <h3 className="mb-2 text-2xl font-bold text-gray-800">
+                {comp.title}
+              </h3>
+              <p className="font-medium text-gray-500">
+                {t("host.open_dashboard")}
+              </p>
             </Card>
           ))}
         </div>
@@ -387,10 +451,15 @@ export const HostDashboard: React.FC = () => {
               <ChevronRight className="h-5 w-5 rotate-180" />
             </button>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-950">{selectedComp.title}</h1>
+              <h1 className="text-3xl font-black tracking-tight text-slate-950">
+                {selectedComp.title}
+              </h1>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-slate-700" data-testid="host-team-count">
+            <div
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-slate-700"
+              data-testid="host-team-count"
+            >
               {state.teams.length} {t("host.connected_teams")}
             </div>
             <Menu ref={menuRef}>
@@ -425,8 +494,17 @@ export const HostDashboard: React.FC = () => {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
-                      <Badge variant="blue">{currentQuestion?.type ?? t("host.presenter_idle_badge")}</Badge>
-                      {currentQuestion ? <Badge variant="purple">{t("host.presenter_points", { count: currentQuestion.points })}</Badge> : null}
+                      <Badge variant="blue">
+                        {currentQuestion?.type ??
+                          t("host.presenter_idle_badge")}
+                      </Badge>
+                      {currentQuestion ? (
+                        <Badge variant="purple">
+                          {t("host.presenter_points", {
+                            count: currentQuestion.points,
+                          })}
+                        </Badge>
+                      ) : null}
                       <Badge variant="orange">
                         {t("host.presenter_submissions", {
                           count: visibleCollectedAnswers.length,
@@ -435,10 +513,45 @@ export const HostDashboard: React.FC = () => {
                       </Badge>
                       <Badge variant="green">
                         {t("host.presenter_phase", { phase: state.phase })}
-                        <span className="sr-only" data-testid="host-current-phase">
+                        <span
+                          className="sr-only"
+                          data-testid="host-current-phase"
+                        >
                           {state.phase}
                         </span>
                       </Badge>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-400">
+                            {t("host.current_round_label")}
+                          </p>
+                          <p
+                            className="mt-2 text-2xl font-black text-slate-950"
+                            data-testid="host-current-round-title"
+                          >
+                            {currentRound
+                              ? currentRound.title
+                              : t("host.current_round_unknown")}
+                          </p>
+                        </div>
+                        {currentRound ? (
+                          <Badge variant="purple">{currentRound.type}</Badge>
+                        ) : null}
+                      </div>
+                      {currentRound ? (
+                        <p
+                          className="mt-3 text-sm font-semibold text-slate-500"
+                          data-testid="host-current-round-progress"
+                        >
+                          {t("host.current_round_progress", {
+                            current:
+                              currentRoundQuestionIndex >= 0
+                                ? currentRoundQuestionIndex + 1
+                                : 0,
+                            total: currentRound.questions.length,
+                          })}
+                        </p>
+                      ) : null}
                     </div>
                     <div>
                       <h2
@@ -455,8 +568,13 @@ export const HostDashboard: React.FC = () => {
                       className="flex w-1/4 min-w-[10rem] flex-col rounded-3xl border border-slate-200 bg-slate-950 px-5 py-4 text-white shadow-xl"
                       data-testid="host-timer-card"
                     >
-                      <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">{t("common.time")}</span>
-                      <span className="mt-2 text-5xl font-black tabular-nums" data-testid="host-timer">
+                      <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">
+                        {t("common.time")}
+                      </span>
+                      <span
+                        className="mt-2 text-5xl font-black tabular-nums"
+                        data-testid="host-timer"
+                      >
                         {formatHostTime(state.timeRemaining)}
                       </span>
                     </div>
@@ -469,8 +587,14 @@ export const HostDashboard: React.FC = () => {
                         className="rounded-3xl py-3 text-base"
                         data-testid="host-toggle-timer"
                       >
-                        {state.timerPaused ? <Play className="mr-2 h-4 w-4" /> : <Pause className="mr-2 h-4 w-4" />}
-                        {state.timerPaused ? t("host.resume_timer") : t("host.pause_timer")}
+                        {state.timerPaused ? (
+                          <Play className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Pause className="mr-2 h-4 w-4" />
+                        )}
+                        {state.timerPaused
+                          ? t("host.resume_timer")
+                          : t("host.pause_timer")}
                       </Button>
                     ) : null}
                     <Button
@@ -483,7 +607,11 @@ export const HostDashboard: React.FC = () => {
                             : "primary"
                       }
                       onClick={handleNext}
-                      disabled={isTransitionDisabled || (state.phase === "LEADERBOARD" && state.currentQuestion === null)}
+                      disabled={
+                        isTransitionDisabled ||
+                        (state.phase === "LEADERBOARD" &&
+                          state.currentQuestion === null)
+                      }
                       data-testid="host-next-action"
                       className="flex w-3/4 items-center justify-center rounded-3xl px-4 text-xl shadow-2xl shadow-blue-200"
                     >
@@ -501,11 +629,13 @@ export const HostDashboard: React.FC = () => {
                       <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-slate-400">
                         {t("host.presenter_answers_label")}
                       </p>
-
                     </div>
 
                     {state.phase === "REVEAL_ANSWER" ? (
-                      <div className="rounded-[2rem] border border-green-200 bg-green-50 p-4" data-testid="host-correct-answer-panel">
+                      <div
+                        className="rounded-[2rem] border border-green-200 bg-green-50 p-4"
+                        data-testid="host-correct-answer-panel"
+                      >
                         <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-green-600">
                           {t("player.correct_answer")}
                         </p>
@@ -518,16 +648,22 @@ export const HostDashboard: React.FC = () => {
                           })}
                         </div>
                       </div>
-                    ) :
+                    ) : (
                       <div data-testid="host-presenter-answer-content">
-                        {renderPresenterAnswerContent(currentQuestion, state.revealStep, state.phase, t)}
+                        {renderPresenterAnswerContent(
+                          currentQuestion,
+                          state.revealStep,
+                          state.phase,
+                          t,
+                        )}
                       </div>
-                    }
-
+                    )}
                   </div>
                 ) : (
                   <div className="rounded-[2rem] border-2 border-dashed border-blue-200 bg-blue-50 px-6 py-10 text-center">
-                    <p className="mx-auto max-w-2xl text-xl font-bold text-blue-900">{t("host.no_question_active")}</p>
+                    <p className="mx-auto max-w-2xl text-xl font-bold text-blue-900">
+                      {t("host.no_question_active")}
+                    </p>
                   </div>
                 )}
               </div>
@@ -549,9 +685,15 @@ export const HostDashboard: React.FC = () => {
                       className="flex flex-col gap-4 rounded-3xl border border-yellow-200 bg-white p-5 md:flex-row md:items-center md:justify-between"
                     >
                       <div className="space-y-1">
-                        <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-600">{answer.teamName}</p>
-                        <p className="text-xl font-black text-slate-900">{formatSubmittedContent(answer.submittedContent)}</p>
-                        <p className="text-sm font-medium text-slate-500">{answer.questionText}</p>
+                        <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-600">
+                          {answer.teamName}
+                        </p>
+                        <p className="text-xl font-black text-slate-900">
+                          {formatSubmittedContent(answer.submittedContent)}
+                        </p>
+                        <p className="text-sm font-medium text-slate-500">
+                          {answer.questionText}
+                        </p>
                       </div>
                       <div className="flex gap-3">
                         <button
@@ -597,7 +739,13 @@ export const HostDashboard: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => currentQuestion && openAnswersModal(currentQuestion.id, currentQuestion.questionText)}
+                  onClick={() =>
+                    currentQuestion &&
+                    openAnswersModal(
+                      currentQuestion.id,
+                      currentQuestion.questionText,
+                    )
+                  }
                   disabled={!currentQuestion}
                   data-testid="host-open-answers-modal"
                   className="rounded-2xl"
@@ -608,15 +756,23 @@ export const HostDashboard: React.FC = () => {
               </div>
 
               {visibleCollectedAnswers.length > 0 ? (
-                <div className="mt-5 space-y-3" data-testid="host-answer-summary-list">
+                <div
+                  className="mt-5 space-y-3"
+                  data-testid="host-answer-summary-list"
+                >
                   {visibleCollectedAnswers.slice(0, 4).map((answer) => (
                     <div
                       key={`${answer.teamName}-${formatSubmittedContent(answer.submittedContent)}`}
                       className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: answer.color }} />
-                        <span className="font-bold text-slate-800">{answer.teamName}</span>
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: answer.color }}
+                        />
+                        <span className="font-bold text-slate-800">
+                          {answer.teamName}
+                        </span>
                       </div>
                       <span className="max-w-[10rem] truncate text-sm font-semibold text-slate-500">
                         {formatSubmittedContent(answer.submittedContent)}
@@ -625,31 +781,50 @@ export const HostDashboard: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="mt-5 text-sm font-medium italic text-slate-400">{t("host.no_submissions")}</p>
+                <p className="mt-5 text-sm font-medium italic text-slate-400">
+                  {t("host.no_submissions")}
+                </p>
               )}
             </Card>
 
             <Card className="border border-white/60 bg-white/90 p-4 shadow-lg">
               <div className="mb-4 flex items-center gap-3">
                 <Trophy className="h-6 w-6 text-yellow-500" />
-                <h3 className="text-lg font-black uppercase tracking-[0.25em] text-slate-900">{t("host.leaderboard")}</h3>
+                <h3 className="text-lg font-black uppercase tracking-[0.25em] text-slate-900">
+                  {t("host.leaderboard")}
+                </h3>
               </div>
-              <div className="max-h-80 overflow-y-auto space-y-3" data-testid="host-leaderboard-summary">
+              <div
+                className="max-h-80 overflow-y-auto space-y-3"
+                data-testid="host-leaderboard-summary"
+              >
                 {state.teams.length === 0 ? (
-                  <p className="text-sm font-medium italic text-slate-400">{t("host.no_teams_joined")}</p>
+                  <p className="text-sm font-medium italic text-slate-400">
+                    {t("host.no_teams_joined")}
+                  </p>
                 ) : (
                   [...state.teams]
                     .sort((left, right) => right.score - left.score)
                     .map((team, index) => (
-                      <div key={team.id} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                      <div
+                        key={team.id}
+                        className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-black text-white">
                             {index + 1}
                           </div>
-                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: team.color }} />
-                          <span className="font-bold text-slate-800">{team.name}</span>
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{ backgroundColor: team.color }}
+                          />
+                          <span className="font-bold text-slate-800">
+                            {team.name}
+                          </span>
                         </div>
-                        <span className="text-lg font-black text-blue-700">{team.score}</span>
+                        <span className="text-lg font-black text-blue-700">
+                          {team.score}
+                        </span>
                       </div>
                     ))
                 )}
@@ -670,52 +845,86 @@ export const HostDashboard: React.FC = () => {
         >
           <div className="space-y-4">
             {compData?.rounds.map((round) => (
-              <div key={round.id} className="overflow-hidden rounded-3xl border border-gray-100">
+              <div
+                key={round.id}
+                className="overflow-hidden rounded-3xl border border-gray-100"
+              >
                 <button
                   type="button"
                   onClick={() => toggleRound(round.id)}
                   className="flex w-full items-center justify-between bg-slate-50 px-5 py-4 text-left font-bold text-slate-700 transition hover:bg-slate-100"
                 >
                   <div className="flex items-center gap-3">
-                    {expandedRounds[round.id] ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    {expandedRounds[round.id] ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5" />
+                    )}
                     <span>{t("host.round_title", { title: round.title })}</span>
                     <span className="rounded-full bg-white px-2 py-1 text-xs uppercase text-slate-500">
                       {round.type}
                     </span>
                   </div>
                   <span className="text-xs uppercase tracking-[0.25em] text-slate-400">
-                    {t("host.questions_count", { count: round.questions.length })}
+                    {t("host.questions_count", {
+                      count: round.questions.length,
+                    })}
                   </span>
                 </button>
 
                 {expandedRounds[round.id] ? (
                   <div className="grid gap-3 bg-white p-4 md:grid-cols-2">
                     {round.questions.map((question) => {
-                      const isCurrentQuestion = currentQuestion?.id === question.id;
+                      const isCurrentQuestion =
+                        currentQuestion?.id === question.id;
                       return (
                         <button
                           key={question.id}
                           type="button"
                           onClick={() => startQuestion(question.id)}
                           data-testid={`host-question-option-${question.id}`}
-                          className={`rounded-3xl border-2 p-5 text-left transition ${isCurrentQuestion
-                            ? "border-blue-500 bg-blue-600 text-white"
-                            : "border-slate-100 bg-white hover:border-blue-200 hover:bg-blue-50"
-                            }`}
+                          className={`rounded-3xl border-2 p-5 text-left transition ${
+                            isCurrentQuestion
+                              ? "border-blue-500 bg-blue-600 text-white"
+                              : "border-slate-100 bg-white hover:border-blue-200 hover:bg-blue-50"
+                          }`}
                         >
                           <div className="mb-3 flex items-start justify-between gap-4">
                             <div>
-                              <p className={`text-xs font-black uppercase tracking-[0.25em] ${isCurrentQuestion ? "text-blue-100" : "text-slate-400"}`}>
+                              <p
+                                className={`text-xs font-black uppercase tracking-[0.25em] ${isCurrentQuestion ? "text-blue-100" : "text-slate-400"}`}
+                              >
                                 {question.type}
                               </p>
-                              <p className="mt-2 line-clamp-2 text-lg font-black">{question.questionText}</p>
+                              <p className="mt-2 line-clamp-2 text-lg font-black">
+                                {question.questionText}
+                              </p>
                             </div>
-                            {isCurrentQuestion ? <Badge variant="green">{t("host.current_question_badge")}</Badge> : null}
+                            {isCurrentQuestion ? (
+                              <Badge variant="green">
+                                {t("host.current_question_badge")}
+                              </Badge>
+                            ) : null}
                           </div>
-                          <div className={`flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.2em] ${isCurrentQuestion ? "text-blue-100" : "text-slate-500"}`}>
-                            <span>{t("host.presenter_points", { count: question.points })}</span>
-                            <span>{t("host.presenter_time_limit", { count: question.timeLimitSeconds })}</span>
-                            <span>{t("host.presenter_submissions", { count: question.answers.length, total: state.teams.length })}</span>
+                          <div
+                            className={`flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.2em] ${isCurrentQuestion ? "text-blue-100" : "text-slate-500"}`}
+                          >
+                            <span>
+                              {t("host.presenter_points", {
+                                count: question.points,
+                              })}
+                            </span>
+                            <span>
+                              {t("host.presenter_time_limit", {
+                                count: question.timeLimitSeconds,
+                              })}
+                            </span>
+                            <span>
+                              {t("host.presenter_submissions", {
+                                count: question.answers.length,
+                                total: state.teams.length,
+                              })}
+                            </span>
                           </div>
                         </button>
                       );
@@ -735,7 +944,12 @@ export const HostDashboard: React.FC = () => {
           onClose={closeAnswersModal}
           data-testid="host-answers-modal"
           footer={
-            <Button type="button" variant="outline" onClick={closeAnswersModal} data-testid="host-close-answers-modal">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeAnswersModal}
+              data-testid="host-close-answers-modal"
+            >
               {t("host.close")}
             </Button>
           }
@@ -753,7 +967,10 @@ export const HostDashboard: React.FC = () => {
               <tbody className="divide-y divide-gray-50">
                 {modalAnswers.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="py-8 text-center text-sm font-medium italic text-gray-400">
+                    <td
+                      colSpan={3}
+                      className="py-8 text-center text-sm font-medium italic text-gray-400"
+                    >
                       {t("host.no_submissions")}
                     </td>
                   </tr>
@@ -762,19 +979,32 @@ export const HostDashboard: React.FC = () => {
                     <tr key={`${answer.teamName}-${index}`}>
                       <td className="px-2 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: answer.color }} />
-                          <span className="font-bold text-slate-800">{answer.teamName}</span>
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{ backgroundColor: answer.color }}
+                          />
+                          <span className="font-bold text-slate-800">
+                            {answer.teamName}
+                          </span>
                         </div>
                       </td>
                       <td className="px-2 py-4">
                         <div className="flex items-center gap-2">
-                          {answer.isCorrect === true ? <CheckCircle className="h-4 w-4 text-green-500" /> : null}
-                          {answer.isCorrect === false ? <XCircle className="h-4 w-4 text-red-500" /> : null}
-                          <span className="font-medium text-slate-600">{formatSubmittedContent(answer.submittedContent)}</span>
+                          {answer.isCorrect === true ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : null}
+                          {answer.isCorrect === false ? (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          ) : null}
+                          <span className="font-medium text-slate-600">
+                            {formatSubmittedContent(answer.submittedContent)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-2 py-4">
-                        <span className={`font-black ${answer.points > 0 ? "text-blue-600" : "text-slate-400"}`}>
+                        <span
+                          className={`font-black ${answer.points > 0 ? "text-blue-600" : "text-slate-400"}`}
+                        >
                           +{answer.points}
                         </span>
                       </td>

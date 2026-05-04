@@ -46,6 +46,9 @@ vi.mock("react-i18next", () => ({
       if (key === "host.questions_count") {
         return `${options?.count} Questions`;
       }
+      if (key === "host.current_round_progress") {
+        return `Question ${options?.current} of ${options?.total}`;
+      }
       if (key === "host.actions.reveal_option") {
         return `Reveal Option ${options?.label}`;
       }
@@ -203,6 +206,8 @@ describe("HostDashboard", () => {
     expect(view.container.querySelector('[data-testid="host-presenter-answer-content"]')?.textContent).toContain("Moses");
     expect(view.container.querySelector('[data-testid="host-presenter-answer-content"]')?.textContent).toContain("host.option_hidden");
     expect(view.container.querySelector('[data-testid="host-timer"]')?.textContent).toBe("30s");
+    expect(view.container.querySelector('[data-testid="host-current-round-title"]')?.textContent).toBe("Round 1");
+    expect(view.container.querySelector('[data-testid="host-current-round-progress"]')?.textContent).toBe("Question 1 of 1");
     expect(view.container.querySelector('[data-testid="host-next-action"]')).not.toBeNull();
     expect(view.container.querySelector("table")).toBeNull();
 
