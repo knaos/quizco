@@ -206,6 +206,42 @@ export function createQuizServer(
     },
   );
 
+  app.get(
+    "/api/admin/competitions/:competitionId/teams",
+    adminAuth as RequestHandler,
+    async (req, res) => {
+      const { competitionId } = req.params;
+      try {
+        const teams = await prisma.team.findMany({
+          where: { competitionId },
+          orderBy: { name: "asc" },
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        });
+        res.json({ teams });
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
+
+  app.get(
+    "/api/admin/competitions/:competitionId/teams/:teamId/answers",
+    adminAuth as RequestHandler,
+    async (req, res) => {
+      const { competitionId, teamId } = req.params;
+      try {
+        const records = await repository.getTeamAnswerHistory(competitionId, teamId);
+        res.json({ records });
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
+
   app.patch(
     "/api/admin/answers/:answerId/score",
     adminAuth as RequestHandler,
@@ -214,8 +250,13 @@ export function createQuizServer(
       const { competitionId, scoreAwarded } = req.body as {
         competitionId?: string;
         scoreAwarded?: number;
+        reason?: string;
       };
-      if (!competitionId || typeof scoreAwarded !== "number" || scoreAwarded < 0) {
+      if (
+        !competitionId ||
+        typeof scoreAwarded !== "number" ||
+        !Number.isInteger(scoreAwarded)
+      ) {
         res.status(400).json({ error: "Invalid competitionId or scoreAwarded" });
         return;
       }
@@ -403,11 +444,11 @@ onSafe(
 
           const state = gameManager.getState(competitionId);
           const room = `competition_${competitionId}`;
+          // Always broadcast state for accepted submissions so admin monitors refresh
+          // immediately on submission updates, not only on final/end transitions.
+          io.to(room).emit("GAME_STATE_SYNC", state);
           if (submitResult.questionEnded) {
-            io.to(room).emit("GAME_STATE_SYNC", state);
             io.to(room).emit("SCORE_UPDATE", state.teams);
-          } else if (isFinal) {
-            io.to(room).emit("GAME_STATE_SYNC", state);
           }
           callback?.({ success: true, questionEnded: submitResult.questionEnded });
         } catch (err) {

@@ -64,6 +64,10 @@ export interface IGameRepository {
   getCompetitionAnswerHistory(
     competitionId: string,
   ): Promise<AdminAnswerHistoryRecord[]>;
+  getTeamAnswerHistory(
+    competitionId: string,
+    teamId: string,
+  ): Promise<AdminAnswerHistoryRecord[]>;
 
   // Reset
   deleteAnswersForCompetition(competitionId: string): Promise<void>;

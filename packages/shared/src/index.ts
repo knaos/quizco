@@ -288,6 +288,12 @@ export interface Team {
   lastAwardedBonusTier?: number; // Track last streak bonus tier awarded (1, 2, or 3)
 }
 
+export interface AdminTeamOption {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface GameState {
   phase: GamePhase;
   currentQuestion: Question | null;
@@ -406,10 +412,16 @@ export interface AdminAnswerHistoryResponse {
 }
 
 export interface AdminUpdateAnswerScoreRequest {
+  competitionId?: string;
   scoreAwarded: number;
+  reason?: string;
 }
 
 export interface AdminUpdateAnswerScoreResponse {
   answerId: string;
   scoreAwarded: number;
+}
+
+export interface AdminTeamMonitorResponse {
+  records: AdminAnswerHistoryRecord[];
 }

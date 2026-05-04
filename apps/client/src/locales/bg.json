@@ -259,6 +259,24 @@
         "snapshot_correct": "Верен",
         "snapshot_points": "Точки"
       },
+      "teams": {
+        "select_competition": "Изберете състезание",
+        "select_team": "Изберете отбор",
+        "view_history": "Виж история",
+        "adjust_points": "Коригирай точки",
+        "history_title": "Хронология на снимките",
+        "adjust_modal_title": "Коригиране на присъдени точки",
+        "adjust": {
+          "confirm_update": "Потвърди промяната",
+          "submit": "Приложи промяната",
+          "success": "Точките са обновени.",
+          "error": "Неуспешно обновяване на точките.",
+          "validation_required": "Точките са задължителни.",
+          "validation_integer": "Точките трябва да са цяло число.",
+          "validation_no_change": "Въведете различна стойност.",
+          "validation_reason": "Причината е задължителна."
+        }
+      },
       "question_editor": {
         "edit_question": "Редактирай Въпрос",
         "new_question": "Нов Въпрос",

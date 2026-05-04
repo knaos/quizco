@@ -3,6 +3,7 @@ import type {
   Competition,
   Question,
   Round,
+  AdminTeamOption,
   AdminAnswerHistoryRecord,
   AdminUpdateAnswerScoreResponse,
   CompetitionImportDocument,
@@ -45,10 +46,16 @@ export interface AdminDataResult {
   fetchAnswerHistory: (
     competitionId: string,
   ) => Promise<AdminAnswerHistoryRecord[]>;
+  fetchCompetitionTeams: (competitionId: string) => Promise<AdminTeamOption[]>;
+  fetchTeamAnswers: (
+    competitionId: string,
+    teamId: string,
+  ) => Promise<AdminAnswerHistoryRecord[]>;
   updateAnswerScore: (
     competitionId: string,
     answerId: string,
     scoreAwarded: number,
+    reason?: string,
   ) => Promise<AdminUpdateAnswerScoreResponse | null>;
 }
 
@@ -312,15 +319,50 @@ export function useAdminData(
       };
       return Array.isArray(data.records) ? data.records : [];
     },
+    fetchCompetitionTeams: async (competitionId: string) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/teams`,
+        {
+          headers: createHeaders(),
+        },
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return [];
+      }
+      const data = (await response.json()) as { teams?: AdminTeamOption[] };
+      return Array.isArray(data.teams) ? data.teams : [];
+    },
+    fetchTeamAnswers: async (competitionId: string, teamId: string) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/teams/${teamId}/answers`,
+        {
+          headers: createHeaders(),
+        },
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return [];
+      }
+      const data = (await response.json()) as {
+        records?: AdminAnswerHistoryRecord[];
+      };
+      return Array.isArray(data.records) ? data.records : [];
+    },
     updateAnswerScore: async (
       competitionId: string,
       answerId: string,
       scoreAwarded: number,
+      reason?: string,
     ) => {
       const response = await fetch(`${API_BASE}/answers/${answerId}/score`, {
         method: "PATCH",
         headers: createHeaders(true),
-        body: JSON.stringify({ competitionId, scoreAwarded }),
+        body: JSON.stringify({ competitionId, scoreAwarded, reason }),
       });
       if (!response.ok) {
         if (response.status === 401) {

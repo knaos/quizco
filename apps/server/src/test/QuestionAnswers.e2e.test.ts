@@ -185,4 +185,37 @@ describe("Question Answers API E2E", () => {
     expect(historyData.records[0].snapshots).toHaveLength(1);
     expect(historyData.records[0].snapshots[0].snapshotType).toBe("SCORE_ADJUSTMENT");
   });
+
+  it("returns team-specific monitor records", async () => {
+    const questionId = "q-team";
+    const roundId = "r-team";
+    mockRepository.questions.push({
+      id: questionId,
+      roundId,
+      questionText: "Team monitor question",
+      type: "OPEN_WORD",
+      points: 5,
+      content: { answer: "faith" },
+      grading: "AUTO",
+    } as any);
+
+    const teamOne = await mockRepository.getOrCreateTeam(competitionId, "Team One", "red");
+    const teamTwo = await mockRepository.getOrCreateTeam(competitionId, "Team Two", "blue");
+    await mockRepository.saveAnswer(teamOne.id, questionId, roundId, "faith", true, 5);
+    await mockRepository.saveAnswer(teamTwo.id, questionId, roundId, "hope", false, 0);
+
+    const response = await fetch(
+      `${baseUrl}/api/admin/competitions/${competitionId}/teams/${teamOne.id}/answers`,
+      {
+        headers: {
+          Authorization: `Bearer ${adminAuthToken}`,
+        },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json() as { records: Array<{ teamId: string }> };
+    expect(data.records).toHaveLength(1);
+    expect(data.records[0].teamId).toBe(teamOne.id);
+  });
 });

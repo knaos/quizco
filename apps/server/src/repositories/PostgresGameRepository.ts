@@ -437,6 +437,88 @@ export class PostgresGameRepository implements IGameRepository {
     }));
   }
 
+  async getTeamAnswerHistory(
+    competitionId: string,
+    teamId: string,
+  ): Promise<AdminAnswerHistoryRecord[]> {
+    const questions = await prisma.question.findMany({
+      where: {
+        round: {
+          competitionId,
+        },
+      },
+      orderBy: [
+        { round: { orderIndex: "asc" } },
+        { realIndex: "asc" },
+        { index: "asc" },
+        { createdAt: "asc" },
+      ],
+      include: {
+        round: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        answers: {
+          where: { teamId },
+          take: 1,
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+            snapshots: {
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return questions.map((question) => {
+      const answer = question.answers[0];
+      const teamName = answer?.team.name ?? "";
+      const teamColor = answer?.team.color ?? "";
+      return {
+        answerId: answer?.id ?? question.id,
+        competitionId,
+        teamId,
+        teamName,
+        teamColor,
+        questionId: question.id,
+        questionText: question.questionText,
+        roundId: question.round.id,
+        roundTitle: question.round.title,
+        latestSubmittedContent: (answer?.submittedContent ?? "") as any,
+        latestIsCorrect: answer?.isCorrect ?? null,
+        latestScoreAwarded: answer?.scoreAwarded ?? 0,
+        snapshots: (answer?.snapshots ?? []).map((snapshot) => ({
+          id: snapshot.id,
+          answerId: snapshot.answerId,
+          competitionId: snapshot.competitionId,
+          teamId: snapshot.teamId,
+          teamName,
+          questionId: snapshot.questionId,
+          questionText: question.questionText,
+          roundId: snapshot.roundId,
+          roundTitle: question.round.title,
+          snapshotType: snapshot.snapshotType as AnswerSnapshotType,
+          actorRole: snapshot.actorRole as ActorRole,
+          submittedContent: snapshot.submittedContent as any,
+          isCorrect: snapshot.isCorrect,
+          scoreAwarded: snapshot.scoreAwarded,
+          createdAt: snapshot.createdAt.toISOString(),
+        })),
+      };
+    });
+  }
+
   async deleteAnswersForCompetition(competitionId: string): Promise<void> {
     await prisma.answer.deleteMany({
       where: {

@@ -230,6 +230,40 @@ export class MockGameRepository implements IGameRepository {
     });
   }
 
+  async getTeamAnswerHistory(
+    competitionId: string,
+    teamId: string,
+  ): Promise<AdminAnswerHistoryRecord[]> {
+    return this.questions.map((question) => {
+      const answer = this.answers.find(
+        (answerItem) => answerItem.questionId === question.id && answerItem.teamId === teamId,
+      );
+      const team = this.teams.find((teamItem) => teamItem.id === teamId);
+      return {
+        answerId: answer?.id ?? question.id,
+        competitionId,
+        teamId,
+        teamName: team?.name ?? "",
+        teamColor: team?.color ?? "",
+        questionId: question.id,
+        questionText: question.questionText,
+        roundId: question.roundId,
+        roundTitle: null,
+        latestSubmittedContent: answer?.submittedContent ?? "",
+        latestIsCorrect: answer?.isCorrect ?? null,
+        latestScoreAwarded: answer?.scoreAwarded ?? 0,
+        snapshots: this.answerSnapshots
+          .filter((snapshot) => answer && snapshot.answerId === answer.id)
+          .map((snapshot) => ({
+            ...snapshot,
+            teamName: team?.name ?? "",
+            questionText: question.questionText,
+            roundTitle: null,
+          })),
+      };
+    });
+  }
+
   async deleteAnswersForCompetition(competitionId: string): Promise<void> {
     this.answers = [];
     this.answerSnapshots = [];

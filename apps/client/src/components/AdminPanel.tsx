@@ -14,6 +14,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { CompetitionList } from "./admin/CompetitionList";
 import { RoundManager } from "./admin/RoundManager";
 import { AnswerHistoryView } from "./admin/AnswerHistoryView";
+import { TeamsMonitorView } from "./admin/TeamsMonitorView";
 import { QuestionEditor } from "./admin/QuestionEditor";
 import { useAuth } from "../contexts/useAuth";
 import { useAdminData } from "../hooks/useAdminData";
@@ -44,7 +45,7 @@ export const AdminPanel: React.FC = () => {
   const { adminToken, isAdminAuthenticated, loginAdmin, logoutAdmin } = useAuth();
   const [passwordInput, setPasswordInput] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [view, setView] = useState<"COMPETITIONS" | "EDITOR">("COMPETITIONS");
+  const [view, setView] = useState<"COMPETITIONS" | "EDITOR" | "TEAMS">("COMPETITIONS");
   const [editingQuestion, setEditingQuestion] = useState<{
     roundId: string;
     question: Partial<Question>;
@@ -242,6 +243,14 @@ export const AdminPanel: React.FC = () => {
             >
               <List className="mr-4 w-6 h-6" /> {t("admin.competitions")}
             </Button>
+            <Button
+              variant={view === "TEAMS" ? "primary" : "ghost"}
+              onClick={() => setView("TEAMS")}
+              className={`w-full justify-start px-5 py-4 rounded-2xl ${view === "TEAMS" ? "shadow-lg shadow-blue-900/50" : ""}`}
+              data-testid="admin-nav-teams"
+            >
+              <Monitor className="mr-4 w-6 h-6" /> {t("common.teams")}
+            </Button>
             <Button variant="ghost" className="w-full justify-start px-5 py-4 rounded-2xl">
               <Settings className="mr-4 w-6 h-6" /> {t("common.edit")}
             </Button>
@@ -283,6 +292,14 @@ export const AdminPanel: React.FC = () => {
               onDelete={(competitionId) =>
                 setConfirmState({ mode: "deleteCompetition", competitionId })
               }
+            />
+          ) : view === "TEAMS" ? (
+            <TeamsMonitorView
+              competitions={adminData.competitions}
+              fetchCompetitionTeams={adminData.fetchCompetitionTeams}
+              fetchTeamAnswers={adminData.fetchTeamAnswers}
+              updateAnswerScore={adminData.updateAnswerScore}
+              authToken={adminToken}
             />
           ) : (
             <div className="max-w-5xl mx-auto">
