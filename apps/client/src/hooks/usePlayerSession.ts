@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   AnswerContent,
+  ChronologyAnswer,
   Competition,
   CorrectTheErrorAnswer,
   CorrectTheErrorContent,
@@ -65,6 +66,47 @@ interface DraftAnswerState {
   answer: AnswerContent;
   selectedIndices: number[];
   submissionStatus: "idle" | "success" | "error";
+}
+
+function hasDraftContent(
+  question: NonNullable<GameState["currentQuestion"]>,
+  answer: AnswerContent,
+): boolean {
+  switch (question.type) {
+    case "MULTIPLE_CHOICE":
+      return false;
+    case "TRUE_FALSE":
+      return typeof answer === "boolean";
+    case "MATCHING":
+      return (
+        typeof answer === "object" &&
+        answer !== null &&
+        !Array.isArray(answer) &&
+        Object.values(answer as Record<string, string>).some((value) => value !== "")
+      );
+    case "CHRONOLOGY":
+      return (
+        typeof answer === "object" &&
+        answer !== null &&
+        !Array.isArray(answer) &&
+        (answer as ChronologyAnswer).slotIds.some((value) => value !== null)
+      );
+    case "CORRECT_THE_ERROR":
+      return (
+        typeof answer === "object" &&
+        answer !== null &&
+        !Array.isArray(answer) &&
+        ((answer as CorrectTheErrorAnswer).selectedWordIndex >= 0 ||
+          (answer as CorrectTheErrorAnswer).correction.trim() !== "")
+      );
+    case "CLOSED":
+    case "OPEN_WORD":
+      return typeof answer === "string" && answer.trim() !== "";
+    case "FILL_IN_THE_BLANKS":
+      return isStringArray(answer) && answer.length > 0 && answer.some((value) => value !== "");
+    case "CROSSWORD":
+      return isStringGrid(answer) && answer.some((row) => row.some((cell) => cell !== ""));
+  }
 }
 
 export function usePlayerSession(state: GameState): PlayerSessionResult {
@@ -281,12 +323,9 @@ export function usePlayerSession(state: GameState): PlayerSessionResult {
     }
 
     const timer = window.setTimeout(() => {
-      const hasContent =
-        (typeof answer === "string" && answer !== "") ||
-        (isStringArray(answer) && answer.length > 0 && answer.some(v => v !== "")) ||
-        (isStringGrid(answer) && answer.some(row => row.some(cell => cell !== "")));
-
-      const shouldSubmit = state.currentQuestion?.type !== "MULTIPLE_CHOICE" && hasContent;
+      const shouldSubmit = state.currentQuestion
+        ? hasDraftContent(state.currentQuestion, answer)
+        : false;
       if (shouldSubmit) {
         socket.emit("SUBMIT_ANSWER", {
           competitionId: selectedCompId,
