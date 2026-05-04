@@ -138,7 +138,7 @@
       "no_answer": "Няма изпратен отговор",
       "session_lost_rejoin": "Сесията е изгубена. Моля, влезте отново.",
       "chronology_instruction": "Плъзнете всяко събитие в правилния слот от времевата линия.",
-      "chronology_slot": "Стъпка {{position}}",
+      "chronology_slot": "Позиция {{position}}",
       "chronology_drag_handle": "Дръжка за плъзгане {{label}}",
       "chronology_items_column": "Събития",
       "chronology_timeline_column": "Времева линия",
