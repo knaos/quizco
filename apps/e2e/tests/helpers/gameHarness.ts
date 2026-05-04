@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const ADMIN_AUTH_HEADER = {};
+const HOST_PASSWORD = process.env.HOST_PASSWORD ?? "change-me-host";
 
 function readServerEnvValue(key: string): string | null {
   const envPath = path.resolve(process.cwd(), "../server/.env");
