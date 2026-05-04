@@ -73,19 +73,6 @@ export const TeamsMonitorView: React.FC<TeamsMonitorViewProps> = ({
     window.history.replaceState({}, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
   }, []);
 
-  const loadTeams = useCallback(async () => {
-    if (!competitionId) {
-      setTeams([]);
-      return;
-    }
-    const nextTeams = await fetchCompetitionTeams(competitionId);
-    setTeams(nextTeams);
-    if (teamId && !nextTeams.some((team) => team.id === teamId)) {
-      setTeamId("");
-      syncUrl(competitionId, "");
-    }
-  }, [competitionId, teamId, fetchCompetitionTeams, syncUrl]);
-
   const loadAnswers = useCallback(async () => {
     if (!competitionId || !teamId) {
       setRecords([]);
@@ -101,12 +88,63 @@ export const TeamsMonitorView: React.FC<TeamsMonitorViewProps> = ({
   }, [competitionId, teamId, fetchTeamAnswers]);
 
   useEffect(() => {
-    void loadTeams();
-  }, [loadTeams]);
+    let cancelled = false;
+
+    const run = async () => {
+      if (!competitionId) {
+        if (!cancelled) {
+          setTeams([]);
+        }
+        return;
+      }
+
+      const nextTeams = await fetchCompetitionTeams(competitionId);
+      if (cancelled) {
+        return;
+      }
+
+      setTeams(nextTeams);
+      if (teamId && !nextTeams.some((team) => team.id === teamId)) {
+        setTeamId("");
+        syncUrl(competitionId, "");
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [competitionId, teamId, fetchCompetitionTeams, syncUrl]);
 
   useEffect(() => {
-    void loadAnswers();
-  }, [loadAnswers]);
+    let cancelled = false;
+
+    const run = async () => {
+      if (!competitionId || !teamId) {
+        if (!cancelled) {
+          setRecords([]);
+        }
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const next = await fetchTeamAnswers(competitionId, teamId);
+        if (!cancelled) {
+          setRecords(next);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [competitionId, teamId, fetchTeamAnswers]);
 
   useEffect(() => {
     if (!competitionId || !authToken) {

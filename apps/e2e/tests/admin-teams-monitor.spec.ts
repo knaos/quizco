@@ -45,7 +45,7 @@ test("admin teams monitor shows history and guarded score adjustment", async ({ 
     const teamOne = teams.teams.find((team) => team.name === "Team One");
     expect(teamOne).toBeDefined();
 
-    await page.getByTestId("admin-teams-team-select").selectOption(teamOne!.id);
+    await page.getByTestId(`admin-teams-list-item-${teamOne!.id}`).click();
     await expect(page.getByTestId(/admin-team-answer-row-/).first()).toBeVisible();
 
     await page.getByTestId(/admin-team-answer-history-/).first().click();
