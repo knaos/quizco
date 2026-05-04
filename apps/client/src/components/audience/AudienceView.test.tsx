@@ -165,6 +165,22 @@ describe("AudienceView", () => {
     view.unmount();
   });
 
+  it("shows the competition selector on /audience even when local storage has a previous selection", async () => {
+    window.localStorage.setItem("quizco_audience_competition_id", "comp-1");
+
+    const view = renderAudience();
+    await flushEffects();
+
+    expect(
+      view.container.querySelector('[data-testid="competition-selector"]'),
+    ).not.toBeNull();
+    expect(
+      view.container.querySelector('[data-testid="audience-phase"]'),
+    ).toBeNull();
+    expect(emit).not.toHaveBeenCalled();
+    view.unmount();
+  });
+
   it("honors the competition query param and joins publicly", async () => {
     window.history.replaceState({}, "", "/audience?competitionId=comp-1");
 

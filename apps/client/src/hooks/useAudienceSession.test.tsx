@@ -76,4 +76,26 @@ describe("useAudienceSession", () => {
     expect(emit).toHaveBeenCalledWith("PUBLIC_JOIN_ROOM", { competitionId: "comp-1" });
     hook.unmount();
   });
+
+  it("does not auto-select from local storage on plain audience route", async () => {
+    window.localStorage.setItem("quizco_audience_competition_id", "comp-1");
+
+    const hook = renderHook(() => useAudienceSession(state));
+    await flushEffects();
+
+    expect(hook.result.selectedCompId).toBeNull();
+    expect(emit).not.toHaveBeenCalled();
+    hook.unmount();
+  });
+
+  it("honors explicit competition id from URL", async () => {
+    window.history.replaceState({}, "", "/audience?competitionId=comp-1");
+
+    const hook = renderHook(() => useAudienceSession(state));
+    await flushEffects();
+
+    expect(hook.result.selectedCompId).toBe("comp-1");
+    expect(emit).toHaveBeenCalledWith("PUBLIC_JOIN_ROOM", { competitionId: "comp-1" });
+    hook.unmount();
+  });
 });

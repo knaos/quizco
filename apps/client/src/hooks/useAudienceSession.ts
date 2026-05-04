@@ -8,7 +8,14 @@ const AUDIENCE_COMP_ID_KEY = "quizco_audience_competition_id";
 
 function getInitialCompetitionId(): string | null {
   const params = new URLSearchParams(window.location.search);
-  return params.get("competitionId") || localStorage.getItem(AUDIENCE_COMP_ID_KEY);
+  const competitionIdFromUrl = params.get("competitionId");
+  if (competitionIdFromUrl) {
+    return competitionIdFromUrl;
+  }
+
+  // Entering /audience should always present the picker unless the competition
+  // was explicitly requested through the URL.
+  return null;
 }
 
 export interface AudienceSessionResult {

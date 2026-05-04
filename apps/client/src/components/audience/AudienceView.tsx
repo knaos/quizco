@@ -55,13 +55,13 @@ export const AudienceView: React.FC = () => {
         )}
 
         {state.phase === "QUESTION_ACTIVE" && !state.timerPaused && state.currentQuestion ? (
-          <div className="w-full max-w-3xl space-y-8">
+          <div className="w-full space-y-8">
             <PublicQuestionBody mode="readOnly" state={state} testIdPrefix="audience" />
           </div>
         ) : null}
 
         {state.phase === "GRADING" && state.currentQuestion ? (
-          <div className="w-full max-w-3xl space-y-8">
+          <div className="w-full space-y-8">
             <PublicQuestionBody mode="readOnly" state={state} testIdPrefix="audience" />
             <p className="text-xl text-gray-500">{t("player.grading_waiting")}</p>
           </div>
