@@ -438,26 +438,26 @@ export const HostDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eef4ff_45%,_#f8fafc_100%)] p-4 md:p-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbff,_#eef4ff_45%,_#f8fafc_100%)] p-4">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-col gap-4 rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-sm backdrop-blur">
+        <header className="sticky top-3 z-30 flex flex-col gap-3 rounded-[1.5rem] border border-white/70 bg-white/90 p-3 shadow-md backdrop-blur">
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={handleBack}
-              className="rounded-2xl border border-gray-200 bg-white p-3 text-gray-500 transition hover:text-gray-700"
+              className="rounded-xl border border-gray-200 bg-white p-2 text-gray-500 transition hover:text-gray-700"
               aria-label={t("common.back")}
             >
-              <ChevronRight className="h-5 w-5 rotate-180" />
+              <ChevronRight className="h-4 w-4 rotate-180" />
             </button>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-950">
+              <h1 className="text-2xl font-black tracking-tight text-slate-950">
                 {selectedComp.title}
               </h1>
             </div>
 
             <div
-              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-slate-700"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-slate-700"
               data-testid="host-team-count"
             >
               {state.teams.length} {t("host.connected_teams")}
@@ -468,7 +468,7 @@ export const HostDashboard: React.FC = () => {
                 variant="ghost"
                 onClick={openQuestionPicker}
                 data-testid="host-open-question-picker"
-                className="w-full justify-start rounded-xl px-4"
+                className="w-full justify-start rounded-xl px-4 py-2 text-sm"
               >
                 {t("host.open_question_picker")}
               </Button>
@@ -484,6 +484,62 @@ export const HostDashboard: React.FC = () => {
                 <LanguageSwitcher />
               </div>
             </Menu>
+          </div>
+          <div className="flex w-full items-stretch gap-2 md:gap-3">
+            <div
+              className="flex min-w-[7.5rem] flex-1 flex-col rounded-2xl border border-slate-200 bg-slate-950 px-3 py-2 text-white shadow-lg"
+              data-testid="host-timer-card"
+            >
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-200">
+                {t("common.time")}
+              </span>
+              <span
+                className="mt-1 text-2xl font-black tabular-nums md:text-3xl"
+                data-testid="host-timer"
+              >
+                {formatHostTime(state.timeRemaining)}
+              </span>
+            </div>
+            {state.phase === "QUESTION_ACTIVE" ? (
+              <Button
+                type="button"
+                variant={state.timerPaused ? "success" : "warning"}
+                onClick={state.timerPaused ? resumeTimer : pauseTimer}
+                disabled={isTransitionDisabled}
+                className="rounded-2xl px-3 py-2 text-sm"
+                data-testid="host-toggle-timer"
+              >
+                {state.timerPaused ? (
+                  <Play className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <Pause className="mr-1.5 h-4 w-4" />
+                )}
+                {state.timerPaused
+                  ? t("host.resume_timer")
+                  : t("host.pause_timer")}
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant={
+                state.phase === "QUESTION_ACTIVE"
+                  ? "danger"
+                  : state.phase === "QUESTION_PREVIEW"
+                    ? "success"
+                    : "primary"
+              }
+              onClick={handleNext}
+              disabled={
+                isTransitionDisabled ||
+                (state.phase === "LEADERBOARD" &&
+                  state.currentQuestion === null)
+              }
+              data-testid="host-next-action"
+              className="flex flex-[2] items-center justify-center rounded-2xl px-3 py-2 text-sm shadow-lg md:text-base"
+            >
+              <SkipForward className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+              {getNextActionLabel()}
+            </Button>
           </div>
         </header>
 
@@ -534,9 +590,6 @@ export const HostDashboard: React.FC = () => {
                               : t("host.current_round_unknown")}
                           </p>
                         </div>
-                        {currentRound ? (
-                          <Badge variant="purple">{currentRound.type}</Badge>
-                        ) : null}
                       </div>
                       {currentRound ? (
                         <p
@@ -561,63 +614,6 @@ export const HostDashboard: React.FC = () => {
                         {currentQuestionText}
                       </h2>
                     </div>
-                  </div>
-
-                  <div className="flex w-full items-stretch gap-4">
-                    <div
-                      className="flex w-1/4 min-w-[10rem] flex-col rounded-3xl border border-slate-200 bg-slate-950 px-5 py-4 text-white shadow-xl"
-                      data-testid="host-timer-card"
-                    >
-                      <span className="text-xs font-black uppercase tracking-[0.35em] text-blue-200">
-                        {t("common.time")}
-                      </span>
-                      <span
-                        className="mt-2 text-5xl font-black tabular-nums"
-                        data-testid="host-timer"
-                      >
-                        {formatHostTime(state.timeRemaining)}
-                      </span>
-                    </div>
-                    {state.phase === "QUESTION_ACTIVE" ? (
-                      <Button
-                        type="button"
-                        variant={state.timerPaused ? "success" : "warning"}
-                        onClick={state.timerPaused ? resumeTimer : pauseTimer}
-                        disabled={isTransitionDisabled}
-                        className="rounded-3xl py-3 text-base"
-                        data-testid="host-toggle-timer"
-                      >
-                        {state.timerPaused ? (
-                          <Play className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Pause className="mr-2 h-4 w-4" />
-                        )}
-                        {state.timerPaused
-                          ? t("host.resume_timer")
-                          : t("host.pause_timer")}
-                      </Button>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant={
-                        state.phase === "QUESTION_ACTIVE"
-                          ? "danger"
-                          : state.phase === "QUESTION_PREVIEW"
-                            ? "success"
-                            : "primary"
-                      }
-                      onClick={handleNext}
-                      disabled={
-                        isTransitionDisabled ||
-                        (state.phase === "LEADERBOARD" &&
-                          state.currentQuestion === null)
-                      }
-                      data-testid="host-next-action"
-                      className="flex w-3/4 items-center justify-center rounded-3xl px-4 text-xl shadow-2xl shadow-blue-200"
-                    >
-                      <SkipForward className="mr-3 h-7 w-7" />
-                      {getNextActionLabel()}
-                    </Button>
                   </div>
                 </div>
               </div>
