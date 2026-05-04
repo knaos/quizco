@@ -143,6 +143,7 @@
       "chronology_items_column": "Events",
       "chronology_timeline_column": "Timeline",
       "chronology_drop_here": "Drop an event here",
+      "chronology_insert_here": "Insert here",
       "chronology_not_placed": "not placed",
       "correct_position": "Correct Position",
       "wrong_position": "Wrong Position",

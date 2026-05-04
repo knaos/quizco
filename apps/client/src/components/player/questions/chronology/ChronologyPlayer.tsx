@@ -160,6 +160,7 @@ interface PoolItemDropTargetProps {
 const POOL_DROPPABLE_ID = "chronology-pool";
 const POOL_ITEM_DROPPABLE_PREFIX = "chronology-pool-item-";
 const SLOT_DROPPABLE_PREFIX = "chronology-slot-";
+const INSERT_DROPPABLE_PREFIX = "chronology-insert-";
 
 const PoolItemDropTarget: React.FC<PoolItemDropTargetProps> = ({
   id,
@@ -221,6 +222,13 @@ interface TimelineSlotProps {
   onSlotClick: () => void;
 }
 
+interface TimelineInsertSeparatorProps {
+  index: number;
+  overId: string | null;
+  selectedId: string | null;
+  onClick: () => void;
+}
+
 const TimelineSlot: React.FC<TimelineSlotProps> = ({
   index,
   slotId,
@@ -261,6 +269,36 @@ const TimelineSlot: React.FC<TimelineSlotProps> = ({
   );
 };
 
+const TimelineInsertSeparator: React.FC<TimelineInsertSeparatorProps> = ({
+  index,
+  overId,
+  selectedId,
+  onClick,
+}) => {
+  const { t } = useTranslation();
+  const insertDroppableId = `${INSERT_DROPPABLE_PREFIX}${index}`;
+  const { setNodeRef, isOver } = useDroppable({ id: insertDroppableId });
+  const isActive = isOver || overId === insertDroppableId;
+  const isSelectedTarget = selectedId !== null;
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      onClick={onClick}
+      data-testid={insertDroppableId}
+      className={`flex h-8 w-full items-center justify-center rounded-xl border-2 border-dashed px-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${isSelectedTarget
+        ? "border-green-500 bg-green-50 text-green-700"
+        : isActive
+          ? "border-blue-500 bg-blue-50 text-blue-700"
+          : "border-blue-200 bg-white text-blue-600 hover:border-blue-300"
+        }`}
+    >
+      {t("player.chronology_insert_here")}
+    </button>
+  );
+};
+
 /**
  * Builds a stable id->item lookup table for rendering and drag overlay labels.
  */
@@ -286,6 +324,13 @@ const resolveDropTarget = (
 
   if (overId.startsWith(SLOT_DROPPABLE_PREFIX)) {
     const index = Number(overId.slice(SLOT_DROPPABLE_PREFIX.length));
+    if (!Number.isNaN(index)) {
+      return { type: "slot", index };
+    }
+  }
+
+  if (overId.startsWith(INSERT_DROPPABLE_PREFIX)) {
+    const index = Number(overId.slice(INSERT_DROPPABLE_PREFIX.length));
     if (!Number.isNaN(index)) {
       return { type: "slot", index };
     }
@@ -577,18 +622,30 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
               {t("player.chronology_timeline_column")}
             </h3>
             <div className="space-y-2">
-              {boardState.slotIds.map((slotId, index) => (
-                <TimelineSlot
-                  key={`${SLOT_DROPPABLE_PREFIX}${index}`}
-                  index={index}
-                  slotId={slotId}
-                  itemMap={itemMap}
-                  overId={overId}
-                  selectedId={selectedId}
-                  onCardSelect={handleCardSelect}
-                  onSlotClick={() => handleSlotClick(index)}
-                />
-              ))}
+              {boardState.slotIds.map((slotId, index) => {
+                const insertIndex = index + 1;
+                return (
+                  <React.Fragment key={`${SLOT_DROPPABLE_PREFIX}${index}`}>
+                    <TimelineSlot
+                      index={index}
+                      slotId={slotId}
+                      itemMap={itemMap}
+                      overId={overId}
+                      selectedId={selectedId}
+                      onCardSelect={handleCardSelect}
+                      onSlotClick={() => handleSlotClick(index)}
+                    />
+                    {index < boardState.slotIds.length - 1 ? (
+                      <TimelineInsertSeparator
+                        index={insertIndex}
+                        overId={overId}
+                        selectedId={selectedId}
+                        onClick={() => handleSlotClick(insertIndex)}
+                      />
+                    ) : null}
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         </div>
