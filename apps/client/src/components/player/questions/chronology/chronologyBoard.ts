@@ -7,7 +7,7 @@ export interface ChronologyBoardState {
 
 export type ChronologyDropTarget =
   | { type: "pool"; index?: number }
-  | { type: "slot"; index: number };
+  | { type: "slot"; index: number; mode?: "replace" | "insert" };
 
 /**
  * Creates a fresh chronology board with all items in the left pool.
@@ -111,8 +111,45 @@ export const moveChronologyItem = (
     return state;
   }
 
+  const slotMode = target.mode ?? "replace";
   const activePoolIndex = state.poolIds.indexOf(activeId);
   const nextPoolIds = state.poolIds.filter((id) => id !== activeId);
+
+  if (slotMode === "replace") {
+    if (sourceSlotIndex === target.index) {
+      return state;
+    }
+
+    const nextSlotIds = [...state.slotIds];
+    const displacedId = nextSlotIds[target.index];
+    nextSlotIds[target.index] = activeId;
+
+    if (sourceSlotIndex !== -1) {
+      nextSlotIds[sourceSlotIndex] = displacedId;
+      return {
+        poolIds: nextPoolIds,
+        slotIds: nextSlotIds,
+      };
+    }
+
+    if (displacedId) {
+      const displacedInsertIndex =
+        activePoolIndex === -1
+          ? nextPoolIds.length
+          : Math.min(activePoolIndex, nextPoolIds.length);
+      const newPoolIds = [...nextPoolIds];
+      newPoolIds.splice(displacedInsertIndex, 0, displacedId);
+      return {
+        poolIds: newPoolIds,
+        slotIds: nextSlotIds,
+      };
+    }
+
+    return {
+      poolIds: nextPoolIds,
+      slotIds: nextSlotIds,
+    };
+  }
 
   if (sourceSlotIndex !== -1) {
     if (sourceSlotIndex === target.index) {

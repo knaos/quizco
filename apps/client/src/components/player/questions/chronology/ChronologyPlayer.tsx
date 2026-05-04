@@ -325,14 +325,14 @@ const resolveDropTarget = (
   if (overId.startsWith(SLOT_DROPPABLE_PREFIX)) {
     const index = Number(overId.slice(SLOT_DROPPABLE_PREFIX.length));
     if (!Number.isNaN(index)) {
-      return { type: "slot", index };
+      return { type: "slot", index, mode: "replace" };
     }
   }
 
   if (overId.startsWith(INSERT_DROPPABLE_PREFIX)) {
     const index = Number(overId.slice(INSERT_DROPPABLE_PREFIX.length));
     if (!Number.isNaN(index)) {
-      return { type: "slot", index };
+      return { type: "slot", index, mode: "insert" };
     }
   }
 
@@ -460,7 +460,17 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
   const handleSlotClick = useCallback(
     (index: number) => {
       if (selectedId !== null) {
-        moveCard(selectedId, { type: "slot", index });
+        moveCard(selectedId, { type: "slot", index, mode: "replace" });
+        setSelectedId(null);
+      }
+    },
+    [selectedId, moveCard],
+  );
+
+  const handleInsertClick = useCallback(
+    (index: number) => {
+      if (selectedId !== null) {
+        moveCard(selectedId, { type: "slot", index, mode: "insert" });
         setSelectedId(null);
       }
     },
@@ -640,7 +650,7 @@ export const ChronologyPlayer: React.FC<ChronologyPlayerProps> = ({
                         index={insertIndex}
                         overId={overId}
                         selectedId={selectedId}
-                        onClick={() => handleSlotClick(insertIndex)}
+                        onClick={() => handleInsertClick(insertIndex)}
                       />
                     ) : null}
                   </React.Fragment>

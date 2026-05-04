@@ -55,7 +55,7 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("moves item from pool to occupied slot and shifts later slots", () => {
+  it("moves item from pool to occupied slot and returns displaced item to pool (replace mode)", () => {
     const initial = {
       poolIds: ["a", "b"],
       slotIds: ["c", null],
@@ -63,12 +63,12 @@ describe("chronologyBoard", () => {
 
     const next = moveChronologyItem(initial, "a", { type: "slot", index: 0 });
     expect(next).toEqual({
-      poolIds: ["b"],
-      slotIds: ["a", "c"],
+      poolIds: ["c", "b"],
+      slotIds: ["a", null],
     });
   });
 
-  it("moves item from pool to occupied slot with no ejection when empty slot exists", () => {
+  it("moves item from pool to occupied slot, displaced item inserted at source pool position (replace mode)", () => {
     const initial = {
       poolIds: ["x", "a", "y"],
       slotIds: ["c", null],
@@ -76,12 +76,12 @@ describe("chronologyBoard", () => {
 
     const next = moveChronologyItem(initial, "a", { type: "slot", index: 0 });
     expect(next).toEqual({
-      poolIds: ["x", "y"],
-      slotIds: ["a", "c"],
+      poolIds: ["x", "c", "y"],
+      slotIds: ["a", null],
     });
   });
 
-  it("moves item between slots and inserts by shifting neighbors", () => {
+  it("moves item between slots and keeps swap behavior (replace mode)", () => {
     const initial = {
       poolIds: [],
       slotIds: ["a", "b", null],
@@ -94,13 +94,13 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("moves slotted item to later slot by insertion order", () => {
+  it("moves slotted item to later slot by insertion order (insert mode)", () => {
     const initial = {
       poolIds: [],
       slotIds: ["a", "b", "c"],
     };
 
-    const next = moveChronologyItem(initial, "a", { type: "slot", index: 2 });
+    const next = moveChronologyItem(initial, "a", { type: "slot", index: 2, mode: "insert" });
     expect(next).toEqual({
       poolIds: [],
       slotIds: ["b", "c", "a"],
@@ -146,26 +146,26 @@ describe("chronologyBoard", () => {
     });
   });
 
-  it("inserts pool item into middle slot and shifts right when timeline is full", () => {
+  it("inserts pool item into middle slot and shifts right when timeline is full (insert mode)", () => {
     const initial = {
       poolIds: ["d"],
       slotIds: ["a", "b", "c"],
     };
 
-    const next = moveChronologyItem(initial, "d", { type: "slot", index: 1 });
+    const next = moveChronologyItem(initial, "d", { type: "slot", index: 1, mode: "insert" });
     expect(next).toEqual({
       poolIds: ["c"],
       slotIds: ["a", "d", "b"],
     });
   });
 
-  it("inserts pool item into middle slot and consumes empty slot before ejecting any item", () => {
+  it("inserts pool item into middle slot and consumes empty slot before ejecting any item (insert mode)", () => {
     const initial = {
       poolIds: ["d"],
       slotIds: ["a", null, "c"],
     };
 
-    const next = moveChronologyItem(initial, "d", { type: "slot", index: 1 });
+    const next = moveChronologyItem(initial, "d", { type: "slot", index: 1, mode: "insert" });
     expect(next).toEqual({
       poolIds: [],
       slotIds: ["a", "d", "c"],
