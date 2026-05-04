@@ -622,6 +622,20 @@ onSafe(
       io.to(room).emit("GAME_STATE_SYNC", gameManager.getState(competitionId));
     });
 
+    onSafe("HOST_RESET_COMPETITION", async ({ competitionId, authToken }) => {
+      if (!competitionId || !hasHostAccess(authToken)) {
+        socket.emit("AUTH_ERROR", { message: "Unauthorized" });
+        return;
+      }
+
+      await gameManager.resetCompetition(competitionId);
+
+      const room = `competition_${competitionId}`;
+      const nextState = gameManager.getState(competitionId);
+      io.to(room).emit("GAME_STATE_SYNC", nextState);
+      io.to(room).emit("SCORE_UPDATE", nextState.teams);
+    });
+
     onSafe("disconnect", () => {
       console.log("Client disconnected:", socket.id);
       const info = socketToTeam.get(socket.id);

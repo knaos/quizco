@@ -182,4 +182,24 @@ describe("useHostDashboard", () => {
     );
     hook.unmount();
   });
+
+  it("emits reset competition event for selected competition", async () => {
+    const hook = renderHook(() => useHostDashboard(state, "host-token"));
+    await flushEffects();
+
+    await hook.act(async () => {
+      hook.result.selectCompetition(competitions[0], false);
+      await Promise.resolve();
+    });
+
+    await hook.act(async () => {
+      hook.result.resetCompetition();
+    });
+
+    expect(emit).toHaveBeenCalledWith("HOST_RESET_COMPETITION", {
+      competitionId: "comp-1",
+      authToken: "host-token",
+    });
+    hook.unmount();
+  });
 });

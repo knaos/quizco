@@ -74,6 +74,7 @@ export interface HostDashboardResult {
   openAnswersModal: (questionId: string, questionText: string) => void;
   closeAnswersModal: () => void;
   showLeaderboard: () => void;
+  resetCompetition: () => void;
 }
 
 export function useHostDashboard(
@@ -305,5 +306,9 @@ export function useHostDashboard(
     },
     showLeaderboard: () =>
       emitCompetitionAction("HOST_SET_PHASE", { phase: "LEADERBOARD" }),
+    resetCompetition: () => {
+      disableTransition();
+      emitCompetitionAction("HOST_RESET_COMPETITION");
+    },
   };
 }

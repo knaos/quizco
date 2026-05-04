@@ -88,6 +88,8 @@
       "option_hidden": "Hidden until reveal",
       "free_response_placeholder": "Answer hidden until reveal",
       "crossword_presenter_placeholder": "Crossword clues and grid stay hidden until reveal",
+      "reset_competition": "Reset Competition",
+      "reset_competition_confirm": "Reset this competition and clear all answers and progress? Team roster will be kept. This cannot be undone.",
       "actions": {
         "start_competition": "Start Competition",
         "start_first_round": "Start First Round",

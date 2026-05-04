@@ -85,3 +85,24 @@ test("host presenter view keeps navigation and submissions in modals", async ({ 
     await session.close();
   }
 });
+
+test("host can reset the current competition from the menu", async ({ browser }) => {
+  const session = await createHostAndPlayers(browser, competitionId, "Reset Team One", "Reset Team Two");
+
+  try {
+    await expect(session.hostPage.getByTestId("host-team-count")).toContainText("2");
+
+    session.hostPage.once("dialog", async (dialog) => {
+      expect(dialog.type()).toBe("confirm");
+      await dialog.accept();
+    });
+
+    await session.hostPage.getByRole("button", { name: /menu|меню/i }).click();
+    await session.hostPage.getByTestId("host-reset-competition").click();
+
+    await expect(session.hostPage.getByTestId("host-current-phase")).toHaveText("WAITING");
+    await expect(session.hostPage.getByTestId("host-team-count")).toContainText("2");
+  } finally {
+    await session.close();
+  }
+});

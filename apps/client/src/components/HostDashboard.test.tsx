@@ -173,6 +173,7 @@ function buildHookResult(overrides: Record<string, unknown> = {}) {
     openAnswersModal: vi.fn(),
     closeAnswersModal: vi.fn(),
     showLeaderboard: vi.fn(),
+    resetCompetition: vi.fn(),
     ...overrides,
   };
 }
@@ -250,6 +251,27 @@ describe("HostDashboard", () => {
     expect(view.container.querySelector('[data-testid="host-question-option-question-1"]')).not.toBeNull();
     expect(view.container.textContent).toContain("Alpha");
 
+    view.unmount();
+  });
+
+  it("confirms before resetting the current competition from menu", () => {
+    const hookResult = buildHookResult();
+    mockUseHostDashboard.mockReturnValue(hookResult);
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(false);
+
+    const view = render(<HostDashboard />);
+    click(view.container.querySelector('button[aria-label="common.menu"]') as HTMLElement);
+    click(view.container.querySelector('[data-testid="host-reset-competition"]') as HTMLElement);
+
+    expect(confirmMock).toHaveBeenCalledWith("host.reset_competition_confirm");
+    expect(hookResult.resetCompetition).not.toHaveBeenCalled();
+
+    confirmMock.mockReturnValue(true);
+    click(view.container.querySelector('button[aria-label="common.menu"]') as HTMLElement);
+    click(view.container.querySelector('[data-testid="host-reset-competition"]') as HTMLElement);
+    expect(hookResult.resetCompetition).toHaveBeenCalledTimes(1);
+
+    confirmMock.mockRestore();
     view.unmount();
   });
 });

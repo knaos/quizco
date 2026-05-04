@@ -778,6 +778,30 @@ export class GameManager {
     await this.saveState();
   }
 
+  public async resetCompetition(competitionId: string): Promise<void> {
+    const session = this.getOrCreateSession(competitionId);
+    this.timerService.stop(competitionId);
+
+    session.phase = "WAITING";
+    session.currentQuestion = null;
+    session.revealStep = 0;
+    session.timeRemaining = 0;
+    session.timerPaused = false;
+    session.metadata = {};
+    session.revealedMilestones = [];
+
+    for (const team of session.teams) {
+      team.score = 0;
+      team.streak = 0;
+      team.lastAnswerCorrect = null;
+      team.lastAnswer = null;
+      team.isExplicitlySubmitted = false;
+    }
+
+    await this.repository.deleteAnswersForCompetition(competitionId);
+    await this.saveState();
+  }
+
   public async next(competitionId: string, onTick: (state: GameState) => void): Promise<number[]> {
     const session = this.getOrCreateSession(competitionId);
     this.logger.info(
@@ -863,35 +887,9 @@ export class GameManager {
         break;
       }
       case "LEADERBOARD": {
-        /**
-         * Reset the competition to allow for a replay.
-         * Clears all team scores and streaks while preserving team records.
-         * Deletes all answers from the database.
-         * Transitions back to WAITING phase.
-         */
-        session.phase = "WAITING";
-        session.currentQuestion = null;
-        session.revealStep = 0;
-        session.timeRemaining = 0;
-        session.timerPaused = false;
-
-        // Reset team scores and streaks but keep team records
-        for (const team of session.teams) {
-          team.score = 0;
-          team.streak = 0;
-          team.lastAnswerCorrect = null;
-          team.lastAnswer = null;
-          team.isExplicitlySubmitted = false;
-        }
-
-        // Delete all answers for this competition from the database
-        await this.repository.deleteAnswersForCompetition(competitionId);
-
-        // Clear chronology tracking for fresh replay
-        session.metadata = {};
-
+        await this.resetCompetition(competitionId);
         this.logger.info(
-          `Competition ${competitionId} reset from LEADERBOARD. Teams cleared for replay and answers deleted.`,
+          `Competition ${competitionId} reset from LEADERBOARD. Teams and answers cleared for fresh start.`,
         );
         break;
       }

@@ -20,8 +20,8 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
   const questionLabel =
     typeof state.currentQuestion?.index === "number"
       ? state.currentQuestion.section
-        ? `${t("player.section")} ${state.currentQuestion.section}, ${t("player.question")} ${state.currentQuestion.index}`
-        : `${t("player.question")} ${state.currentQuestion.index}`
+        ? `${t("player.section")} ${state.currentQuestion.section}, ${t("player.question")} ${state.currentQuestion.index + 1}`
+        : `${t("player.question")} ${state.currentQuestion.index + 1}`
       : state.currentQuestion?.section
         ? `${t("player.section")} ${state.currentQuestion.section}`
         : t("player.question");
@@ -37,10 +37,10 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
         className={`p-4 rounded-3xl border-b-8 flex justify-between items-center gap-4 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}
       >
         <div className="flex-1 text-left">
-          <span className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-yellow-600"}`}>
-            {exampleQuestion
-              ? t("player.example_question")
-              : questionLabel}
+          <span
+            className={`font-black uppercase tracking-widest text-lg mb-4 block ${exampleQuestion ? "text-purple-600" : "text-yellow-600"}`}
+          >
+            {exampleQuestion ? t("player.example_question") : questionLabel}
           </span>
           <h2 className="text-4xl font-black text-gray-900 leading-tight">
             {state.currentQuestion.questionText}
@@ -53,7 +53,9 @@ export const PublicQuestionPreview: React.FC<PublicQuestionPreviewProps> = ({
         />
       </Card>
 
-      <div className={`space-y-6 w-full bg-white p-4 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}>
+      <div
+        className={`space-y-6 w-full bg-white p-4 rounded-3xl shadow-xl border-b-8 ${exampleQuestion ? "border-purple-500" : "border-yellow-500"}`}
+      >
         {getQuestionPreviewRenderer({
           question: state.currentQuestion,
           revealStep: state.revealStep,
