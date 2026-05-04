@@ -51,6 +51,7 @@ export function createQuizServer(
   app.post("/api/auth/login", createLoginHandler(securityConfig));
 
   const hostOrAdminAuth = requireAuth(securityConfig, ["host", "admin"]);
+  const adminAuth = requireAuth(securityConfig, ["admin"]);
 
   // Routes
   app.use("/api/admin", adminRouter);
@@ -190,6 +191,94 @@ export function createQuizServer(
     { competitionId: string; teamId: string }
   >();
   const teamToSocket = new Map<string, string>(); // teamId -> socketId
+
+  app.get(
+    "/api/admin/competitions/:id/answer-history",
+    adminAuth as RequestHandler,
+    async (req, res) => {
+      const { id } = req.params;
+      try {
+        const records = await repository.getCompetitionAnswerHistory(id);
+        res.json({ records });
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
+
+  app.get(
+    "/api/admin/competitions/:competitionId/teams",
+    adminAuth as RequestHandler,
+    async (req, res) => {
+      const { competitionId } = req.params;
+      try {
+        const teams = await prisma.team.findMany({
+          where: { competitionId },
+          orderBy: { name: "asc" },
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        });
+        res.json({ teams });
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
+
+  app.get(
+    "/api/admin/competitions/:competitionId/teams/:teamId/answers",
+    adminAuth as RequestHandler,
+    async (req, res) => {
+      const { competitionId, teamId } = req.params;
+      try {
+        const records = await repository.getTeamAnswerHistory(competitionId, teamId);
+        res.json({ records });
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/admin/answers/:answerId/score",
+    adminAuth as RequestHandler,
+    async (req, res) => {
+      const { answerId } = req.params;
+      const { competitionId, scoreAwarded } = req.body as {
+        competitionId?: string;
+        scoreAwarded?: number;
+        reason?: string;
+      };
+      if (
+        !competitionId ||
+        typeof scoreAwarded !== "number" ||
+        !Number.isInteger(scoreAwarded)
+      ) {
+        res.status(400).json({ error: "Invalid competitionId or scoreAwarded" });
+        return;
+      }
+      try {
+        const updated = await gameManager.adjustAnswerScore(
+          competitionId,
+          answerId,
+          scoreAwarded,
+          "ADMIN",
+        );
+        if (!updated) {
+          res.status(404).json({ error: "Answer not found" });
+          return;
+        }
+        const state = gameManager.getState(competitionId);
+        io.to(`competition_${competitionId}`).emit("SCORE_UPDATE", state.teams);
+        res.json(updated);
+      } catch (err) {
+        res.status(500).json({ error: (err as Error).message });
+      }
+    },
+  );
 
   // Monitoring loop: check connections every second
   setInterval(() => {
@@ -355,11 +444,11 @@ onSafe(
 
           const state = gameManager.getState(competitionId);
           const room = `competition_${competitionId}`;
+          // Always broadcast state for accepted submissions so admin monitors refresh
+          // immediately on submission updates, not only on final/end transitions.
+          io.to(room).emit("GAME_STATE_SYNC", state);
           if (submitResult.questionEnded) {
-            io.to(room).emit("GAME_STATE_SYNC", state);
             io.to(room).emit("SCORE_UPDATE", state.teams);
-          } else if (isFinal) {
-            io.to(room).emit("GAME_STATE_SYNC", state);
           }
           callback?.({ success: true, questionEnded: submitResult.questionEnded });
         } catch (err) {

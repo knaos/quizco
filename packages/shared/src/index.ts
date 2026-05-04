@@ -9,6 +9,11 @@ export type QuestionType =
   | "TRUE_FALSE"
   | "CORRECT_THE_ERROR";
 export type GradingMode = "AUTO" | "MANUAL";
+export type AnswerSnapshotType =
+  | "SUBMISSION_UPDATE"
+  | "GRADING_UPDATE"
+  | "SCORE_ADJUSTMENT";
+export type ActorRole = "SYSTEM" | "HOST" | "ADMIN";
 export type GamePhase =
   | "WAITING"
   | "WELCOME"
@@ -283,6 +288,12 @@ export interface Team {
   lastAwardedBonusTier?: number; // Track last streak bonus tier awarded (1, 2, or 3)
 }
 
+export interface AdminTeamOption {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface GameState {
   phase: GamePhase;
   currentQuestion: Question | null;
@@ -360,4 +371,57 @@ export interface SocketEvents {
   }) => void;
   JOKER_ERROR: (payload: { message: string }) => void;
   MILESTONES_REVEALED: (payload: { revealedIndices: number[]; totalPoints: number }) => void;
+}
+
+export interface AdminAnswerSnapshot {
+  id: string;
+  answerId: string;
+  competitionId: string;
+  teamId: string;
+  teamName: string;
+  questionId: string;
+  questionText: string;
+  roundId: string;
+  roundTitle: string | null;
+  snapshotType: AnswerSnapshotType;
+  actorRole: ActorRole;
+  submittedContent: AnswerContent;
+  isCorrect: boolean | null;
+  scoreAwarded: number;
+  createdAt: string;
+}
+
+export interface AdminAnswerHistoryRecord {
+  answerId: string;
+  competitionId: string;
+  teamId: string;
+  teamName: string;
+  teamColor: string;
+  questionId: string;
+  questionText: string;
+  roundId: string;
+  roundTitle: string | null;
+  latestSubmittedContent: AnswerContent;
+  latestIsCorrect: boolean | null;
+  latestScoreAwarded: number;
+  snapshots: AdminAnswerSnapshot[];
+}
+
+export interface AdminAnswerHistoryResponse {
+  records: AdminAnswerHistoryRecord[];
+}
+
+export interface AdminUpdateAnswerScoreRequest {
+  competitionId?: string;
+  scoreAwarded: number;
+  reason?: string;
+}
+
+export interface AdminUpdateAnswerScoreResponse {
+  answerId: string;
+  scoreAwarded: number;
+}
+
+export interface AdminTeamMonitorResponse {
+  records: AdminAnswerHistoryRecord[];
 }

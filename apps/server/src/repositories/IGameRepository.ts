@@ -1,4 +1,11 @@
-import { Question, Team, Milestone } from "@quizco/shared";
+import {
+  Question,
+  Team,
+  Milestone,
+  ActorRole,
+  AnswerSnapshotType,
+  AdminAnswerHistoryRecord,
+} from "@quizco/shared";
 
 export interface IGameRepository {
   // Teams
@@ -27,16 +34,44 @@ export interface IGameRepository {
     scoreAwarded: number,
   ): Promise<any>;
   getAnswer(answerId: string): Promise<any>;
+  answerBelongsToCompetition(
+    answerId: string,
+    competitionId: string,
+  ): Promise<boolean>;
   updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
     scoreAwarded: number,
   ): Promise<void>;
+  updateAnswerScore(
+    answerId: string,
+    scoreAwarded: number,
+    actorRole: ActorRole,
+  ): Promise<void>;
+  createAnswerSnapshot(input: {
+    answerId: string;
+    competitionId: string;
+    teamId: string;
+    questionId: string;
+    roundId: string;
+    snapshotType: AnswerSnapshotType;
+    actorRole: ActorRole;
+    submittedContent: unknown;
+    isCorrect: boolean | null;
+    scoreAwarded: number;
+  }): Promise<void>;
   getSubmissionCount(questionId: string): Promise<number>;
 
   // Pending Answers for Host
   getPendingAnswers(competitionId?: string): Promise<any[]>;
   getQuestionAnswers(competitionId: string, questionId: string): Promise<any[]>;
+  getCompetitionAnswerHistory(
+    competitionId: string,
+  ): Promise<AdminAnswerHistoryRecord[]>;
+  getTeamAnswerHistory(
+    competitionId: string,
+    teamId: string,
+  ): Promise<AdminAnswerHistoryRecord[]>;
 
   // Reset
   deleteAnswersForCompetition(competitionId: string): Promise<void>;

@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import type {
   Competition,
-  CompetitionImportDocument,
   Question,
   Round,
+  AdminTeamOption,
+  AdminAnswerHistoryRecord,
+  AdminUpdateAnswerScoreResponse,
+  CompetitionImportDocument,
 } from "@quizco/shared";
 import { API_URL } from "../socket";
 import { createAuthHeaders } from "../auth";
@@ -40,6 +43,20 @@ export interface AdminDataResult {
     questionData: Partial<Question>,
   ) => Promise<void>;
   deleteQuestion: (questionId: string, roundId: string) => Promise<void>;
+  fetchAnswerHistory: (
+    competitionId: string,
+  ) => Promise<AdminAnswerHistoryRecord[]>;
+  fetchCompetitionTeams: (competitionId: string) => Promise<AdminTeamOption[]>;
+  fetchTeamAnswers: (
+    competitionId: string,
+    teamId: string,
+  ) => Promise<AdminAnswerHistoryRecord[]>;
+  updateAnswerScore: (
+    competitionId: string,
+    answerId: string,
+    scoreAwarded: number,
+    reason?: string,
+  ) => Promise<AdminUpdateAnswerScoreResponse | null>;
 }
 
 export function useAdminData(
@@ -283,6 +300,77 @@ export function useAdminData(
       if (response.ok) {
         await fetchQuestions(roundId);
       }
+    },
+    fetchAnswerHistory: async (competitionId: string) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/answer-history`,
+        {
+          headers: createHeaders(),
+        },
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return [];
+      }
+      const data = (await response.json()) as {
+        records?: AdminAnswerHistoryRecord[];
+      };
+      return Array.isArray(data.records) ? data.records : [];
+    },
+    fetchCompetitionTeams: async (competitionId: string) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/teams`,
+        {
+          headers: createHeaders(),
+        },
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return [];
+      }
+      const data = (await response.json()) as { teams?: AdminTeamOption[] };
+      return Array.isArray(data.teams) ? data.teams : [];
+    },
+    fetchTeamAnswers: async (competitionId: string, teamId: string) => {
+      const response = await fetch(
+        `${API_BASE}/competitions/${competitionId}/teams/${teamId}/answers`,
+        {
+          headers: createHeaders(),
+        },
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return [];
+      }
+      const data = (await response.json()) as {
+        records?: AdminAnswerHistoryRecord[];
+      };
+      return Array.isArray(data.records) ? data.records : [];
+    },
+    updateAnswerScore: async (
+      competitionId: string,
+      answerId: string,
+      scoreAwarded: number,
+      reason?: string,
+    ) => {
+      const response = await fetch(`${API_BASE}/answers/${answerId}/score`, {
+        method: "PATCH",
+        headers: createHeaders(true),
+        body: JSON.stringify({ competitionId, scoreAwarded, reason }),
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          onUnauthorized();
+        }
+        return null;
+      }
+      return (await response.json()) as AdminUpdateAnswerScoreResponse;
     },
   };
 }

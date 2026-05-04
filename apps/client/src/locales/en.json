@@ -246,6 +246,37 @@
       "confirm_delete_competition": "Delete this competition?",
       "deactivate": "Deactivate",
       "publish_quiz": "Publish Quiz",
+      "answer_history": {
+        "title": "Answer History",
+        "refresh": "Refresh",
+        "empty": "No submitted answers yet.",
+        "current_answer": "Current answer",
+        "current_status": "Current status",
+        "save_points": "Save points",
+        "show_timeline": "Show timeline",
+        "hide_timeline": "Hide timeline",
+        "snapshot_answer": "Answer",
+        "snapshot_correct": "Correct",
+        "snapshot_points": "Points"
+      },
+      "teams": {
+        "select_competition": "Select competition",
+        "select_team": "Select team",
+        "view_history": "View History",
+        "adjust_points": "Adjust Points",
+        "history_title": "Answer Snapshot Timeline",
+        "adjust_modal_title": "Adjust Awarded Points",
+        "adjust": {
+          "confirm_update": "Confirm update",
+          "submit": "Apply points update",
+          "success": "Points updated successfully.",
+          "error": "Failed to update points.",
+          "validation_required": "Points are required.",
+          "validation_integer": "Points must be an integer.",
+          "validation_no_change": "Enter a different value.",
+          "validation_reason": "Reason is required."
+        }
+      },
       "question_editor": {
         "edit_question": "Edit Question",
         "new_question": "New Question",

@@ -1,4 +1,10 @@
-import { Question, Team } from "@quizco/shared";
+import {
+  Question,
+  Team,
+  ActorRole,
+  AnswerSnapshotType,
+  AdminAnswerHistoryRecord,
+} from "@quizco/shared";
 import { IGameRepository } from "../../repositories/IGameRepository";
 import { v4 as uuidv4 } from "uuid";
 
@@ -6,6 +12,7 @@ export class MockGameRepository implements IGameRepository {
   public teams: Team[] = [];
   public questions: Question[] = [];
   public answers: any[] = [];
+  public answerSnapshots: any[] = [];
 
   async getOrCreateTeam(
     competitionId: string,
@@ -111,6 +118,13 @@ export class MockGameRepository implements IGameRepository {
     return this.answers.find((a) => a.id === answerId);
   }
 
+  async answerBelongsToCompetition(
+    answerId: string,
+    _competitionId: string,
+  ): Promise<boolean> {
+    return this.answers.some((answer) => answer.id === answerId);
+  }
+
   async updateAnswerGrading(
     answerId: string,
     isCorrect: boolean,
@@ -121,6 +135,36 @@ export class MockGameRepository implements IGameRepository {
       answer.isCorrect = isCorrect;
       answer.scoreAwarded = scoreAwarded;
     }
+  }
+
+  async updateAnswerScore(
+    answerId: string,
+    scoreAwarded: number,
+    _actorRole: ActorRole,
+  ): Promise<void> {
+    const answer = this.answers.find((a) => a.id === answerId);
+    if (answer) {
+      answer.scoreAwarded = scoreAwarded;
+    }
+  }
+
+  async createAnswerSnapshot(input: {
+    answerId: string;
+    competitionId: string;
+    teamId: string;
+    questionId: string;
+    roundId: string;
+    snapshotType: AnswerSnapshotType;
+    actorRole: ActorRole;
+    submittedContent: unknown;
+    isCorrect: boolean | null;
+    scoreAwarded: number;
+  }): Promise<void> {
+    this.answerSnapshots.push({
+      id: uuidv4(),
+      ...input,
+      createdAt: new Date().toISOString(),
+    });
   }
 
   async getSubmissionCount(questionId: string): Promise<number> {
@@ -147,6 +191,10 @@ export class MockGameRepository implements IGameRepository {
       .map((a) => {
         const team = this.teams.find((t) => t.id === a.teamId);
         return {
+          answerId: a.id,
+          teamId: a.teamId,
+          questionId: a.questionId,
+          roundId: a.roundId,
           teamName: team?.name,
           color: team?.color,
           submittedContent: a.submittedContent,
@@ -156,8 +204,76 @@ export class MockGameRepository implements IGameRepository {
       });
   }
 
+  async getCompetitionAnswerHistory(
+    competitionId: string,
+  ): Promise<AdminAnswerHistoryRecord[]> {
+    return this.answers.map((answer) => {
+      const team = this.teams.find((teamItem) => teamItem.id === answer.teamId);
+      const question = this.questions.find(
+        (questionItem) => questionItem.id === answer.questionId,
+      );
+      return {
+        answerId: answer.id,
+        competitionId,
+        teamId: answer.teamId,
+        teamName: team?.name ?? "Unknown Team",
+        teamColor: team?.color ?? "",
+        questionId: answer.questionId,
+        questionText: question?.questionText ?? "",
+        roundId: answer.roundId,
+        roundTitle: null,
+        latestSubmittedContent: answer.submittedContent,
+        latestIsCorrect: answer.isCorrect,
+        latestScoreAwarded: answer.scoreAwarded,
+        snapshots: this.answerSnapshots
+          .filter((snapshot) => snapshot.answerId === answer.id)
+          .map((snapshot) => ({
+            ...snapshot,
+            teamName: team?.name ?? "Unknown Team",
+            questionText: question?.questionText ?? "",
+            roundTitle: null,
+          })),
+      };
+    });
+  }
+
+  async getTeamAnswerHistory(
+    competitionId: string,
+    teamId: string,
+  ): Promise<AdminAnswerHistoryRecord[]> {
+    return this.questions.map((question) => {
+      const answer = this.answers.find(
+        (answerItem) => answerItem.questionId === question.id && answerItem.teamId === teamId,
+      );
+      const team = this.teams.find((teamItem) => teamItem.id === teamId);
+      return {
+        answerId: answer?.id ?? question.id,
+        competitionId,
+        teamId,
+        teamName: team?.name ?? "",
+        teamColor: team?.color ?? "",
+        questionId: question.id,
+        questionText: question.questionText,
+        roundId: question.roundId,
+        roundTitle: null,
+        latestSubmittedContent: answer?.submittedContent ?? "",
+        latestIsCorrect: answer?.isCorrect ?? null,
+        latestScoreAwarded: answer?.scoreAwarded ?? 0,
+        snapshots: this.answerSnapshots
+          .filter((snapshot) => answer && snapshot.answerId === answer.id)
+          .map((snapshot) => ({
+            ...snapshot,
+            teamName: team?.name ?? "",
+            questionText: question.questionText,
+            roundTitle: null,
+          })),
+      };
+    });
+  }
+
   async deleteAnswersForCompetition(competitionId: string): Promise<void> {
     this.answers = [];
+    this.answerSnapshots = [];
   }
 
   async getCompetitionMilestones(): Promise<any[]> {
