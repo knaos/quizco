@@ -374,27 +374,34 @@ const questionRenderers: Record<QuestionType, QuestionRenderer> = {
         previewMode
       />
     ),
-    active: ({ question, answer, setAnswer, submitAnswer, testIdPrefix, t }) => (
-      <div className="space-y-6">
-        <ChronologyPlayer
-          key={question.id}
-          content={question.content as ChronologyContent}
-          value={
-            isChronologyAnswer(answer)
-              ? answer
-              : buildEmptyChronologyAnswer(question.content as ChronologyContent)
-          }
-          onChange={(value) => setAnswer(value)}
-        />
-        <Button
-          onClick={() => submitAnswer(answer, true)}
-          data-testid={`${testIdPrefix}-submit-answer`}
-          className="w-full py-6 rounded-3xl text-3xl shadow-xl"
-        >
-          {t("player.submit_answer")}
-        </Button>
-      </div>
-    ),
+    active: ({ question, answer, setAnswer, submitAnswer, testIdPrefix, t }) => {
+      const chronologyContent = question.content as ChronologyContent;
+      const chronologyAnswer = isChronologyAnswer(answer)
+        ? answer
+        : buildEmptyChronologyAnswer(chronologyContent);
+      const isComplete =
+        chronologyAnswer.poolIds.length === 0 &&
+        chronologyAnswer.slotIds.every((slotId) => slotId !== null);
+
+      return (
+        <div className="space-y-6">
+          <ChronologyPlayer
+            key={question.id}
+            content={chronologyContent}
+            value={chronologyAnswer}
+            onChange={(value) => setAnswer(value)}
+          />
+          <Button
+            onClick={() => submitAnswer(chronologyAnswer, true)}
+            disabled={!isComplete}
+            data-testid={`${testIdPrefix}-submit-answer`}
+            className="w-full py-6 rounded-3xl text-3xl shadow-xl"
+          >
+            {t("player.submit_answer")}
+          </Button>
+        </div>
+      );
+    },
     readOnly: ({ question, answer }) => (
       <ChronologyPlayer
         key={question.id}
